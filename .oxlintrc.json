@@ -243,7 +243,6 @@
     "sonarjs/in-operator-type-error": "error",
     "sonarjs/array-callback-without-return": "error",
     "sonarjs/function-return-type": "error",
-    "sonarjs/super-invocation": "error",
     "sonarjs/no-all-duplicated-branches": "error",
     "sonarjs/no-same-line-conditional": "error",
     "sonarjs/no-collection-size-mischeck": "error",
@@ -422,31 +421,43 @@
     {
       "files": ["src/**/*.{js,jsx,ts,tsx}"],
       "rules": {
-        "boundaries/element-types": [
+        "boundaries/dependencies": [
           "error",
           {
             "default": "disallow",
+            "checkInternals": true,
             "rules": [
               {
-                "from": "renderer",
-                "allow": ["renderer", "shared"]
+                "from": { "type": "renderer" },
+                "allow": [
+                  { "to": { "type": "renderer" } },
+                  { "to": { "type": "shared" } }
+                ]
               },
               {
-                "from": "main",
-                "allow": ["main", "shared"]
+                "from": { "type": "main" },
+                "allow": [
+                  { "to": { "type": "main" } },
+                  { "to": { "type": "shared" } }
+                ]
               },
               {
-                "from": "preload",
-                "allow": ["preload", "shared"]
+                "from": { "type": "preload" },
+                "allow": [
+                  { "to": { "type": "preload" } },
+                  { "to": { "type": "shared" } }
+                ]
               },
               {
-                "from": "shared",
-                "allow": ["shared", "main"]
+                "from": { "type": "shared" },
+                "allow": [
+                  { "to": { "type": "shared" } },
+                  { "to": { "type": "main" } }
+                ]
               }
             ]
           }
         ],
-        "boundaries/no-private": "error",
         "@eslint-community/eslint-comments/no-unlimited-disable": "error",
         "@eslint-community/eslint-comments/require-description": [
           "error",
