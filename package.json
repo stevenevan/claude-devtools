@@ -16,25 +16,21 @@
   "bugs": {
     "url": "https://github.com/matt1398/claude-devtools/issues"
   },
-  "main": "dist-electron/main/index.cjs",
   "scripts": {
-    "dev": "electron-vite dev",
-    "build": "electron-vite build",
-    "dist": "electron-builder --mac --win --linux",
-    "dist:mac": "electron-builder --mac --publish always",
-    "dist:mac:arm64": "electron-builder --mac --arm64 ",
-    "dist:mac:x64": "electron-builder --mac --x64 --publish always",
-    "dist:win": "electron-builder --win --publish always",
-    "dist:linux": "electron-builder --linux --publish always",
-    "preview": "electron-vite preview",
+    "dev": "tauri dev",
+    "dev:frontend": "vite dev",
+    "build": "bun run build:sidecar && tauri build",
+    "build:frontend": "vite build",
+    "build:sidecar": "vite build --config vite.sidecar.config.ts && node scripts/bundle-sidecar.js",
+    "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint src/",
     "lint:fix": "oxlint src/ --fix",
     "format": "oxfmt src/",
     "format:check": "oxfmt --check src/",
-    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
-    "fix": "pnpm lint:fix && pnpm format",
-    "quality": "pnpm check && pnpm format:check && npx knip",
+    "check": "bun run typecheck && bun run lint && bun run test && bun run build:frontend",
+    "fix": "bun run lint:fix && bun run format",
+    "quality": "bun run check && bun run format:check && bunx knip",
     "test:chunks": "tsx test/test-chunk-building.ts",
     "test:semantic": "tsx test/test-semantic-steps.ts",
     "test:noise": "tsx test/test-noise-filtering.ts",
@@ -44,7 +40,7 @@
     "test:coverage": "vitest run --coverage",
     "test:coverage:critical": "vitest run --coverage --config vitest.critical.config.ts",
     "standalone": "tsx src/main/standalone.ts",
-    "standalone:build": "electron-vite build && vite build --config vite.standalone.config.ts",
+    "standalone:build": "vite build && vite build --config vite.sidecar.config.ts",
     "standalone:start": "node dist-standalone/index.cjs"
   },
   "dependencies": {
@@ -54,8 +50,14 @@
     "@fastify/cors": "^11.2.0",
     "@fastify/static": "^9.0.0",
     "@tanstack/react-virtual": "^3.13.23",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-autostart": "^2",
+    "@tauri-apps/plugin-dialog": "^2",
+    "@tauri-apps/plugin-notification": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-process": "^2",
+    "@tauri-apps/plugin-shell": "^2",
     "date-fns": "^4.1.0",
-    "electron-updater": "^6.8.3",
     "fastify": "^5.8.2",
     "idb-keyval": "^6.2.2",
     "lucide-react": "^0.577.0",
@@ -74,6 +76,7 @@
     "@eslint-community/eslint-plugin-eslint-comments": "^4.7.1",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.2.2",
+    "@tauri-apps/cli": "^2",
     "@types/hast": "^3.0.4",
     "@types/mdast": "^4.0.4",
     "@types/node": "^25.5.0",
@@ -82,12 +85,9 @@
     "@types/ssh2": "^1.15.5",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.0",
-    "electron": "^41.0.3",
-    "electron-builder": "^26.8.1",
-    "electron-vite": "^5.0.0",
-    "eslint-plugin-boundaries": "^5.4.0",
-    "eslint-plugin-security": "^3.0.1",
-    "eslint-plugin-sonarjs": "^3.0.7",
+    "eslint-plugin-boundaries": "^6.0.1",
+    "eslint-plugin-security": "^4.0.0",
+    "eslint-plugin-sonarjs": "^4.0.2",
     "happy-dom": "^20.8.4",
     "knip": "^5.88.1",
     "oxfmt": "^0.41.0",
@@ -98,72 +98,5 @@
     "typescript": "^5.9.3",
     "vite": "^8.0.1",
     "vitest": "^4.1.0"
-  },
-  "build": {
-    "appId": "com.claudecode.context",
-    "productName": "claude-devtools",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "out/renderer/**",
-      "dist-electron/**",
-      "package.json"
-    ],
-    "asar": true,
-    "asarUnpack": [
-      "out/renderer/**"
-    ],
-    "npmRebuild": false,
-    "extraMetadata": {
-      "main": "dist-electron/main/index.cjs"
-    },
-    "mac": {
-      "category": "public.app-category.developer-tools",
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "notarize": true,
-      "entitlements": "resources/entitlements.mac.plist",
-      "entitlementsInherit": "resources/entitlements.mac.inherit.plist",
-      "icon": "resources/icons/mac/icon.icns"
-    },
-    "dmg": {
-      "sign": false
-    },
-    "win": {
-      "target": [
-        "nsis"
-      ],
-      "icon": "resources/icons/win/icon.ico"
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb",
-        "rpm",
-        "pacman"
-      ],
-      "icon": "resources/icons/png",
-      "category": "Development"
-    },
-    "deb": {
-      "afterInstall": "resources/afterInstall.sh"
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true
-    },
-    "publish": [
-      {
-        "provider": "github",
-        "releaseType": "draft"
-      }
-    ]
-  },
-  "packageManager": "pnpm@10.25.0+sha512.5e82639027af37cf832061bcc6d639c219634488e0f2baebe785028a793de7b525ffcd3f7ff574f5e9860654e098fe852ba8ac5dd5cefe1767d23a020a92f501"
+  }
 }

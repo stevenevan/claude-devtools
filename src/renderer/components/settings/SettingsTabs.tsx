@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-import { isElectronMode } from '@renderer/api';
+import { isDesktopMode } from '@renderer/api';
 import { Bell, HardDrive, Server, Settings, Wrench } from 'lucide-react';
 
 export type SettingsSection = 'general' | 'connection' | 'workspace' | 'notifications' | 'advanced';
@@ -30,7 +30,7 @@ export const SettingsTabs = ({
   onSectionChange,
 }: Readonly<SettingsTabsProps>): React.JSX.Element => {
   const [hoveredTab, setHoveredTab] = useState<SettingsSection | null>(null);
-  const isElectron = useMemo(() => isElectronMode(), []);
+  const isElectron = useMemo(() => isDesktopMode(), []);
   const visibleTabs = useMemo(
     () => tabs.filter((tab) => !tab.electronOnly || isElectron),
     [isElectron]

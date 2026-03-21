@@ -1,9 +1,10 @@
 /**
  * Unified API adapter.
  *
- * When running inside Electron, the preload script exposes `window.electronAPI`.
- * When running in a browser (e.g. via the HTTP server), we fall back to an
- * HTTP+SSE client that implements the same interface.
+ * Resolves the appropriate ElectronAPI implementation based on runtime:
+ * 1. Electron: preload script exposes `window.electronAPI`
+ * 2. Tauri: `window.__TAURI__` detected → TauriAPIClient (native + HTTP sidecar)
+ * 3. Browser: HTTP+SSE client for standalone/Docker mode
  *
  * All renderer code should import `api` from this module instead of
  * accessing `window.electronAPI` directly.
@@ -13,6 +14,7 @@
  */
 
 import { HttpAPIClient } from './httpClient';
+import { TauriAPIClient } from './tauriClient';
 
 import type { ElectronAPI } from '@shared/types/api';
 
@@ -33,28 +35,33 @@ function getHttpBaseUrl(): string {
 }
 
 let httpClient: HttpAPIClient | null = null;
+let tauriClient: TauriAPIClient | null = null;
 
 function getImpl(): ElectronAPI {
+  // 1. Electron mode (preload bridge)
   if (window.electronAPI) return window.electronAPI;
-  // Lazily create the HTTP client only when actually needed (browser mode).
-  // Caching avoids creating multiple EventSource connections.
+  // 2. Tauri mode (sidecar + native plugins)
+  if (window.__TAURI__) {
+    if (!tauriClient) {
+      tauriClient = new TauriAPIClient(window.__SIDECAR_PORT__);
+    }
+    return tauriClient;
+  }
+  // 3. Browser/standalone mode (pure HTTP+SSE)
   if (!httpClient) {
     httpClient = new HttpAPIClient(getHttpBaseUrl());
   }
   return httpClient;
 }
 
-/**
- * Proxy that lazily resolves the underlying ElectronAPI on first property access.
- * In Electron: delegates to `window.electronAPI` (set by preload).
- * In browser: delegates to `HttpAPIClient` (created on first use).
- * In tests: delegates to whatever mock is installed on `window.electronAPI`.
- */
-/**
- * Whether the app is running inside Electron (true) or in a browser via HTTP server (false).
- * Use this to hide Electron-only UI (settings, traffic lights, etc.) in browser mode.
- */
+/** True when running inside Electron (preload bridge available). */
 export const isElectronMode = (): boolean => !!window.electronAPI;
+
+/** True when running inside Tauri. */
+export const isTauriMode = (): boolean => !!window.__TAURI__;
+
+/** True when running as a desktop app (Electron or Tauri), false for browser/standalone. */
+export const isDesktopMode = (): boolean => !!window.electronAPI || !!window.__TAURI__;
 
 export const api: ElectronAPI = new Proxy({} as ElectronAPI, {
   get(_target, prop, receiver) {

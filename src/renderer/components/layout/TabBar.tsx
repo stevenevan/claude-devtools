@@ -11,7 +11,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useDroppable } from '@dnd-kit/core';
 import { horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
-import { isElectronMode } from '@renderer/api';
+import { isDesktopMode } from '@renderer/api';
 import { HEADER_ROW1_HEIGHT } from '@renderer/constants/layout';
 import { useStore } from '@renderer/store';
 import { formatShortcut } from '@renderer/utils/stringUtils';
@@ -263,7 +263,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
             sidebarCollapsed && isLeftmostPane
               ? 'var(--macos-traffic-light-padding-left, 72px)'
               : '8px',
-          WebkitAppRegion: isElectronMode() && isLeftmostPane ? 'drag' : undefined,
+          WebkitAppRegion: isDesktopMode() && isLeftmostPane ? 'drag' : undefined,
           backgroundColor: 'var(--color-surface)',
           borderBottom: '1px solid var(--color-border)',
           opacity: isFocused || paneCount === 1 ? 1 : 0.7,
@@ -349,7 +349,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         className="flex-1 self-stretch"
         style={
           {
-            WebkitAppRegion: isElectronMode() && isLeftmostPane ? 'drag' : undefined,
+            WebkitAppRegion: isDesktopMode() && isLeftmostPane ? 'drag' : undefined,
           } as React.CSSProperties
         }
       />

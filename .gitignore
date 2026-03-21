@@ -9,6 +9,11 @@ out/
 release/
 coverage/
 
+# Tauri
+src-tauri/target/
+src-tauri/gen/
+src-tauri/sidecar/
+
 # IDE
 .vscode/
 .idea/

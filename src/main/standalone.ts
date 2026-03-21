@@ -1,15 +1,18 @@
 /**
  * Standalone (non-Electron) entry point for claude-devtools.
  *
- * Runs the HTTP server + API without Electron, suitable for Docker
- * or any headless/remote environment. The renderer is served as
- * static files over HTTP.
+ * Runs the HTTP server + API without Electron, suitable for Docker,
+ * Tauri sidecar, or any headless/remote environment. The renderer
+ * is served as static files over HTTP.
  *
  * Environment variables:
- * - HOST: Bind address (default '0.0.0.0')
- * - PORT: Listen port (default 3456)
+ * - HOST: Bind address (default '0.0.0.0', sidecar defaults to '127.0.0.1')
+ * - PORT: Listen port (default 3456, use 0 for auto-assign)
  * - CLAUDE_ROOT: Path to .claude directory (default ~/.claude)
  * - CORS_ORIGIN: CORS origin policy (default '*')
+ *
+ * CLI arguments:
+ * - --port <number>: Override PORT env var (useful for Tauri sidecar)
  */
 
 import { createLogger } from '@shared/utils/logger';
@@ -29,11 +32,25 @@ import type { UpdaterService } from './services/infrastructure/UpdaterService';
 const logger = createLogger('Standalone');
 
 // =============================================================================
+// CLI Argument Parsing
+// =============================================================================
+
+function parseCliPort(): number | undefined {
+  const args = process.argv.slice(2);
+  const portIdx = args.indexOf('--port');
+  if (portIdx !== -1 && portIdx + 1 < args.length) {
+    const val = parseInt(args[portIdx + 1], 10);
+    if (!Number.isNaN(val)) return val;
+  }
+  return undefined;
+}
+
+// =============================================================================
 // Configuration
 // =============================================================================
 
 const HOST = process.env.HOST ?? '0.0.0.0';
-const PORT = parseInt(process.env.PORT ?? '3456', 10);
+const PORT = parseCliPort() ?? parseInt(process.env.PORT ?? '3456', 10);
 const CLAUDE_ROOT = process.env.CLAUDE_ROOT;
 
 // Default CORS to allow all in standalone mode (Docker isolation replaces CORS)
@@ -153,6 +170,11 @@ async function start(): Promise<void> {
 
   // Start the server
   const port = await httpServer.start(services, modeSwitchHandler, PORT, HOST);
+
+  // Print port to stdout for Tauri sidecar discovery.
+  // This MUST be a raw stdout write (not logger) so the Rust side can parse it.
+  process.stdout.write(`SIDECAR_PORT=${port}\n`);
+
   logger.info(`Standalone server running at http://${HOST}:${port}`);
   logger.info('Open in your browser to view Claude Code sessions');
 }

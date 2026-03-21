@@ -7,22 +7,22 @@ Electron 28.x, React 18.x, TypeScript 5.x, Tailwind CSS 4.x, Zustand 5.x
 Linting: oxlint, Formatting: oxfmt
 
 ## Commands
-Always use pnpm (not npm/yarn) for this project.
+Always use bun (not npm/yarn/pnpm) for this project.
 
-- `pnpm install` - Install dependencies
-- `pnpm dev` - Dev server with hot reload
-- `pnpm build` - Production build
-- `pnpm typecheck` - Type checking
-- `pnpm lint:fix` - Lint and auto-fix
-- `pnpm format` - Format code
-- `pnpm test` - Run all vitest tests
-- `pnpm test:watch` - Watch mode
-- `pnpm test:coverage` - Coverage report
-- `pnpm test:coverage:critical` - Critical path coverage
-- `pnpm test:chunks` - Chunk building tests
-- `pnpm test:semantic` - Semantic step extraction tests
-- `pnpm test:noise` - Noise filtering tests
-- `pnpm test:task-filtering` - Task tool filtering tests
+- `bun install` - Install dependencies
+- `bun run dev` - Dev server with hot reload
+- `bun run build` - Production build
+- `bun run typecheck` - Type checking
+- `bun run lint:fix` - Lint and auto-fix
+- `bun run format` - Format code
+- `bun run test` - Run all vitest tests
+- `bun run test:watch` - Watch mode
+- `bun run test:coverage` - Coverage report
+- `bun run test:coverage:critical` - Critical path coverage
+- `bun run test:chunks` - Chunk building tests
+- `bun run test:semantic` - Semantic step extraction tests
+- `bun run test:noise` - Noise filtering tests
+- `bun run test:task-filtering` - Task tool filtering tests
 
 ## Path Aliases
 Use path aliases for imports:
@@ -97,13 +97,13 @@ Tracks what consumes tokens in Claude's context window across 6 categories (disc
 ### Build Issues
 ```bash
 rm -rf dist dist-electron node_modules
-pnpm install
-pnpm build
+bun install
+bun run build
 ```
 
 ### Type Errors
 ```bash
-pnpm typecheck
+bun run typecheck
 ```
 
 ### Test Failures

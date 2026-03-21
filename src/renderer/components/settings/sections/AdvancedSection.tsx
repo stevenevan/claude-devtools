@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { api, isElectronMode } from '@renderer/api';
+import { api, isDesktopMode } from '@renderer/api';
 import appIcon from '@renderer/favicon.png';
 import { useStore } from '@renderer/store';
 import { CheckCircle, Code2, Download, Loader2, RefreshCw, Upload } from 'lucide-react';
@@ -26,7 +26,7 @@ export const AdvancedSection = ({
   onImportConfig,
   onOpenInEditor,
 }: AdvancedSectionProps): React.JSX.Element => {
-  const isElectron = useMemo(() => isElectronMode(), []);
+  const isElectron = useMemo(() => isDesktopMode(), []);
   const [version, setVersion] = useState<string>('');
   const updateStatus = useStore((s) => s.updateStatus);
   const availableVersion = useStore((s) => s.availableVersion);

@@ -7,7 +7,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { isElectronMode } from '@renderer/api';
+import { api, isDesktopMode } from '@renderer/api';
 import faviconUrl from '@renderer/favicon.png';
 import { useStore } from '@renderer/store';
 import { Minus, Square, X } from 'lucide-react';
@@ -15,7 +15,7 @@ import { Minus, Square, X } from 'lucide-react';
 const TITLE_BAR_HEIGHT = 32;
 
 function needsCustomTitleBar(): boolean {
-  if (!isElectronMode()) return false;
+  if (!isDesktopMode()) return false;
   const ua = window.navigator.userAgent;
   return ua.includes('Windows') || ua.includes('Linux');
 }
@@ -24,15 +24,15 @@ export const CustomTitleBar = (): React.JSX.Element | null => {
   const [isMaximized, setIsMaximized] = useState(false);
   const useNativeTitleBar = useStore((s) => s.appConfig?.general?.useNativeTitleBar ?? false);
   const showTitleBar = needsCustomTitleBar() && !useNativeTitleBar;
-  const api = typeof window !== 'undefined' ? window.electronAPI?.windowControls : null;
+  const windowApi = typeof window !== 'undefined' ? api.windowControls : null;
 
   useEffect(() => {
-    if (api) void api.isMaximized().then(setIsMaximized);
-  }, [api]);
+    if (windowApi) void windowApi.isMaximized().then(setIsMaximized);
+  }, [windowApi]);
 
-  if (!showTitleBar || !api) return null;
+  if (!showTitleBar || !windowApi) return null;
 
-  const { minimize, maximize, close, isMaximized: getIsMaximized } = api;
+  const { minimize, maximize, close, isMaximized: getIsMaximized } = windowApi;
 
   const handleMaximize = async (): Promise<void> => {
     await maximize();

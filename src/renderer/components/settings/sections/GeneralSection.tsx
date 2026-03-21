@@ -4,7 +4,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { api, isElectronMode } from '@renderer/api';
+import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { useStore } from '@renderer/store';
 import { getFullResetState } from '@renderer/store/utils/stateResetHelpers';
@@ -246,7 +246,7 @@ export const GeneralSection = ({
   const isWindowsStyleDefaultPath =
     /^[a-zA-Z]:\\/.test(defaultClaudeRootPath) || defaultClaudeRootPath.startsWith('\\\\');
 
-  const isElectron = useMemo(() => isElectronMode(), []);
+  const isElectron = useMemo(() => isDesktopMode(), []);
 
   return (
     <div>

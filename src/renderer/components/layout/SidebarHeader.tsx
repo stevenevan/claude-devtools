@@ -13,7 +13,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { isElectronMode } from '@renderer/api';
+import { isDesktopMode } from '@renderer/api';
 import { HEADER_ROW1_HEIGHT, HEADER_ROW2_HEIGHT } from '@renderer/constants/layout';
 import { useStore } from '@renderer/store';
 import { formatShortcut, truncateMiddle } from '@renderer/utils/stringUtils';
@@ -196,7 +196,7 @@ const ProjectDropdownItem = ({
 
 export const SidebarHeader = (): React.JSX.Element => {
   const isMacElectron =
-    isElectronMode() && window.navigator.userAgent.toLowerCase().includes('mac');
+    isDesktopMode() && window.navigator.userAgent.toLowerCase().includes('mac');
 
   const {
     repositoryGroups,
