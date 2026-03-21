@@ -119,7 +119,7 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
     : `${currentSearchIndex + 1} of ${searchResultCount}`;
 
   return (
-    <div className="absolute right-4 top-2 z-20 flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 shadow-lg">
+    <div className="border-border bg-surface absolute top-2 right-4 z-20 flex items-center gap-2 rounded-lg border px-3 py-2 shadow-lg">
       {/* Search input */}
       <input
         ref={inputRef}
@@ -128,12 +128,12 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
         onChange={(e) => handleChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Find in conversation..."
-        className="w-48 rounded-sm border border-border bg-surface-raised px-3 py-1.5 text-sm text-text focus:border-text-secondary focus:outline-hidden"
+        className="border-border bg-surface-raised text-text focus:border-text-secondary w-48 rounded-sm border px-3 py-1.5 text-sm focus:outline-hidden"
       />
 
       {/* Result count */}
       {searchQuery && (
-        <span className="whitespace-nowrap text-xs text-text-secondary">
+        <span className="text-text-secondary text-xs whitespace-nowrap">
           {searchResultCount > 0 ? resultLabel : 'No results'}
         </span>
       )}
@@ -143,7 +143,7 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
         <button
           onClick={previousSearchResult}
           disabled={searchResultCount === 0}
-          className="rounded-sm p-1 text-text-secondary transition-colors hover:bg-surface-raised hover:text-text disabled:cursor-not-allowed disabled:opacity-30"
+          className="text-text-secondary hover:bg-surface-raised hover:text-text rounded-sm p-1 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
           title="Previous result (Shift+Enter)"
         >
           <ChevronUp className="size-4" />
@@ -151,7 +151,7 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
         <button
           onClick={nextSearchResult}
           disabled={searchResultCount === 0}
-          className="rounded-sm p-1 text-text-secondary transition-colors hover:bg-surface-raised hover:text-text disabled:cursor-not-allowed disabled:opacity-30"
+          className="text-text-secondary hover:bg-surface-raised hover:text-text rounded-sm p-1 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
           title="Next result (Enter)"
         >
           <ChevronDown className="size-4" />
@@ -161,7 +161,7 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
       {/* Close button */}
       <button
         onClick={hideSearch}
-        className="rounded-sm p-1 text-text-secondary transition-colors hover:bg-surface-raised hover:text-text"
+        className="text-text-secondary hover:bg-surface-raised hover:text-text rounded-sm p-1 transition-colors"
         title="Close (Esc)"
       >
         <X className="size-4" />

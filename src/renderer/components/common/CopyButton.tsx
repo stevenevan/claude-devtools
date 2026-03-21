@@ -57,7 +57,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
   }
 
   return (
-    <div className="pointer-events-none absolute right-0 top-0 z-10 flex opacity-0 transition-opacity group-hover:opacity-100">
+    <div className="pointer-events-none absolute top-0 right-0 z-10 flex opacity-0 transition-opacity group-hover:opacity-100">
       {/* Gradient fade from transparent to bgColor so text isn't obscured */}
       <div
         className="w-8 self-stretch"

@@ -46,7 +46,7 @@ const SystemChatGroupInner = ({
           style={{ backgroundColor: 'var(--chat-system-bg)' }}
         >
           <pre
-            className="whitespace-pre-wrap font-mono text-sm"
+            className="font-mono text-sm whitespace-pre-wrap"
             style={{ color: 'var(--chat-system-text)' }}
           >
             {cleanOutput}

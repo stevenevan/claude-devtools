@@ -9,10 +9,11 @@
  * - Link subagents to parent Task tool calls
  */
 
+import * as path from 'path';
+
 import { type ParsedMessage, type Process, type SessionMetrics, type ToolCall } from '@main/types';
 import { calculateMetrics, checkMessagesOngoing, parseJsonlFile } from '@main/utils/jsonl';
 import { createLogger } from '@shared/utils/logger';
-import * as path from 'path';
 
 import { type ProjectScanner } from './ProjectScanner';
 

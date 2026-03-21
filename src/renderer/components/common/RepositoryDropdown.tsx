@@ -111,7 +111,7 @@ export const RepositoryDropdown = ({
         type="button"
         onClick={() => !disabled && !isEmpty && setIsOpen(!isOpen)}
         disabled={disabled || isEmpty}
-        className={`flex w-full items-center justify-between gap-2 rounded-sm border border-border bg-transparent px-2 py-1.5 text-xs text-text-secondary transition-colors hover:bg-surface-raised ${disabled || isEmpty ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} `}
+        className={`border-border text-text-secondary hover:bg-surface-raised flex w-full items-center justify-between gap-2 rounded-sm border bg-transparent px-2 py-1.5 text-xs transition-colors ${disabled || isEmpty ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} `}
       >
         <span className="flex items-center gap-2">
           <FolderOpen className="size-3" />
@@ -125,7 +125,7 @@ export const RepositoryDropdown = ({
       {/* Dropdown Menu */}
       {isOpen && !isEmpty && (
         <div
-          className={`absolute inset-x-0 z-50 max-h-64 overflow-y-auto rounded-sm border border-border bg-surface-overlay py-1 shadow-lg ${dropUp ? 'bottom-full mb-1' : 'top-full mt-1'} `}
+          className={`border-border bg-surface-overlay absolute inset-x-0 z-50 max-h-64 overflow-y-auto rounded-sm border py-1 shadow-lg ${dropUp ? 'bottom-full mb-1' : 'top-full mt-1'} `}
         >
           {availableItems.map((item) => (
             <RepositoryDropdownItemComponent
@@ -154,23 +154,23 @@ const RepositoryDropdownItemComponentInner = ({
     <button
       type="button"
       onClick={onSelect}
-      className="flex w-full items-center gap-2 px-2 py-1.5 text-left transition-colors hover:bg-surface-raised"
+      className="hover:bg-surface-raised flex w-full items-center gap-2 px-2 py-1.5 text-left transition-colors"
     >
       <FolderOpen className="size-3 shrink-0 text-indigo-400" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <span className="truncate text-xs text-text">{item.name}</span>
+          <span className="text-text truncate text-xs">{item.name}</span>
           {item.worktreeCount > 1 && (
-            <span className="flex shrink-0 items-center gap-0.5 rounded-sm bg-surface-raised px-1 py-0.5 text-[10px] text-text-muted">
+            <span className="bg-surface-raised text-text-muted flex shrink-0 items-center gap-0.5 rounded-sm px-1 py-0.5 text-[10px]">
               <GitBranch className="size-2.5" />
               {item.worktreeCount}
             </span>
           )}
-          <span className="shrink-0 text-[10px] text-text-muted">
+          <span className="text-text-muted shrink-0 text-[10px]">
             {item.totalSessions} session{item.totalSessions !== 1 ? 's' : ''}
           </span>
         </div>
-        <span className="block truncate text-[10px] text-text-muted">{item.path}</span>
+        <span className="text-text-muted block truncate text-[10px]">{item.path}</span>
       </div>
     </button>
   );
@@ -191,19 +191,19 @@ const SelectedRepositoryItemInner = ({
   disabled?: boolean;
 }>): React.JSX.Element => {
   return (
-    <div className="flex items-center gap-2 border-b border-border-subtle py-1.5">
+    <div className="border-border-subtle flex items-center gap-2 border-b py-1.5">
       <FolderOpen className="size-3 shrink-0 text-indigo-400" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <span className="truncate text-xs text-text">{item.name}</span>
+          <span className="text-text truncate text-xs">{item.name}</span>
           {item.worktreeCount > 1 && (
-            <span className="flex shrink-0 items-center gap-0.5 rounded-sm bg-surface-raised px-1 py-0.5 text-[10px] text-text-muted">
+            <span className="bg-surface-raised text-text-muted flex shrink-0 items-center gap-0.5 rounded-sm px-1 py-0.5 text-[10px]">
               <GitBranch className="size-2.5" />
               {item.worktreeCount}
             </span>
           )}
         </div>
-        <span className="truncate text-[10px] text-text-muted" title={item.path}>
+        <span className="text-text-muted truncate text-[10px]" title={item.path}>
           {item.path}
         </span>
       </div>
@@ -211,7 +211,7 @@ const SelectedRepositoryItemInner = ({
         type="button"
         onClick={onRemove}
         disabled={disabled}
-        className={`shrink-0 rounded-sm p-1 text-text-muted transition-colors hover:bg-red-500/10 hover:text-red-400 ${disabled ? 'cursor-not-allowed opacity-50' : ''} `}
+        className={`text-text-muted shrink-0 rounded-sm p-1 transition-colors hover:bg-red-500/10 hover:text-red-400 ${disabled ? 'cursor-not-allowed opacity-50' : ''} `}
         aria-label="Remove repository"
       >
         <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

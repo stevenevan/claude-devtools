@@ -8,8 +8,9 @@
  * - Truncating messages for display
  */
 
-import { type ContentBlock, type ParsedMessage } from '@main/types';
 import { randomUUID } from 'crypto';
+
+import { type ContentBlock, type ParsedMessage } from '@main/types';
 
 import { type ExtractedToolResult } from '../analysis/ToolResultExtractor';
 

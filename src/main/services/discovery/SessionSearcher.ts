@@ -11,11 +11,12 @@
  * and SearchTextCache for mtime-based caching of extracted entries.
  */
 
+import * as path from 'path';
+
 import { LocalFileSystemProvider } from '@main/services/infrastructure/LocalFileSystemProvider';
 import { parseJsonlFile } from '@main/utils/jsonl';
 import { extractBaseDir, extractSessionId } from '@main/utils/pathDecoder';
 import { createLogger } from '@shared/utils/logger';
-import * as path from 'path';
 
 import { SearchTextCache } from './SearchTextCache';
 import { extractSearchableEntries } from './SearchTextExtractor';

@@ -218,7 +218,7 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
                 <div key={index} className="flex hover:bg-[var(--color-surface-overlay)]">
                   {/* Line number */}
                   <span
-                    className="w-12 shrink-0 select-none px-3 py-0.5 text-right"
+                    className="w-12 shrink-0 px-3 py-0.5 text-right select-none"
                     style={{
                       color: 'var(--code-line-number)',
                       borderRight: '1px solid var(--code-border)',
@@ -228,7 +228,7 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
                   </span>
                   {/* Code line */}
                   <span
-                    className="flex-1 whitespace-pre px-4 py-0.5"
+                    className="flex-1 px-4 py-0.5 whitespace-pre"
                     style={{ color: 'var(--color-text)' }}
                   >
                     {highlightLine(line, detectedLanguage)}

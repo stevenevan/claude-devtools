@@ -56,19 +56,19 @@ const CommandSearch = ({ value, onChange }: Readonly<CommandSearchProps>): React
     <div className="relative mx-auto w-full max-w-xl">
       {/* Search container with glow effect on focus */}
       <div
-        className={`relative flex items-center gap-3 rounded-xs border bg-surface-raised px-4 py-3 transition-all duration-200 ${
+        className={`bg-surface-raised relative flex items-center gap-3 rounded-xs border px-4 py-3 transition-all duration-200 ${
           isFocused
             ? 'border-zinc-500 shadow-[0_0_20px_rgba(255,255,255,0.04)] ring-1 ring-zinc-600/30'
             : 'border-border hover:border-zinc-600'
         } `}
       >
-        <Search className="size-4 shrink-0 text-text-muted" />
+        <Search className="text-text-muted size-4 shrink-0" />
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="Search projects..."
-          className="flex-1 bg-transparent text-sm text-text outline-hidden placeholder:text-text-muted"
+          className="text-text placeholder:text-text-muted flex-1 bg-transparent text-sm outline-hidden"
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />
@@ -76,12 +76,16 @@ const CommandSearch = ({ value, onChange }: Readonly<CommandSearchProps>): React
         <button
           onClick={() => openCommandPalette()}
           className="flex shrink-0 items-center gap-1 transition-opacity hover:opacity-80"
-          title={selectedProjectId ? `Search in sessions (${formatShortcut('K')})` : `Search projects (${formatShortcut('K')})`}
+          title={
+            selectedProjectId
+              ? `Search in sessions (${formatShortcut('K')})`
+              : `Search projects (${formatShortcut('K')})`
+          }
         >
-          <kbd className="flex h-5 items-center justify-center rounded-sm border border-border bg-surface-overlay px-1.5 text-[10px] font-medium text-text-muted">
+          <kbd className="border-border bg-surface-overlay text-text-muted flex h-5 items-center justify-center rounded-sm border px-1.5 text-[10px] font-medium">
             <Command className="size-2.5" />
           </kbd>
-          <kbd className="flex size-5 items-center justify-center rounded-sm border border-border bg-surface-overlay text-[10px] font-medium text-text-muted">
+          <kbd className="border-border bg-surface-overlay text-text-muted flex size-5 items-center justify-center rounded-sm border text-[10px] font-medium">
             K
           </kbd>
         </button>
@@ -163,29 +167,29 @@ const RepositoryCard = ({
       } `}
     >
       {/* Icon with subtle border */}
-      <div className="mb-3 flex size-8 items-center justify-center rounded-xs border border-border bg-surface-overlay transition-colors duration-300 group-hover:border-border-emphasis">
-        <FolderGit2 className="size-4 text-text-secondary transition-colors group-hover:text-text" />
+      <div className="border-border bg-surface-overlay group-hover:border-border-emphasis mb-3 flex size-8 items-center justify-center rounded-xs border transition-colors duration-300">
+        <FolderGit2 className="text-text-secondary group-hover:text-text size-4 transition-colors" />
       </div>
 
       {/* Project name */}
-      <h3 className="mb-1 truncate text-sm font-medium text-text transition-colors duration-200 group-hover:text-text">
+      <h3 className="text-text group-hover:text-text mb-1 truncate text-sm font-medium transition-colors duration-200">
         {repo.name}
       </h3>
 
       {/* Project path - monospace, muted */}
-      <p className="mb-auto truncate font-mono text-[10px] text-text-muted">{formattedPath}</p>
+      <p className="text-text-muted mb-auto truncate font-mono text-[10px]">{formattedPath}</p>
 
       {/* Meta row: worktrees, sessions, time */}
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {hasMultipleWorktrees && (
-          <span className="inline-flex items-center gap-1 text-[10px] text-text-secondary">
+          <span className="text-text-secondary inline-flex items-center gap-1 text-[10px]">
             <GitBranch className="size-3" />
             {worktreeCount} worktrees
           </span>
         )}
-        <span className="text-[10px] text-text-secondary">{repo.totalSessions} sessions</span>
+        <span className="text-text-secondary text-[10px]">{repo.totalSessions} sessions</span>
         <span className="text-text-muted">·</span>
-        <span className="text-[10px] text-text-muted">{lastActivity}</span>
+        <span className="text-text-muted text-[10px]">{lastActivity}</span>
       </div>
     </button>
   );
@@ -234,14 +238,14 @@ const NewProjectCard = (): React.JSX.Element => {
 
   return (
     <button
-      className="hover:bg-surface/30 group relative flex min-h-[120px] flex-col items-center justify-center rounded-xs border border-dashed border-border bg-transparent p-4 transition-all duration-300 hover:border-border-emphasis"
+      className="hover:bg-surface/30 group border-border hover:border-border-emphasis relative flex min-h-[120px] flex-col items-center justify-center rounded-xs border border-dashed bg-transparent p-4 transition-all duration-300"
       onClick={handleClick}
       title="Select a project folder"
     >
-      <div className="mb-2 flex size-8 items-center justify-center rounded-xs border border-dashed border-border transition-colors duration-300 group-hover:border-border-emphasis">
-        <FolderOpen className="size-4 text-text-muted transition-colors group-hover:text-text-secondary" />
+      <div className="border-border group-hover:border-border-emphasis mb-2 flex size-8 items-center justify-center rounded-xs border border-dashed transition-colors duration-300">
+        <FolderOpen className="text-text-muted group-hover:text-text-secondary size-4 transition-colors" />
       </div>
-      <span className="text-xs text-text-muted transition-colors group-hover:text-text-secondary">
+      <span className="text-text-muted group-hover:text-text-secondary text-xs transition-colors">
         Select Folder
       </span>
     </button>
@@ -306,7 +310,7 @@ const ProjectsGrid = ({
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
-            className="skeleton-card flex min-h-[120px] flex-col rounded-xs border border-border p-4"
+            className="skeleton-card border-border flex min-h-[120px] flex-col rounded-xs border p-4"
             style={{
               animationDelay: `${i * 80}ms`,
               backgroundColor: 'var(--skeleton-base)',
@@ -352,24 +356,24 @@ const ProjectsGrid = ({
 
   if (filteredRepos.length === 0 && searchQuery.trim()) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xs border border-dashed border-border px-8 py-16">
-        <div className="mb-4 flex size-12 items-center justify-center rounded-xs border border-border bg-surface-raised">
-          <Search className="size-6 text-text-muted" />
+      <div className="border-border flex flex-col items-center justify-center rounded-xs border border-dashed px-8 py-16">
+        <div className="border-border bg-surface-raised mb-4 flex size-12 items-center justify-center rounded-xs border">
+          <Search className="text-text-muted size-6" />
         </div>
-        <p className="mb-1 text-sm text-text-secondary">No projects found</p>
-        <p className="text-xs text-text-muted">No matches for &quot;{searchQuery}&quot;</p>
+        <p className="text-text-secondary mb-1 text-sm">No projects found</p>
+        <p className="text-text-muted text-xs">No matches for &quot;{searchQuery}&quot;</p>
       </div>
     );
   }
 
   if (repositoryGroups.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-xs border border-dashed border-border px-8 py-16">
-        <div className="mb-4 flex size-12 items-center justify-center rounded-xs border border-border bg-surface-raised">
-          <FolderGit2 className="size-6 text-text-muted" />
+      <div className="border-border flex flex-col items-center justify-center rounded-xs border border-dashed px-8 py-16">
+        <div className="border-border bg-surface-raised mb-4 flex size-12 items-center justify-center rounded-xs border">
+          <FolderGit2 className="text-text-muted size-6" />
         </div>
-        <p className="mb-1 text-sm text-text-secondary">No projects found</p>
-        <p className="font-mono text-xs text-text-muted">~/.claude/projects/</p>
+        <p className="text-text-secondary mb-1 text-sm">No projects found</p>
+        <p className="text-text-muted font-mono text-xs">~/.claude/projects/</p>
       </div>
     );
   }
@@ -398,7 +402,7 @@ export const DashboardView = (): React.JSX.Element => {
   const openSettingsTab = useStore((s) => s.openSettingsTab);
 
   return (
-    <div className="relative flex-1 overflow-auto bg-surface">
+    <div className="bg-surface relative flex-1 overflow-auto">
       {/* Spotlight gradient background */}
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-[600px] bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(99,102,241,0.08),transparent)]"
@@ -414,21 +418,21 @@ export const DashboardView = (): React.JSX.Element => {
 
         {/* Section header */}
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xs font-medium uppercase tracking-wider text-text-muted">
+          <h2 className="text-text-muted text-xs font-medium tracking-wider uppercase">
             {searchQuery.trim() ? 'Search Results' : 'Recent Projects'}
           </h2>
           <div className="flex items-center gap-3">
             {searchQuery.trim() && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="text-xs text-text-muted transition-colors hover:text-text-secondary"
+                className="text-text-muted hover:text-text-secondary text-xs transition-colors"
               >
                 Clear search
               </button>
             )}
             <button
               onClick={() => openSettingsTab('general')}
-              className="flex items-center gap-1.5 text-xs text-text-muted transition-colors hover:text-text-secondary"
+              className="text-text-muted hover:text-text-secondary flex items-center gap-1.5 text-xs transition-colors"
               title="Change Claude data folder"
             >
               <Settings className="size-3" />

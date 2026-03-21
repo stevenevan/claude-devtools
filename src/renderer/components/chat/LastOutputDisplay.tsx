@@ -1,8 +1,8 @@
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
 
 import { useStore } from '@renderer/store';
 import { AlertTriangle, CheckCircle, FileCheck, XCircle } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -153,7 +153,7 @@ export const LastOutputDisplay = ({
         {/* Content */}
         <div className="px-4 py-3">
           <pre
-            className="max-h-96 overflow-y-auto whitespace-pre-wrap break-words font-mono text-sm"
+            className="max-h-96 overflow-y-auto font-mono text-sm break-words whitespace-pre-wrap"
             style={{ color: 'var(--color-text)' }}
           >
             {lastOutput.toolResult}

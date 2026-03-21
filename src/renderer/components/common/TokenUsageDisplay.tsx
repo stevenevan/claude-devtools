@@ -139,10 +139,10 @@ const SessionContextSection = ({
           <ChevronRight
             className={`size-3 shrink-0 transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`}
           />
-          <span className="whitespace-nowrap text-[10px]">Visible Context</span>
+          <span className="text-[10px] whitespace-nowrap">Visible Context</span>
         </div>
         <span
-          className="whitespace-nowrap text-[10px] tabular-nums"
+          className="text-[10px] whitespace-nowrap tabular-nums"
           style={{ color: COLOR_TEXT_MUTED }}
         >
           {formatTokens(adjustedContextTotal)} ({contextPercent}%)

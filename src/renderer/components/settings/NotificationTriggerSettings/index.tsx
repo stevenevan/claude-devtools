@@ -38,7 +38,7 @@ export const NotificationTriggerSettings = ({
       {builtinTriggers.length > 0 && (
         <div>
           <SectionHeader title="Built-in Triggers" />
-          <p className="mb-4 text-xs text-text-muted">
+          <p className="text-text-muted mb-4 text-xs">
             Default triggers that come with the application. You can enable/disable them and
             customize their patterns.
           </p>
@@ -59,7 +59,7 @@ export const NotificationTriggerSettings = ({
       {/* Custom Triggers */}
       <div>
         <SectionHeader title="Custom Triggers" />
-        <p className="mb-4 text-xs text-text-muted">
+        <p className="text-text-muted mb-4 text-xs">
           Create your own triggers to get notified for specific patterns or tool outputs.
         </p>
 
@@ -78,7 +78,7 @@ export const NotificationTriggerSettings = ({
         )}
 
         {customTriggers.length === 0 && (
-          <p className="mb-4 text-sm italic text-text-muted">No custom triggers configured yet.</p>
+          <p className="text-text-muted mb-4 text-sm italic">No custom triggers configured yet.</p>
         )}
 
         <AddTriggerForm saving={saving} onAdd={onAddTrigger} />

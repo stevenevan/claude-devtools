@@ -7,14 +7,15 @@
  * In development, Vite dev server handles static files.
  */
 
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
+
 import cors from '@fastify/cors';
 import fastifyStatic from '@fastify/static';
 import { type HttpServices, registerHttpRoutes } from '@main/http';
 import { broadcastEvent } from '@main/http/events';
 import { createLogger } from '@shared/utils/logger';
 import Fastify, { type FastifyInstance } from 'fastify';
-import { existsSync, readFileSync } from 'fs';
-import { join } from 'path';
 
 const logger = createLogger('Service:HttpServer');
 

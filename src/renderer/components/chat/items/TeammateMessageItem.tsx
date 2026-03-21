@@ -205,7 +205,7 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
         </span>
 
         {/* "Message" type label — parallels SubagentItem's model info */}
-        <span className="text-[10px] uppercase tracking-wide" style={{ color: CARD_ICON_MUTED }}>
+        <span className="text-[10px] tracking-wide uppercase" style={{ color: CARD_ICON_MUTED }}>
           Message
         </span>
 

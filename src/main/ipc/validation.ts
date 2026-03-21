@@ -7,10 +7,11 @@
  * - session:scrollToLine: Deep link handler for scrolling to a specific line in a session
  */
 
-import { createLogger } from '@shared/utils/logger';
-import { type IpcMain, type IpcMainInvokeEvent } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
+
+import { createLogger } from '@shared/utils/logger';
+import { type IpcMain, type IpcMainInvokeEvent } from 'electron';
 
 const logger = createLogger('IPC:validation');
 

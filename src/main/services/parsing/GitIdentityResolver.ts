@@ -12,6 +12,10 @@
  * - Worktree: .git is a file containing "gitdir: /path/to/main/.git/worktrees/<name>"
  */
 
+import * as crypto from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
+
 import {
   AUTO_CLAUDE_DIR,
   CCSWITCH_DIR,
@@ -26,9 +30,6 @@ import {
 } from '@main/constants/worktreePatterns';
 import { type RepositoryIdentity, type WorktreeSource } from '@main/types';
 import { createLogger } from '@shared/utils/logger';
-import * as crypto from 'crypto';
-import * as fs from 'fs';
-import * as path from 'path';
 
 const logger = createLogger('Service:GitIdentityResolver');
 

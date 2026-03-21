@@ -3,6 +3,7 @@
 UI components organized by feature domain.
 
 ## Structure
+
 ```
 components/
 ├── chat/                    # Session message display
@@ -63,6 +64,7 @@ components/
 ```
 
 ## Adding Components
+
 1. Choose appropriate parent directory by feature
 2. If used across features, place in `common/`
 3. Use Tailwind with theme-aware CSS variables
@@ -70,12 +72,15 @@ components/
 5. Colocate related hooks/utils in same directory
 
 ## Component Guidelines
+
 - One component per file, PascalCase naming
 - Use functional components with hooks
 - Prefer composition over prop drilling
 - Use `TabUIContext` for per-tab UI state
 
 ## Virtual Scrolling
+
 Use `@tanstack/react-virtual` for lists > 100 items:
+
 - Session lists in sidebar
 - Message lists in chat view

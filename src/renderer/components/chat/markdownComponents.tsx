@@ -19,7 +19,7 @@ export function createMarkdownComponents(searchCtx: SearchContext | null): Compo
     // Headings - Bold text with generous spacing to break up content
     h1: ({ children }) => (
       <h1
-        className="mb-3 mt-6 text-lg font-semibold first:mt-0"
+        className="mt-6 mb-3 text-lg font-semibold first:mt-0"
         style={{ color: 'var(--prose-heading)' }}
       >
         {hl(children)}
@@ -27,7 +27,7 @@ export function createMarkdownComponents(searchCtx: SearchContext | null): Compo
     ),
     h2: ({ children }) => (
       <h2
-        className="mb-2 mt-5 text-base font-semibold first:mt-0"
+        className="mt-5 mb-2 text-base font-semibold first:mt-0"
         style={{ color: 'var(--prose-heading)' }}
       >
         {hl(children)}
@@ -35,7 +35,7 @@ export function createMarkdownComponents(searchCtx: SearchContext | null): Compo
     ),
     h3: ({ children }) => (
       <h3
-        className="mb-2 mt-4 text-sm font-semibold first:mt-0"
+        className="mt-4 mb-2 text-sm font-semibold first:mt-0"
         style={{ color: 'var(--prose-heading)' }}
       >
         {hl(children)}
@@ -43,7 +43,7 @@ export function createMarkdownComponents(searchCtx: SearchContext | null): Compo
     ),
     h4: ({ children }) => (
       <h4
-        className="mb-1.5 mt-3 text-sm font-semibold first:mt-0"
+        className="mt-3 mb-1.5 text-sm font-semibold first:mt-0"
         style={{ color: 'var(--prose-heading)' }}
       >
         {hl(children)}
@@ -51,7 +51,7 @@ export function createMarkdownComponents(searchCtx: SearchContext | null): Compo
     ),
     h5: ({ children }) => (
       <h5
-        className="mb-1 mt-2 text-sm font-medium first:mt-0"
+        className="mt-2 mb-1 text-sm font-medium first:mt-0"
         style={{ color: 'var(--prose-heading)' }}
       >
         {hl(children)}
@@ -59,7 +59,7 @@ export function createMarkdownComponents(searchCtx: SearchContext | null): Compo
     ),
     h6: ({ children }) => (
       <h6
-        className="mb-1 mt-2 text-xs font-medium first:mt-0"
+        className="mt-2 mb-1 text-xs font-medium first:mt-0"
         style={{ color: 'var(--prose-heading)' }}
       >
         {hl(children)}

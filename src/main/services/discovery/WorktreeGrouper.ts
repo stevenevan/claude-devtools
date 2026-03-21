@@ -8,6 +8,8 @@
  * - Sort worktrees by main first, then by most recent activity
  */
 
+import * as path from 'path';
+
 import {
   type Project,
   type RepositoryGroup,
@@ -15,7 +17,6 @@ import {
   type Worktree,
 } from '@main/types';
 import { extractBaseDir } from '@main/utils/pathDecoder';
-import * as path from 'path';
 
 import { LocalFileSystemProvider } from '../infrastructure/LocalFileSystemProvider';
 import { gitIdentityResolver } from '../parsing/GitIdentityResolver';
@@ -135,33 +136,35 @@ export class WorktreeGrouper {
     const repositoryGroups: RepositoryGroup[] = [];
 
     for (const [groupId, group] of repoGroups) {
-      const worktrees: Worktree[] = await Promise.all(group.projects.map(async (project) => {
-        const branch = group.branches.get(project.id) ?? null;
-        const isMainWorktree = !(await gitIdentityResolver.isWorktree(project.path));
-        // Use filtered sessions instead of raw sessions
-        const filteredSessions = projectFilteredSessions.get(project.id) ?? [];
-        // Detect worktree source for badge display
-        const source = await gitIdentityResolver.detectWorktreeSource(project.path);
-        // Use source-aware display name generation
-        const displayName = await gitIdentityResolver.getWorktreeDisplayName(
-          project.path,
-          source,
-          branch,
-          isMainWorktree
-        );
+      const worktrees: Worktree[] = await Promise.all(
+        group.projects.map(async (project) => {
+          const branch = group.branches.get(project.id) ?? null;
+          const isMainWorktree = !(await gitIdentityResolver.isWorktree(project.path));
+          // Use filtered sessions instead of raw sessions
+          const filteredSessions = projectFilteredSessions.get(project.id) ?? [];
+          // Detect worktree source for badge display
+          const source = await gitIdentityResolver.detectWorktreeSource(project.path);
+          // Use source-aware display name generation
+          const displayName = await gitIdentityResolver.getWorktreeDisplayName(
+            project.path,
+            source,
+            branch,
+            isMainWorktree
+          );
 
-        return {
-          id: project.id,
-          path: project.path,
-          name: displayName,
-          gitBranch: branch ?? undefined,
-          isMainWorktree,
-          source,
-          sessions: filteredSessions,
-          createdAt: project.createdAt,
-          mostRecentSession: project.mostRecentSession,
-        };
-      }));
+          return {
+            id: project.id,
+            path: project.path,
+            name: displayName,
+            gitBranch: branch ?? undefined,
+            isMainWorktree,
+            source,
+            sessions: filteredSessions,
+            createdAt: project.createdAt,
+            mostRecentSession: project.mostRecentSession,
+          };
+        })
+      );
 
       // Filter out worktrees with 0 visible sessions
       const nonEmptyWorktrees = worktrees.filter((wt) => wt.sessions.length > 0);

@@ -26,9 +26,9 @@ export const GeneralInfoSection = ({
       <SectionHeader title="General Info" />
 
       {/* Trigger Name */}
-      <div className="border-b border-border-subtle py-2">
+      <div className="border-border-subtle border-b py-2">
         <div className="mb-2 flex items-center justify-between">
-          <label htmlFor="new-trigger-name" className="text-sm text-text-secondary">
+          <label htmlFor="new-trigger-name" className="text-text-secondary text-sm">
             Trigger Name *
           </label>
         </div>
@@ -40,13 +40,13 @@ export const GeneralInfoSection = ({
           placeholder="e.g., Build Failure Alert"
           disabled={saving}
           required
-          className={`w-full rounded-sm border border-border bg-transparent px-2 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-transparent focus:outline-hidden focus:ring-1 focus:ring-indigo-500 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
+          className={`border-border text-text placeholder:text-text-muted w-full rounded-sm border bg-transparent px-2 py-1.5 text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
         />
       </div>
 
       {/* Scope/Tool Name */}
-      <div className="flex items-center justify-between border-b border-border-subtle py-2">
-        <label htmlFor="new-trigger-tool-name" className="text-sm text-text-secondary">
+      <div className="border-border-subtle flex items-center justify-between border-b py-2">
+        <label htmlFor="new-trigger-tool-name" className="text-text-secondary text-sm">
           Scope / Tool Name (optional)
         </label>
         <select
@@ -54,7 +54,7 @@ export const GeneralInfoSection = ({
           value={toolName}
           onChange={(e) => onToolNameChange(e.target.value)}
           disabled={saving}
-          className={`rounded-sm border border-border bg-transparent px-2 py-1 text-sm text-text focus:border-transparent focus:outline-hidden focus:ring-1 focus:ring-indigo-500 ${saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} `}
+          className={`border-border text-text rounded-sm border bg-transparent px-2 py-1 text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden ${saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} `}
         >
           {TOOL_NAME_OPTIONS.map((option) => (
             <option key={option.value} value={option.value} className="bg-[#141416]">

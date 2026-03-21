@@ -712,7 +712,7 @@ function computeContextStats(params: ComputeContextStatsParams): ContextStats {
       const fileInfo = mentionedFileTokenData?.get(absolutePath);
 
       // Only include files that exist and are under the token limit
-      if (fileInfo && fileInfo.exists && fileInfo.estimatedTokens <= MAX_MENTIONED_FILE_TOKENS) {
+      if (fileInfo?.exists && fileInfo.estimatedTokens <= MAX_MENTIONED_FILE_TOKENS) {
         const mentionedFileInjection = createMentionedFileInjection({
           path: absolutePath,
           displayName: fileRef.path, // Use original path for display
@@ -742,7 +742,7 @@ function computeContextStats(params: ComputeContextStatsParams): ContextStats {
 
     const fileInfo = mentionedFileTokenData?.get(absolutePath);
 
-    if (fileInfo && fileInfo.exists && fileInfo.estimatedTokens <= MAX_MENTIONED_FILE_TOKENS) {
+    if (fileInfo?.exists && fileInfo.estimatedTokens <= MAX_MENTIONED_FILE_TOKENS) {
       const mentionedFileInjection = createMentionedFileInjection({
         path: absolutePath,
         displayName: fileRef.path,

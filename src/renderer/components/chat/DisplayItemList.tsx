@@ -89,7 +89,7 @@ export const DisplayItemList = React.memo(function DisplayItemList({
 
   if (!items || items.length === 0) {
     return (
-      <div className="px-3 py-2 text-sm italic text-claude-dark-text-secondary">
+      <div className="text-claude-dark-text-secondary px-3 py-2 text-sm italic">
         No items to display
       </div>
     );

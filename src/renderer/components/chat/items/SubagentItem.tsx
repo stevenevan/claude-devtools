@@ -314,7 +314,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
           </span>
         ) : (
           <span
-            className="rounded-sm px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide"
+            className="rounded-sm px-1.5 py-0.5 text-[10px] font-medium tracking-wide uppercase"
             style={{
               backgroundColor: typeColors!.badge,
               color: typeColors!.text,
@@ -415,7 +415,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
             <div className="pt-2">
               {/* Overline title */}
               <div
-                className="mb-2 text-[10px] font-semibold uppercase tracking-wider"
+                className="mb-2 text-[10px] font-semibold tracking-wider uppercase"
                 style={{ color: CARD_ICON_MUTED }}
               >
                 Context Usage

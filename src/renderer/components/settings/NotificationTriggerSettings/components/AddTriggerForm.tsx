@@ -123,20 +123,20 @@ export const AddTriggerForm = ({
   };
 
   return (
-    <div className="border-t border-border-subtle">
+    <div className="border-border-subtle border-t">
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between py-3 transition-colors hover:bg-surface-raised"
+        className="hover:bg-surface-raised flex w-full items-center justify-between py-3 transition-colors"
       >
         <div className="flex items-center gap-2">
           <Plus className="size-4 text-indigo-400" />
-          <span className="text-sm font-medium text-text">Add Custom Trigger</span>
+          <span className="text-text text-sm font-medium">Add Custom Trigger</span>
         </div>
         {isExpanded ? (
-          <ChevronUp className="size-4 text-text-muted" />
+          <ChevronUp className="text-text-muted size-4" />
         ) : (
-          <ChevronDown className="size-4 text-text-muted" />
+          <ChevronDown className="text-text-muted size-4" />
         )}
       </button>
 
@@ -213,14 +213,14 @@ export const AddTriggerForm = ({
               type="button"
               onClick={handlers.handleCancel}
               disabled={saving}
-              className={`rounded-sm bg-surface-raised px-3 py-1.5 text-sm text-text-secondary transition-colors hover:bg-surface-overlay ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
+              className={`bg-surface-raised text-text-secondary hover:bg-surface-overlay rounded-sm px-3 py-1.5 text-sm transition-colors ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving || !name.trim() || !!patternError}
-              className={`flex items-center gap-2 rounded-sm bg-indigo-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-indigo-600 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-[#141416] ${saving || !name.trim() || !!patternError ? 'cursor-not-allowed opacity-50' : ''} `}
+              className={`flex items-center gap-2 rounded-sm bg-indigo-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-indigo-600 focus:ring-1 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-[#141416] focus:outline-hidden ${saving || !name.trim() || !!patternError ? 'cursor-not-allowed opacity-50' : ''} `}
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
               Add Trigger

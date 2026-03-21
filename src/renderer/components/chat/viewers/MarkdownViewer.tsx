@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactMarkdown, { type Components } from 'react-markdown';
 
 import { api } from '@renderer/api';
 import { CopyButton } from '@renderer/components/common/CopyButton';
@@ -24,12 +23,12 @@ import {
 } from '@renderer/constants/cssVariables';
 import { useStore } from '@renderer/store';
 import { FileText } from 'lucide-react';
+import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useShallow } from 'zustand/react/shallow';
 
 import {
   createSearchContext,
-  EMPTY_SEARCH_MATCHES,
   highlightSearchInChildren,
   type SearchContext,
 } from '../searchHighlightUtils';
@@ -150,7 +149,9 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
       } = props as {
         className?: string;
         children?: React.ReactNode;
-        node?: { position?: { start: { line: number }; end: { line: number } } };
+        node?: {
+          position?: { start: { line: number }; end: { line: number } };
+        };
       };
       const hasLanguage = codeClassName?.includes('language-');
       const isMultiLine =

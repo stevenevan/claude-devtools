@@ -2,9 +2,10 @@
  * Metadata extraction utilities for parsing first messages and session context from JSONL files.
  */
 
+import * as readline from 'readline';
+
 import { isCommandOutputContent, sanitizeDisplayContent } from '@shared/utils/contentSanitizer';
 import { createLogger } from '@shared/utils/logger';
-import * as readline from 'readline';
 
 import { LocalFileSystemProvider } from '../services/infrastructure/LocalFileSystemProvider';
 import { type ChatHistoryEntry, isTextContent, type UserEntry } from '../types';

@@ -60,7 +60,7 @@ export const DynamicConfigSection = ({
       {/* Error Status Mode */}
       {mode === 'error_status' && (
         <div className="py-2">
-          <p className="text-sm text-text-muted">
+          <p className="text-text-muted text-sm">
             Triggers when a tool execution reports an error (is_error: true).
           </p>
         </div>
@@ -70,8 +70,8 @@ export const DynamicConfigSection = ({
       {mode === 'content_match' && (
         <div className="space-y-3">
           {/* Content Type */}
-          <div className="flex items-center justify-between border-b border-border-subtle py-2">
-            <label htmlFor="new-trigger-content-type" className="text-sm text-text-secondary">
+          <div className="border-border-subtle flex items-center justify-between border-b py-2">
+            <label htmlFor="new-trigger-content-type" className="text-text-secondary text-sm">
               Content Type
             </label>
             <select
@@ -91,8 +91,8 @@ export const DynamicConfigSection = ({
 
           {/* Match Field */}
           {availableMatchFields.length > 0 && (
-            <div className="flex items-center justify-between border-b border-border-subtle py-2">
-              <label htmlFor="new-trigger-match-field" className="text-sm text-text-secondary">
+            <div className="border-border-subtle flex items-center justify-between border-b py-2">
+              <label htmlFor="new-trigger-match-field" className="text-text-secondary text-sm">
                 Match Field
               </label>
               <select
@@ -112,9 +112,9 @@ export const DynamicConfigSection = ({
           )}
 
           {/* Match Pattern */}
-          <div className="border-b border-border-subtle py-2">
+          <div className="border-border-subtle border-b py-2">
             <div className="mb-2 flex items-center justify-between">
-              <label htmlFor="new-trigger-match-pattern" className="text-sm text-text-secondary">
+              <label htmlFor="new-trigger-match-pattern" className="text-text-secondary text-sm">
                 Match Pattern (Regex)
               </label>
             </div>
@@ -125,7 +125,7 @@ export const DynamicConfigSection = ({
               onChange={(e) => onMatchPatternChange(e.target.value)}
               placeholder="e.g., error|failed|exception"
               disabled={saving}
-              className={`w-full rounded-sm border bg-transparent px-2 py-1.5 font-mono text-sm text-text placeholder:text-text-muted focus:border-transparent focus:outline-hidden focus:ring-1 focus:ring-indigo-500 ${patternError ? 'border-red-500' : 'border-border'} ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
+              className={`text-text placeholder:text-text-muted w-full rounded-sm border bg-transparent px-2 py-1.5 font-mono text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden ${patternError ? 'border-red-500' : 'border-border'} ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
             />
             {patternError && (
               <p className="mt-1 flex items-center gap-1 text-xs text-red-400">
@@ -133,7 +133,7 @@ export const DynamicConfigSection = ({
                 {patternError}
               </p>
             )}
-            <p className="mt-1 text-xs text-text-muted">
+            <p className="text-text-muted mt-1 text-xs">
               Leave empty to match all content. Uses JavaScript regex syntax.
             </p>
           </div>
@@ -143,8 +143,8 @@ export const DynamicConfigSection = ({
       {/* Token Threshold Mode */}
       {mode === 'token_threshold' && (
         <div className="space-y-3">
-          <div className="flex items-center justify-between border-b border-border-subtle py-2">
-            <label htmlFor="new-trigger-token-type" className="text-sm text-text-secondary">
+          <div className="border-border-subtle flex items-center justify-between border-b py-2">
+            <label htmlFor="new-trigger-token-type" className="text-text-secondary text-sm">
               Token Type
             </label>
             <select
@@ -165,12 +165,12 @@ export const DynamicConfigSection = ({
               </option>
             </select>
           </div>
-          <div className="flex items-center justify-between border-b border-border-subtle py-2">
-            <label htmlFor="new-trigger-threshold" className="text-sm text-text-secondary">
+          <div className="border-border-subtle flex items-center justify-between border-b py-2">
+            <label htmlFor="new-trigger-threshold" className="text-text-secondary text-sm">
               Threshold
             </label>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-text-muted">Alert if &gt;</span>
+              <span className="text-text-muted text-xs">Alert if &gt;</span>
               <input
                 id="new-trigger-threshold"
                 type="text"
@@ -179,9 +179,9 @@ export const DynamicConfigSection = ({
                 onChange={(e) => onTokenThresholdChange(e.target.value)}
                 placeholder="0"
                 disabled={saving}
-                className={`w-20 rounded-sm border border-border bg-transparent px-2 py-1 text-right text-sm text-text focus:border-transparent focus:outline-hidden focus:ring-1 focus:ring-indigo-500 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
+                className={`border-border text-text w-20 rounded-sm border bg-transparent px-2 py-1 text-right text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
               />
-              <span className="text-xs text-text-muted">tokens</span>
+              <span className="text-text-muted text-xs">tokens</span>
             </div>
           </div>
         </div>

@@ -32,14 +32,14 @@ export const TriggerPreview = ({
     : 0;
 
   return (
-    <div className="mt-4 border-t border-border pt-4">
+    <div className="border-border mt-4 border-t pt-4">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs uppercase tracking-widest text-text-muted">Preview</span>
+        <span className="text-text-muted text-xs tracking-widest uppercase">Preview</span>
         <button
           type={isFormContext ? 'button' : undefined}
           onClick={onTest}
           disabled={isLoading}
-          className={`rounded-sm bg-surface-raised px-2 py-1 text-xs text-text-secondary transition-colors hover:bg-surface-overlay ${isLoading ? 'cursor-not-allowed opacity-50' : ''} `}
+          className={`bg-surface-raised text-text-secondary hover:bg-surface-overlay rounded-sm px-2 py-1 text-xs transition-colors ${isLoading ? 'cursor-not-allowed opacity-50' : ''} `}
         >
           {isLoading ? (
             <span className="flex items-center gap-1">
@@ -54,7 +54,7 @@ export const TriggerPreview = ({
 
       {previewResult && !previewResult.loading && (
         <div className="space-y-2">
-          <p className="text-sm text-text-secondary">
+          <p className="text-text-secondary text-sm">
             <span className="font-medium text-indigo-400">
               {previewResult.truncated && effectiveCount >= 10_000 ? '10,000+' : effectiveCount}
             </span>{' '}
@@ -74,12 +74,12 @@ export const TriggerPreview = ({
           {previewResult.errors.slice(0, 10).map((error, idx) => (
             <div
               key={idx}
-              className="flex items-center justify-between border-b border-border-subtle py-2 text-xs"
+              className="border-border-subtle flex items-center justify-between border-b py-2 text-xs"
             >
               <div className="mr-2 min-w-0 flex-1">
                 <span className="text-text-muted">{error.context.projectName}</span>
-                <span className="mx-1 text-text-muted">|</span>
-                <span className="truncate text-text-secondary">
+                <span className="text-text-muted mx-1">|</span>
+                <span className="text-text-secondary truncate">
                   {error.message.length > 60 ? `${error.message.slice(0, 60)}...` : error.message}
                 </span>
               </div>
@@ -94,7 +94,7 @@ export const TriggerPreview = ({
           ))}
 
           {effectiveCount > 10 && (
-            <p className="text-xs text-text-muted">...and {effectiveCount - 10} more</p>
+            <p className="text-text-muted text-xs">...and {effectiveCount - 10} more</p>
           )}
         </div>
       )}

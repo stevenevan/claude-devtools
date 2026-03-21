@@ -102,7 +102,7 @@ export const ToolOutputItem = ({
       )}
 
       {expanded && hasBreakdown && (
-        <div className="ml-6 mt-1 space-y-0.5">
+        <div className="mt-1 ml-6 space-y-0.5">
           {injection.toolBreakdown.map((tool, idx) => (
             <ToolBreakdownItem key={`${tool.toolName}-${idx}`} tool={tool} />
           ))}

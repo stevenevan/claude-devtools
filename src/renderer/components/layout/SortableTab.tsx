@@ -95,7 +95,7 @@ export const SortableTab = ({
       role="tab"
       tabIndex={0}
       aria-selected={isActive}
-      className="group flex min-w-0 max-w-[200px] shrink-0 cursor-grab items-center gap-2 rounded-md px-3 py-1.5"
+      className="group flex max-w-[200px] min-w-0 shrink-0 cursor-grab items-center gap-2 rounded-md px-3 py-1.5"
       style={style}
       onClick={(e) => onTabClick(tab.id, e)}
       onMouseDown={(e) => onMouseDown(tab.id, e)}
@@ -145,7 +145,7 @@ export const DragOverlayTab = ({ tab }: { tab: Tab }): React.JSX.Element => {
 
   return (
     <div
-      className="flex min-w-0 max-w-[200px] items-center gap-2 rounded-md border-2 px-3 py-1.5"
+      className="flex max-w-[200px] min-w-0 items-center gap-2 rounded-md border-2 px-3 py-1.5"
       style={{
         backgroundColor: 'var(--color-surface-raised)',
         borderColor: 'var(--color-accent, #6366f1)',

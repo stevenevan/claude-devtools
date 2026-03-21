@@ -80,7 +80,7 @@ export const UpdateBanner = (): React.JSX.Element | null => {
       {/* Dismiss */}
       <button
         onClick={dismissUpdateBanner}
-        className="absolute right-3 top-1/2 shrink-0 -translate-y-1/2 rounded-sm p-0.5 transition-colors hover:bg-white/10"
+        className="absolute top-1/2 right-3 shrink-0 -translate-y-1/2 rounded-sm p-0.5 transition-colors hover:bg-white/10"
         style={{ color: 'var(--color-text-muted)' }}
       >
         <X className="size-3.5" />

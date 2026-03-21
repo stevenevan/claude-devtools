@@ -7,9 +7,10 @@
  * - Empty lines should be skipped
  */
 
+import * as readline from 'readline';
+
 import { isCommandOutputContent, sanitizeDisplayContent } from '@shared/utils/contentSanitizer';
 import { createLogger } from '@shared/utils/logger';
-import * as readline from 'readline';
 
 import { SessionContentFilter } from '../services/discovery/SessionContentFilter';
 import { LocalFileSystemProvider } from '../services/infrastructure/LocalFileSystemProvider';

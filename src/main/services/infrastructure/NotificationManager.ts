@@ -12,12 +12,13 @@
  * - Emit IPC events to renderer: notification:new, notification:updated
  */
 
-import { createLogger } from '@shared/utils/logger';
-import { type BrowserWindow, Notification } from 'electron';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+
+import { createLogger } from '@shared/utils/logger';
+import { type BrowserWindow, Notification } from 'electron';
 
 import { type DetectedError } from '../error/ErrorMessageBuilder';
 

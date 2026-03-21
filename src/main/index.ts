@@ -9,6 +9,9 @@
  * - Manage application lifecycle
  */
 
+import { existsSync } from 'fs';
+import { join } from 'path';
+
 import {
   DEFAULT_WINDOW_HEIGHT,
   DEFAULT_WINDOW_WIDTH,
@@ -18,8 +21,6 @@ import {
 } from '@shared/constants';
 import { createLogger } from '@shared/utils/logger';
 import { app, BrowserWindow, ipcMain } from 'electron';
-import { existsSync } from 'fs';
-import { join } from 'path';
 
 import { initializeIpcHandlers, removeIpcHandlers } from './ipc/handlers';
 import { getProjectsBasePath, getTodosBasePath } from './utils/pathDecoder';
@@ -58,7 +59,6 @@ process.on('uncaughtException', (error) => {
   logger.error('Uncaught exception in main process:', error);
 });
 
-import { HttpServer } from './services/infrastructure/HttpServer';
 import {
   configManager,
   LocalFileSystemProvider,
@@ -68,6 +68,7 @@ import {
   SshConnectionManager,
   UpdaterService,
 } from './services';
+import { HttpServer } from './services/infrastructure/HttpServer';
 
 // =============================================================================
 // Application State

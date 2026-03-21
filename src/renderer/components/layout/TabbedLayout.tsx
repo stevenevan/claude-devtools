@@ -28,7 +28,7 @@ export const TabbedLayout = (): React.JSX.Element => {
 
   return (
     <div
-      className="flex h-screen flex-col bg-claude-dark-bg text-claude-dark-text"
+      className="bg-claude-dark-bg text-claude-dark-text flex h-screen flex-col"
       style={
         { '--macos-traffic-light-padding-left': `${trafficLightPadding}px` } as React.CSSProperties
       }

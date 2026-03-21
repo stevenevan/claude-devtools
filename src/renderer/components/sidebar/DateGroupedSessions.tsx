@@ -373,7 +373,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
       <div className="mt-2 flex items-center gap-2 px-4 py-3">
         <Calendar className="size-4" style={{ color: 'var(--color-text-muted)' }} />
         <h2
-          className="text-xs uppercase tracking-wider"
+          className="text-xs tracking-wider uppercase"
           style={{ color: 'var(--color-text-muted)' }}
         >
           {sessionSortMode === 'most-context' ? 'By Context' : 'Sessions'}
@@ -532,7 +532,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
               >
                 {item.type === 'pinned-header' ? (
                   <div
-                    className="sticky top-0 flex h-full items-center gap-1.5 border-t px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider backdrop-blur-xs"
+                    className="sticky top-0 flex h-full items-center gap-1.5 border-t px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase backdrop-blur-xs"
                     style={{
                       backgroundColor:
                         'color-mix(in srgb, var(--color-surface-sidebar) 95%, transparent)',
@@ -545,7 +545,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
                   </div>
                 ) : item.type === 'header' ? (
                   <div
-                    className="sticky top-0 flex h-full items-center border-t px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider backdrop-blur-xs"
+                    className="sticky top-0 flex h-full items-center border-t px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase backdrop-blur-xs"
                     style={{
                       backgroundColor:
                         'color-mix(in srgb, var(--color-surface-sidebar) 95%, transparent)',

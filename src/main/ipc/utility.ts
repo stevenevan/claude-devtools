@@ -8,11 +8,17 @@
  * - read-mentioned-file: Validates mentioned files for context injection
  */
 
-import { createLogger } from '@shared/utils/logger';
-import { app, type IpcMain, type IpcMainInvokeEvent, shell } from 'electron';
 import * as fs from 'fs';
 
-import { type ClaudeMdFileInfo, readAgentConfigs, readAllClaudeMdFiles, readDirectoryClaudeMd } from '../services';
+import { createLogger } from '@shared/utils/logger';
+import { app, type IpcMain, type IpcMainInvokeEvent, shell } from 'electron';
+
+import {
+  type ClaudeMdFileInfo,
+  readAgentConfigs,
+  readAllClaudeMdFiles,
+  readDirectoryClaudeMd,
+} from '../services';
 
 import type { AgentConfig } from '@shared/types/api';
 

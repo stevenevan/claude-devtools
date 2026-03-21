@@ -10,7 +10,7 @@ interface SettingsSectionHeaderProps {
 export const SettingsSectionHeader = ({ title }: SettingsSectionHeaderProps): React.JSX.Element => {
   return (
     <h3
-      className="mb-2 mt-6 text-xs font-medium uppercase tracking-widest first:mt-0"
+      className="mt-6 mb-2 text-xs font-medium tracking-widest uppercase first:mt-0"
       style={{ color: 'var(--color-text-muted)' }}
     >
       {title}

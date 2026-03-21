@@ -15,6 +15,8 @@
  * - SessionSearcher: Search functionality
  */
 
+import * as path from 'path';
+
 import {
   type PaginatedSessionsResult,
   type Project,
@@ -43,7 +45,6 @@ import {
   isValidEncodedPath,
 } from '@main/utils/pathDecoder';
 import { createLogger } from '@shared/utils/logger';
-import * as path from 'path';
 
 import { LocalFileSystemProvider } from '../infrastructure/LocalFileSystemProvider';
 

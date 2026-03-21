@@ -10,11 +10,17 @@
  * - POST /api/open-external - No-op in browser
  */
 
-import { createLogger } from '@shared/utils/logger';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { type ClaudeMdFileInfo, readAgentConfigs, readAllClaudeMdFiles, readDirectoryClaudeMd } from '../services';
+import { createLogger } from '@shared/utils/logger';
+
+import {
+  type ClaudeMdFileInfo,
+  readAgentConfigs,
+  readAllClaudeMdFiles,
+  readDirectoryClaudeMd,
+} from '../services';
 import { validateFilePath } from '../utils/pathValidation';
 import { countTokens } from '../utils/tokenizer';
 

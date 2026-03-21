@@ -133,7 +133,7 @@ export const NotificationRow = ({
           />
         ) : (
           <span
-            className="whitespace-nowrap text-[11px]"
+            className="text-[11px] whitespace-nowrap"
             style={{ color: 'var(--color-text-muted)' }}
           >
             {relativeTime}

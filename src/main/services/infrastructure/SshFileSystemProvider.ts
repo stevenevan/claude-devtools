@@ -5,8 +5,9 @@
  * used by session-data services, enabling remote file access.
  */
 
-import { createLogger } from '@shared/utils/logger';
 import { PassThrough, type Readable } from 'stream';
+
+import { createLogger } from '@shared/utils/logger';
 
 import type {
   FileSystemProvider,

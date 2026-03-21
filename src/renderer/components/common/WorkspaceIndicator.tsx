@@ -60,7 +60,7 @@ export const WorkspaceIndicator = (): React.JSX.Element | null => {
   const activeLabel = getContextLabel(activeContextId);
 
   return (
-    <div ref={dropdownRef} className="fixed bottom-4 right-4 z-30">
+    <div ref={dropdownRef} className="fixed right-4 bottom-4 z-30">
       {/* Trigger pill */}
       <button
         onClick={() => !isContextSwitching && setIsOpen(!isOpen)}
@@ -96,7 +96,7 @@ export const WorkspaceIndicator = (): React.JSX.Element | null => {
 
           {/* Dropdown content - opens upward */}
           <div
-            className="absolute bottom-full right-0 z-20 mb-2 max-h-[250px] w-56 overflow-y-auto rounded-lg py-1 shadow-xl"
+            className="absolute right-0 bottom-full z-20 mb-2 max-h-[250px] w-56 overflow-y-auto rounded-lg py-1 shadow-xl"
             style={{
               backgroundColor: 'var(--color-surface-sidebar)',
               borderWidth: '1px',
@@ -106,7 +106,7 @@ export const WorkspaceIndicator = (): React.JSX.Element | null => {
           >
             {/* Header */}
             <div
-              className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider"
+              className="px-3 py-2 text-[10px] font-semibold tracking-wider uppercase"
               style={{ color: 'var(--color-text-muted)' }}
             >
               Switch Workspace

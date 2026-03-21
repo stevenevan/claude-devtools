@@ -385,7 +385,7 @@ export const WorkspaceSection = (): React.JSX.Element => {
                 </span>
                 <button
                   onClick={() => setEditingId(profile.id)}
-                  className="shrink-0 rounded-sm p-1 transition-colors hover:bg-surface-raised"
+                  className="hover:bg-surface-raised shrink-0 rounded-sm p-1 transition-colors"
                   style={{ color: 'var(--color-text-muted)' }}
                   title="Edit profile"
                 >
@@ -393,7 +393,7 @@ export const WorkspaceSection = (): React.JSX.Element => {
                 </button>
                 <button
                   onClick={() => void handleDelete(profile.id)}
-                  className="shrink-0 rounded-sm p-1 transition-colors hover:bg-surface-raised"
+                  className="hover:bg-surface-raised shrink-0 rounded-sm p-1 transition-colors"
                   style={{ color: 'var(--color-text-muted)' }}
                   title="Delete profile"
                 >

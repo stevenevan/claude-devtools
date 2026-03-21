@@ -100,7 +100,7 @@ export const TaskCoordinationItem = ({
       )}
 
       {expanded && hasBreakdown && (
-        <div className="ml-6 mt-1 space-y-0.5">
+        <div className="mt-1 ml-6 space-y-0.5">
           {injection.breakdown.map((item, idx) => (
             <div key={`${item.label}-${idx}`} className="flex items-center justify-between text-xs">
               <span style={{ color: COLOR_TEXT_SECONDARY }}>{item.label}</span>

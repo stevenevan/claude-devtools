@@ -80,7 +80,7 @@ export const ColorPaletteSelector = ({
       <div className="flex items-center gap-2">
         {/* Live preview swatch */}
         <span
-          className="size-6 shrink-0 rounded-sm border border-border-subtle"
+          className="border-border-subtle size-6 shrink-0 rounded-sm border"
           style={{ backgroundColor: previewHex }}
           title={value ?? 'red'}
         />
@@ -95,7 +95,7 @@ export const ColorPaletteSelector = ({
               title={color.label}
               onClick={() => handlePresetClick(color.key as TriggerColor)}
               disabled={disabled}
-              className={`size-5 rounded-full transition-all ${isSelected ? 'ring-2 ring-white/60 ring-offset-1 ring-offset-surface' : 'hover:ring-1 hover:ring-white/30'}`}
+              className={`size-5 rounded-full transition-all ${isSelected ? 'ring-offset-surface ring-2 ring-white/60 ring-offset-1' : 'hover:ring-1 hover:ring-white/30'}`}
               style={{ backgroundColor: color.hex }}
             />
           );
@@ -107,9 +107,9 @@ export const ColorPaletteSelector = ({
           title="Custom hex color"
           onClick={handleCustomClick}
           disabled={disabled}
-          className={`flex size-5 items-center justify-center rounded-full border text-[9px] font-bold leading-none transition-all ${
+          className={`flex size-5 items-center justify-center rounded-full border text-[9px] leading-none font-bold transition-all ${
             isCustom
-              ? 'border-white/40 text-white ring-2 ring-white/60 ring-offset-1 ring-offset-surface'
+              ? 'ring-offset-surface border-white/40 text-white ring-2 ring-white/60 ring-offset-1'
               : 'border-border-emphasis text-text-muted hover:ring-1 hover:ring-white/30'
           }`}
           style={isCustom ? { backgroundColor: resolveColorHex(value) } : undefined}
@@ -130,7 +130,7 @@ export const ColorPaletteSelector = ({
             placeholder="#ff6600"
             maxLength={9}
             disabled={disabled}
-            className={`w-24 rounded-sm border bg-transparent px-2 py-1 font-mono text-xs text-text placeholder:text-text-muted focus:border-transparent focus:outline-hidden focus:ring-1 focus:ring-indigo-500 ${
+            className={`text-text placeholder:text-text-muted w-24 rounded-sm border bg-transparent px-2 py-1 font-mono text-xs focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden ${
               hexInput && !HEX_RE.test(hexInput) ? 'border-red-500' : 'border-border'
             }`}
           />

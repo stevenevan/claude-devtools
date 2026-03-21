@@ -18,7 +18,7 @@ export const ModeSelector = ({
   disabled = false,
 }: Readonly<ModeSelectorProps>): React.JSX.Element => {
   return (
-    <div className="inline-flex gap-0.5 rounded-md bg-surface-raised p-0.5">
+    <div className="bg-surface-raised inline-flex gap-0.5 rounded-md p-0.5">
       {MODE_OPTIONS.map((mode) => {
         const Icon = mode.icon;
         const isActive = value === mode.value;

@@ -8,8 +8,9 @@
  * - Generating human-readable tool summaries
  */
 
-import { formatTokens } from '@shared/utils/tokenFormatting';
 import * as path from 'path';
+
+import { formatTokens } from '@shared/utils/tokenFormatting';
 
 // Re-export for backwards compatibility
 export { formatTokens };

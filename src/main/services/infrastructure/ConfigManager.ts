@@ -9,12 +9,13 @@
  * - Handle JSON parse errors gracefully
  */
 
-import { setClaudeBasePathOverride } from '@main/utils/pathDecoder';
-import { validateRegexPattern } from '@main/utils/regexValidation';
-import { createLogger } from '@shared/utils/logger';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+
+import { setClaudeBasePathOverride } from '@main/utils/pathDecoder';
+import { validateRegexPattern } from '@main/utils/regexValidation';
+import { createLogger } from '@shared/utils/logger';
 
 import { DEFAULT_TRIGGERS, TriggerManager } from './TriggerManager';
 

@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import ReactMarkdown, { type Components } from 'react-markdown';
 
 import { api } from '@renderer/api';
 import { useTabUI } from '@renderer/hooks/useTabUI';
@@ -7,6 +6,7 @@ import { useStore } from '@renderer/store';
 import { createLogger } from '@shared/utils/logger';
 import { format } from 'date-fns';
 import { User } from 'lucide-react';
+import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -127,32 +127,32 @@ function createUserMarkdownComponents(
 
   return {
     h1: ({ children }) => (
-      <h1 className="mb-3 mt-6 text-lg font-semibold first:mt-0" style={{ color: userTextColor }}>
+      <h1 className="mt-6 mb-3 text-lg font-semibold first:mt-0" style={{ color: userTextColor }}>
         {hl(children)}
       </h1>
     ),
     h2: ({ children }) => (
-      <h2 className="mb-2 mt-5 text-base font-semibold first:mt-0" style={{ color: userTextColor }}>
+      <h2 className="mt-5 mb-2 text-base font-semibold first:mt-0" style={{ color: userTextColor }}>
         {hl(children)}
       </h2>
     ),
     h3: ({ children }) => (
-      <h3 className="mb-2 mt-4 text-sm font-semibold first:mt-0" style={{ color: userTextColor }}>
+      <h3 className="mt-4 mb-2 text-sm font-semibold first:mt-0" style={{ color: userTextColor }}>
         {hl(children)}
       </h3>
     ),
     h4: ({ children }) => (
-      <h4 className="mb-1.5 mt-3 text-sm font-semibold first:mt-0" style={{ color: userTextColor }}>
+      <h4 className="mt-3 mb-1.5 text-sm font-semibold first:mt-0" style={{ color: userTextColor }}>
         {hl(children)}
       </h4>
     ),
     h5: ({ children }) => (
-      <h5 className="mb-1 mt-2 text-sm font-medium first:mt-0" style={{ color: userTextColor }}>
+      <h5 className="mt-2 mb-1 text-sm font-medium first:mt-0" style={{ color: userTextColor }}>
         {hl(children)}
       </h5>
     ),
     h6: ({ children }) => (
-      <h6 className="mb-1 mt-2 text-xs font-medium first:mt-0" style={{ color: userTextColor }}>
+      <h6 className="mt-2 mb-1 text-xs font-medium first:mt-0" style={{ color: userTextColor }}>
         {hl(children)}
       </h6>
     ),

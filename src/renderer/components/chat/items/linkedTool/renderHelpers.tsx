@@ -37,14 +37,14 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
           </div>
         )}
         {oldString && (
-          <div className="whitespace-pre-wrap break-all" style={{ color: DIFF_REMOVED_TEXT }}>
+          <div className="break-all whitespace-pre-wrap" style={{ color: DIFF_REMOVED_TEXT }}>
             {oldString.split('\n').map((line, i) => (
               <div key={i}>- {line}</div>
             ))}
           </div>
         )}
         {newString && (
-          <div className="whitespace-pre-wrap break-all" style={{ color: DIFF_ADDED_TEXT }}>
+          <div className="break-all whitespace-pre-wrap" style={{ color: DIFF_ADDED_TEXT }}>
             {newString.split('\n').map((line, i) => (
               <div key={i}>+ {line}</div>
             ))}
@@ -67,7 +67,7 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
           </div>
         )}
         {command && (
-          <code className="whitespace-pre-wrap break-all" style={{ color: COLOR_TEXT }}>
+          <code className="break-all whitespace-pre-wrap" style={{ color: COLOR_TEXT }}>
             {command}
           </code>
         )}
@@ -103,7 +103,7 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
           <div className="text-xs" style={{ color: COLOR_TEXT_MUTED }}>
             {key}
           </div>
-          <pre className="whitespace-pre-wrap break-all">{formatInputValue(value)}</pre>
+          <pre className="break-all whitespace-pre-wrap">{formatInputValue(value)}</pre>
         </div>
       ))}
     </div>
@@ -152,7 +152,7 @@ export function extractOutputText(content: string | unknown[]): string {
       .map((block) =>
         typeof block === 'object' && block !== null && 'text' in block
           ? (block as { text: string }).text
-          : JSON.stringify(block, null, 2),
+          : JSON.stringify(block, null, 2)
       )
       .join('\n');
   } else {
@@ -182,7 +182,7 @@ function isContentBlock(value: unknown): boolean {
 export function renderOutput(content: string | unknown[]): React.ReactElement {
   const displayText = extractOutputText(content);
   return (
-    <pre className="whitespace-pre-wrap break-all" style={{ color: COLOR_TEXT }}>
+    <pre className="break-all whitespace-pre-wrap" style={{ color: COLOR_TEXT }}>
       {displayText}
     </pre>
   );

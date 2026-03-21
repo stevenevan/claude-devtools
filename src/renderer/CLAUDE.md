@@ -3,6 +3,7 @@
 React application running in Chromium.
 
 ## Structure
+
 - `App.tsx` - Root layout
 - `main.tsx` - React entry point
 - `index.css` - Global styles with Tailwind
@@ -15,6 +16,7 @@ React application running in Chromium.
 - `contexts/` - React contexts (`TabUIContext.tsx`, `useTabUIContext.ts`)
 
 ## Component Organization
+
 ```
 components/
 ├── chat/           # Chat display, message items, viewers, context panel
@@ -28,6 +30,7 @@ components/
 ```
 
 ## Types (`types/`)
+
 - `data.ts` - Core data types (ParsedMessage, SemanticStep, SessionMetrics)
 - `groups.ts` - Chat groups (UserGroup, AIGroup, SystemGroup, AIGroupDisplayItem union)
 - `contextInjection.ts` - Context tracking (ContextInjection union, ContextStats, ContextPhaseInfo)
@@ -38,6 +41,7 @@ components/
 - `api.ts` - API types
 
 ## Utils (`utils/`)
+
 - `contextTracker.ts` - Visible context tracking (computeContextStats, processSessionContextWithPhases)
 - `claudeMdTracker.ts` - CLAUDE.md injection detection
 - `aiGroupEnhancer.ts` - AI group enrichment (linkToolCallsToResults, buildDisplayItems)
@@ -59,6 +63,7 @@ components/
   - `toolTokens.ts` - Tool token utilities
 
 ## Hooks
+
 - `useAutoScrollBottom` - Auto-scroll chat to bottom
 - `useKeyboardShortcuts` - Keyboard shortcuts
 - `useTabNavigationController` - Turn navigation with highlighting
@@ -69,14 +74,18 @@ components/
 - `navigation/utils.ts` - Navigation utility functions
 
 ## Contexts
+
 - `contexts/TabUIContext.tsx` - Per-tab UI state isolation
 - `contexts/useTabUIContext.ts` - Context consumer hook
 
 ## State Management
+
 Zustand store with slices pattern:
+
 - Each domain has data, selectedId, loading, error
 - Actions grouped by domain
 - Selectors for derived state
 
 ## Virtual Scrolling
+
 Use `@tanstack/react-virtual` for large lists (sessions, messages).

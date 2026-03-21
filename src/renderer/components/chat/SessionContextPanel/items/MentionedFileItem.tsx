@@ -50,7 +50,7 @@ export const MentionedFileItem = ({
           </span>
         )}
       </div>
-      <div className="ml-4 mt-0.5 flex items-center gap-2">
+      <div className="mt-0.5 ml-4 flex items-center gap-2">
         <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
           ~{formatTokens(injection.estimatedTokens)} tokens
         </span>

@@ -8,10 +8,11 @@
  * - Gracefully handle missing/unreadable files
  */
 
-import { createLogger } from '@shared/utils/logger';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+
+import { createLogger } from '@shared/utils/logger';
 import SSHConfig from 'ssh-config';
 
 import type { SshConfigHostEntry } from '@shared/types';

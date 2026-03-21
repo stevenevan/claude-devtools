@@ -8,6 +8,8 @@
  * - Calculate session metrics
  */
 
+import * as path from 'path';
+
 import {
   isParsedInternalUserMessage,
   isParsedRealUserMessage,
@@ -22,7 +24,6 @@ import {
   getTaskCalls,
   parseJsonlFile,
 } from '@main/utils/jsonl';
-import * as path from 'path';
 
 import { type ProjectScanner } from '../discovery/ProjectScanner';
 

@@ -759,7 +759,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
         >
           {/* Sticky Context button */}
           {allContextInjections.length > 0 && (
-            <div className="pointer-events-none sticky top-0 z-10 flex justify-end px-4 pb-0 pt-3">
+            <div className="pointer-events-none sticky top-0 z-10 flex justify-end px-4 pt-3 pb-0">
               <button
                 onClick={() => setContextPanelVisible(!isContextPanelVisible)}
                 onMouseEnter={() => setIsContextButtonHovered(true)}

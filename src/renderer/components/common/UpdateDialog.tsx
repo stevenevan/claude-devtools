@@ -6,11 +6,11 @@
  */
 
 import { useEffect, useRef } from 'react';
-import ReactMarkdown from 'react-markdown';
 
 import { markdownComponents } from '@renderer/components/chat/markdownComponents';
 import { useStore } from '@renderer/store';
 import { X } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 /**
@@ -123,7 +123,7 @@ export const UpdateDialog = (): React.JSX.Element | null => {
         {/* Close button */}
         <button
           onClick={dismissUpdateDialog}
-          className="absolute right-3 top-3 rounded-sm p-1 transition-colors hover:bg-white/10"
+          className="absolute top-3 right-3 rounded-sm p-1 transition-colors hover:bg-white/10"
           style={{ color: 'var(--color-text-muted)' }}
         >
           <X className="size-4" />

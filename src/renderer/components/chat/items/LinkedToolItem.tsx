@@ -109,7 +109,7 @@ export const LinkedToolItem: React.FC<LinkedToolItemProps> = React.memo(function
         <span className="size-2 rounded-full bg-zinc-500" />
         <span className="text-xs" style={{ color: CARD_ICON_MUTED }}>
           Shutdown requested &rarr;{' '}
-          <span className="font-medium text-text-secondary">{target}</span>
+          <span className="text-text-secondary font-medium">{target}</span>
         </span>
       </div>
     );

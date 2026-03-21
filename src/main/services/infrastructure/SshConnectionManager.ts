@@ -9,12 +9,13 @@
  * - Handle reconnection on errors
  */
 
-import { createLogger } from '@shared/utils/logger';
 import { execFile } from 'child_process';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+
+import { createLogger } from '@shared/utils/logger';
 import { Client, type ConnectConfig, type SFTPWrapper } from 'ssh2';
 
 import { LocalFileSystemProvider } from './LocalFileSystemProvider';

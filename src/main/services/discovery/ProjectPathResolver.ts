@@ -9,11 +9,12 @@
  * Results are memoized per projectId and can be invalidated by file watcher events.
  */
 
+import * as path from 'path';
+
 import { LocalFileSystemProvider } from '@main/services/infrastructure/LocalFileSystemProvider';
 import { extractCwd } from '@main/utils/jsonl';
 import { decodePath, extractBaseDir, getProjectsBasePath } from '@main/utils/pathDecoder';
 import { createLogger } from '@shared/utils/logger';
-import * as path from 'path';
 
 import { subprojectRegistry } from './SubprojectRegistry';
 

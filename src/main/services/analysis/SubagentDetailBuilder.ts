@@ -5,6 +5,8 @@
  * complete SubagentDetail objects for the drill-down modal.
  */
 
+import * as path from 'path';
+
 import {
   type EnhancedAIChunk,
   type EnhancedChunk,
@@ -16,7 +18,6 @@ import {
 } from '@main/types';
 import { countTokens } from '@main/utils/tokenizer';
 import { createLogger } from '@shared/utils/logger';
-import * as path from 'path';
 
 const logger = createLogger('Service:SubagentDetailBuilder');
 

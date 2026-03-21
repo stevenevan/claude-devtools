@@ -17,14 +17,15 @@
  * - config:testTrigger: Test a trigger against historical session data
  */
 
-import { getAutoDetectedClaudeBasePath, getClaudeBasePath } from '@main/utils/pathDecoder';
-import { getErrorMessage } from '@shared/utils/errorHandling';
-import { createLogger } from '@shared/utils/logger';
 import { execFile } from 'child_process';
-import { BrowserWindow, dialog, type IpcMain, type IpcMainInvokeEvent, shell } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
+
+import { getAutoDetectedClaudeBasePath, getClaudeBasePath } from '@main/utils/pathDecoder';
+import { getErrorMessage } from '@shared/utils/errorHandling';
+import { createLogger } from '@shared/utils/logger';
+import { BrowserWindow, dialog, type IpcMain, type IpcMainInvokeEvent, shell } from 'electron';
 
 import {
   type AppConfig,
@@ -194,7 +195,10 @@ async function handleAddIgnoreRegex(
 ): Promise<ConfigResult> {
   try {
     if (!pattern || typeof pattern !== 'string') {
-      return { success: false, error: 'Pattern is required and must be a string' };
+      return {
+        success: false,
+        error: 'Pattern is required and must be a string',
+      };
     }
 
     // Validate that the pattern is a valid regex
@@ -222,7 +226,10 @@ async function handleRemoveIgnoreRegex(
 ): Promise<ConfigResult> {
   try {
     if (!pattern || typeof pattern !== 'string') {
-      return { success: false, error: 'Pattern is required and must be a string' };
+      return {
+        success: false,
+        error: 'Pattern is required and must be a string',
+      };
     }
 
     configManager.removeIgnoreRegex(pattern);
@@ -243,7 +250,10 @@ async function handleAddIgnoreRepository(
 ): Promise<ConfigResult> {
   try {
     if (!repositoryId || typeof repositoryId !== 'string') {
-      return { success: false, error: 'Repository ID is required and must be a string' };
+      return {
+        success: false,
+        error: 'Repository ID is required and must be a string',
+      };
     }
 
     configManager.addIgnoreRepository(repositoryId);
@@ -264,7 +274,10 @@ async function handleRemoveIgnoreRepository(
 ): Promise<ConfigResult> {
   try {
     if (!repositoryId || typeof repositoryId !== 'string') {
-      return { success: false, error: 'Repository ID is required and must be a string' };
+      return {
+        success: false,
+        error: 'Repository ID is required and must be a string',
+      };
     }
 
     configManager.removeIgnoreRepository(repositoryId);
@@ -506,7 +519,11 @@ async function handleTestTrigger(
 
     return {
       success: true,
-      data: { totalCount: result.totalCount, errors, truncated: result.truncated },
+      data: {
+        totalCount: result.totalCount,
+        errors,
+        truncated: result.truncated,
+      },
     };
   } catch (error) {
     logger.error('Error in config:testTrigger:', error);
@@ -527,10 +544,16 @@ async function handlePinSession(
 ): Promise<ConfigResult> {
   try {
     if (!projectId || typeof projectId !== 'string') {
-      return { success: false, error: 'Project ID is required and must be a string' };
+      return {
+        success: false,
+        error: 'Project ID is required and must be a string',
+      };
     }
     if (!sessionId || typeof sessionId !== 'string') {
-      return { success: false, error: 'Session ID is required and must be a string' };
+      return {
+        success: false,
+        error: 'Session ID is required and must be a string',
+      };
     }
 
     configManager.pinSession(projectId, sessionId);
@@ -551,10 +574,16 @@ async function handleUnpinSession(
 ): Promise<ConfigResult> {
   try {
     if (!projectId || typeof projectId !== 'string') {
-      return { success: false, error: 'Project ID is required and must be a string' };
+      return {
+        success: false,
+        error: 'Project ID is required and must be a string',
+      };
     }
     if (!sessionId || typeof sessionId !== 'string') {
-      return { success: false, error: 'Session ID is required and must be a string' };
+      return {
+        success: false,
+        error: 'Session ID is required and must be a string',
+      };
     }
 
     configManager.unpinSession(projectId, sessionId);
@@ -781,6 +810,7 @@ function looksLikeUtf16Le(buffer: Buffer): boolean {
   return pairs > 0 && nullsAtOddIndex / pairs >= 0.3;
 }
 
+/* oxlint-disable no-control-regex -- intentional null byte stripping for WSL output */
 function decodeWslOutput(output: string | Buffer | undefined): string {
   if (typeof output === 'string') {
     return output.replace(/\0/g, '');
@@ -827,6 +857,7 @@ function parseWslDistros(stdout: string): string[] {
   const lines = stdout.split(/\r?\n/);
 
   for (const rawLine of lines) {
+    // oxlint-disable-next-line no-control-regex -- intentional null byte stripping
     let line = rawLine.replace(/\0/g, '').trim();
     if (!line) {
       continue;
@@ -963,10 +994,16 @@ async function handleHideSession(
 ): Promise<ConfigResult> {
   try {
     if (!projectId || typeof projectId !== 'string') {
-      return { success: false, error: 'Project ID is required and must be a string' };
+      return {
+        success: false,
+        error: 'Project ID is required and must be a string',
+      };
     }
     if (!sessionId || typeof sessionId !== 'string') {
-      return { success: false, error: 'Session ID is required and must be a string' };
+      return {
+        success: false,
+        error: 'Session ID is required and must be a string',
+      };
     }
 
     configManager.hideSession(projectId, sessionId);
@@ -987,10 +1024,16 @@ async function handleUnhideSession(
 ): Promise<ConfigResult> {
   try {
     if (!projectId || typeof projectId !== 'string') {
-      return { success: false, error: 'Project ID is required and must be a string' };
+      return {
+        success: false,
+        error: 'Project ID is required and must be a string',
+      };
     }
     if (!sessionId || typeof sessionId !== 'string') {
-      return { success: false, error: 'Session ID is required and must be a string' };
+      return {
+        success: false,
+        error: 'Session ID is required and must be a string',
+      };
     }
 
     configManager.unhideSession(projectId, sessionId);
@@ -1011,10 +1054,16 @@ async function handleHideSessions(
 ): Promise<ConfigResult> {
   try {
     if (!projectId || typeof projectId !== 'string') {
-      return { success: false, error: 'Project ID is required and must be a string' };
+      return {
+        success: false,
+        error: 'Project ID is required and must be a string',
+      };
     }
     if (!Array.isArray(sessionIds) || sessionIds.some((id) => typeof id !== 'string')) {
-      return { success: false, error: 'Session IDs must be an array of strings' };
+      return {
+        success: false,
+        error: 'Session IDs must be an array of strings',
+      };
     }
 
     configManager.hideSessions(projectId, sessionIds);
@@ -1035,10 +1084,16 @@ async function handleUnhideSessions(
 ): Promise<ConfigResult> {
   try {
     if (!projectId || typeof projectId !== 'string') {
-      return { success: false, error: 'Project ID is required and must be a string' };
+      return {
+        success: false,
+        error: 'Project ID is required and must be a string',
+      };
     }
     if (!Array.isArray(sessionIds) || sessionIds.some((id) => typeof id !== 'string')) {
-      return { success: false, error: 'Session IDs must be an array of strings' };
+      return {
+        success: false,
+        error: 'Session IDs must be an array of strings',
+      };
     }
 
     configManager.unhideSessions(projectId, sessionIds);

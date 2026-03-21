@@ -476,7 +476,7 @@ const AIChatGroupInner = ({
             {/* Duration */}
             {aiGroup.durationMs > 0 && (
               <span
-                className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-xs"
+                className="inline-flex shrink-0 items-center gap-1 text-xs whitespace-nowrap"
                 style={{ color: COLOR_TEXT_MUTED }}
               >
                 <Clock className="size-3" />
@@ -487,7 +487,7 @@ const AIChatGroupInner = ({
             {/* Timestamp - receded for visual hierarchy */}
             {enhanced.lastOutput?.timestamp && (
               <span
-                className="shrink-0 whitespace-nowrap text-[10px]"
+                className="shrink-0 text-[10px] whitespace-nowrap"
                 style={{ color: COLOR_TEXT_MUTED }}
               >
                 {format(enhanced.lastOutput.timestamp, 'h:mm:ss a')}

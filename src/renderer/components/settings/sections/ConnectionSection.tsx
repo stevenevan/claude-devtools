@@ -188,7 +188,8 @@ export const ConnectionSection = (): React.JSX.Element => {
   const isConnected = connectionState === 'connected';
   const resolvedClaudeRootPath = claudeRootInfo?.resolvedPath ?? '~/.claude';
 
-  const inputClass = 'w-full rounded-md border px-3 py-1.5 text-sm focus:outline-hidden focus:ring-1';
+  const inputClass =
+    'w-full rounded-md border px-3 py-1.5 text-sm focus:outline-hidden focus:ring-1';
   const inputStyle = {
     backgroundColor: 'var(--color-surface-raised)',
     borderColor: 'var(--color-border)',
@@ -336,7 +337,7 @@ export const ConnectionSection = (): React.JSX.Element => {
                     <button
                       key={entry.alias}
                       type="button"
-                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-surface-raised"
+                      className="hover:bg-surface-raised flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors"
                       style={{
                         color: 'var(--color-text)',
                       }}

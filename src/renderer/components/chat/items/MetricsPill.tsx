@@ -148,7 +148,7 @@ export const MetricsPill = ({
         createPortal(
           <div
             role="tooltip"
-            className="rounded-md bg-surface-overlay p-2 text-[11px] shadow-xl"
+            className="bg-surface-overlay rounded-md p-2 text-[11px] shadow-xl"
             style={{
               ...tooltipStyle,
               border: `1px solid ${TAG_BORDER}`,

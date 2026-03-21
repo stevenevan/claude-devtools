@@ -78,7 +78,7 @@ export const ThinkingTextItem = ({
       </button>
 
       {expanded && injection.breakdown.length > 0 && (
-        <div className="ml-6 mt-1 space-y-0.5">
+        <div className="mt-1 ml-6 space-y-0.5">
           {injection.breakdown.map((item, idx) => (
             <div key={`${item.type}-${idx}`} className="flex items-center gap-2 py-0.5 text-xs">
               <span style={{ color: COLOR_TEXT_MUTED }}>

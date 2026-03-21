@@ -94,7 +94,7 @@ export const ExportDropdown = ({
       {/* Dropdown menu */}
       {isOpen && (
         <div
-          className="absolute right-0 top-full z-50 mt-1 w-48 overflow-hidden rounded-md border shadow-lg"
+          className="absolute top-full right-0 z-50 mt-1 w-48 overflow-hidden rounded-md border shadow-lg"
           style={{
             backgroundColor: 'var(--color-surface-overlay)',
             borderColor: 'var(--color-border)',

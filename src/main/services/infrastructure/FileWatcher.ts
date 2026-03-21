@@ -10,13 +10,14 @@
  * - Detect errors in changed session files and notify NotificationManager
  */
 
+import { EventEmitter } from 'events';
+import * as fs from 'fs';
+import * as path from 'path';
+
 import { type FileChangeEvent, type ParsedMessage } from '@main/types';
 import { parseJsonlFile, parseJsonlLine } from '@main/utils/jsonl';
 import { getProjectsBasePath, getTodosBasePath } from '@main/utils/pathDecoder';
 import { createLogger } from '@shared/utils/logger';
-import { EventEmitter } from 'events';
-import * as fs from 'fs';
-import * as path from 'path';
 
 import { projectPathResolver } from '../discovery/ProjectPathResolver';
 import { errorDetector } from '../error/ErrorDetector';

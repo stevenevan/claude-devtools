@@ -172,8 +172,7 @@ const electronAPI: ElectronAPI = {
     ipcRenderer.invoke('read-mentioned-file', absolutePath, projectRoot, maxTokens),
 
   // Agent config reading
-  readAgentConfigs: (projectRoot: string) =>
-    ipcRenderer.invoke('read-agent-configs', projectRoot),
+  readAgentConfigs: (projectRoot: string) => ipcRenderer.invoke('read-agent-configs', projectRoot),
 
   // Notifications API
   notifications: {

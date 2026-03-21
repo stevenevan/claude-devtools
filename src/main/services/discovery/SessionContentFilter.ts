@@ -21,10 +21,11 @@
  * - synthetic assistant messages (model='<synthetic>')
  */
 
+import * as readline from 'readline';
+
 import { LocalFileSystemProvider } from '@main/services/infrastructure/LocalFileSystemProvider';
 import { type ChatHistoryEntry, type ContentBlock } from '@main/types';
 import { createLogger } from '@shared/utils/logger';
-import * as readline from 'readline';
 
 import type { FileSystemProvider } from '@main/services/infrastructure/FileSystemProvider';
 

@@ -7,9 +7,10 @@
  * - POST /api/session/scroll-to-line - Deep link scroll handler
  */
 
-import { createLogger } from '@shared/utils/logger';
 import * as fs from 'fs';
 import * as path from 'path';
+
+import { createLogger } from '@shared/utils/logger';
 
 import type { FastifyInstance } from 'fastify';
 

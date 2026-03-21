@@ -8,11 +8,12 @@
  * - Support tilde (~) expansion to home directory
  */
 
+import * as path from 'path';
+
 import { encodePath, getClaudeBasePath } from '@main/utils/pathDecoder';
 import { countTokens } from '@main/utils/tokenizer';
 import { createLogger } from '@shared/utils/logger';
 import { app } from 'electron';
-import * as path from 'path';
 
 import { LocalFileSystemProvider } from '../infrastructure/LocalFileSystemProvider';
 

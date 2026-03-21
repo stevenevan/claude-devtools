@@ -14,13 +14,13 @@
 
 import { createLogger } from '@shared/utils/logger';
 
+import { LocalFileSystemProvider, NotificationManager, ServiceContext } from './services';
 import { HttpServer } from './services/infrastructure/HttpServer';
 import {
   getProjectsBasePath,
   getTodosBasePath,
   setClaudeBasePathOverride,
 } from './utils/pathDecoder';
-import { LocalFileSystemProvider, NotificationManager, ServiceContext } from './services';
 
 import type { HttpServices } from './http';
 import type { SshConnectionManager } from './services/infrastructure/SshConnectionManager';

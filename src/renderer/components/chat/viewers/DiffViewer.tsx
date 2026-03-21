@@ -265,7 +265,7 @@ const DiffLineRow: React.FC<DiffLineRowProps> = ({ line }): React.JSX.Element =>
     >
       {/* Line number */}
       <span
-        className="w-10 shrink-0 select-none px-2 text-right"
+        className="w-10 shrink-0 px-2 text-right select-none"
         style={{ color: CODE_LINE_NUMBER }}
       >
         {line.lineNumber}

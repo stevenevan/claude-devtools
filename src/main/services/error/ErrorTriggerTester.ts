@@ -6,10 +6,11 @@
  * - Running single trigger detection for preview functionality
  */
 
+import * as path from 'path';
+
 import { type ParsedMessage } from '@main/types';
 import { parseJsonlFile } from '@main/utils/jsonl';
 import { createLogger } from '@shared/utils/logger';
-import * as path from 'path';
 
 import {
   buildToolResultMap,

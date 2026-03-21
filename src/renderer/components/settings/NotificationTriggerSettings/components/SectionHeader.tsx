@@ -8,7 +8,7 @@ interface SectionHeaderProps {
 
 export const SectionHeader = ({ title }: Readonly<SectionHeaderProps>): React.JSX.Element => {
   return (
-    <h3 className="mb-2 mt-6 text-xs font-medium uppercase tracking-widest text-text-muted first:mt-0">
+    <h3 className="text-text-muted mt-6 mb-2 text-xs font-medium tracking-widest uppercase first:mt-0">
       {title}
     </h3>
   );

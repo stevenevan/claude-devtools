@@ -388,7 +388,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         >
           <Bell className="size-4" />
           {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-medium text-white">
+            <span className="absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-medium text-white">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}

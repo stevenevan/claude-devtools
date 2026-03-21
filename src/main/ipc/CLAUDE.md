@@ -3,6 +3,7 @@
 Domain-organized IPC request handlers for main process.
 
 ## Structure
+
 ```
 ipc/
 ├── handlers.ts          # Initialization and registration
@@ -19,7 +20,9 @@ ipc/
 ```
 
 ## Handler Pattern
+
 Each domain module exports:
+
 ```typescript
 // Setup with services
 initialize{Domain}Handlers(services)
@@ -32,7 +35,9 @@ remove{Domain}Handlers(ipcMain)
 ```
 
 ## Service Dependencies
+
 `initializeIpcHandlers()` receives service instances:
+
 - `ProjectScanner` - File system scanning
 - `SessionParser` - JSONL parsing
 - `SubagentResolver` - Subagent linking
@@ -40,7 +45,9 @@ remove{Domain}Handlers(ipcMain)
 - `DataCache` - Result caching
 
 ## Response Pattern
+
 Config handlers use `IpcResult<T>` wrapper:
+
 ```typescript
 return { success: true, data: result };
 return { success: false, error: message };
@@ -49,6 +56,7 @@ return { success: false, error: message };
 Other handlers return data directly or `null` on error.
 
 ## Adding New Handler
+
 1. Add to existing domain file or create new file
 2. Call `initialize{Domain}Handlers()` if new domain
 3. Add `register/remove{Domain}Handlers` in `handlers.ts`
