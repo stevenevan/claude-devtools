@@ -128,8 +128,16 @@ export class TauriAPIClient implements ElectronAPI {
   searchAllProjects = (query: string, maxResults?: number): Promise<SearchSessionsResult> =>
     this.http.searchAllProjects(query, maxResults);
 
-  getSessionDetail = (projectId: string, sessionId: string): Promise<SessionDetail | null> =>
-    this.http.getSessionDetail(projectId, sessionId);
+  getSessionDetail = async (
+    projectId: string,
+    sessionId: string
+  ): Promise<SessionDetail | null> => {
+    try {
+      return await invoke<SessionDetail>('get_session_detail', { projectId, sessionId });
+    } catch {
+      return this.http.getSessionDetail(projectId, sessionId);
+    }
+  };
 
   getSessionMetrics = async (
     projectId: string,

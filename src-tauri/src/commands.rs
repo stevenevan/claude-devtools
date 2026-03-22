@@ -1,14 +1,18 @@
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
+use crate::analysis::chunk_builder;
 use crate::cache::SessionCache;
 use crate::discovery::{
-    path_decoder, project_scanner, session_lister, subproject_registry::SubprojectRegistry,
+    path_decoder, project_scanner, session_lister, subagent_resolver,
+    subproject_registry::SubprojectRegistry,
 };
 use crate::parsing::session_parser;
 use crate::sidecar::SidecarState;
+use crate::types::chunks::SessionDetail;
 use crate::types::domain::{
-    PaginatedSessionsResult, ParsedSession, Project, SessionMetrics, SessionsPaginationOptions,
+    PaginatedSessionsResult, ParsedSession, Project, Session, SessionMetrics,
+    SessionsPaginationOptions,
 };
 use crate::watcher;
 
@@ -174,4 +178,71 @@ pub fn get_sessions_paginated(
         &opts,
         &registry,
     )
+}
+
+// ---------------------------------------------------------------------------
+// Session Detail (chunks + processes)
+// ---------------------------------------------------------------------------
+
+/// Parse a session and build chunks with subagent resolution.
+#[tauri::command]
+pub fn get_session_detail(
+    project_id: String,
+    session_id: String,
+    cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+) -> Result<SessionDetail, String> {
+    let claude_dir = watcher::resolve_claude_dir()
+        .ok_or("Cannot resolve home directory")?;
+    let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
+
+    // Parse session (with cache)
+    let cache_key = format!("{project_id}/{session_id}");
+    let parsed = {
+        let mut cache = cache.lock().map_err(|e| e.to_string())?;
+        if let Some(cached) = cache.get(&cache_key) {
+            cached.clone()
+        } else {
+            let file_path = resolve_session_path(&project_id, &session_id)?;
+            let session = session_parser::parse_session_file(&file_path)?;
+            cache.insert(cache_key, session.clone());
+            session
+        }
+    };
+
+    // Resolve subagents
+    let subagents = subagent_resolver::resolve_subagents(
+        &projects_dir,
+        &project_id,
+        &session_id,
+        &parsed.task_calls,
+        &parsed.messages,
+    );
+
+    // Build a minimal Session struct
+    let decoded_path = path_decoder::decode_path(
+        &path_decoder::extract_base_dir(&project_id),
+    );
+    let session = Session {
+        id: session_id.clone(),
+        project_id: project_id.clone(),
+        project_path: decoded_path.clone(),
+        todo_data: None,
+        created_at: 0.0, // Not critical for detail view
+        first_message: None,
+        message_timestamp: None,
+        has_subagents: !subagents.is_empty(),
+        message_count: parsed.messages.len() as u32,
+        is_ongoing: None,
+        git_branch: None,
+        metadata_level: Some("deep".to_string()),
+        context_consumption: None,
+        compaction_count: None,
+        phase_breakdown: None,
+    };
+
+    Ok(chunk_builder::build_session_detail(
+        session,
+        parsed.messages,
+        subagents,
+    ))
 }

@@ -1,3 +1,4 @@
+mod analysis;
 mod cache;
 mod commands;
 mod config;
@@ -61,6 +62,7 @@ pub fn run() {
             commands::parse_session_metrics,
             commands::get_projects,
             commands::get_sessions_paginated,
+            commands::get_session_detail,
             config::commands::config_get,
             config::commands::config_update,
             config::commands::config_add_ignore_regex,
