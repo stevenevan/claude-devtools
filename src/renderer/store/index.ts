@@ -67,6 +67,52 @@ export function initializeNotificationListeners(): () => void {
   const pendingProjectRefreshTimers = new Map<string, ReturnType<typeof setTimeout>>();
   const SESSION_REFRESH_DEBOUNCE_MS = 150;
   const PROJECT_REFRESH_DEBOUNCE_MS = 300;
+
+  // Track file activity per session for optimistic isOngoing detection.
+  // When a file change arrives for a known session, we mark it as ongoing immediately.
+  // After ONGOING_STALE_MS without activity, we clear the ongoing flag.
+  const ONGOING_STALE_MS = 60_000;
+  const ONGOING_CHECK_INTERVAL_MS = 15_000;
+  const sessionLastActivityAt = new Map<string, number>();
+
+  /** Mark a known sidebar session as ongoing and record activity time. */
+  const markSessionOngoing = (sessionId: string): void => {
+    sessionLastActivityAt.set(sessionId, Date.now());
+    const state = useStore.getState();
+    const session = state.sessions.find((s) => s.id === sessionId);
+    if (session && !session.isOngoing) {
+      useStore.setState({
+        sessions: state.sessions.map((s) =>
+          s.id === sessionId ? { ...s, isOngoing: true } : s
+        ),
+      });
+    }
+  };
+
+  /** Clear isOngoing for sessions with no recent file activity. */
+  const clearStaleOngoingSessions = (): void => {
+    const now = Date.now();
+    const staleSessionIds: string[] = [];
+    for (const [sessionId, lastActivity] of sessionLastActivityAt) {
+      if (now - lastActivity > ONGOING_STALE_MS) {
+        staleSessionIds.push(sessionId);
+        sessionLastActivityAt.delete(sessionId);
+      }
+    }
+    if (staleSessionIds.length === 0) return;
+    const staleSet = new Set(staleSessionIds);
+    const state = useStore.getState();
+    const needsUpdate = state.sessions.some((s) => staleSet.has(s.id) && s.isOngoing);
+    if (needsUpdate) {
+      useStore.setState({
+        sessions: state.sessions.map((s) =>
+          staleSet.has(s.id) ? { ...s, isOngoing: false } : s
+        ),
+      });
+    }
+  };
+
+  const ongoingCheckInterval = setInterval(clearStaleOngoingSessions, ONGOING_CHECK_INTERVAL_MS);
   const getBaseProjectId = (projectId: string | null | undefined): string | null => {
     if (!projectId) return null;
     const separatorIndex = projectId.indexOf('::');
@@ -239,6 +285,19 @@ export function initializeNotificationListeners(): () => void {
         }
       }
 
+      // Optimistically mark known sidebar sessions as ongoing when their file changes.
+      // The backend-computed isOngoing (from refreshSessionInPlace) will correct this
+      // if needed; the staleness timer handles sessions that stop being active.
+      if (
+        isTopLevelSessionEvent &&
+        matchesSelectedProject &&
+        !isUnknownSessionInSidebar &&
+        event.sessionId &&
+        (event.type === 'change' || event.type === 'add')
+      ) {
+        markSessionOngoing(event.sessionId);
+      }
+
       // Keep opened session view in sync on content changes.
       // Some local writers emit rename/add for in-place updates, so include "add".
       if ((event.type === 'change' || event.type === 'add') && selectedProjectId) {
@@ -380,6 +439,8 @@ export function initializeNotificationListeners(): () => void {
       clearTimeout(timer);
     }
     pendingProjectRefreshTimers.clear();
+    clearInterval(ongoingCheckInterval);
+    sessionLastActivityAt.clear();
     cleanupFns.forEach((fn) => fn());
   };
 }

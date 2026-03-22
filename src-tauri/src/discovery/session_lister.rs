@@ -11,6 +11,7 @@ use crate::types::domain::{PaginatedSessionsResult, Session, SessionsPaginationO
 use crate::types::jsonl::RawJsonlEntry;
 
 use super::content_filter::has_non_noise_messages;
+use super::ongoing_detector::detect_ongoing;
 use super::path_decoder::{build_todo_path, decode_path, extract_base_dir, extract_project_name};
 use super::subagent_locator::has_subagents;
 use super::subproject_registry::SubprojectRegistry;
@@ -136,6 +137,9 @@ pub fn list_sessions_paginated(
             let file_path = project_dir.join(format!("{session_id}.jsonl"));
             let preview = extract_first_user_message(&file_path);
 
+            // Detect if session is currently active
+            let is_ongoing = detect_ongoing(&file_path);
+
             Session {
                 id: session_id.clone(),
                 project_id: project_id.to_string(),
@@ -146,7 +150,7 @@ pub fn list_sessions_paginated(
                 message_timestamp: preview.as_ref().map(|p| p.timestamp.clone()),
                 has_subagents: has_subs,
                 message_count: 0,
-                is_ongoing: None,
+                is_ongoing,
                 git_branch: None,
                 metadata_level: Some("light".to_string()),
                 context_consumption: None,

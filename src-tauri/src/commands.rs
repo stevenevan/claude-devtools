@@ -6,7 +6,7 @@ use serde_json::Value;
 use crate::analysis::chunk_builder;
 use crate::cache::SessionCache;
 use crate::discovery::{
-    path_decoder, project_scanner, session_lister, subagent_resolver,
+    ongoing_detector, path_decoder, project_scanner, session_lister, subagent_resolver,
     subproject_registry::SubprojectRegistry,
 };
 use crate::parsing::session_parser;
@@ -651,6 +651,8 @@ pub fn get_subagent_detail(
     let parsed = session_parser::parse_session_file(&subagent_path)?;
     let decoded_path = path_decoder::decode_path(&base_dir);
 
+    let is_ongoing = ongoing_detector::detect_ongoing(&subagent_path);
+
     let session = Session {
         id: subagent_id.clone(),
         project_id: project_id.clone(),
@@ -661,7 +663,7 @@ pub fn get_subagent_detail(
         message_timestamp: None,
         has_subagents: false,
         message_count: parsed.messages.len() as u32,
-        is_ongoing: None,
+        is_ongoing,
         git_branch: None,
         metadata_level: Some("deep".to_string()),
         context_consumption: None,
@@ -925,6 +927,11 @@ pub fn get_session_detail(
     let decoded_path = path_decoder::decode_path(
         &path_decoder::extract_base_dir(&project_id),
     );
+
+    // Detect if session is currently active
+    let session_file_path = resolve_session_path(&project_id, &session_id)?;
+    let is_ongoing = ongoing_detector::detect_ongoing(&session_file_path);
+
     let session = Session {
         id: session_id.clone(),
         project_id: project_id.clone(),
@@ -935,7 +942,7 @@ pub fn get_session_detail(
         message_timestamp: None,
         has_subagents: !subagents.is_empty(),
         message_count: parsed.messages.len() as u32,
-        is_ongoing: None,
+        is_ongoing,
         git_branch: None,
         metadata_level: Some("deep".to_string()),
         context_consumption: None,

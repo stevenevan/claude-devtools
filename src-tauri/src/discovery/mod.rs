@@ -1,4 +1,5 @@
 pub mod content_filter;
+pub mod ongoing_detector;
 pub mod path_decoder;
 pub mod project_scanner;
 pub mod session_lister;
