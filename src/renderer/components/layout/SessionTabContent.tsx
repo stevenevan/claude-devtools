@@ -44,7 +44,7 @@ export const SessionTabContent = ({
   // Only show loading/error states when this tab is active
   if (!isActive) {
     return (
-      <div className="bg-claude-dark-surface flex min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="bg-background flex min-w-0 flex-1 flex-col overflow-hidden">
         <MiddlePanel tabId={tab.id} />
       </div>
     );
@@ -52,11 +52,11 @@ export const SessionTabContent = ({
 
   if (sessionDetailError) {
     return (
-      <div className="bg-claude-dark-bg flex flex-1 items-center justify-center">
+      <div className="bg-background flex flex-1 items-center justify-center">
         <div className="p-8 text-center">
           <AlertCircle className="mx-auto mb-4 size-12 text-red-500/70" />
-          <h3 className="text-claude-dark-text mb-2 text-lg font-medium">Failed to load session</h3>
-          <p className="text-claude-dark-text-secondary mb-4 max-w-md text-sm">
+          <h3 className="text-foreground mb-2 text-lg font-medium">Failed to load session</h3>
+          <p className="text-foreground-secondary mb-4 max-w-md text-sm">
             {sessionDetailError}
           </p>
           <div className="flex justify-center gap-3">
@@ -66,14 +66,14 @@ export const SessionTabContent = ({
                   void fetchSessionDetail(tab.projectId, tab.sessionId, tab.id);
                 }
               }}
-              className="border-claude-dark-border bg-claude-dark-surface hover:bg-claude-dark-border flex items-center gap-2 rounded-md border px-4 py-2 text-sm transition-colors"
+              className="border-border bg-background hover:bg-card flex items-center gap-2 rounded-md border px-4 py-2 text-sm transition-colors"
             >
               <RefreshCw className="size-4" />
               Retry
             </button>
             <button
               onClick={() => closeTab(tab.id)}
-              className="text-claude-dark-text-secondary hover:text-claude-dark-text px-4 py-2 text-sm transition-colors"
+              className="text-foreground-secondary hover:text-foreground px-4 py-2 text-sm transition-colors"
             >
               Close tab
             </button>
@@ -85,17 +85,17 @@ export const SessionTabContent = ({
 
   if (sessionDetailLoading) {
     return (
-      <div className="bg-claude-dark-bg flex flex-1 items-center justify-center">
+      <div className="bg-background flex flex-1 items-center justify-center">
         <div className="text-center">
-          <div className="border-claude-dark-text-secondary border-t-claude-dark-text mx-auto mb-4 size-8 animate-spin rounded-full border-2" />
-          <p className="text-claude-dark-text-secondary text-sm">Loading session...</p>
+          <div className="border-muted-foreground border-t-foreground mx-auto mb-4 size-8 animate-spin rounded-full border-2" />
+          <p className="text-foreground-secondary text-sm">Loading session...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-claude-dark-surface flex min-w-0 flex-1 flex-col overflow-hidden">
+    <div className="bg-background flex min-w-0 flex-1 flex-col overflow-hidden">
       <MiddlePanel tabId={tab.id} />
     </div>
   );

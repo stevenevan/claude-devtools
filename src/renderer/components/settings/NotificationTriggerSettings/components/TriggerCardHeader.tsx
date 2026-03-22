@@ -59,7 +59,7 @@ export const TriggerCardHeader = ({
                 }
               }}
               autoFocus
-              className="border-border text-text w-full rounded-sm border bg-transparent px-2 py-1 text-sm focus:ring-1 focus:ring-indigo-500 focus:outline-hidden"
+              className="border-border text-foreground w-full rounded-sm border bg-transparent px-2 py-1 text-sm focus:ring-1 focus:ring-indigo-500 focus:outline-hidden"
             />
           ) : (
             <div className="flex items-center gap-2">
@@ -67,7 +67,7 @@ export const TriggerCardHeader = ({
                 className="size-2.5 shrink-0 rounded-full"
                 style={{ backgroundColor: getTriggerColorDef(trigger.color).hex }}
               />
-              <span className="text-text truncate text-sm font-medium">{trigger.name}</span>
+              <span className="text-foreground truncate text-sm font-medium">{trigger.name}</span>
               {trigger.isBuiltin && (
                 <span className="flex items-center gap-1 rounded-sm bg-indigo-500/10 px-1.5 py-0.5 text-[10px] text-indigo-400">
                   <Shield className="size-2.5" />
@@ -78,7 +78,7 @@ export const TriggerCardHeader = ({
                 <button
                   onClick={() => onSetEditingName(true)}
                   disabled={saving}
-                  className="text-text-muted hover:bg-surface-raised hover:text-text-secondary rounded-sm p-0.5 transition-colors"
+                  className="text-muted-foreground hover:bg-card hover:text-muted-foreground rounded-sm p-0.5 transition-colors"
                   aria-label="Edit name"
                 >
                   <Pencil className="size-3" />
@@ -87,9 +87,9 @@ export const TriggerCardHeader = ({
             </div>
           )}
           {/* Description line showing mode and content type */}
-          <div className="text-text-muted mt-0.5 flex items-center gap-2 text-xs">
+          <div className="text-muted-foreground mt-0.5 flex items-center gap-2 text-xs">
             <span>{MODE_OPTIONS.find((m) => m.value === localMode)?.label ?? localMode}</span>
-            <span className="text-text-muted">-</span>
+            <span className="text-muted-foreground">-</span>
             <span>
               {CONTENT_TYPE_OPTIONS.find((o) => o.value === trigger.contentType)?.label ??
                 trigger.contentType}
@@ -104,7 +104,7 @@ export const TriggerCardHeader = ({
 
         <button
           onClick={onToggleExpanded}
-          className="text-text-muted hover:bg-surface-raised hover:text-text-secondary rounded-sm p-1 transition-colors"
+          className="text-muted-foreground hover:bg-card hover:text-muted-foreground rounded-sm p-1 transition-colors"
           aria-label={isExpanded ? 'Collapse' : 'Expand'}
         >
           {isExpanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
@@ -115,7 +115,7 @@ export const TriggerCardHeader = ({
             onClick={onRemove}
             disabled={saving}
             className={cn(
-              'text-text-muted rounded-sm p-1 transition-colors hover:bg-red-500/10 hover:text-red-400',
+              'text-muted-foreground rounded-sm p-1 transition-colors hover:bg-red-500/10 hover:text-red-400',
               saving && 'cursor-not-allowed opacity-50'
             )}
             aria-label="Delete trigger"

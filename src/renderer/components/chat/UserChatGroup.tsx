@@ -55,7 +55,7 @@ function highlightTextNode(text: string, validatedPaths: Record<string, boolean>
       parts.push(
         <span
           key={match.index}
-          className="rounded border border-[var(--chat-user-tag-border)] bg-[var(--chat-user-tag-bg)] px-1.5 py-0.5 font-mono text-[0.8125em] text-[var(--chat-user-tag-text)]"
+          className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[0.8125em] text-foreground"
         >
           {fullMatch}
         </span>
@@ -118,38 +118,38 @@ function createUserMarkdownComponents(
 
   return {
     h1: ({ children }) => (
-      <h1 className="mt-6 mb-3 text-lg font-semibold text-[var(--chat-user-text)] first:mt-0">
+      <h1 className="mt-6 mb-3 text-lg font-semibold text-muted-foreground first:mt-0">
         {hl(children)}
       </h1>
     ),
     h2: ({ children }) => (
-      <h2 className="mt-5 mb-2 text-base font-semibold text-[var(--chat-user-text)] first:mt-0">
+      <h2 className="mt-5 mb-2 text-base font-semibold text-muted-foreground first:mt-0">
         {hl(children)}
       </h2>
     ),
     h3: ({ children }) => (
-      <h3 className="mt-4 mb-2 text-sm font-semibold text-[var(--chat-user-text)] first:mt-0">
+      <h3 className="mt-4 mb-2 text-sm font-semibold text-muted-foreground first:mt-0">
         {hl(children)}
       </h3>
     ),
     h4: ({ children }) => (
-      <h4 className="mt-3 mb-1.5 text-sm font-semibold text-[var(--chat-user-text)] first:mt-0">
+      <h4 className="mt-3 mb-1.5 text-sm font-semibold text-muted-foreground first:mt-0">
         {hl(children)}
       </h4>
     ),
     h5: ({ children }) => (
-      <h5 className="mt-2 mb-1 text-sm font-medium text-[var(--chat-user-text)] first:mt-0">
+      <h5 className="mt-2 mb-1 text-sm font-medium text-muted-foreground first:mt-0">
         {hl(children)}
       </h5>
     ),
     h6: ({ children }) => (
-      <h6 className="mt-2 mb-1 text-xs font-medium text-[var(--chat-user-text)] first:mt-0">
+      <h6 className="mt-2 mb-1 text-xs font-medium text-muted-foreground first:mt-0">
         {hl(children)}
       </h6>
     ),
 
     p: ({ children }) => (
-      <p className="my-2 text-sm leading-relaxed text-[var(--chat-user-text)] first:mt-0 last:mb-0">
+      <p className="my-2 text-sm leading-relaxed text-muted-foreground first:mt-0 last:mb-0">
         {hl(children)}
       </p>
     ),
@@ -158,7 +158,7 @@ function createUserMarkdownComponents(
     a: ({ href, children }) => (
       <a
         href={href}
-        className="text-[var(--chat-user-tag-text)] no-underline hover:underline"
+        className="text-foreground no-underline hover:underline"
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -167,13 +167,13 @@ function createUserMarkdownComponents(
     ),
 
     strong: ({ children }) => (
-      <strong className="font-semibold text-[var(--chat-user-text)]">{children}</strong>
+      <strong className="font-semibold text-muted-foreground">{children}</strong>
     ),
 
-    em: ({ children }) => <em className="text-[var(--chat-user-text)] italic">{children}</em>,
+    em: ({ children }) => <em className="text-muted-foreground italic">{children}</em>,
 
     del: ({ children }) => (
-      <del className="text-[var(--chat-user-text)] line-through">{children}</del>
+      <del className="text-muted-foreground line-through">{children}</del>
     ),
 
     code: ({ className, children }) => {
@@ -184,59 +184,59 @@ function createUserMarkdownComponents(
 
       if (isBlock) {
         return (
-          <code className="block font-mono text-xs text-[var(--chat-user-text)]">
+          <code className="block font-mono text-xs text-muted-foreground">
             {hl(children)}
           </code>
         );
       }
       // Inline code — no hl()
       return (
-        <code className="rounded-sm border border-[var(--chat-user-tag-border)] bg-[var(--chat-user-tag-bg)] px-1.5 py-0.5 font-mono text-xs text-[var(--chat-user-tag-text)]">
+        <code className="rounded-sm border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
           {children}
         </code>
       );
     },
 
     pre: ({ children }) => (
-      <pre className="my-3 overflow-x-auto rounded-lg border border-[var(--chat-user-tag-border)] bg-[rgba(0,0,0,0.15)] p-3 font-mono text-xs leading-relaxed text-[var(--chat-user-text)]">
+      <pre className="my-3 overflow-x-auto rounded-lg border border-border bg-[rgba(0,0,0,0.15)] p-3 font-mono text-xs leading-relaxed text-muted-foreground">
         {children}
       </pre>
     ),
 
     blockquote: ({ children }) => (
-      <blockquote className="my-3 border-l-4 border-[var(--chat-user-tag-border)] pl-4 text-[var(--chat-user-text)] italic">
+      <blockquote className="my-3 border-l-4 border-border pl-4 text-muted-foreground italic">
         {hl(children)}
       </blockquote>
     ),
 
     ul: ({ children }) => (
-      <ul className="my-2 list-disc space-y-1 pl-5 text-[var(--chat-user-text)]">{children}</ul>
+      <ul className="my-2 list-disc space-y-1 pl-5 text-muted-foreground">{children}</ul>
     ),
     ol: ({ children }) => (
-      <ol className="my-2 list-decimal space-y-1 pl-5 text-[var(--chat-user-text)]">{children}</ol>
+      <ol className="my-2 list-decimal space-y-1 pl-5 text-muted-foreground">{children}</ol>
     ),
-    li: ({ children }) => <li className="text-sm text-[var(--chat-user-text)]">{hl(children)}</li>,
+    li: ({ children }) => <li className="text-sm text-muted-foreground">{hl(children)}</li>,
 
     table: ({ children }) => (
       <div className="my-3 overflow-x-auto">
-        <table className="min-w-full border-collapse border-[var(--chat-user-tag-border)] text-sm">
+        <table className="min-w-full border-collapse border-border text-sm">
           {children}
         </table>
       </div>
     ),
     thead: ({ children }) => <thead className="bg-[rgba(0,0,0,0.1)]">{children}</thead>,
     th: ({ children }) => (
-      <th className="border border-[var(--chat-user-tag-border)] px-3 py-2 text-left font-semibold text-[var(--chat-user-text)]">
+      <th className="border border-border px-3 py-2 text-left font-semibold text-muted-foreground">
         {hl(children)}
       </th>
     ),
     td: ({ children }) => (
-      <td className="border border-[var(--chat-user-tag-border)] px-3 py-2 text-[var(--chat-user-text)]">
+      <td className="border border-border px-3 py-2 text-muted-foreground">
         {hl(children)}
       </td>
     ),
 
-    hr: () => <hr className="my-4 border-[var(--chat-user-tag-border)]" />,
+    hr: () => <hr className="my-4 border-border" />,
   };
 }
 
@@ -358,17 +358,17 @@ const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): React.
       <div className="max-w-[85%] space-y-2">
         {/* Header - right aligned with improved hierarchy */}
         <div className="flex items-center justify-end gap-1.5">
-          <span className="text-text-muted text-[10px]">{format(timestamp, 'h:mm:ss a')}</span>
-          <span className="text-text-secondary text-xs font-semibold">You</span>
-          <User className="text-text-secondary size-3.5" />
+          <span className="text-muted-foreground text-[10px]">{format(timestamp, 'h:mm:ss a')}</span>
+          <span className="text-muted-foreground text-xs font-semibold">You</span>
+          <User className="text-muted-foreground size-3.5" />
         </div>
 
         {/* Content - polished bubble with subtle depth */}
         {textContent && (
-          <div className="group relative overflow-hidden rounded-2xl rounded-br-sm border border-[var(--chat-user-border)] bg-[var(--chat-user-bg)] px-4 py-3 shadow-[var(--chat-user-shadow)]">
-            <CopyButton text={textContent} bgColor="var(--chat-user-bg)" />
+          <div className="group relative overflow-hidden rounded-2xl rounded-br-sm border border-border bg-card px-4 py-3 shadow-sm">
+            <CopyButton text={textContent} />
 
-            <div className="text-sm text-[var(--chat-user-text)]" data-search-content>
+            <div className="text-sm text-muted-foreground" data-search-content>
               <ReactMarkdown remarkPlugins={[remarkGfm]} components={userMarkdownComponents}>
                 {displayText}
               </ReactMarkdown>
@@ -376,7 +376,7 @@ const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): React.
             {isLongContent && (
               <button
                 onClick={() => setIsManuallyExpanded(!isManuallyExpanded)}
-                className="text-text-muted mt-2 text-xs underline hover:opacity-80"
+                className="text-muted-foreground mt-2 text-xs underline hover:opacity-80"
               >
                 {isExpanded ? 'Show less' : 'Show more'}
               </button>
@@ -386,7 +386,7 @@ const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): React.
 
         {/* Images indicator */}
         {hasImages && (
-          <div className="text-text-muted text-right text-xs">
+          <div className="text-muted-foreground text-right text-xs">
             {content.images.length} image{content.images.length > 1 ? 's' : ''} attached
           </div>
         )}

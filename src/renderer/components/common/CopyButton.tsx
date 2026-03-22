@@ -33,7 +33,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
   const icon = copied ? (
     <Check className="size-3.5 text-[var(--badge-success-bg)]" />
   ) : (
-    <Copy className="text-text-muted size-3.5" />
+    <Copy className="text-muted-foreground size-3.5" />
   );
 
   if (inline) {

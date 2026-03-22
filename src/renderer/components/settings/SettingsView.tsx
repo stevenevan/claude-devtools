@@ -62,8 +62,8 @@ export const SettingsView = (): React.JSX.Element | null => {
   // Loading state
   if (loading) {
     return (
-      <div className="bg-surface flex flex-1 items-center justify-center">
-        <div className="text-text-muted flex items-center gap-3">
+      <div className="bg-background flex flex-1 items-center justify-center">
+        <div className="text-muted-foreground flex items-center gap-3">
           <Loader2 className="size-5 animate-spin" />
           <span>Loading settings...</span>
         </div>
@@ -74,7 +74,7 @@ export const SettingsView = (): React.JSX.Element | null => {
   // Error state
   if (error && !config) {
     return (
-      <div className="bg-surface flex flex-1 items-center justify-center">
+      <div className="bg-background flex flex-1 items-center justify-center">
         <div className="text-center">
           <p className="mb-4 text-red-400">{error}</p>
           <Button variant="secondary" onClick={() => window.location.reload()}>
@@ -88,12 +88,12 @@ export const SettingsView = (): React.JSX.Element | null => {
   if (!config) return null;
 
   return (
-    <div className="bg-surface flex-1 overflow-auto">
+    <div className="bg-background flex-1 overflow-auto">
       <div className="mx-auto max-w-2xl px-6 py-8">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-text text-lg font-medium">Settings</h1>
-          <p className="text-text-muted text-sm">Manage your app preferences</p>
+          <h1 className="text-foreground text-lg font-medium">Settings</h1>
+          <p className="text-muted-foreground text-sm">Manage your app preferences</p>
           {error && (
             <div className="mt-4 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2">
               <p className="text-sm text-red-400">{error}</p>

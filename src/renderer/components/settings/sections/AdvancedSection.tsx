@@ -120,7 +120,7 @@ export const AdvancedSection = ({
         <img src={appIcon} alt="App Icon" className="size-10 rounded-lg" />
         <div>
           <div className="flex items-center gap-3">
-            <p className="text-text text-sm font-medium">claude-devtools</p>
+            <p className="text-foreground text-sm font-medium">claude-devtools</p>
             {isElectron && (
               <Button
                 variant="outline"
@@ -129,23 +129,23 @@ export const AdvancedSection = ({
                 disabled={updateStatus === 'checking'}
                 className={cn(
                   updateStatus === 'not-available'
-                    ? 'text-text-muted'
+                    ? 'text-muted-foreground'
                     : updateStatus === 'available' || updateStatus === 'downloaded'
                       ? 'text-blue-400'
-                      : 'text-text-secondary'
+                      : 'text-muted-foreground'
                 )}
               >
                 {getUpdateButtonContent()}
               </Button>
             )}
             {!isElectron && (
-              <span className="border-border text-text-muted rounded-md border px-2.5 py-1 text-xs font-medium">
+              <span className="border-border text-muted-foreground rounded-md border px-2.5 py-1 text-xs font-medium">
                 Standalone
               </span>
             )}
           </div>
-          <p className="text-text-muted mt-0.5 text-xs">Version {version || '...'}</p>
-          <p className="text-text-muted mt-2 text-xs leading-relaxed">
+          <p className="text-muted-foreground mt-0.5 text-xs">Version {version || '...'}</p>
+          <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
             Visualize and analyze Claude Code session executions with interactive waterfall charts
             and detailed insights.
           </p>

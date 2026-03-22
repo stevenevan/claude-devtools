@@ -25,7 +25,7 @@ export const CollapsibleOutputSection: React.FC<CollapsibleOutputSectionProps> =
 
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-      <CollapsibleTrigger className="mb-1 flex cursor-pointer items-center gap-2 border-none bg-none p-0 text-xs text-[var(--tool-item-muted)]">
+      <CollapsibleTrigger className="mb-1 flex cursor-pointer items-center gap-2 border-none bg-none p-0 text-xs text-muted-foreground">
         {isExpanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
         {label}
         <StatusDot status={status} />
@@ -33,8 +33,8 @@ export const CollapsibleOutputSection: React.FC<CollapsibleOutputSectionProps> =
       <CollapsibleContent>
         <div
           className={cn(
-            'max-h-96 overflow-auto rounded border border-[var(--code-border)] bg-[var(--code-bg)] p-3 font-mono text-xs',
-            status === 'error' ? 'text-[var(--tool-result-error-text)]' : 'text-text-secondary'
+            'max-h-96 overflow-auto rounded border border-border bg-muted p-3 font-mono text-xs',
+            status === 'error' ? 'text-red-300' : 'text-muted-foreground'
           )}
         >
           {children}

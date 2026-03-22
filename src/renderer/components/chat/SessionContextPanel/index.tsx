@@ -174,7 +174,7 @@ export const SessionContextPanel = ({
   };
 
   return (
-    <div className="border-border bg-surface flex h-full flex-col border-l">
+    <div className="flex h-full flex-col border-l border-border bg-background">
       <SessionContextHeader
         injectionCount={injections.length}
         totalTokens={totalTokens}
@@ -190,7 +190,7 @@ export const SessionContextPanel = ({
       {/* Content */}
       <div className="flex-1 space-y-2 overflow-y-auto p-3">
         {injections.length === 0 ? (
-          <div className="text-text-muted flex h-full items-center justify-center text-sm">
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             No context injections detected in this session
           </div>
         ) : viewMode === 'category' ? (
@@ -254,8 +254,8 @@ export const SessionContextPanel = ({
                 className={cn(
                   'rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
                   !flatMode
-                    ? 'bg-[var(--accent-badge-bg)] text-[var(--accent-badge-text)]'
-                    : 'bg-surface-overlay text-text-muted'
+                    ? 'bg-indigo-500/15 text-indigo-400'
+                    : 'bg-popover text-muted-foreground'
                 )}
               >
                 Grouped
@@ -265,8 +265,8 @@ export const SessionContextPanel = ({
                 className={cn(
                   'rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
                   flatMode
-                    ? 'bg-[var(--accent-badge-bg)] text-[var(--accent-badge-text)]'
-                    : 'bg-surface-overlay text-text-muted'
+                    ? 'bg-indigo-500/15 text-indigo-400'
+                    : 'bg-popover text-muted-foreground'
                 )}
               >
                 Flat

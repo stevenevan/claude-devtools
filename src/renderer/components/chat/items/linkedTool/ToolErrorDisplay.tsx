@@ -21,11 +21,11 @@ export const ToolErrorDisplay: React.FC<ToolErrorDisplayProps> = ({ linkedTool }
 
   return (
     <div>
-      <div className="mb-1 flex items-center gap-2 text-xs text-[var(--tool-item-muted)]">
+      <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
         Error
         <StatusDot status="error" />
       </div>
-      <div className="max-h-96 overflow-auto rounded-sm border border-[var(--code-border)] bg-[var(--code-bg)] p-3 font-mono text-xs text-[var(--tool-result-error-text)]">
+      <div className="max-h-96 overflow-auto rounded-sm border border-border bg-muted p-3 font-mono text-xs text-red-300">
         {renderOutput(linkedTool.result.content)}
       </div>
     </div>

@@ -435,7 +435,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
         segments.push(
           React.createElement(
             'span',
-            { key: currentPos, style: { color: 'var(--syntax-string)' } },
+            { key: currentPos, style: { color: 'rgb(74 222 128)' } },
             str
           )
         );
@@ -452,7 +452,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
         segments.push(
           React.createElement(
             'span',
-            { key: currentPos, style: { color: 'var(--syntax-string)' } },
+            { key: currentPos, style: { color: 'rgb(74 222 128)' } },
             str
           )
         );
@@ -469,7 +469,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
         segments.push(
           React.createElement(
             'span',
-            { key: currentPos, style: { color: 'var(--syntax-string)' } },
+            { key: currentPos, style: { color: 'rgb(74 222 128)' } },
             str
           )
         );
@@ -483,7 +483,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       segments.push(
         React.createElement(
           'span',
-          { key: currentPos, style: { color: 'var(--syntax-comment)', fontStyle: 'italic' } },
+          { key: currentPos, style: { color: 'rgb(113 113 122)', fontStyle: 'italic' } },
           remaining
         )
       );
@@ -502,7 +502,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       segments.push(
         React.createElement(
           'span',
-          { key: currentPos, style: { color: 'var(--syntax-comment)', fontStyle: 'italic' } },
+          { key: currentPos, style: { color: 'rgb(113 113 122)', fontStyle: 'italic' } },
           remaining
         )
       );
@@ -514,7 +514,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       segments.push(
         React.createElement(
           'span',
-          { key: currentPos, style: { color: 'var(--syntax-comment)', fontStyle: 'italic' } },
+          { key: currentPos, style: { color: 'rgb(113 113 122)', fontStyle: 'italic' } },
           remaining
         )
       );
@@ -527,7 +527,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       segments.push(
         React.createElement(
           'span',
-          { key: currentPos, style: { color: 'var(--syntax-number)' } },
+          { key: currentPos, style: { color: 'rgb(251 146 60)' } },
           numberMatch[1]
         )
       );
@@ -544,7 +544,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
         segments.push(
           React.createElement(
             'span',
-            { key: currentPos, style: { color: 'var(--syntax-keyword)', fontWeight: 500 } },
+            { key: currentPos, style: { color: 'rgb(192 132 252)', fontWeight: 500 } },
             word
           )
         );
@@ -553,7 +553,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
         segments.push(
           React.createElement(
             'span',
-            { key: currentPos, style: { color: 'var(--syntax-type)' } },
+            { key: currentPos, style: { color: 'rgb(250 204 21)' } },
             word
           )
         );
@@ -570,7 +570,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       segments.push(
         React.createElement(
           'span',
-          { key: currentPos, style: { color: 'var(--syntax-operator)' } },
+          { key: currentPos, style: { color: 'rgb(161 161 170)' } },
           opMatch[1]
         )
       );

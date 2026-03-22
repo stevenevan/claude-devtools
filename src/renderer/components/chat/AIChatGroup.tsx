@@ -388,7 +388,7 @@ const AIChatGroupInner = ({
   };
 
   return (
-    <div className="space-y-3 border-l-2 border-[var(--chat-ai-border)] pl-3">
+    <div className="space-y-3 border-l-2 border-indigo-500/20 pl-3">
       {/* Header Row */}
       {hasToggleContent && (
         <div className="flex items-center gap-2">
@@ -405,8 +405,8 @@ const AIChatGroupInner = ({
               }
             }}
           >
-            <Bot className="text-text-secondary size-4 shrink-0" />
-            <span className="text-text-secondary shrink-0 text-xs font-semibold">Claude</span>
+            <Bot className="text-muted-foreground size-4 shrink-0" />
+            <span className="text-muted-foreground shrink-0 text-xs font-semibold">Claude</span>
 
             {/* Main agent model */}
             {enhanced.mainModel && (
@@ -420,8 +420,8 @@ const AIChatGroupInner = ({
             {/* Subagent models if different */}
             {enhanced.subagentModels.length > 0 && (
               <>
-                <span className="text-text-muted shrink-0">→</span>
-                <span className="text-text-muted shrink-0 text-xs">
+                <span className="text-muted-foreground shrink-0">→</span>
+                <span className="text-muted-foreground shrink-0 text-xs">
                   {enhanced.subagentModels.map((m, i) => (
                     <span key={m.name}>
                       {i > 0 && ', '}
@@ -432,8 +432,8 @@ const AIChatGroupInner = ({
               </>
             )}
 
-            <span className="text-text-muted shrink-0 text-xs">·</span>
-            <span className="text-text-muted truncate text-xs">
+            <span className="text-muted-foreground shrink-0 text-xs">·</span>
+            <span className="text-muted-foreground truncate text-xs">
               {enhanced.itemsSummary}
               {aiGroup.progressCount != null && aiGroup.progressCount > 0 && (
                 <span className="ml-1 opacity-60">({aiGroup.progressCount} progress)</span>
@@ -441,7 +441,7 @@ const AIChatGroupInner = ({
             </span>
             <ChevronDown
               className={cn(
-                'size-3.5 shrink-0 transition-transform group-hover:opacity-80 text-text-muted',
+                'size-3.5 shrink-0 transition-transform group-hover:opacity-80 text-muted-foreground',
                 isExpanded && 'rotate-180'
               )}
             />
@@ -473,7 +473,7 @@ const AIChatGroupInner = ({
 
             {/* Duration */}
             {aiGroup.durationMs > 0 && (
-              <span className="text-text-muted inline-flex shrink-0 items-center gap-1 text-xs whitespace-nowrap">
+              <span className="text-muted-foreground inline-flex shrink-0 items-center gap-1 text-xs whitespace-nowrap">
                 <Clock className="size-3" />
                 {formatDuration(aiGroup.durationMs)}
               </span>
@@ -481,7 +481,7 @@ const AIChatGroupInner = ({
 
             {/* Timestamp - receded for visual hierarchy */}
             {enhanced.lastOutput?.timestamp && (
-              <span className="text-text-muted shrink-0 text-[10px] whitespace-nowrap">
+              <span className="text-muted-foreground shrink-0 text-[10px] whitespace-nowrap">
                 {format(enhanced.lastOutput.timestamp, 'h:mm:ss a')}
               </span>
             )}

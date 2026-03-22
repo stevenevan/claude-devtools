@@ -32,10 +32,10 @@ export function truncateText(text: string, maxLength: number): string {
  */
 export function getStatusDotClass(status: ItemStatus): string {
   const classes: Record<ItemStatus, string> = {
-    ok: 'bg-[var(--status-ok)]',
-    error: 'bg-[var(--status-error)]',
-    pending: 'bg-[var(--status-pending)]',
-    orphaned: 'bg-[var(--tool-item-muted)]',
+    ok: 'bg-green-500',
+    error: 'bg-red-500',
+    pending: 'bg-yellow-500',
+    orphaned: 'bg-muted-foreground',
   };
   return classes[status];
 }

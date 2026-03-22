@@ -28,16 +28,16 @@ const SystemChatGroupInner = ({
     <div className="flex justify-start">
       <div className="max-w-[85%] space-y-2">
         {/* Header - system icon */}
-        <div className="text-text-muted flex items-center gap-2 text-xs">
-          <Terminal className="text-text-muted size-3.5" />
-          <span className="text-text-secondary font-medium">System</span>
+        <div className="text-muted-foreground flex items-center gap-2 text-xs">
+          <Terminal className="text-muted-foreground size-3.5" />
+          <span className="text-muted-foreground font-medium">System</span>
           <span>·</span>
           <span>{format(timestamp, 'h:mm:ss a')}</span>
         </div>
 
         {/* Content - theme-aware neutral styling */}
-        <div className="rounded-lg bg-[var(--chat-system-bg)] px-4 py-3">
-          <pre className="font-mono text-sm whitespace-pre-wrap text-[var(--chat-system-text)]">
+        <div className="rounded-lg bg-card/50 px-4 py-3">
+          <pre className="font-mono text-sm whitespace-pre-wrap text-muted-foreground">
             {cleanOutput}
           </pre>
         </div>

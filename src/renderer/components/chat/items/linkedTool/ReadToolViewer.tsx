@@ -68,10 +68,10 @@ export const ReadToolViewer: React.FC<ReadToolViewerProps> = ({ linkedTool }) =>
             type="button"
             onClick={() => setViewMode('code')}
             className={cn(
-              'rounded border border-[var(--tag-border)] px-2 py-1 text-xs transition-colors',
+              'rounded border border-border px-2 py-1 text-xs transition-colors',
               viewMode === 'code'
-                ? 'bg-[var(--tag-bg)] text-[var(--tag-text)]'
-                : 'bg-transparent text-text-muted'
+                ? 'bg-card text-muted-foreground'
+                : 'bg-transparent text-muted-foreground'
             )}
           >
             Code
@@ -80,10 +80,10 @@ export const ReadToolViewer: React.FC<ReadToolViewerProps> = ({ linkedTool }) =>
             type="button"
             onClick={() => setViewMode('preview')}
             className={cn(
-              'rounded border border-[var(--tag-border)] px-2 py-1 text-xs transition-colors',
+              'rounded border border-border px-2 py-1 text-xs transition-colors',
               viewMode === 'preview'
-                ? 'bg-[var(--tag-bg)] text-[var(--tag-text)]'
-                : 'bg-transparent text-text-muted'
+                ? 'bg-card text-muted-foreground'
+                : 'bg-transparent text-muted-foreground'
             )}
           >
             Preview

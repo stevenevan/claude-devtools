@@ -42,12 +42,12 @@ export const CustomTitleBar = (): React.JSX.Element | null => {
   };
 
   const buttonBase = cn(
-    'flex h-full w-12 items-center justify-center transition-colors border-0 outline-hidden text-text-secondary'
+    'flex h-full w-12 items-center justify-center transition-colors border-0 outline-hidden text-muted-foreground'
   );
 
   return (
     <div
-      className="bg-surface-sidebar border-border flex shrink-0 items-stretch border-b select-none"
+      className="bg-sidebar border-border flex shrink-0 items-stretch border-b select-none"
       data-tauri-drag-region
       style={
         {

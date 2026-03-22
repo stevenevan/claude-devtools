@@ -19,15 +19,15 @@ const baseStyles: React.CSSProperties = {
 
 const currentHighlightStyles: React.CSSProperties = {
   ...baseStyles,
-  backgroundColor: 'var(--highlight-bg)',
-  color: 'var(--highlight-text)',
-  boxShadow: '0 0 0 1px var(--highlight-ring)',
+  backgroundColor: 'rgb(202 138 4 / 0.7)',
+  color: 'rgb(254 249 195)',
+  boxShadow: '0 0 0 1px rgb(234 179 8)',
 };
 
 const inactiveHighlightStyles: React.CSSProperties = {
   ...baseStyles,
-  backgroundColor: 'var(--highlight-bg-inactive)',
-  color: 'var(--highlight-text-inactive)',
+  backgroundColor: 'rgb(133 77 14 / 0.5)',
+  color: 'rgb(254 240 138)',
 };
 
 export interface SearchContext {

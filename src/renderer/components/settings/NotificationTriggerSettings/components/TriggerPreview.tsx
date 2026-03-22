@@ -35,7 +35,7 @@ export const TriggerPreview = ({
   return (
     <div className="border-border mt-4 border-t pt-4">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-text-muted text-xs tracking-widest uppercase">Preview</span>
+        <span className="text-muted-foreground text-xs tracking-widest uppercase">Preview</span>
         <Button
           type={isFormContext ? 'button' : undefined}
           variant="ghost"
@@ -56,7 +56,7 @@ export const TriggerPreview = ({
 
       {previewResult && !previewResult.loading && (
         <div className="space-y-2">
-          <p className="text-text-secondary text-sm">
+          <p className="text-muted-foreground text-sm">
             <span className="font-medium text-indigo-400">
               {previewResult.truncated && effectiveCount >= 10_000 ? '10,000+' : effectiveCount}
             </span>{' '}
@@ -76,12 +76,12 @@ export const TriggerPreview = ({
           {previewResult.errors.slice(0, 10).map((error, idx) => (
             <div
               key={idx}
-              className="border-border-subtle flex items-center justify-between border-b py-2 text-xs"
+              className="border-border/50 flex items-center justify-between border-b py-2 text-xs"
             >
               <div className="mr-2 min-w-0 flex-1">
-                <span className="text-text-muted">{error.context.projectName}</span>
-                <span className="text-text-muted mx-1">|</span>
-                <span className="text-text-secondary truncate">
+                <span className="text-muted-foreground">{error.context.projectName}</span>
+                <span className="text-muted-foreground mx-1">|</span>
+                <span className="text-muted-foreground truncate">
                   {error.message.length > 60 ? `${error.message.slice(0, 60)}...` : error.message}
                 </span>
               </div>
@@ -96,7 +96,7 @@ export const TriggerPreview = ({
           ))}
 
           {effectiveCount > 10 && (
-            <p className="text-text-muted text-xs">...and {effectiveCount - 10} more</p>
+            <p className="text-muted-foreground text-xs">...and {effectiveCount - 10} more</p>
           )}
         </div>
       )}

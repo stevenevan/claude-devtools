@@ -30,17 +30,17 @@ export const TaskCoordinationItem = ({
       {hasBreakdown && (
         <ChevronRight
           className={cn(
-            'text-text-muted size-3 shrink-0 transition-transform',
+            'text-muted-foreground size-3 shrink-0 transition-transform',
             expanded && 'rotate-90'
           )}
         />
       )}
-      <Users size={12} className="text-text-muted shrink-0" />
+      <Users size={12} className="text-muted-foreground shrink-0" />
       {isClickable ? (
         <span
           role="link"
           tabIndex={0}
-          className="cursor-pointer text-xs text-[var(--link-text)] underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
+          className="cursor-pointer text-xs text-blue-400 underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
           onClick={(e) => {
             e.stopPropagation();
             onNavigateToTurn(turnIndex);
@@ -55,12 +55,12 @@ export const TaskCoordinationItem = ({
           @Turn {turnIndex + 1}
         </span>
       ) : (
-        <span className="text-text-secondary text-xs">@Turn {turnIndex + 1}</span>
+        <span className="text-muted-foreground text-xs">@Turn {turnIndex + 1}</span>
       )}
-      <span className="text-text-muted text-xs">
+      <span className="text-muted-foreground text-xs">
         ~{formatTokens(injection.estimatedTokens)} tokens
       </span>
-      <span className="bg-surface-overlay text-text-muted rounded-sm px-1 py-0.5 text-xs">
+      <span className="bg-popover text-muted-foreground rounded-sm px-1 py-0.5 text-xs">
         {injection.breakdown.length} item{injection.breakdown.length !== 1 ? 's' : ''}
       </span>
     </>
@@ -84,8 +84,8 @@ export const TaskCoordinationItem = ({
         <div className="mt-1 ml-6 space-y-0.5">
           {injection.breakdown.map((item, idx) => (
             <div key={`${item.label}-${idx}`} className="flex items-center justify-between text-xs">
-              <span className="text-text-secondary">{item.label}</span>
-              <span className="text-text-muted tabular-nums">~{formatTokens(item.tokenCount)}</span>
+              <span className="text-muted-foreground">{item.label}</span>
+              <span className="text-muted-foreground tabular-nums">~{formatTokens(item.tokenCount)}</span>
             </div>
           ))}
         </div>

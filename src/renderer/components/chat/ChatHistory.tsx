@@ -537,17 +537,17 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
           .forEach((prev) => {
             /* eslint-disable no-param-reassign -- Directly mutating DOM element style/attributes is necessary for search result highlighting */
             prev.setAttribute('data-search-result', 'match');
-            prev.style.backgroundColor = 'var(--highlight-bg-inactive)';
-            prev.style.color = 'var(--highlight-text-inactive)';
+            prev.style.backgroundColor = 'rgb(133 77 14 / 0.5)';
+            prev.style.color = 'rgb(254 240 138)';
             prev.style.boxShadow = '';
             /* eslint-enable no-param-reassign -- Re-enable after DOM mutations */
           });
       }
       /* eslint-disable no-param-reassign -- Directly mutating DOM element style/attributes is necessary for current search result highlighting */
       el.setAttribute('data-search-result', 'current');
-      el.style.backgroundColor = 'var(--highlight-bg)';
-      el.style.color = 'var(--highlight-text)';
-      el.style.boxShadow = '0 0 0 1px var(--highlight-ring)';
+      el.style.backgroundColor = 'rgb(202 138 4 / 0.7)';
+      el.style.color = 'rgb(254 249 195)';
+      el.style.boxShadow = '0 0 0 1px rgb(234 179 8)';
       /* eslint-enable no-param-reassign -- Re-enable after DOM mutations */
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
@@ -746,12 +746,12 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
   if (!conversation || conversation.items.length === 0) return <ChatHistoryEmptyState />;
 
   return (
-    <div className="bg-surface flex flex-1 flex-col overflow-hidden">
+    <div className="bg-background flex flex-1 flex-col overflow-hidden">
       <div className="relative flex flex-1 overflow-hidden">
         {/* Chat content */}
         <div
           ref={scrollContainerRef}
-          className="bg-surface flex-1 overflow-y-auto"
+          className="bg-background flex-1 overflow-y-auto"
           onScroll={checkScrollButton}
         >
           {/* Sticky Context button */}
@@ -764,10 +764,10 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
                 className={cn(
                   'pointer-events-auto flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs shadow-lg backdrop-blur-md transition-colors',
                   isContextPanelVisible
-                    ? 'bg-[var(--context-btn-active-bg)] text-[var(--context-btn-active-text)]'
+                    ? 'bg-indigo-500/45 text-indigo-100'
                     : isContextButtonHovered
-                      ? 'bg-[var(--context-btn-bg-hover)] text-text-secondary'
-                      : 'bg-[var(--context-btn-bg)] text-text-secondary'
+                      ? 'hover:bg-accent text-muted-foreground'
+                      : 'bg-muted text-muted-foreground'
                 )}
               >
                 Context ({allContextInjections.length})
@@ -784,13 +784,13 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
             {(sessionDetail?.session?.customTitle || sessionDetail?.session?.agentName) && (
               <div className="mb-6">
                 {sessionDetail.session.customTitle && (
-                  <h1 className="text-text text-lg font-semibold">
+                  <h1 className="text-foreground text-lg font-semibold">
                     {sessionDetail.session.customTitle}
                   </h1>
                 )}
                 {sessionDetail.session.agentName &&
                   sessionDetail.session.agentName !== sessionDetail.session.customTitle && (
-                    <p className="text-text-muted mt-1 text-sm">
+                    <p className="text-muted-foreground mt-1 text-sm">
                       Agent: {sessionDetail.session.agentName}
                     </p>
                   )}
@@ -864,7 +864,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
               scrollToBottom('smooth');
               setShowScrollButton(false);
             }}
-            className="text-text-secondary border-border-emphasis absolute bottom-5 z-20 flex items-center gap-1.5 rounded-full border bg-[var(--context-btn-bg)] px-3 py-1.5 text-xs shadow-lg backdrop-blur-md transition-all"
+            className="text-muted-foreground border-border absolute bottom-5 z-20 flex items-center gap-1.5 rounded-full border bg-muted px-3 py-1.5 text-xs shadow-lg backdrop-blur-md transition-all"
             style={{
               right:
                 isContextPanelVisible && allContextInjections.length > 0

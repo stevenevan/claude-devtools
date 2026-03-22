@@ -214,9 +214,9 @@ export const SessionItem = React.memo(function SessionItem({
           <button
             onClick={handleClick}
             className={cn(
-              'h-[48px] w-full overflow-hidden border-b border-border py-2 text-left transition-all duration-150 border-l-2 focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] focus-visible:ring-inset',
+              'h-[48px] w-full overflow-hidden border-b border-border py-2 text-left transition-all duration-150 border-l-2 focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:ring-inset',
               isActive
-                ? 'bg-surface-raised border-l-[var(--color-accent)] pl-[10px]'
+                ? 'bg-card border-l-indigo-500 pl-[10px]'
                 : 'bg-transparent border-l-transparent pl-3 hover:bg-white/[0.03]',
               isHidden && 'opacity-50'
             )}
@@ -240,7 +240,7 @@ export const SessionItem = React.memo(function SessionItem({
           <span
             className={cn(
               'truncate text-[13px] leading-tight font-medium',
-              isActive ? 'text-text' : 'text-text-muted'
+              isActive ? 'text-foreground' : 'text-muted-foreground'
             )}
           >
             {session.customTitle ?? session.firstMessage ?? 'Untitled'}
@@ -248,13 +248,13 @@ export const SessionItem = React.memo(function SessionItem({
         </div>
 
         {/* Second line: message count + time + context consumption */}
-        <div className="text-text-muted mt-0.5 flex items-center gap-2 text-[11px] leading-tight">
+        <div className="text-muted-foreground mt-0.5 flex items-center gap-2 text-[11px] leading-tight">
           <span className="flex items-center gap-0.5">
             <MessageSquare className="size-2.5" />
             {session.messageCount}
           </span>
           <span className="opacity-50">·</span>
-          <span className="text-text-secondary tabular-nums">
+          <span className="text-muted-foreground tabular-nums">
             {formatShortTime(new Date(session.createdAt))}
           </span>
           {session.contextConsumption != null && session.contextConsumption > 0 && (

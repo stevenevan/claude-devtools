@@ -27,15 +27,15 @@ export const RepositoryScopeSection = ({
 }: Readonly<RepositoryScopeSectionProps>): React.JSX.Element => {
   return (
     <details className="mt-4">
-      <summary className="text-text-muted hover:text-text-secondary cursor-pointer text-xs tracking-widest uppercase">
+      <summary className="text-muted-foreground hover:text-muted-foreground cursor-pointer text-xs tracking-widest uppercase">
         Advanced: Repository Scope
       </summary>
       <div className="border-border mt-3 border-l pl-4">
-        <span className="text-text-muted mb-2 block text-xs">
+        <span className="text-muted-foreground mb-2 block text-xs">
           Limit to Repositories (applies only to selected repositories)
         </span>
         {selectedItems.length === 0 ? (
-          <p className="text-text-muted mb-2 text-xs italic">
+          <p className="text-muted-foreground mb-2 text-xs italic">
             No repositories selected - trigger applies to all repositories
           </p>
         ) : (
@@ -58,7 +58,7 @@ export const RepositoryScopeSection = ({
           className="mt-2"
         />
 
-        <p className="text-text-muted mt-2 text-xs">
+        <p className="text-muted-foreground mt-2 text-xs">
           When repositories are selected, this trigger only fires for errors in those repositories.
         </p>
       </div>

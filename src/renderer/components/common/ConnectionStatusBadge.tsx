@@ -29,7 +29,7 @@ export const ConnectionStatusBadge = ({
 
   // Local context always shows Monitor icon
   if (contextId === 'local') {
-    return <Monitor className={cn('text-text-muted size-3.5', className)} />;
+    return <Monitor className={cn('text-muted-foreground size-3.5', className)} />;
   }
 
   // SSH context - determine if this specific SSH context matches connected host
@@ -43,12 +43,12 @@ export const ConnectionStatusBadge = ({
     case 'connected':
       return <Wifi className={cn('size-3.5 text-green-400', className)} />;
     case 'connecting':
-      return <Loader2 className={cn('text-text-muted size-3.5 animate-spin', className)} />;
+      return <Loader2 className={cn('text-muted-foreground size-3.5 animate-spin', className)} />;
     case 'disconnected':
-      return <WifiOff className={cn('text-text-muted size-3.5', className)} />;
+      return <WifiOff className={cn('text-muted-foreground size-3.5', className)} />;
     case 'error':
       return <WifiOff className={cn('size-3.5 text-red-400', className)} />;
     default:
-      return <WifiOff className={cn('text-text-muted size-3.5', className)} />;
+      return <WifiOff className={cn('text-muted-foreground size-3.5', className)} />;
   }
 };

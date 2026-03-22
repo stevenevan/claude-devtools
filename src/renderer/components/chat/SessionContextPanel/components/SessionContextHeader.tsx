@@ -42,9 +42,9 @@ export const SessionContextHeader = ({
       {/* Title row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <FileText size={16} className="text-text-secondary" />
-          <h2 className="text-text text-sm font-semibold">Visible Context</h2>
-          <span className="bg-surface-overlay text-text-secondary rounded-sm px-1.5 py-0.5 text-xs">
+          <FileText size={16} className="text-muted-foreground" />
+          <h2 className="text-sm font-semibold text-foreground">Visible Context</h2>
+          <span className="rounded-sm bg-popover px-1.5 py-0.5 text-xs text-muted-foreground">
             {injectionCount}
           </span>
         </div>
@@ -53,7 +53,7 @@ export const SessionContextHeader = ({
           {onClose && (
             <button
               onClick={onClose}
-              className="text-text-secondary rounded-sm p-1 transition-colors hover:bg-white/10"
+              className="rounded-sm p-1 text-muted-foreground transition-colors hover:bg-white/10"
               aria-label="Close panel"
             >
               <X size={16} />
@@ -63,20 +63,20 @@ export const SessionContextHeader = ({
       </div>
 
       {/* Token comparison stats */}
-      <div className="border-border-subtle mt-2 flex items-center justify-between border-t pt-2 text-xs">
+      <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-xs">
         <div className="flex items-center gap-4">
           {/* Visible Context tokens */}
           <div>
-            <span className="text-text-muted">Visible: </span>
-            <span className="text-text-secondary font-medium tabular-nums">
+            <span className="text-muted-foreground">Visible: </span>
+            <span className="font-medium tabular-nums text-muted-foreground">
               ~{formatTokens(totalTokens)}
             </span>
           </div>
           {/* Total Session tokens (if provided) */}
           {totalSessionTokens !== undefined && totalSessionTokens > 0 && (
             <div>
-              <span className="text-text-muted">Total: </span>
-              <span className="text-text-secondary font-medium tabular-nums">
+              <span className="text-muted-foreground">Total: </span>
+              <span className="font-medium tabular-nums text-muted-foreground">
                 {formatTokens(totalSessionTokens)}
               </span>
             </div>
@@ -84,7 +84,7 @@ export const SessionContextHeader = ({
         </div>
         {/* Percentage of total */}
         {totalSessionTokens !== undefined && totalSessionTokens > 0 && (
-          <span className="bg-surface-overlay text-text-muted rounded-sm px-1.5 py-0.5 tabular-nums">
+          <span className="rounded-sm bg-popover px-1.5 py-0.5 tabular-nums text-muted-foreground">
             {Math.min((totalTokens / totalSessionTokens) * 100, 100).toFixed(1)}% of total
           </span>
         )}
@@ -92,8 +92,8 @@ export const SessionContextHeader = ({
 
       {/* Phase selector - only shown when compactions exist */}
       {phaseInfo && phaseInfo.phases.length > 1 && (
-        <div className="border-border-subtle mt-2 flex flex-wrap items-center gap-1 border-t pt-2">
-          <span className="text-text-muted mr-1 text-[10px]">Phase:</span>
+        <div className="border-border/50 mt-2 flex flex-wrap items-center gap-1 border-t pt-2">
+          <span className="text-muted-foreground mr-1 text-[10px]">Phase:</span>
           {phaseInfo.phases.map((phase) => (
             <button
               key={phase.phaseNumber}
@@ -103,8 +103,8 @@ export const SessionContextHeader = ({
               className={cn(
                 'rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
                 selectedPhase === phase.phaseNumber
-                  ? 'bg-[var(--accent-badge-bg)] text-[var(--accent-badge-text)]'
-                  : 'bg-surface-overlay text-text-muted'
+                  ? 'bg-indigo-500/15 text-indigo-400'
+                  : 'bg-popover text-muted-foreground'
               )}
             >
               {phase.phaseNumber}
@@ -115,8 +115,8 @@ export const SessionContextHeader = ({
             className={cn(
               'rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
               selectedPhase === null
-                ? 'bg-[var(--accent-badge-bg)] text-[var(--accent-badge-text)]'
-                : 'bg-surface-overlay text-text-muted'
+                ? 'bg-indigo-500/15 text-indigo-400'
+                : 'bg-popover text-muted-foreground'
             )}
           >
             Current
@@ -125,15 +125,15 @@ export const SessionContextHeader = ({
       )}
 
       {/* View mode toggle */}
-      <div className="border-border-subtle mt-2 flex items-center gap-1 border-t pt-2">
-        <span className="text-text-muted mr-1 text-[10px]">View:</span>
+      <div className="border-border/50 mt-2 flex items-center gap-1 border-t pt-2">
+        <span className="text-muted-foreground mr-1 text-[10px]">View:</span>
         <button
           onClick={() => onViewModeChange('category')}
           className={cn(
             'flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
             viewMode === 'category'
-              ? 'bg-[var(--accent-badge-bg)] text-[var(--accent-badge-text)]'
-              : 'bg-surface-overlay text-text-muted'
+              ? 'bg-indigo-500/15 text-indigo-400'
+              : 'bg-popover text-muted-foreground'
           )}
         >
           <LayoutList size={10} />
@@ -144,8 +144,8 @@ export const SessionContextHeader = ({
           className={cn(
             'flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
             viewMode === 'ranked'
-              ? 'bg-[var(--accent-badge-bg)] text-[var(--accent-badge-text)]'
-              : 'bg-surface-overlay text-text-muted'
+              ? 'bg-indigo-500/15 text-indigo-400'
+              : 'bg-popover text-muted-foreground'
           )}
         >
           <ArrowDownWideNarrow size={10} />

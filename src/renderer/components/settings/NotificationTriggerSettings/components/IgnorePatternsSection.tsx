@@ -20,16 +20,16 @@ export const IgnorePatternsSection = ({
 }: Readonly<IgnorePatternsSectionProps>): React.JSX.Element => {
   return (
     <details className="mt-4">
-      <summary className="text-text-muted hover:text-text-secondary cursor-pointer text-xs tracking-widest uppercase">
+      <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-xs tracking-widest uppercase">
         Advanced: Exclusion Rules
       </summary>
       <div className="border-border mt-3 border-l pl-4">
-        <span className="text-text-muted mb-2 block text-xs">
+        <span className="text-muted-foreground mb-2 block text-xs">
           Ignore Patterns (skip if matches)
         </span>
         {patterns.map((pattern, idx) => (
-          <div key={idx} className="border-border-subtle flex items-center gap-2 border-b py-1.5">
-            <code className="bg-surface-raised text-text-secondary flex-1 truncate rounded-sm px-2 py-1 font-mono text-xs">
+          <div key={idx} className="border-border/50 flex items-center gap-2 border-b py-1.5">
+            <code className="bg-card text-muted-foreground flex-1 truncate rounded-sm px-2 py-1 font-mono text-xs">
               {pattern}
             </code>
             <button
@@ -37,7 +37,7 @@ export const IgnorePatternsSection = ({
               onClick={() => onRemove(idx)}
               disabled={disabled}
               className={cn(
-                'text-text-muted rounded-sm p-1 transition-colors hover:bg-red-500/10 hover:text-red-400',
+                'text-muted-foreground rounded-sm p-1 transition-colors hover:bg-red-500/10 hover:text-red-400',
                 disabled && 'cursor-not-allowed opacity-50'
               )}
               aria-label="Remove ignore pattern"
@@ -52,7 +52,7 @@ export const IgnorePatternsSection = ({
             placeholder="Add ignore regex..."
             disabled={disabled}
             className={cn(
-              'border-border text-text placeholder:text-text-muted flex-1 rounded-sm border bg-transparent px-2 py-1 font-mono text-xs focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden',
+              'border-border text-foreground placeholder:text-muted-foreground flex-1 rounded-sm border bg-transparent px-2 py-1 font-mono text-xs focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden',
               disabled && 'cursor-not-allowed opacity-50'
             )}
             onKeyDown={(e) => {
@@ -71,7 +71,7 @@ export const IgnorePatternsSection = ({
             }}
           />
         </div>
-        <p className="text-text-muted mt-1 text-xs">
+        <p className="text-muted-foreground mt-1 text-xs">
           Press Enter to add. Notification is skipped if any pattern matches.
         </p>
       </div>

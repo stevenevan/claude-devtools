@@ -103,19 +103,19 @@ export const BaseItem: React.FC<BaseItemProps> = ({
             onClick();
           }
         }}
-        className="group flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-[var(--tool-item-hover-bg)]"
+        className="group flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-card/50"
       >
         {/* Icon */}
-        <span className="size-4 shrink-0 text-[var(--tool-item-muted)]">{icon}</span>
+        <span className="size-4 shrink-0 text-muted-foreground">{icon}</span>
 
         {/* Label */}
-        <span className="text-sm font-medium text-[var(--tool-item-name)]">{label}</span>
+        <span className="text-sm font-medium text-foreground">{label}</span>
 
         {/* Separator and Summary */}
         {summary && (
           <>
-            <span className="text-sm text-[var(--tool-item-muted)]">-</span>
-            <span className="flex-1 truncate text-sm text-[var(--tool-item-summary)]">
+            <span className="text-sm text-muted-foreground">-</span>
+            <span className="flex-1 truncate text-sm text-muted-foreground">
               {summary}
             </span>
           </>
@@ -126,7 +126,7 @@ export const BaseItem: React.FC<BaseItemProps> = ({
 
         {/* Token count badge */}
         {tokenCount != null && tokenCount > 0 && (
-          <span className="shrink-0 rounded-sm bg-[var(--tool-item-badge-bg)] px-1.5 py-0.5 text-xs text-[var(--tool-item-muted)]">
+          <span className="shrink-0 rounded-sm bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
             ~{formatTokens(tokenCount)} {tokenLabel}
           </span>
         )}
@@ -144,7 +144,7 @@ export const BaseItem: React.FC<BaseItemProps> = ({
 
         {/* Duration */}
         {durationMs !== undefined && (
-          <span className="shrink-0 text-xs text-[var(--tool-item-muted)]">
+          <span className="shrink-0 text-xs text-muted-foreground">
             {formatDuration(durationMs)}
           </span>
         )}
@@ -153,7 +153,7 @@ export const BaseItem: React.FC<BaseItemProps> = ({
         {hasExpandableContent && (
           <ChevronRight
             className={cn(
-              'size-3 shrink-0 transition-transform text-[var(--tool-item-muted)]',
+              'size-3 shrink-0 transition-transform text-muted-foreground',
               isExpanded && 'rotate-90'
             )}
           />

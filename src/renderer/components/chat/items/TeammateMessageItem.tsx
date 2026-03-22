@@ -134,10 +134,10 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
     return (
       <div className="flex items-center gap-2 px-3 py-1 opacity-[0.45]">
         <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: colors.border }} />
-        <span className="text-[11px] text-[var(--card-icon-muted)]">
+        <span className="text-[11px] text-muted-foreground">
           {teammateMessage.teammateId}
         </span>
-        <span className="text-[11px] text-[var(--card-icon-muted)]">{noiseLabel}</span>
+        <span className="text-[11px] text-muted-foreground">{noiseLabel}</span>
       </div>
     );
   }
@@ -151,7 +151,7 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-md border border-[var(--card-border)] bg-[var(--card-bg)] transition-all duration-300',
+        'overflow-hidden rounded-md border border-border bg-card transition-all duration-300',
         isResend && 'opacity-60',
         highlightClasses
       )}
@@ -171,13 +171,13 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
         className={cn(
           'flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors',
           isExpanded
-            ? 'border-b border-[var(--card-border)] bg-[var(--card-header-bg)]'
+            ? 'border-b border-border bg-muted/50'
             : 'bg-transparent'
         )}
       >
         <ChevronRight
           className={cn(
-            'size-3.5 shrink-0 transition-transform text-[var(--card-icon-muted)]',
+            'size-3.5 shrink-0 transition-transform text-muted-foreground',
             isExpanded && 'rotate-90'
           )}
         />
@@ -198,7 +198,7 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
         </span>
 
         {/* "Message" type label — parallels SubagentItem's model info */}
-        <span className="text-[10px] tracking-wide text-[var(--card-icon-muted)] uppercase">
+        <span className="text-[10px] tracking-wide text-muted-foreground uppercase">
           Message
         </span>
 
@@ -206,7 +206,7 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
         {teammateMessage.replyToSummary && (
           <span
             role="presentation"
-            className="flex cursor-default items-center gap-1 text-[10px] text-[var(--card-icon-muted)]"
+            className="flex cursor-default items-center gap-1 text-[10px] text-muted-foreground"
             onMouseEnter={() => onReplyHover?.(teammateMessage.replyToToolId ?? null)}
             onMouseLeave={() => onReplyHover?.(null)}
           >
@@ -217,20 +217,20 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
 
         {/* Resend badge — marks duplicate/resent messages */}
         {isResend && (
-          <span className="flex items-center gap-0.5 text-[10px] text-[var(--card-icon-muted)]">
+          <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
             <RefreshCw className="size-2.5" />
             Resent
           </span>
         )}
 
         {/* Summary */}
-        <span className="flex-1 truncate text-xs text-[var(--card-text-light)]">
+        <span className="flex-1 truncate text-xs text-foreground">
           {truncatedSummary || 'Teammate message'}
         </span>
 
         {/* Context impact — tokens injected into main session */}
         {teammateMessage.tokenCount != null && teammateMessage.tokenCount > 0 && (
-          <span className="shrink-0 font-mono text-[11px] text-[var(--card-icon-muted)] tabular-nums">
+          <span className="shrink-0 font-mono text-[11px] text-muted-foreground tabular-nums">
             ~{formatTokensCompact(teammateMessage.tokenCount)} tokens
           </span>
         )}

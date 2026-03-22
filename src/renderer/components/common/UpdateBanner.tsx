@@ -24,13 +24,13 @@ export const UpdateBanner = (): React.JSX.Element | null => {
   const clampedPercent = Math.max(0, Math.min(percent, 100));
 
   return (
-    <div className="border-border bg-surface relative border-b px-4 py-2.5">
+    <div className="border-border bg-background relative border-b px-4 py-2.5">
       {isDownloading ? (
         <div className="pr-8">
-          <div className="text-text-secondary mb-1.5 flex items-center gap-2 text-xs">
+          <div className="text-muted-foreground mb-1.5 flex items-center gap-2 text-xs">
             <Loader2 className="size-3.5 shrink-0 animate-spin text-blue-400" />
             <span>Updating app</span>
-            <span className="text-text-muted tabular-nums">{clampedPercent}%</span>
+            <span className="text-muted-foreground tabular-nums">{clampedPercent}%</span>
           </div>
           <div className="bg-border h-1 w-full overflow-hidden rounded-full">
             <div
@@ -42,15 +42,15 @@ export const UpdateBanner = (): React.JSX.Element | null => {
       ) : (
         <div className="flex items-center gap-2 pr-8">
           <CheckCircle className="size-4 shrink-0 text-green-400" />
-          <span className="text-text-secondary text-sm">
+          <span className="text-muted-foreground text-sm">
             Update ready
             {availableVersion ? (
-              <span className="text-text-muted ml-1 text-xs">v{availableVersion}</span>
+              <span className="text-muted-foreground ml-1 text-xs">v{availableVersion}</span>
             ) : null}
           </span>
           <button
             onClick={installUpdate}
-            className="border-border-emphasis text-text ml-auto rounded-md border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-white/5"
+            className="border-border text-foreground ml-auto rounded-md border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-white/5"
           >
             Restart now
           </button>
@@ -60,7 +60,7 @@ export const UpdateBanner = (): React.JSX.Element | null => {
       {/* Dismiss */}
       <button
         onClick={dismissUpdateBanner}
-        className="text-text-muted absolute top-1/2 right-3 shrink-0 -translate-y-1/2 rounded-sm p-0.5 transition-colors hover:bg-white/10"
+        className="text-muted-foreground absolute top-1/2 right-3 shrink-0 -translate-y-1/2 rounded-sm p-0.5 transition-colors hover:bg-white/10"
       >
         <X className="size-3.5" />
       </button>

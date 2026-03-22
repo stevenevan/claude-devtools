@@ -137,7 +137,7 @@ const SelectedRepositoryItemInner = ({
   disabled?: boolean;
 }>): React.JSX.Element => {
   return (
-    <div className="border-border-subtle flex items-center gap-2 border-b py-1.5">
+    <div className="border-border/50 flex items-center gap-2 border-b py-1.5">
       <FolderOpen className="size-3 shrink-0 text-indigo-400" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">

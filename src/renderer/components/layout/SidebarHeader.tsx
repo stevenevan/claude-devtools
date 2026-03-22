@@ -94,22 +94,22 @@ const WorktreeItem = ({
       onClick={onSelect}
       className={cn(
         'flex w-full items-center gap-1.5 px-3 py-2 text-left transition-colors',
-        isSelected ? 'bg-surface-raised text-text' : 'hover:bg-surface-raised'
+        isSelected ? 'bg-card text-foreground' : 'hover:bg-card'
       )}
     >
       <GitBranch
-        className={cn('size-3.5 shrink-0', isSelected ? 'text-emerald-400' : 'text-text-muted')}
+        className={cn('size-3.5 shrink-0', isSelected ? 'text-emerald-400' : 'text-muted-foreground')}
       />
       {worktree.isMainWorktree && <WorktreeBadge source={worktree.source} isMain />}
       <span
         className={cn(
           'flex-1 truncate font-mono text-xs',
-          isSelected ? 'text-text' : 'text-text-muted'
+          isSelected ? 'text-foreground' : 'text-muted-foreground'
         )}
       >
         {truncateMiddle(worktree.name, 28)}
       </span>
-      <span className="text-text-muted shrink-0 text-[10px]">{worktree.sessions.length}</span>
+      <span className="text-muted-foreground shrink-0 text-[10px]">{worktree.sessions.length}</span>
       {isSelected && <Check className="size-3.5 shrink-0 text-indigo-400" />}
     </button>
   );
@@ -135,21 +135,21 @@ const ProjectDropdownItem = ({
       onClick={onSelect}
       className={cn(
         'flex w-full items-center gap-2 px-3 py-2 text-left transition-colors',
-        isSelected ? 'bg-surface-raised text-text' : 'hover:bg-surface-raised'
+        isSelected ? 'bg-card text-foreground' : 'hover:bg-card'
       )}
     >
       <div className="min-w-0 flex-1">
         <span
           className={cn(
             'block truncate text-sm',
-            isSelected ? 'font-medium text-text' : 'text-text-muted'
+            isSelected ? 'font-medium text-foreground' : 'text-muted-foreground'
           )}
         >
           {name}
         </span>
-        {path && <span className="text-text-muted block truncate text-[10px]">{path}</span>}
+        {path && <span className="text-muted-foreground block truncate text-[10px]">{path}</span>}
       </div>
-      <span className="text-text-muted shrink-0 text-[10px]">{sessionCount}</span>
+      <span className="text-muted-foreground shrink-0 text-[10px]">{sessionCount}</span>
       {isSelected && <Check className="size-3.5 shrink-0 text-indigo-400" />}
     </button>
   );
@@ -239,7 +239,7 @@ export const SidebarHeader = (): React.JSX.Element => {
       : projects.filter((p) => p.sessions.length > 0);
 
   return (
-    <div className="bg-surface-sidebar flex w-full flex-col">
+    <div className="bg-sidebar flex w-full flex-col">
       {/* ROW 1: Project Identity (Title Bar / Drag Region) */}
       <div
         className={cn(
@@ -257,14 +257,14 @@ export const SidebarHeader = (): React.JSX.Element => {
             <span
               className={cn(
                 'min-w-0 truncate text-sm font-bold tracking-tight',
-                hasSelection ? 'text-text' : 'text-text-muted'
+                hasSelection ? 'text-foreground' : 'text-muted-foreground'
               )}
             >
               {projectName}
             </span>
             <ChevronDown
               className={cn(
-                'size-3.5 shrink-0 transition-transform text-text-muted',
+                'size-3.5 shrink-0 transition-transform text-muted-foreground',
                 isProjectDropdownOpen && 'rotate-180'
               )}
             />
@@ -273,13 +273,13 @@ export const SidebarHeader = (): React.JSX.Element => {
             side="bottom"
             sideOffset={4}
             align="start"
-            className="bg-surface-sidebar max-h-[350px] w-[var(--anchor-width)] overflow-y-auto p-0 py-1"
+            className="bg-sidebar max-h-[350px] w-[var(--anchor-width)] overflow-y-auto p-0 py-1"
           >
-            <div className="text-text-muted px-3 py-2 text-[10px] font-semibold tracking-wider uppercase">
+            <div className="text-muted-foreground px-3 py-2 text-[10px] font-semibold tracking-wider uppercase">
               Switch {viewMode === 'grouped' ? 'Repository' : 'Project'}
             </div>
             {projectItems.length === 0 ? (
-              <div className="text-text-muted p-3 text-sm">
+              <div className="text-muted-foreground p-3 text-sm">
                 No {viewMode === 'grouped' ? 'repositories' : 'projects'} found
               </div>
             ) : (
@@ -319,7 +319,7 @@ export const SidebarHeader = (): React.JSX.Element => {
         {/* Collapse sidebar button */}
         <button
           onClick={toggleSidebar}
-          className="text-text-muted hover:text-text-secondary hover:bg-surface-raised ml-auto shrink-0 rounded-md p-1.5 transition-colors"
+          className="text-muted-foreground hover:text-foreground hover:bg-card ml-auto shrink-0 rounded-md p-1.5 transition-colors"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           title={`Collapse sidebar (${formatShortcut('B')})`}
         >
@@ -337,8 +337,8 @@ export const SidebarHeader = (): React.JSX.Element => {
                 'flex h-[30px] w-full items-center justify-between px-4 text-left transition-colors',
                 hasMultipleWorktrees ? 'cursor-pointer' : 'cursor-default',
                 isWorktreeDropdownOpen
-                  ? 'bg-surface-raised text-text'
-                  : 'bg-surface-sidebar text-text-muted'
+                  ? 'bg-card text-foreground'
+                  : 'bg-sidebar text-muted-foreground'
               )}
             >
               <div className="flex flex-1 items-center gap-1.5 overflow-hidden">
@@ -346,8 +346,8 @@ export const SidebarHeader = (): React.JSX.Element => {
                   className={cn(
                     'size-4 shrink-0',
                     isWorktreeDropdownOpen
-                      ? 'text-[var(--worktree-icon)]'
-                      : 'text-[var(--worktree-icon-muted)]'
+                      ? 'text-emerald-400'
+                      : 'text-emerald-400/70'
                   )}
                 />
                 {activeWorktree?.isMainWorktree ? (
@@ -362,7 +362,7 @@ export const SidebarHeader = (): React.JSX.Element => {
               {hasMultipleWorktrees && (
                 <ChevronDown
                   className={cn(
-                    'size-4 shrink-0 transition-transform text-text-muted',
+                    'size-4 shrink-0 transition-transform text-muted-foreground',
                     isWorktreeDropdownOpen && 'rotate-180'
                   )}
                 />
@@ -372,9 +372,9 @@ export const SidebarHeader = (): React.JSX.Element => {
               side="bottom"
               sideOffset={0}
               align="start"
-              className="bg-surface-sidebar max-h-[400px] w-[var(--anchor-width)] overflow-y-auto border-t-0 p-0 py-1"
+              className="bg-sidebar max-h-[400px] w-[var(--anchor-width)] overflow-y-auto border-t-0 p-0 py-1"
             >
-              <div className="text-text-muted px-4 py-2 text-[10px] font-semibold tracking-wider uppercase">
+              <div className="text-muted-foreground px-4 py-2 text-[10px] font-semibold tracking-wider uppercase">
                 Switch Worktree
               </div>
               {mainWorktree && (
@@ -386,7 +386,7 @@ export const SidebarHeader = (): React.JSX.Element => {
               )}
               {worktreeGroups.map((group) => (
                 <div key={group.source}>
-                  <div className="border-border text-text-muted mt-1 border-t px-4 py-1.5 text-[9px] font-medium tracking-wider uppercase">
+                  <div className="border-border text-muted-foreground mt-1 border-t px-4 py-1.5 text-[9px] font-medium tracking-wider uppercase">
                     {group.label}
                   </div>
                   {group.worktrees.map((worktree) => (

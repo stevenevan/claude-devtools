@@ -31,33 +31,27 @@ export const MentionedFileItem = ({
   return (
     <div className="rounded-sm px-2 py-1.5">
       <div className="flex items-center gap-1.5">
-        <File size={12} className="text-text-muted shrink-0" />
+        <File size={12} className="text-muted-foreground shrink-0" />
         <CopyablePath
           displayText={displayPath}
           copyText={absolutePath}
-          className="text-text-secondary text-xs"
+          className="text-muted-foreground text-xs"
         />
         {!injection.exists && (
-          <span
-            className="rounded-sm px-1 py-0.5 text-xs"
-            style={{
-              backgroundColor: 'var(--color-error-subtle)',
-              color: 'var(--color-error)',
-            }}
-          >
+          <span className="rounded-sm bg-red-900/20 px-1 py-0.5 text-xs text-red-400">
             missing
           </span>
         )}
       </div>
       <div className="mt-0.5 ml-4 flex items-center gap-2">
-        <span className="text-text-muted text-xs">
+        <span className="text-muted-foreground text-xs">
           ~{formatTokens(injection.estimatedTokens)} tokens
         </span>
         {isClickable ? (
           <span
             role="link"
             tabIndex={0}
-            className="cursor-pointer text-xs text-[var(--link-text)] underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
+            className="cursor-pointer text-xs text-blue-400 underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
             onClick={() => onNavigateToTurn(turnIndex)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -68,7 +62,7 @@ export const MentionedFileItem = ({
             @Turn {turnIndex + 1}
           </span>
         ) : (
-          <span className="text-text-muted text-xs opacity-70">@Turn {turnIndex + 1}</span>
+          <span className="text-muted-foreground text-xs opacity-70">@Turn {turnIndex + 1}</span>
         )}
       </div>
     </div>

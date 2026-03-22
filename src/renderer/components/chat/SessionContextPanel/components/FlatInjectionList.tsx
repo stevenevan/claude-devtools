@@ -19,19 +19,19 @@ import type { ContextInjection } from '@renderer/types/contextInjection';
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   'claude-md': {
-    bg: 'var(--ctx-claudemd-bg)',
-    text: 'var(--ctx-claudemd-text)',
+    bg: 'rgb(99 102 241 / 0.15)',
+    text: 'rgb(165 180 252)',
     label: 'CLAUDE.md',
   },
-  'mentioned-file': { bg: 'var(--ctx-file-bg)', text: 'var(--ctx-file-text)', label: 'File' },
-  'tool-output': { bg: 'var(--ctx-tool-bg)', text: 'var(--ctx-tool-text)', label: 'Tool' },
+  'mentioned-file': { bg: 'rgb(59 130 246 / 0.15)', text: 'rgb(147 197 253)', label: 'File' },
+  'tool-output': { bg: 'rgb(234 179 8 / 0.15)', text: 'rgb(253 224 71)', label: 'Tool' },
   'thinking-text': {
-    bg: 'var(--ctx-thinking-bg)',
-    text: 'var(--ctx-thinking-text)',
+    bg: 'rgb(168 85 247 / 0.15)',
+    text: 'rgb(216 180 254)',
     label: 'Thinking',
   },
-  'task-coordination': { bg: 'var(--ctx-team-bg)', text: 'var(--ctx-team-text)', label: 'Team' },
-  'user-message': { bg: 'var(--ctx-user-bg)', text: 'var(--ctx-user-text)', label: 'User' },
+  'task-coordination': { bg: 'rgb(20 184 166 / 0.15)', text: 'rgb(94 234 212)', label: 'Team' },
+  'user-message': { bg: 'rgb(34 197 94 / 0.15)', text: 'rgb(134 239 172)', label: 'User' },
 };
 
 // =============================================================================
@@ -182,8 +182,8 @@ export const FlatInjectionList = ({
     <div className="space-y-0.5">
       {rows.map((row) => {
         const categoryInfo = CATEGORY_COLORS[row.category] ?? {
-          bg: 'var(--ctx-unknown-bg)',
-          text: 'var(--ctx-unknown-text)',
+          bg: 'rgb(113 113 122 / 0.15)',
+          text: 'rgb(161 161 170)',
           label: row.category,
         };
 
@@ -214,17 +214,17 @@ export const FlatInjectionList = ({
                 {categoryInfo.label}
               </span>
               {/* Description */}
-              <span className="text-text-secondary min-w-0 flex-1 truncate text-xs">
+              <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
                 {displayText}
               </span>
               {/* Error badge */}
               {row.isError && (
-                <span className="shrink-0 rounded-sm bg-[var(--error-badge-bg)] px-1 py-0.5 text-[10px] text-[var(--error-badge-text)]">
+                <span className="shrink-0 rounded-sm bg-red-900/30 px-1 py-0.5 text-[10px] text-red-300">
                   error
                 </span>
               )}
               {/* Token count */}
-              <span className="text-text-muted shrink-0 text-xs font-medium tabular-nums">
+              <span className="shrink-0 text-xs font-medium tabular-nums text-muted-foreground">
                 {formatTokens(row.tokens)}
               </span>
             </button>

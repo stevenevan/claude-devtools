@@ -20,7 +20,7 @@ export const ModeSelector = ({
   disabled = false,
 }: Readonly<ModeSelectorProps>): React.JSX.Element => {
   return (
-    <div className="bg-surface-raised inline-flex gap-0.5 rounded-md p-0.5">
+    <div className="bg-card inline-flex gap-0.5 rounded-md p-0.5">
       {MODE_OPTIONS.map((mode) => {
         const Icon = mode.icon;
         const isActive = value === mode.value;
@@ -35,7 +35,7 @@ export const ModeSelector = ({
               'flex items-center gap-1.5 rounded-sm px-2.5 py-1.5 text-xs font-medium transition-colors',
               isActive
                 ? 'bg-indigo-500/20 text-indigo-400'
-                : 'text-text-muted hover:bg-surface-raised hover:text-text-secondary',
+                : 'text-muted-foreground hover:bg-card hover:text-muted-foreground',
               disabled && 'cursor-not-allowed opacity-50'
             )}
           >

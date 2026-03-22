@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 
+import { Skeleton } from '@renderer/components/ui/skeleton';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Puzzle, Search } from 'lucide-react';
@@ -56,13 +57,13 @@ const PluginCard = ({ plugin, isHighlighted }: Readonly<PluginCardProps>): React
       className={cn(
         'group relative flex min-h-[120px] flex-col overflow-hidden rounded-xs border p-4 text-left transition-all duration-300',
         isHighlighted
-          ? 'border-border-emphasis bg-surface-raised'
-          : 'bg-surface/50 border-border hover:border-border-emphasis hover:bg-surface-raised'
+          ? 'border-border bg-card'
+          : 'bg-background/50 border-border hover:bg-card'
       )}
     >
       <div className="mb-3 flex items-center gap-2">
-        <div className="border-border bg-surface-overlay group-hover:border-border-emphasis flex size-8 items-center justify-center rounded-xs border transition-colors duration-300">
-          <Puzzle className="text-text-secondary group-hover:text-text size-4 transition-colors" />
+        <div className="border-border bg-popover flex size-8 items-center justify-center rounded-xs border transition-colors duration-300">
+          <Puzzle className="text-muted-foreground group-hover:text-foreground size-4 transition-colors" />
         </div>
         <span
           className={cn(
@@ -74,20 +75,20 @@ const PluginCard = ({ plugin, isHighlighted }: Readonly<PluginCardProps>): React
         </span>
       </div>
 
-      <h3 className="text-text group-hover:text-text mb-1 truncate text-sm font-medium transition-colors duration-200">
+      <h3 className="text-foreground mb-1 truncate text-sm font-medium transition-colors duration-200">
         {displayName}
       </h3>
 
-      <p className="text-text-muted mb-auto truncate text-[10px]">{plugin.marketplace}</p>
+      <p className="text-muted-foreground mb-auto truncate text-[10px]">{plugin.marketplace}</p>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {plugin.version && (
-          <span className="text-text-secondary text-[10px]">v{formatVersion(plugin.version)}</span>
+          <span className="text-muted-foreground text-[10px]">v{formatVersion(plugin.version)}</span>
         )}
         {plugin.lastUpdated && (
           <>
-            <span className="text-text-muted">·</span>
-            <span className="text-text-muted text-[10px]">{formatDate(plugin.lastUpdated)}</span>
+            <span className="text-muted-foreground">·</span>
+            <span className="text-muted-foreground text-[10px]">{formatDate(plugin.lastUpdated)}</span>
           </>
         )}
       </div>
@@ -106,24 +107,24 @@ const PluginsGridSkeleton = (): React.JSX.Element => {
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div
+        <Skeleton
           key={i}
-          className="skeleton-card border-border flex min-h-[120px] flex-col rounded-xs border bg-[var(--skeleton-base)] p-4"
+          className="border-border flex min-h-[120px] flex-col rounded-xs border p-4"
           style={{ animationDelay: `${i * 80}ms` }}
         >
           <div className="mb-3 flex items-center gap-2">
-            <div className="size-8 rounded-xs bg-[var(--skeleton-base-light)]" />
-            <div className="h-4 w-14 rounded-sm bg-[var(--skeleton-base-dim)]" />
+            <div className="size-8 rounded-xs bg-muted-foreground/10" />
+            <div className="h-4 w-14 rounded-sm bg-muted-foreground/5" />
           </div>
           <div
-            className="mb-2 h-3.5 rounded-xs bg-[var(--skeleton-base-light)]"
+            className="mb-2 h-3.5 rounded-xs bg-muted-foreground/10"
             style={{ width: `${titleWidths[i]}%` }}
           />
           <div
-            className="mb-auto h-2.5 rounded-xs bg-[var(--skeleton-base-dim)]"
+            className="mb-auto h-2.5 rounded-xs bg-muted-foreground/5"
             style={{ width: `${metaWidths[i]}%` }}
           />
-        </div>
+        </Skeleton>
       ))}
     </div>
   );
@@ -165,11 +166,11 @@ export const PluginsGrid = ({ searchQuery }: Readonly<PluginsGridProps>): React.
   if (filtered.length === 0 && searchQuery.trim()) {
     return (
       <div className="border-border flex flex-col items-center justify-center rounded-xs border border-dashed px-8 py-16">
-        <div className="border-border bg-surface-raised mb-4 flex size-12 items-center justify-center rounded-xs border">
-          <Search className="text-text-muted size-6" />
+        <div className="border-border bg-card mb-4 flex size-12 items-center justify-center rounded-xs border">
+          <Search className="text-muted-foreground size-6" />
         </div>
-        <p className="text-text-secondary mb-1 text-sm">No plugins found</p>
-        <p className="text-text-muted text-xs">No matches for &quot;{searchQuery}&quot;</p>
+        <p className="text-muted-foreground mb-1 text-sm">No plugins found</p>
+        <p className="text-muted-foreground text-xs">No matches for &quot;{searchQuery}&quot;</p>
       </div>
     );
   }
@@ -177,11 +178,11 @@ export const PluginsGrid = ({ searchQuery }: Readonly<PluginsGridProps>): React.
   if (globalPlugins.length === 0) {
     return (
       <div className="border-border flex flex-col items-center justify-center rounded-xs border border-dashed px-8 py-16">
-        <div className="border-border bg-surface-raised mb-4 flex size-12 items-center justify-center rounded-xs border">
-          <Puzzle className="text-text-muted size-6" />
+        <div className="border-border bg-card mb-4 flex size-12 items-center justify-center rounded-xs border">
+          <Puzzle className="text-muted-foreground size-6" />
         </div>
-        <p className="text-text-secondary mb-1 text-sm">No plugins found</p>
-        <p className="text-text-muted font-mono text-xs">~/.claude/plugins/</p>
+        <p className="text-muted-foreground mb-1 text-sm">No plugins found</p>
+        <p className="text-muted-foreground font-mono text-xs">~/.claude/plugins/</p>
       </div>
     );
   }

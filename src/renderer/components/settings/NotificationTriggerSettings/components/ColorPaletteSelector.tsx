@@ -81,7 +81,7 @@ export const ColorPaletteSelector = ({
       <div className="flex items-center gap-2">
         {/* Live preview swatch */}
         <span
-          className="border-border-subtle size-6 shrink-0 rounded-sm border"
+          className="border-border/50 size-6 shrink-0 rounded-sm border"
           style={{ backgroundColor: previewHex }}
           title={value ?? 'red'}
         />
@@ -99,7 +99,7 @@ export const ColorPaletteSelector = ({
               className={cn(
                 'size-5 rounded-full transition-all',
                 isSelected
-                  ? 'ring-offset-surface ring-2 ring-white/60 ring-offset-1'
+                  ? 'ring-offset-background ring-2 ring-white/60 ring-offset-1'
                   : 'hover:ring-1 hover:ring-white/30'
               )}
               style={{ backgroundColor: color.hex }}
@@ -116,8 +116,8 @@ export const ColorPaletteSelector = ({
           className={cn(
             'flex size-5 items-center justify-center rounded-full border text-[9px] leading-none font-bold transition-all',
             isCustom
-              ? 'ring-offset-surface border-white/40 text-white ring-2 ring-white/60 ring-offset-1'
-              : 'border-border-emphasis text-text-muted hover:ring-1 hover:ring-white/30'
+              ? 'ring-offset-background border-white/40 text-white ring-2 ring-white/60 ring-offset-1'
+              : 'border-border text-muted-foreground hover:ring-1 hover:ring-white/30'
           )}
           style={isCustom ? { backgroundColor: resolveColorHex(value) } : undefined}
         >
@@ -138,7 +138,7 @@ export const ColorPaletteSelector = ({
             maxLength={9}
             disabled={disabled}
             className={cn(
-              'text-text placeholder:text-text-muted w-24 rounded-sm border bg-transparent px-2 py-1 font-mono text-xs focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden',
+              'text-foreground placeholder:text-muted-foreground w-24 rounded-sm border bg-transparent px-2 py-1 font-mono text-xs focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden',
               hexInput && !HEX_RE.test(hexInput) ? 'border-red-500' : 'border-border'
             )}
           />

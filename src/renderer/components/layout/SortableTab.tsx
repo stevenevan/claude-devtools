@@ -118,9 +118,9 @@ export const SortableTab = ({
             className={cn(
               'group flex max-w-[200px] min-w-0 shrink-0 cursor-grab items-center gap-2 rounded-md px-3 py-1.5',
               isActive
-                ? 'bg-surface-raised text-text'
-                : 'text-text-muted hover:bg-surface-overlay hover:text-text',
-              isSelected && 'outline outline-1 -outline-offset-1 outline-border-emphasis'
+                ? 'bg-card text-foreground'
+                : 'text-muted-foreground hover:bg-popover hover:text-foreground',
+              isSelected && 'outline outline-1 -outline-offset-1 outline-border'
             )}
             style={
               {
@@ -220,7 +220,7 @@ export const DragOverlayTab = ({ tab }: { tab: Tab }): React.JSX.Element => {
   const Icon = TAB_ICONS[tab.type];
 
   return (
-    <div className="bg-surface-raised text-text flex max-w-[200px] min-w-0 cursor-grabbing items-center gap-2 rounded-md border-2 border-[var(--color-accent)] px-3 py-1.5 opacity-90">
+    <div className="bg-card text-foreground flex max-w-[200px] min-w-0 cursor-grabbing items-center gap-2 rounded-md border-2 border-indigo-500 px-3 py-1.5 opacity-90">
       <Icon className="size-4 shrink-0" />
       <span className="truncate text-sm">{tab.label}</span>
     </div>

@@ -45,20 +45,20 @@ export const DirectoryTreeNode = ({
         <CopyablePath
           displayText={node.name}
           copyText={node.path}
-          className="text-text-secondary text-xs"
+          className="text-muted-foreground text-xs"
         />
-        <span className="text-text-muted">(~{formatTokens(node.tokens ?? 0)})</span>
+        <span className="text-muted-foreground">(~{formatTokens(node.tokens ?? 0)})</span>
         {node.firstSeenInGroup &&
           (isClickable ? (
             <button
               type="button"
-              className="cursor-pointer text-xs text-[var(--link-text)] underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
+              className="cursor-pointer text-xs text-blue-400 underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
               onClick={() => onNavigateToTurn(turnIndex)}
             >
               @{formatFirstSeen(node.firstSeenInGroup)}
             </button>
           ) : (
-            <span className="text-text-muted text-xs opacity-70">
+            <span className="text-muted-foreground text-xs opacity-70">
               @{formatFirstSeen(node.firstSeenInGroup)}
             </span>
           ))}
@@ -88,11 +88,11 @@ export const DirectoryTreeNode = ({
         >
           <ChevronRight
             className={cn(
-              'text-text-muted size-3 shrink-0 transition-transform',
+              'text-muted-foreground size-3 shrink-0 transition-transform',
               expanded && 'rotate-90'
             )}
           />
-          <span className="text-text-muted">{node.name}/</span>
+          <span className="text-muted-foreground">{node.name}/</span>
         </div>
       )}
       {expanded &&

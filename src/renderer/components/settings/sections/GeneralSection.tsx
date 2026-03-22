@@ -354,7 +354,7 @@ export const GeneralSection = ({
       {isElectron && (
         <>
           <SettingsSectionHeader title="Local Claude Root" />
-          <p className="text-text-muted mb-4 text-sm">
+          <p className="text-muted-foreground mb-4 text-sm">
             Choose which local folder is treated as your Claude data root
           </p>
 
@@ -363,8 +363,8 @@ export const GeneralSection = ({
             description={isCustomClaudeRoot ? 'Using custom path' : 'Using auto-detected path'}
           >
             <div className="max-w-96 text-right">
-              <div className="text-text truncate font-mono text-xs">{resolvedClaudeRootPath}</div>
-              <div className="text-text-muted text-[11px]">
+              <div className="text-foreground truncate font-mono text-xs">{resolvedClaudeRootPath}</div>
+              <div className="text-muted-foreground text-[11px]">
                 Auto-detected: {defaultClaudeRootPath}
               </div>
             </div>
@@ -434,8 +434,8 @@ export const GeneralSection = ({
                     className="border-border flex items-center justify-between gap-3 rounded-md border px-3 py-2"
                   >
                     <div className="min-w-0">
-                      <p className="text-text text-xs font-medium">{candidate.distro}</p>
-                      <p className="text-text-muted truncate font-mono text-[11px]">
+                      <p className="text-foreground text-xs font-medium">{candidate.distro}</p>
+                      <p className="text-muted-foreground truncate font-mono text-[11px]">
                         {candidate.path}
                       </p>
                       {!candidate.hasProjectsDir && (
@@ -481,7 +481,7 @@ export const GeneralSection = ({
             description="Start an HTTP server to access the UI from a browser or embed in iframes"
           >
             {serverLoading ? (
-              <Loader2 className="text-text-muted size-5 animate-spin" />
+              <Loader2 className="text-muted-foreground size-5 animate-spin" />
             ) : (
               <Switch
                 checked={serverStatus.running}
@@ -492,17 +492,17 @@ export const GeneralSection = ({
           </SettingRow>
 
           {serverStatus.running && (
-            <div className="bg-surface-raised mb-2 flex items-center gap-3 rounded-md px-3 py-2.5">
+            <div className="bg-card mb-2 flex items-center gap-3 rounded-md px-3 py-2.5">
               <div className="size-2 shrink-0 rounded-full bg-green-500" />
-              <span className="text-text-secondary text-xs font-medium">Running on</span>
-              <code className="border-border bg-surface text-text rounded-sm border px-1.5 py-0.5 font-mono text-xs">
+              <span className="text-muted-foreground text-xs font-medium">Running on</span>
+              <code className="border-border bg-background text-foreground rounded-sm border px-1.5 py-0.5 font-mono text-xs">
                 {serverUrl}
               </code>
               <button
                 onClick={handleCopyUrl}
                 className={cn(
                   'ml-auto flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-white/5',
-                  copied ? 'text-green-500' : 'text-text-secondary'
+                  copied ? 'text-green-500' : 'text-muted-foreground'
                 )}
               >
                 {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
@@ -514,24 +514,24 @@ export const GeneralSection = ({
       ) : (
         <>
           <SettingsSectionHeader title="Server" />
-          <div className="bg-surface-raised mb-2 flex items-center gap-3 rounded-md px-3 py-2.5">
+          <div className="bg-card mb-2 flex items-center gap-3 rounded-md px-3 py-2.5">
             <div className="size-2 shrink-0 rounded-full bg-green-500" />
-            <span className="text-text-secondary text-xs font-medium">Running on</span>
-            <code className="border-border bg-surface text-text rounded-sm border px-1.5 py-0.5 font-mono text-xs">
+            <span className="text-muted-foreground text-xs font-medium">Running on</span>
+            <code className="border-border bg-background text-foreground rounded-sm border px-1.5 py-0.5 font-mono text-xs">
               {window.location.origin}
             </code>
             <button
               onClick={() => copy(window.location.origin)}
               className={cn(
                 'ml-auto flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-white/5',
-                copied ? 'text-green-500' : 'text-text-secondary'
+                copied ? 'text-green-500' : 'text-muted-foreground'
               )}
             >
               {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
               {copied ? 'Copied' : 'Copy URL'}
             </button>
           </div>
-          <p className="text-text-muted text-xs">
+          <p className="text-muted-foreground text-xs">
             Running in standalone mode. The HTTP server is always active. System notifications are
             not available — notification triggers are logged in-app only.
           </p>

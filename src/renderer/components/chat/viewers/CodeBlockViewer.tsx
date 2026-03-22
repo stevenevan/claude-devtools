@@ -143,20 +143,20 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
   const displayFileName = getBaseName(fileName) || fileName;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[var(--code-border)] bg-[var(--code-bg)] shadow-xs">
+    <div className="overflow-hidden rounded-lg border border-border bg-muted shadow-xs">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[var(--code-border)] bg-[var(--code-header-bg)] px-3 py-2">
+      <div className="flex items-center justify-between border-b border-border bg-muted px-3 py-2">
         <div className="flex min-w-0 items-center gap-2">
-          <FileCode className="text-text-muted size-4 shrink-0" />
-          <span className="truncate font-mono text-sm text-[var(--code-filename)]" title={fileName}>
+          <FileCode className="text-muted-foreground size-4 shrink-0" />
+          <span className="truncate font-mono text-sm text-blue-400" title={fileName}>
             {displayFileName}
           </span>
           {(startLine > 1 || endLine) && (
-            <span className="text-text-muted shrink-0 text-xs">
+            <span className="text-muted-foreground shrink-0 text-xs">
               (lines {startLine}-{actualEndLine})
             </span>
           )}
-          <span className="shrink-0 rounded-sm border border-[var(--tag-border)] bg-[var(--tag-bg)] px-1.5 py-0.5 text-xs text-[var(--tag-text)]">
+          <span className="shrink-0 rounded-sm border border-border bg-card px-1.5 py-0.5 text-xs text-muted-foreground">
             {detectedLanguage}
           </span>
         </div>
@@ -168,9 +168,9 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
           title="Copy to clipboard"
         >
           {copied ? (
-            <Check className="size-4 text-[var(--badge-success-bg)]" />
+            <Check className="size-4 text-green-600" />
           ) : (
-            <Copy className="text-text-muted size-4" />
+            <Copy className="text-muted-foreground size-4" />
           )}
         </button>
       </div>
@@ -182,13 +182,13 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
             {lines.map((line, index) => {
               const lineNumber = startLine + index;
               return (
-                <div key={index} className="flex hover:bg-[var(--color-surface-overlay)]">
+                <div key={index} className="flex hover:bg-popover">
                   {/* Line number */}
-                  <span className="w-12 shrink-0 border-r border-[var(--code-border)] px-3 py-0.5 text-right text-[var(--code-line-number)] select-none">
+                  <span className="w-12 shrink-0 border-r border-border px-3 py-0.5 text-right text-zinc-600 select-none">
                     {lineNumber}
                   </span>
                   {/* Code line */}
-                  <span className="text-text flex-1 px-4 py-0.5 whitespace-pre">
+                  <span className="text-foreground flex-1 px-4 py-0.5 whitespace-pre">
                     {highlightLine(line, detectedLanguage)}
                   </span>
                 </div>

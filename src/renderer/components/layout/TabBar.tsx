@@ -213,7 +213,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
 
   return (
     <div
-      className={cn('flex items-center justify-between border-b border-border bg-surface pr-2')}
+      className={cn('flex items-center justify-between border-b border-border bg-background pr-2')}
       {...(isDesktopMode() && isLeftmostPane ? { 'data-tauri-drag-region': true } : {})}
       style={
         {
@@ -230,7 +230,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
       {sidebarCollapsed && isLeftmostPane && (
         <button
           onClick={toggleSidebar}
-          className="text-text-muted hover:bg-surface-raised hover:text-text mr-2 shrink-0 rounded-md p-1.5 transition-colors"
+          className="text-muted-foreground hover:bg-card hover:text-foreground mr-2 shrink-0 rounded-md p-1.5 transition-colors"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           title="Expand sidebar"
         >
@@ -252,7 +252,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
           {
             maxWidth: '75%',
             WebkitAppRegion: 'no-drag',
-            outline: isDroppableOver ? '1px dashed var(--color-accent)' : 'none',
+            outline: isDroppableOver ? '1px dashed rgb(99,102,241)' : 'none',
             outlineOffset: '-1px',
           } as React.CSSProperties
         }
@@ -287,7 +287,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         {/* Refresh button - show only for session tabs */}
         {activeTab?.type === 'session' && (
           <button
-            className="text-text-muted hover:bg-surface-raised hover:text-text flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
+            className="text-muted-foreground hover:bg-card hover:text-foreground flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
             onClick={handleRefresh}
             title={`Refresh Session (${formatShortcut('R')})`}
           >
@@ -317,7 +317,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         {/* New tab button */}
         <button
           onClick={openDashboard}
-          className="text-text-muted hover:bg-surface-raised hover:text-text flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
+          className="text-muted-foreground hover:bg-card hover:text-foreground flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
           title="New tab (Dashboard)"
         >
           <Plus className="size-4" />
@@ -326,7 +326,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         {/* Notifications bell icon */}
         <button
           onClick={openNotificationsTab}
-          className="text-text-muted hover:bg-surface-raised hover:text-text relative flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
+          className="text-muted-foreground hover:bg-card hover:text-foreground relative flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
           title="Notifications"
         >
           <Bell className="size-4" />

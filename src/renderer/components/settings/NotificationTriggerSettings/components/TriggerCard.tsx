@@ -76,7 +76,7 @@ const TriggerCardInner = ({
   const selectedRepositoryItems = useRepositoryLookup(trigger.repositoryIds ?? []);
 
   return (
-    <div className="border-border-subtle border-b last:border-b-0">
+    <div className="border-border/50 border-b last:border-b-0">
       {/* Header row */}
       <TriggerCardHeader
         trigger={trigger}

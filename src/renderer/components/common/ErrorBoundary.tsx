@@ -58,26 +58,26 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="bg-claude-dark-bg text-claude-dark-text flex h-screen flex-col items-center justify-center p-8">
+        <div className="bg-background text-foreground flex h-screen flex-col items-center justify-center p-8">
           <div className="mb-6 flex items-center gap-3">
             <AlertTriangle className="size-10 text-red-500" />
             <h1 className="text-2xl font-semibold">Something went wrong</h1>
           </div>
 
-          <p className="text-claude-dark-text-secondary mb-6 max-w-md text-center">
+          <p className="text-foreground-secondary mb-6 max-w-md text-center">
             An unexpected error occurred in the application. You can try reloading the page or
             resetting the error state.
           </p>
 
           {error && (
-            <div className="border-claude-dark-border bg-claude-dark-surface mb-6 w-full max-w-2xl overflow-auto rounded-lg border p-4">
+            <div className="border-border bg-card mb-6 w-full max-w-2xl overflow-auto rounded-lg border p-4">
               <p className="mb-2 font-mono text-sm text-red-400">{error.message}</p>
               {errorInfo?.componentStack && (
                 <details className="mt-2">
-                  <summary className="text-claude-dark-text-secondary hover:text-claude-dark-text cursor-pointer text-xs">
+                  <summary className="text-foreground-secondary hover:text-foreground cursor-pointer text-xs">
                     Component Stack
                   </summary>
-                  <pre className="text-claude-dark-text-secondary mt-2 text-xs whitespace-pre-wrap">
+                  <pre className="text-foreground-secondary mt-2 text-xs whitespace-pre-wrap">
                     {errorInfo.componentStack}
                   </pre>
                 </details>
@@ -88,7 +88,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="flex gap-4">
             <button
               onClick={this.handleReset}
-              className="border-claude-dark-border bg-claude-dark-surface hover:bg-claude-dark-border flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors"
+              className="border-border bg-card hover:bg-card/80 flex items-center gap-2 rounded-lg border px-4 py-2 transition-colors"
             >
               Try Again
             </button>

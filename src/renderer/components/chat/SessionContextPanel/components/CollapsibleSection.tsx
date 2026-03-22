@@ -29,29 +29,29 @@ export const CollapsibleSection = ({
 }: Readonly<CollapsibleSectionProps>): React.ReactElement => {
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
-      <div className="border-border-subtle bg-surface-raised overflow-hidden rounded-lg border">
+      <div className="border-border/50 bg-card overflow-hidden rounded-lg border">
         <CollapsibleTrigger
           className={cn(
             'flex w-full items-center justify-between px-3 py-2 transition-colors',
-            isExpanded ? 'bg-surface-overlay' : 'bg-transparent'
+            isExpanded ? 'bg-popover' : 'bg-transparent'
           )}
         >
           <div className="flex items-center gap-2">
             {isExpanded ? (
-              <ChevronDown size={14} className="text-text-secondary" />
+              <ChevronDown size={14} className="text-muted-foreground" />
             ) : (
-              <ChevronRight size={14} className="text-text-secondary" />
+              <ChevronRight size={14} className="text-muted-foreground" />
             )}
-            <span className="text-text text-sm font-medium">{title}</span>
-            <span className="bg-surface-overlay text-text-secondary rounded-sm px-1.5 py-0.5 text-xs">
+            <span className="text-foreground text-sm font-medium">{title}</span>
+            <span className="bg-popover text-muted-foreground rounded-sm px-1.5 py-0.5 text-xs">
               {count}
             </span>
           </div>
-          <span className="text-text-muted text-xs">~{formatTokens(tokenCount)} tokens</span>
+          <span className="text-muted-foreground text-xs">~{formatTokens(tokenCount)} tokens</span>
         </CollapsibleTrigger>
 
         <CollapsibleContent>
-          <div className="border-border-subtle space-y-2 border-t px-3 py-2">{children}</div>
+          <div className="border-border/50 space-y-2 border-t px-3 py-2">{children}</div>
         </CollapsibleContent>
       </div>
     </Collapsible>

@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { Skeleton } from '@renderer/components/ui/skeleton';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import {
@@ -299,7 +300,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
   if (!selectedProjectId) {
     return (
       <div className="p-4">
-        <div className="text-text-muted py-8 text-center text-sm">
+        <div className="text-muted-foreground py-8 text-center text-sm">
           <p>Select a project to view sessions</p>
         </div>
       </div>
@@ -318,18 +319,9 @@ export const DateGroupedSessions = (): React.JSX.Element => {
         <div className="space-y-3">
           {widths.map((w, i) => (
             <div key={i} className="space-y-2">
-              <div
-                className="skeleton-shimmer h-3 rounded-xs bg-[var(--skeleton-base-dim)]"
-                style={{ width: w.header }}
-              />
-              <div
-                className="skeleton-shimmer h-4 rounded-xs bg-[var(--skeleton-base)]"
-                style={{ width: w.title }}
-              />
-              <div
-                className="skeleton-shimmer h-3 rounded-xs bg-[var(--skeleton-base-dim)]"
-                style={{ width: w.sub }}
-              />
+              <Skeleton className="h-3 rounded-xs" style={{ width: w.header }} />
+              <Skeleton className="h-4 rounded-xs" style={{ width: w.title }} />
+              <Skeleton className="h-3 rounded-xs" style={{ width: w.sub }} />
             </div>
           ))}
         </div>
@@ -340,8 +332,8 @@ export const DateGroupedSessions = (): React.JSX.Element => {
   if (sessionsError) {
     return (
       <div className="p-4">
-        <div className="border-border bg-surface-raised text-text-muted rounded-lg border p-3 text-sm">
-          <p className="text-text mb-1 font-semibold">Error loading sessions</p>
+        <div className="border-border bg-card text-muted-foreground rounded-lg border p-3 text-sm">
+          <p className="text-foreground mb-1 font-semibold">Error loading sessions</p>
           <p>{sessionsError}</p>
         </div>
       </div>
@@ -351,7 +343,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
   if (sessions.length === 0) {
     return (
       <div className="p-4">
-        <div className="text-text-muted py-8 text-center text-sm">
+        <div className="text-muted-foreground py-8 text-center text-sm">
           <MessageSquareOff className="mx-auto mb-2 size-8 opacity-50" />
           <p className="mb-2">No sessions found</p>
           <p className="text-xs opacity-70">This project has no sessions yet</p>
@@ -363,14 +355,14 @@ export const DateGroupedSessions = (): React.JSX.Element => {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="mt-2 flex items-center gap-2 px-4 py-3">
-        <Calendar className="text-text-muted size-4" />
-        <h2 className="text-text-muted text-xs tracking-wider uppercase">
+        <Calendar className="text-muted-foreground size-4" />
+        <h2 className="text-muted-foreground text-xs tracking-wider uppercase">
           {sessionSortMode === 'most-context' ? 'By Context' : 'Sessions'}
         </h2>
         {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- tooltip trigger via hover, not interactive */}
         <span
           ref={countRef}
-          className="text-text-muted text-xs opacity-60"
+          className="text-muted-foreground text-xs opacity-60"
           onMouseEnter={() => setShowCountTooltip(true)}
           onMouseLeave={() => setShowCountTooltip(false)}
         >
@@ -382,7 +374,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
           countRef.current &&
           createPortal(
             <div
-              className="border-border-emphasis bg-surface-overlay text-text-secondary pointer-events-none fixed z-50 w-48 rounded-md border px-2.5 py-1.5 text-[11px] leading-snug shadow-lg"
+              className="border-border bg-popover text-muted-foreground pointer-events-none fixed z-50 w-48 rounded-md border px-2.5 py-1.5 text-[11px] leading-snug shadow-lg"
               style={{
                 top: countRef.current.getBoundingClientRect().bottom + 6,
                 left:
@@ -402,7 +394,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
             onClick={toggleSidebarMultiSelect}
             className={cn(
               'rounded-sm p-1 transition-colors hover:bg-white/5',
-              sidebarMultiSelectActive ? 'text-[var(--accent-badge-text)]' : 'text-text-muted'
+              sidebarMultiSelectActive ? 'text-indigo-400' : 'text-muted-foreground'
             )}
             title={sidebarMultiSelectActive ? 'Exit selection mode' : 'Select sessions'}
           >
@@ -414,7 +406,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
               onClick={toggleShowHiddenSessions}
               className={cn(
                 'rounded-sm p-1 transition-colors hover:bg-white/5',
-                showHiddenSessions ? 'text-[var(--accent-badge-text)]' : 'text-text-muted'
+                showHiddenSessions ? 'text-indigo-400' : 'text-muted-foreground'
               )}
               title={showHiddenSessions ? 'Hide hidden sessions' : 'Show hidden sessions'}
             >
@@ -429,8 +421,8 @@ export const DateGroupedSessions = (): React.JSX.Element => {
             className={cn(
               'rounded-sm p-1 transition-colors hover:bg-white/5',
               sessionSortMode === 'most-context'
-                ? 'text-[var(--accent-badge-text)]'
-                : 'text-text-muted'
+                ? 'text-indigo-400'
+                : 'text-muted-foreground'
             )}
             title={sessionSortMode === 'recent' ? 'Sort by context consumption' : 'Sort by recent'}
           >
@@ -441,21 +433,21 @@ export const DateGroupedSessions = (): React.JSX.Element => {
 
       {/* Bulk action bar - shown when sessions are selected */}
       {sidebarMultiSelectActive && sidebarSelectedSessionIds.length > 0 && (
-        <div className="border-border bg-surface-raised flex items-center gap-1.5 border-b px-3 py-1.5">
-          <span className="text-text-secondary text-[11px] font-medium">
+        <div className="border-border bg-card flex items-center gap-1.5 border-b px-3 py-1.5">
+          <span className="text-muted-foreground text-[11px] font-medium">
             {sidebarSelectedSessionIds.length} selected
           </span>
           <div className="ml-auto flex items-center gap-1">
             <button
               onClick={handleBulkPin}
-              className="text-text-secondary rounded-sm px-1.5 py-0.5 text-[10px] font-medium transition-colors hover:bg-white/5"
+              className="text-muted-foreground rounded-sm px-1.5 py-0.5 text-[10px] font-medium transition-colors hover:bg-white/5"
               title="Pin selected sessions"
             >
               <Pin className="inline-block size-3" /> Pin
             </button>
             <button
               onClick={handleBulkHide}
-              className="text-text-secondary rounded-sm px-1.5 py-0.5 text-[10px] font-medium transition-colors hover:bg-white/5"
+              className="text-muted-foreground rounded-sm px-1.5 py-0.5 text-[10px] font-medium transition-colors hover:bg-white/5"
               title="Hide selected sessions"
             >
               <EyeOff className="inline-block size-3" /> Hide
@@ -463,7 +455,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
             {showHiddenSessions && someSelectedAreHidden && (
               <button
                 onClick={handleBulkUnhide}
-                className="text-text-secondary rounded-sm px-1.5 py-0.5 text-[10px] font-medium transition-colors hover:bg-white/5"
+                className="text-muted-foreground rounded-sm px-1.5 py-0.5 text-[10px] font-medium transition-colors hover:bg-white/5"
                 title="Unhide selected sessions"
               >
                 <Eye className="inline-block size-3" /> Unhide
@@ -471,7 +463,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
             )}
             <button
               onClick={clearSidebarSelection}
-              className="text-text-muted rounded-sm p-0.5 transition-colors hover:bg-white/5"
+              className="text-muted-foreground rounded-sm p-0.5 transition-colors hover:bg-white/5"
               title="Cancel selection"
             >
               <X className="size-3.5" />
@@ -496,16 +488,16 @@ export const DateGroupedSessions = (): React.JSX.Element => {
                 }}
               >
                 {item.type === 'pinned-header' ? (
-                  <div className="border-border-emphasis text-text-muted sticky top-0 flex h-full items-center gap-1.5 border-t bg-[color-mix(in_srgb,var(--color-surface-sidebar)_95%,transparent)] px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase backdrop-blur-xs">
+                  <div className="border-border text-muted-foreground sticky top-0 flex h-full items-center gap-1.5 border-t bg-sidebar/95 px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase backdrop-blur-xs">
                     <Pin className="size-3" />
                     Pinned
                   </div>
                 ) : item.type === 'header' ? (
-                  <div className="border-border-emphasis text-text-muted sticky top-0 flex h-full items-center border-t bg-[color-mix(in_srgb,var(--color-surface-sidebar)_95%,transparent)] px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase backdrop-blur-xs">
+                  <div className="border-border text-muted-foreground sticky top-0 flex h-full items-center border-t bg-sidebar/95 px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase backdrop-blur-xs">
                     {item.category}
                   </div>
                 ) : item.type === 'loader' ? (
-                  <div className="text-text-muted flex h-full items-center justify-center">
+                  <div className="text-muted-foreground flex h-full items-center justify-center">
                     {sessionsLoadingMore ? (
                       <>
                         <Loader2 className="mr-2 size-4 animate-spin" />

@@ -124,20 +124,20 @@ export const AddTriggerForm = ({
   };
 
   return (
-    <div className="border-border-subtle border-t">
+    <div className="border-border/50 border-t">
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="hover:bg-surface-raised flex w-full items-center justify-between py-3 transition-colors"
+        className="hover:bg-card flex w-full items-center justify-between py-3 transition-colors"
       >
         <div className="flex items-center gap-2">
           <Plus className="size-4 text-indigo-400" />
-          <span className="text-text text-sm font-medium">Add Custom Trigger</span>
+          <span className="text-foreground text-sm font-medium">Add Custom Trigger</span>
         </div>
         {isExpanded ? (
-          <ChevronUp className="text-text-muted size-4" />
+          <ChevronUp className="text-muted-foreground size-4" />
         ) : (
-          <ChevronDown className="text-text-muted size-4" />
+          <ChevronDown className="text-muted-foreground size-4" />
         )}
       </button>
 

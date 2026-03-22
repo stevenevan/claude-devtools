@@ -33,16 +33,16 @@ export const ThinkingTextItem = ({
       >
         <ChevronRight
           className={cn(
-            'text-text-muted size-3 shrink-0 transition-transform',
+            'text-muted-foreground size-3 shrink-0 transition-transform',
             expanded && 'rotate-90'
           )}
         />
-        <Brain size={12} className="text-text-muted shrink-0" />
+        <Brain size={12} className="text-muted-foreground shrink-0" />
         {isClickable ? (
           <span
             role="link"
             tabIndex={0}
-            className="cursor-pointer text-xs text-[var(--link-text)] underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
+            className="cursor-pointer text-xs text-blue-400 underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
             onClick={(e) => {
               e.stopPropagation();
               onNavigateToTurn(turnIndex);
@@ -57,9 +57,9 @@ export const ThinkingTextItem = ({
             @Turn {turnIndex + 1}
           </span>
         ) : (
-          <span className="text-text-secondary text-xs">@Turn {turnIndex + 1}</span>
+          <span className="text-muted-foreground text-xs">@Turn {turnIndex + 1}</span>
         )}
-        <span className="text-text-muted text-xs">
+        <span className="text-muted-foreground text-xs">
           ~{formatTokens(injection.estimatedTokens)} tokens
         </span>
       </button>
@@ -68,10 +68,10 @@ export const ThinkingTextItem = ({
         <div className="mt-1 ml-6 space-y-0.5">
           {injection.breakdown.map((item, idx) => (
             <div key={`${item.type}-${idx}`} className="flex items-center gap-2 py-0.5 text-xs">
-              <span className="text-text-muted">
+              <span className="text-muted-foreground">
                 {item.type === 'thinking' ? 'Thinking' : 'Text'}
               </span>
-              <span className="text-text-muted opacity-70">~{formatTokens(item.tokenCount)}</span>
+              <span className="text-muted-foreground opacity-70">~{formatTokens(item.tokenCount)}</span>
             </div>
           ))}
         </div>

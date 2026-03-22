@@ -28,9 +28,9 @@ export const GeneralInfoSection = ({
       <SectionHeader title="General Info" />
 
       {/* Trigger Name */}
-      <div className="border-border-subtle border-b py-2">
+      <div className="border-border/50 border-b py-2">
         <div className="mb-2 flex items-center justify-between">
-          <label htmlFor="new-trigger-name" className="text-text-secondary text-sm">
+          <label htmlFor="new-trigger-name" className="text-muted-foreground text-sm">
             Trigger Name *
           </label>
         </div>
@@ -43,15 +43,15 @@ export const GeneralInfoSection = ({
           disabled={saving}
           required
           className={cn(
-            'border-border text-text placeholder:text-text-muted w-full rounded-sm border bg-transparent px-2 py-1.5 text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden',
+            'border-border text-foreground placeholder:text-muted-foreground w-full rounded-sm border bg-transparent px-2 py-1.5 text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden',
             saving && 'cursor-not-allowed opacity-50'
           )}
         />
       </div>
 
       {/* Scope/Tool Name */}
-      <div className="border-border-subtle flex items-center justify-between border-b py-2">
-        <label htmlFor="new-trigger-tool-name" className="text-text-secondary text-sm">
+      <div className="border-border/50 flex items-center justify-between border-b py-2">
+        <label htmlFor="new-trigger-tool-name" className="text-muted-foreground text-sm">
           Scope / Tool Name (optional)
         </label>
         <select
@@ -60,12 +60,12 @@ export const GeneralInfoSection = ({
           onChange={(e) => onToolNameChange(e.target.value)}
           disabled={saving}
           className={cn(
-            'border-border text-text rounded-sm border bg-transparent px-2 py-1 text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden',
+            'border-border text-foreground rounded-sm border bg-transparent px-2 py-1 text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden',
             saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
           )}
         >
           {TOOL_NAME_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value} className="bg-surface">
+            <option key={option.value} value={option.value} className="bg-background">
               {option.label}
             </option>
           ))}

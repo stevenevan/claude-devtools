@@ -25,12 +25,12 @@ export const UserMessageItem = ({
   return (
     <div className="rounded-sm px-2 py-1.5">
       <div className="flex w-full items-center gap-1.5">
-        <MessageSquare size={12} className="text-text-muted shrink-0" />
+        <MessageSquare size={12} className="text-muted-foreground shrink-0" />
         {isClickable ? (
           <span
             role="link"
             tabIndex={0}
-            className="cursor-pointer text-xs text-[var(--link-text)] underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
+            className="cursor-pointer text-xs text-blue-400 underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
             onClick={() => onNavigateToTurn(turnIndex)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -41,14 +41,14 @@ export const UserMessageItem = ({
             @Turn {turnIndex + 1}
           </span>
         ) : (
-          <span className="text-text-secondary text-xs">@Turn {turnIndex + 1}</span>
+          <span className="text-muted-foreground text-xs">@Turn {turnIndex + 1}</span>
         )}
-        <span className="text-text-muted text-xs">
+        <span className="text-muted-foreground text-xs">
           ~{formatTokens(injection.estimatedTokens)} tokens
         </span>
       </div>
       {injection.textPreview && (
-        <div className="text-text-muted mt-0.5 truncate pl-5 text-xs italic opacity-70">
+        <div className="text-muted-foreground mt-0.5 truncate pl-5 text-xs italic opacity-70">
           {injection.textPreview}
         </div>
       )}

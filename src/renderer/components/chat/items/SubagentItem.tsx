@@ -207,7 +207,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
   // Shutdown-only team activations: minimal inline row (no metrics, no expand)
   if (isShutdownOnly && teamColors && subagent.team) {
     return (
-      <div className="flex items-center gap-2 rounded-md border border-[var(--card-border)] bg-[var(--card-bg)] px-3 py-1.5 opacity-60">
+      <div className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 opacity-60">
         <span
           className="size-2.5 shrink-0 rounded-full"
           style={{ backgroundColor: teamColors.border }}
@@ -222,9 +222,9 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
         >
           {subagent.team.memberName}
         </span>
-        <span className="text-xs text-[var(--card-icon-muted)]">Shutdown confirmed</span>
+        <span className="text-xs text-muted-foreground">Shutdown confirmed</span>
         <span className="flex-1" />
-        <span className="shrink-0 font-mono text-[11px] text-[var(--card-icon-muted)] tabular-nums">
+        <span className="shrink-0 font-mono text-[11px] text-muted-foreground tabular-nums">
           {formatDuration(subagent.durationMs)}
         </span>
       </div>
@@ -235,7 +235,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
     <div
       ref={outerCardRef}
       className={cn(
-        'overflow-hidden rounded-md border border-[var(--card-border)] bg-[var(--card-bg)] transition-all duration-300',
+        'overflow-hidden rounded-md border border-border bg-card transition-all duration-300',
         outerHighlight.className
       )}
       style={outerHighlight.style}
@@ -254,14 +254,14 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
         className={cn(
           'flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors',
           isExpanded
-            ? 'border-b border-[var(--card-border)] bg-[var(--card-header-bg)]'
+            ? 'border-b border-border bg-muted/50'
             : 'bg-transparent'
         )}
       >
         {/* Expand chevron */}
         <ChevronRight
           className={cn(
-            'size-3.5 shrink-0 transition-transform text-[var(--card-icon-muted)]',
+            'size-3.5 shrink-0 transition-transform text-muted-foreground',
             isExpanded && 'rotate-90'
           )}
         />
@@ -276,7 +276,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
           <Bot
             className={cn(
               'size-4 shrink-0',
-              subagent.isOngoing ? 'text-blue-500' : 'text-text-muted'
+              subagent.isOngoing ? 'text-blue-500' : 'text-muted-foreground'
             )}
           />
         )}
@@ -314,7 +314,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
         )}
 
         {/* Description */}
-        <span className="flex-1 truncate text-xs text-[var(--card-text-light)]">
+        <span className="flex-1 truncate text-xs text-foreground">
           {truncatedDesc}
         </span>
 
@@ -338,7 +338,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
         />
 
         {/* Duration */}
-        <span className="shrink-0 font-mono text-[11px] text-[var(--card-icon-muted)] tabular-nums">
+        <span className="shrink-0 font-mono text-[11px] text-muted-foreground tabular-nums">
           {formatDuration(subagent.durationMs)}
         </span>
       </div>
@@ -347,34 +347,34 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
       {isExpanded && (
         <div className="space-y-3 p-3">
           {/* ========== Row 1: Meta Info (Horizontal Flow) ========== */}
-          <div className="text-text-muted flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
             <span>
-              <span className="text-[var(--card-icon-muted)]">Type</span>{' '}
-              <span className="font-mono text-[var(--card-text-light)]">{subagentType}</span>
+              <span className="text-muted-foreground">Type</span>{' '}
+              <span className="font-mono text-foreground">{subagentType}</span>
             </span>
-            <span className="text-[var(--card-separator)]">•</span>
+            <span className="text-muted-foreground">•</span>
             <span>
-              <span className="text-[var(--card-icon-muted)]">Duration</span>{' '}
-              <span className="font-mono text-[var(--card-text-light)] tabular-nums">
+              <span className="text-muted-foreground">Duration</span>{' '}
+              <span className="font-mono text-foreground tabular-nums">
                 {formatDuration(subagent.durationMs)}
               </span>
             </span>
             {modelInfo && (
               <>
-                <span className="text-[var(--card-separator)]">•</span>
+                <span className="text-muted-foreground">•</span>
                 <span>
-                  <span className="text-[var(--card-icon-muted)]">Model</span>{' '}
+                  <span className="text-muted-foreground">Model</span>{' '}
                   <span className={cn('font-mono', getModelColorClass(modelInfo.family))}>
                     {modelInfo.name}
                   </span>
                 </span>
               </>
             )}
-            <span className="text-[var(--card-separator)]">•</span>
+            <span className="text-muted-foreground">•</span>
             <span>
-              <span className="text-[var(--card-icon-muted)]">ID</span>{' '}
+              <span className="text-muted-foreground">ID</span>{' '}
               <span
-                className="inline-block max-w-[120px] truncate align-bottom font-mono text-[var(--card-icon-muted)]"
+                className="inline-block max-w-[120px] truncate align-bottom font-mono text-muted-foreground"
                 title={subagent.id}
               >
                 {subagent.id.slice(0, 8)}
@@ -386,7 +386,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
           {(hasMainImpact ?? hasIsolated) && (
             <div className="pt-2">
               {/* Overline title */}
-              <div className="mb-2 text-[10px] font-semibold tracking-wider text-[var(--card-icon-muted)] uppercase">
+              <div className="mb-2 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
                 Context Usage
               </div>
 
@@ -395,10 +395,10 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                 {hasMainImpact && !subagent.team && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <ArrowUpRight className="size-3 text-[var(--subagent-icon-main)]" />
-                      <span className="text-text-secondary text-xs">Main Context</span>
+                      <ArrowUpRight className="size-3 text-indigo-400" />
+                      <span className="text-xs text-muted-foreground">Main Context</span>
                     </div>
-                    <span className="font-mono text-xs font-medium text-[var(--card-text-lighter)] tabular-nums">
+                    <span className="font-mono text-xs font-medium text-foreground tabular-nums">
                       {subagent.mainSessionImpact!.totalTokens.toLocaleString()}
                     </span>
                   </div>
@@ -407,12 +407,12 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                 {cumulativeMetrics && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Sigma className="size-3 text-[var(--subagent-icon-output)]" />
-                      <span className="text-text-secondary text-xs">Total Output</span>
+                      <Sigma className="size-3 text-blue-400" />
+                      <span className="text-xs text-muted-foreground">Total Output</span>
                     </div>
-                    <span className="font-mono text-xs font-medium text-[var(--card-text-lighter)] tabular-nums">
+                    <span className="font-mono text-xs font-medium text-foreground tabular-nums">
                       {cumulativeMetrics.outputTokens.toLocaleString()}
-                      <span className="text-[var(--card-icon-muted)]">
+                      <span className="text-muted-foreground">
                         {' '}
                         ({cumulativeMetrics.turnCount} turns)
                       </span>
@@ -423,12 +423,12 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                 {hasIsolated && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <CircleDot className="size-3 text-[var(--subagent-icon-context)]" />
-                      <span className="text-text-secondary text-xs">
+                      <CircleDot className="size-3 text-green-400" />
+                      <span className="text-xs text-muted-foreground">
                         {subagent.team ? 'Context Window' : 'Subagent Context'}
                       </span>
                     </div>
-                    <span className="font-mono text-xs font-medium text-[var(--card-text-lighter)] tabular-nums">
+                    <span className="font-mono text-xs font-medium text-foreground tabular-nums">
                       {isolatedTotal.toLocaleString()}
                     </span>
                   </div>
@@ -438,13 +438,13 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                 {isMultiPhase &&
                   phaseData.phases.map((phase) => (
                     <div key={phase.phaseNumber} className="flex items-center justify-between pl-5">
-                      <span className="text-[11px] text-[var(--card-icon-muted)]">
+                      <span className="text-[11px] text-muted-foreground">
                         Phase {phase.phaseNumber}
                       </span>
-                      <span className="font-mono text-[11px] text-[var(--card-icon-muted)] tabular-nums">
+                      <span className="font-mono text-[11px] text-muted-foreground tabular-nums">
                         {formatTokensCompact(phase.peakTokens)}
                         {phase.postCompaction != null && (
-                          <span className="text-[var(--metric-compaction-freed)]">
+                          <span className="text-green-400">
                             {' '}
                             → {formatTokensCompact(phase.postCompaction)}
                           </span>
@@ -458,7 +458,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
 
           {/* ========== Level 2: Execution Trace Toggle ========== */}
           {displayItems.length > 0 && (
-            <div className="overflow-hidden rounded-md border border-[var(--card-border)] bg-[var(--card-header-bg)]">
+            <div className="overflow-hidden rounded-md border border-border bg-muted/50">
               {/* Trace Header (clickable) */}
               <div
                 role="button"
@@ -476,21 +476,21 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                 }}
                 className={cn(
                   'flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors',
-                  isTraceExpanded && 'border-b border-[var(--card-border)]',
-                  isTraceHeaderHovered ? 'bg-[var(--card-header-hover)]' : 'bg-transparent'
+                  isTraceExpanded && 'border-b border-border',
+                  isTraceHeaderHovered ? 'bg-accent/50' : 'bg-transparent'
                 )}
                 onMouseEnter={() => setIsTraceHeaderHovered(true)}
                 onMouseLeave={() => setIsTraceHeaderHovered(false)}
               >
                 <ChevronRight
                   className={cn(
-                    'size-3 shrink-0 transition-transform text-[var(--card-icon-muted)]',
+                    'size-3 shrink-0 transition-transform text-muted-foreground',
                     isTraceExpanded && 'rotate-90'
                   )}
                 />
-                <Terminal className="size-3.5 text-[var(--card-icon-muted)]" />
-                <span className="text-text-secondary text-xs">Execution Trace</span>
-                <span className="text-[11px] text-[var(--card-icon-muted)]">· {itemsSummary}</span>
+                <Terminal className="size-3.5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Execution Trace</span>
+                <span className="text-[11px] text-muted-foreground">· {itemsSummary}</span>
               </div>
 
               {/* Trace Content */}

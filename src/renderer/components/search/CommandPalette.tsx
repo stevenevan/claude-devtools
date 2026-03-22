@@ -64,19 +64,19 @@ const ProjectResultItemInner = ({
       onClick={onClick}
       className={cn(
         'w-full px-4 py-3 text-left transition-colors',
-        isSelected ? 'bg-surface-raised' : 'hover:bg-surface-raised/50'
+        isSelected ? 'bg-card' : 'hover:bg-card/50'
       )}
     >
       <div className="flex items-start gap-3">
-        <div className="text-text-secondary mt-0.5 shrink-0">
+        <div className="text-muted-foreground mt-0.5 shrink-0">
           <FolderGit2 className="size-4" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-text truncate text-sm font-medium">{repo.name}</div>
-          <div className="text-text-muted mt-0.5 truncate font-mono text-xs">
+          <div className="text-foreground truncate text-sm font-medium">{repo.name}</div>
+          <div className="text-muted-foreground mt-0.5 truncate font-mono text-xs">
             {repo.worktrees[0]?.path || ''}
           </div>
-          <div className="text-text-muted mt-1 flex items-center gap-3 text-xs">
+          <div className="text-muted-foreground mt-1 flex items-center gap-3 text-xs">
             <span>{repo.totalSessions} sessions</span>
             <span>·</span>
             <span>{lastActivity}</span>
@@ -115,7 +115,7 @@ const SessionResultItemInner = ({
       onClick={onClick}
       className={cn(
         'w-full px-4 py-3 text-left transition-colors',
-        isSelected ? 'bg-surface-raised' : 'hover:bg-surface-raised/50'
+        isSelected ? 'bg-card' : 'hover:bg-card/50'
       )}
     >
       <div className="flex items-start gap-3">
@@ -135,16 +135,16 @@ const SessionResultItemInner = ({
             </div>
           )}
           <div className="mb-1 flex items-center gap-2">
-            <FileText className="text-text-muted size-3" />
-            <span className="text-text-muted truncate text-xs">
+            <FileText className="text-muted-foreground size-3" />
+            <span className="text-muted-foreground truncate text-xs">
               {result.sessionTitle.slice(0, 60)}
               {result.sessionTitle.length > 60 ? '...' : ''}
             </span>
           </div>
-          <div className="text-text text-sm leading-relaxed">
+          <div className="text-foreground text-sm leading-relaxed">
             {highlightMatch(result.context, result.matchedText)}
           </div>
-          <div className="text-text-muted/60 mt-1 text-xs">
+          <div className="text-muted-foreground/60 mt-1 text-xs">
             {new Date(result.timestamp).toLocaleDateString()}{' '}
             {new Date(result.timestamp).toLocaleTimeString()}
           </div>
@@ -394,7 +394,7 @@ export const CommandPalette = (): React.JSX.Element | null => {
     return (
       <>
         <span>{before}</span>
-        <mark className="rounded bg-[var(--highlight-bg)] px-0.5 text-[var(--highlight-text)]">
+        <mark className="rounded bg-yellow-400/20 px-0.5 text-foreground">
           {match}
         </mark>
         <span>{after}</span>
@@ -412,25 +412,25 @@ export const CommandPalette = (): React.JSX.Element | null => {
       <DialogPortal>
         <DialogOverlay />
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
-          <div className="border-border bg-surface w-full max-w-2xl overflow-hidden rounded-xl border shadow-2xl">
-            <div className="bg-surface-raised/50 border-border border-b px-4 py-2">
+          <div className="border-border bg-background w-full max-w-2xl overflow-hidden rounded-xl border shadow-2xl">
+            <div className="bg-card/50 border-border border-b px-4 py-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   {searchMode === 'projects' ? (
                     <>
-                      <FolderGit2 className="text-text-muted size-3.5" />
-                      <span className="text-text-muted text-xs">Search projects</span>
+                      <FolderGit2 className="text-muted-foreground size-3.5" />
+                      <span className="text-muted-foreground text-xs">Search projects</span>
                     </>
                   ) : (
                     <>
-                      <MessageSquare className="text-text-muted size-3.5" />
-                      <span className="text-text-muted text-xs">
+                      <MessageSquare className="text-muted-foreground size-3.5" />
+                      <span className="text-muted-foreground text-xs">
                         {globalSearchEnabled ? 'Search across all projects' : 'Search in project'}
                       </span>
                       {!globalSearchEnabled && (
                         <>
-                          <span className="text-text-muted/50 mx-1 text-xs">·</span>
-                          <span className="text-text-secondary truncate text-xs">
+                          <span className="text-muted-foreground/50 mx-1 text-xs">·</span>
+                          <span className="text-muted-foreground truncate text-xs">
                             {repositoryGroups.find((r) =>
                               r.worktrees.some((w) => w.id === selectedProjectId)
                             )?.name ?? 'Current project'}
@@ -460,7 +460,7 @@ export const CommandPalette = (): React.JSX.Element | null => {
             </div>
 
             <div className="border-border flex items-center gap-3 border-b px-4 py-3">
-              <Search className="text-text-muted size-5 shrink-0" />
+              <Search className="text-muted-foreground size-5 shrink-0" />
               <input
                 ref={inputRef}
                 type="text"
@@ -470,9 +470,9 @@ export const CommandPalette = (): React.JSX.Element | null => {
                 placeholder={
                   searchMode === 'projects' ? 'Search projects...' : 'Search conversations...'
                 }
-                className="placeholder:text-text-muted/50 text-text flex-1 bg-transparent text-base focus:outline-hidden"
+                className="placeholder:text-muted-foreground/50 text-foreground flex-1 bg-transparent text-base focus:outline-hidden"
               />
-              {loading && <Loader2 className="text-text-muted size-4 animate-spin" />}
+              {loading && <Loader2 className="text-muted-foreground size-4 animate-spin" />}
               <Button variant="ghost" size="icon-xs" onClick={closeCommandPalette}>
                 <X className="size-4" />
               </Button>
@@ -481,7 +481,7 @@ export const CommandPalette = (): React.JSX.Element | null => {
             <div className="max-h-[50vh] overflow-y-auto">
               {searchMode === 'projects' ? (
                 filteredProjects.length === 0 ? (
-                  <div className="text-text-muted px-4 py-8 text-center text-sm">
+                  <div className="text-muted-foreground px-4 py-8 text-center text-sm">
                     {query.trim() ? `No projects found for "${query}"` : 'No projects found'}
                   </div>
                 ) : (
@@ -497,11 +497,11 @@ export const CommandPalette = (): React.JSX.Element | null => {
                   </div>
                 )
               ) : query.trim().length < 2 ? (
-                <div className="text-text-muted px-4 py-8 text-center text-sm">
+                <div className="text-muted-foreground px-4 py-8 text-center text-sm">
                   Type at least 2 characters to search
                 </div>
               ) : sessionResults.length === 0 && !loading ? (
-                <div className="text-text-muted px-4 py-8 text-center text-sm">
+                <div className="text-muted-foreground px-4 py-8 text-center text-sm">
                   {searchIsPartial
                     ? `No fast results in recent sessions for "${query}"`
                     : `No results found for "${query}"`}
@@ -531,7 +531,7 @@ export const CommandPalette = (): React.JSX.Element | null => {
               )}
             </div>
 
-            <div className="border-border text-text-muted flex items-center justify-between border-t px-4 py-2 text-xs">
+            <div className="border-border text-muted-foreground flex items-center justify-between border-t px-4 py-2 text-xs">
               <span>
                 {searchMode === 'projects'
                   ? `${filteredProjects.length} project${filteredProjects.length !== 1 ? 's' : ''}`
@@ -541,21 +541,21 @@ export const CommandPalette = (): React.JSX.Element | null => {
               </span>
               <div className="flex items-center gap-4">
                 <span>
-                  <kbd className="bg-surface-overlay rounded px-1.5 py-0.5 text-[10px]">↑↓</kbd>{' '}
+                  <kbd className="bg-popover rounded px-1.5 py-0.5 text-[10px]">↑↓</kbd>{' '}
                   navigate
                 </span>
                 <span>
-                  <kbd className="bg-surface-overlay rounded px-1.5 py-0.5 text-[10px]">↵</kbd>{' '}
+                  <kbd className="bg-popover rounded px-1.5 py-0.5 text-[10px]">↵</kbd>{' '}
                   {searchMode === 'projects' ? 'select' : 'open'}
                 </span>
                 <span>
-                  <kbd className="bg-surface-overlay rounded px-1.5 py-0.5 text-[10px]">
+                  <kbd className="bg-popover rounded px-1.5 py-0.5 text-[10px]">
                     {formatModifierShortcut('G')}
                   </kbd>{' '}
                   global
                 </span>
                 <span>
-                  <kbd className="bg-surface-overlay rounded px-1.5 py-0.5 text-[10px]">esc</kbd>{' '}
+                  <kbd className="bg-popover rounded px-1.5 py-0.5 text-[10px]">esc</kbd>{' '}
                   close
                 </span>
               </div>

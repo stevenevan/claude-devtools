@@ -44,25 +44,25 @@ export const WorkspaceIndicator = (): React.JSX.Element | null => {
         <PopoverTrigger
           disabled={isContextSwitching}
           className={cn(
-            'flex items-center gap-2 rounded-full border border-border-emphasis bg-surface-raised px-3 py-1.5 text-xs shadow-lg transition-opacity hover:opacity-90',
+            'flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs shadow-lg transition-opacity hover:opacity-90',
             isContextSwitching && 'opacity-50'
           )}
         >
           <ConnectionStatusBadge contextId={activeContextId} />
-          <span className={cn('font-medium', isContextSwitching ? 'text-text-muted' : 'text-text')}>
+          <span className={cn('font-medium', isContextSwitching ? 'text-muted-foreground' : 'text-foreground')}>
             {activeLabel}
           </span>
           <ChevronDown
-            className={cn('size-3 text-text-muted transition-transform', isOpen && 'rotate-180')}
+            className={cn('size-3 text-muted-foreground transition-transform', isOpen && 'rotate-180')}
           />
         </PopoverTrigger>
         <PopoverContent
           side="top"
           sideOffset={8}
           align="end"
-          className="max-h-[250px] w-56 overflow-y-auto bg-[var(--color-surface-sidebar)] p-0 py-1"
+          className="max-h-[250px] w-56 overflow-y-auto bg-sidebar p-0 py-1"
         >
-          <div className="text-text-muted px-3 py-2 text-[10px] font-semibold tracking-wider uppercase">
+          <div className="text-muted-foreground px-3 py-2 text-[10px] font-semibold tracking-wider uppercase">
             Switch Workspace
           </div>
           {availableContexts.map((ctx) => {
@@ -106,11 +106,11 @@ const ContextItem = ({
       onClick={onSelect}
       className={cn(
         'flex w-full items-center gap-2 px-3 py-2 text-left transition-colors',
-        isSelected ? 'bg-surface-raised' : 'hover:bg-surface-raised hover:opacity-50'
+        isSelected ? 'bg-card' : 'hover:bg-card hover:opacity-50'
       )}
     >
       <ConnectionStatusBadge contextId={contextId} />
-      <span className={cn('flex-1 truncate text-sm', isSelected ? 'text-text' : 'text-text-muted')}>
+      <span className={cn('flex-1 truncate text-sm', isSelected ? 'text-foreground' : 'text-muted-foreground')}>
         {label}
       </span>
       {isSelected && <Check className="size-3.5 shrink-0 text-indigo-400" />}

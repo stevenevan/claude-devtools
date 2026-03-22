@@ -20,20 +20,20 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
     return (
       <div className="space-y-2">
         {filePath && (
-          <div className="text-text-muted mb-2 text-xs">
+          <div className="text-muted-foreground mb-2 text-xs">
             {filePath}
-            {replaceAll && <span className="text-text-muted ml-2">(replace all)</span>}
+            {replaceAll && <span className="text-muted-foreground ml-2">(replace all)</span>}
           </div>
         )}
         {oldString && (
-          <div className="break-all whitespace-pre-wrap text-[var(--diff-removed-text)]">
+          <div className="break-all whitespace-pre-wrap text-red-400">
             {oldString.split('\n').map((line, i) => (
               <div key={i}>- {line}</div>
             ))}
           </div>
         )}
         {newString && (
-          <div className="break-all whitespace-pre-wrap text-[var(--diff-added-text)]">
+          <div className="break-all whitespace-pre-wrap text-green-400">
             {newString.split('\n').map((line, i) => (
               <div key={i}>+ {line}</div>
             ))}
@@ -50,8 +50,8 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
 
     return (
       <div className="space-y-2">
-        {description && <div className="text-text-muted mb-1 text-xs">{description}</div>}
-        {command && <code className="text-text break-all whitespace-pre-wrap">{command}</code>}
+        {description && <div className="text-muted-foreground mb-1 text-xs">{description}</div>}
+        {command && <code className="text-foreground break-all whitespace-pre-wrap">{command}</code>}
       </div>
     );
   }
@@ -63,10 +63,10 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
     const limit = input.limit as number | undefined;
 
     return (
-      <div className="text-text">
+      <div className="text-foreground">
         <div>{filePath}</div>
         {(offset !== undefined || limit !== undefined) && (
-          <div className="text-text-muted mt-1 text-xs">
+          <div className="text-muted-foreground mt-1 text-xs">
             {offset !== undefined && `offset: ${offset}`}
             {offset !== undefined && limit !== undefined && ', '}
             {limit !== undefined && `limit: ${limit}`}
@@ -78,10 +78,10 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
 
   // Default: key-value format with readable string values
   return (
-    <div className="text-text space-y-2">
+    <div className="text-foreground space-y-2">
       {Object.entries(input).map(([key, value]) => (
         <div key={key}>
-          <div className="text-text-muted text-xs">{key}</div>
+          <div className="text-muted-foreground text-xs">{key}</div>
           <pre className="break-all whitespace-pre-wrap">{formatInputValue(value)}</pre>
         </div>
       ))}
@@ -160,5 +160,5 @@ function isContentBlock(value: unknown): boolean {
 
 export function renderOutput(content: string | unknown[]): React.ReactElement {
   const displayText = extractOutputText(content);
-  return <pre className="text-text break-all whitespace-pre-wrap">{displayText}</pre>;
+  return <pre className="text-foreground break-all whitespace-pre-wrap">{displayText}</pre>;
 }

@@ -69,7 +69,7 @@ const PopoverSection = ({
       <div
         role="button"
         tabIndex={0}
-        className="text-text-muted mb-1 flex cursor-pointer items-center gap-1 text-xs font-medium hover:opacity-80"
+        className="text-muted-foreground mb-1 flex cursor-pointer items-center gap-1 text-xs font-medium hover:opacity-80"
         onClick={(e) => {
           e.stopPropagation();
           setExpanded(!expanded);
@@ -191,13 +191,13 @@ export const ContextBadge = ({
   return (
     <Popover>
       <PopoverTrigger className="inline-flex">
-        <span className="border-border bg-surface-raised text-text-secondary inline-flex cursor-pointer items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium">
+        <span className="border-border bg-card text-muted-foreground inline-flex cursor-pointer items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium">
           <span>Context</span>
           <span className="font-semibold">+{totalNew}</span>
         </span>
       </PopoverTrigger>
       <PopoverContent className="max-h-96 w-80 overflow-y-auto p-3" align="start">
-        <div className="border-border-subtle text-text mb-2 border-b pb-2 text-xs font-semibold">
+        <div className="border-border/50 text-foreground mb-2 border-b pb-2 text-xs font-semibold">
           New Context Injected In This Turn
         </div>
 
@@ -211,13 +211,13 @@ export const ContextBadge = ({
               {newUserMessageInjections.map((injection) => (
                 <div key={injection.id} className="min-w-0">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-text-secondary">Turn {injection.turnIndex + 1}</span>
-                    <span className="text-text-muted">
+                    <span className="text-muted-foreground">Turn {injection.turnIndex + 1}</span>
+                    <span className="text-muted-foreground">
                       ~{formatTokens(injection.estimatedTokens)} tokens
                     </span>
                   </div>
                   {injection.textPreview && (
-                    <div className="text-text-muted mt-0.5 truncate text-xs italic opacity-80">
+                    <div className="text-muted-foreground mt-0.5 truncate text-xs italic opacity-80">
                       {injection.textPreview}
                     </div>
                   )}
@@ -241,9 +241,9 @@ export const ContextBadge = ({
                     <CopyablePath
                       displayText={displayPath}
                       copyText={absolutePath}
-                      className="text-text-secondary text-xs"
+                      className="text-muted-foreground text-xs"
                     />
-                    <div className="text-text-muted text-xs">
+                    <div className="text-muted-foreground text-xs">
                       ~{formatTokens(injection.estimatedTokens)} tokens
                     </div>
                   </div>
@@ -266,9 +266,9 @@ export const ContextBadge = ({
                     <CopyablePath
                       displayText={displayPath}
                       copyText={absolutePath}
-                      className="text-text-secondary text-xs"
+                      className="text-muted-foreground text-xs"
                     />
-                    <div className="text-text-muted text-xs">
+                    <div className="text-muted-foreground text-xs">
                       ~{formatTokens(injection.estimatedTokens)} tokens
                     </div>
                   </div>
@@ -289,8 +289,8 @@ export const ContextBadge = ({
                     key={`${injection.id}-${tool.toolName}-${idx}`}
                     className="flex items-center justify-between text-xs"
                   >
-                    <span className="text-text-secondary">{tool.toolName}</span>
-                    <span className="text-text-muted">~{formatTokens(tool.tokenCount)} tokens</span>
+                    <span className="text-muted-foreground">{tool.toolName}</span>
+                    <span className="text-muted-foreground">~{formatTokens(tool.tokenCount)} tokens</span>
                   </div>
                 ))
               )}
@@ -309,8 +309,8 @@ export const ContextBadge = ({
                     key={`${injection.id}-${item.label}-${idx}`}
                     className="flex items-center justify-between text-xs"
                   >
-                    <span className="text-text-secondary">{item.label}</span>
-                    <span className="text-text-muted">~{formatTokens(item.tokenCount)} tokens</span>
+                    <span className="text-muted-foreground">{item.label}</span>
+                    <span className="text-muted-foreground">~{formatTokens(item.tokenCount)} tokens</span>
                   </div>
                 ))
               )}
@@ -325,17 +325,17 @@ export const ContextBadge = ({
             >
               {newThinkingTextInjections.map((injection) => (
                 <div key={injection.id} className="min-w-0">
-                  <div className="text-text-secondary text-xs">Turn {injection.turnIndex + 1}</div>
+                  <div className="text-muted-foreground text-xs">Turn {injection.turnIndex + 1}</div>
                   <div className="space-y-0.5 pl-2">
                     {injection.breakdown.map((item, idx) => (
                       <div
                         key={`${item.type}-${idx}`}
                         className="flex items-center justify-between text-xs"
                       >
-                        <span className="text-text-muted">
+                        <span className="text-muted-foreground">
                           {item.type === 'thinking' ? 'Thinking' : 'Text'}
                         </span>
-                        <span className="text-text-muted">
+                        <span className="text-muted-foreground">
                           ~{formatTokens(item.tokenCount)} tokens
                         </span>
                       </div>
@@ -347,9 +347,9 @@ export const ContextBadge = ({
           )}
         </div>
 
-        <div className="border-border-subtle mt-2 flex items-center justify-between border-t pt-2 text-xs">
-          <span className="text-text-muted">Total new tokens</span>
-          <span className="text-text-secondary">~{formatTokens(totalNewTokens)} tokens</span>
+        <div className="border-border/50 mt-2 flex items-center justify-between border-t pt-2 text-xs">
+          <span className="text-muted-foreground">Total new tokens</span>
+          <span className="text-muted-foreground">~{formatTokens(totalNewTokens)} tokens</span>
         </div>
       </PopoverContent>
     </Popover>

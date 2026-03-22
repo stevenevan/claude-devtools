@@ -148,7 +148,7 @@ export const NotificationsSection = ({
       </SettingRow>
 
       <SettingsSectionHeader title="Ignored Repositories" />
-      <p className="text-text-muted mb-3 text-xs">
+      <p className="text-muted-foreground mb-3 text-xs">
         Notifications from these repositories will be ignored
       </p>
       {ignoredRepositoryItems.length > 0 ? (
@@ -164,7 +164,7 @@ export const NotificationsSection = ({
         </div>
       ) : (
         <div className="border-border mb-3 rounded-md border border-dashed py-3 text-center">
-          <p className="text-text-muted text-sm">No repositories ignored</p>
+          <p className="text-muted-foreground text-sm">No repositories ignored</p>
         </div>
       )}
       <RepositoryDropdown

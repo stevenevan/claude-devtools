@@ -12,32 +12,32 @@ interface EventMarkerProps {
 
 const EVENT_STYLES = {
   api_error: {
-    containerClass: 'bg-[var(--warning-bg)] border-[var(--warning-border)]',
-    textClass: 'text-[var(--warning-text)]',
+    containerClass: 'bg-amber-500/15 border-amber-500/40',
+    textClass: 'text-amber-400',
     Icon: AlertTriangle,
     label: 'API Error',
   },
   bridge_status: {
-    containerClass: 'bg-[var(--event-info-bg)] border-[var(--event-info-border)]',
-    textClass: 'text-[var(--event-info-text)]',
+    containerClass: 'bg-blue-500/10 border-blue-500/30',
+    textClass: 'text-blue-400',
     Icon: Radio,
     label: 'Remote Control',
   },
   memory_saved: {
-    containerClass: 'bg-[var(--event-success-bg)] border-[var(--event-success-border)]',
-    textClass: 'text-[var(--event-success-text)]',
+    containerClass: 'bg-green-500/10 border-green-500/30',
+    textClass: 'text-green-400',
     Icon: BookMarked,
     label: 'Memory Saved',
   },
   turn_duration: {
-    containerClass: 'bg-[var(--event-info-bg)] border-[var(--event-info-border)]',
-    textClass: 'text-[var(--event-info-text)]',
+    containerClass: 'bg-blue-500/10 border-blue-500/30',
+    textClass: 'text-blue-400',
     Icon: Timer,
     label: 'Turn Duration',
   },
   queue_operation: {
-    containerClass: 'bg-[var(--event-queue-bg)] border-[var(--event-queue-border)]',
-    textClass: 'text-[var(--event-queue-text)]',
+    containerClass: 'bg-violet-500/10 border-violet-500/30',
+    textClass: 'text-violet-400',
     Icon: Inbox,
     label: 'Queue',
   },
@@ -133,8 +133,8 @@ export const EventMarker = ({ eventGroup }: Readonly<EventMarkerProps>): React.J
         <span className={cn('shrink-0 text-xs font-medium whitespace-nowrap', style.textClass)}>
           {style.label}
         </span>
-        <span className="text-text-muted min-w-0 truncate text-xs">{detail}</span>
-        <span className="text-text-muted ml-auto shrink-0 text-xs whitespace-nowrap">
+        <span className="text-muted-foreground min-w-0 truncate text-xs">{detail}</span>
+        <span className="text-muted-foreground ml-auto shrink-0 text-xs whitespace-nowrap">
           {format(timestamp, 'h:mm:ss a')}
         </span>
       </div>

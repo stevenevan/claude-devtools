@@ -55,7 +55,7 @@ export const PaneView = ({ paneId }: PaneViewProps): React.JSX.Element => {
       <div
         className={cn(
           'border-t-2',
-          isFocused && paneCount > 1 ? 'border-[var(--color-accent)]' : 'border-transparent'
+          isFocused && paneCount > 1 ? 'border-indigo-500' : 'border-transparent'
         )}
       >
         <TabBar paneId={paneId} />
@@ -70,7 +70,7 @@ export const PaneView = ({ paneId }: PaneViewProps): React.JSX.Element => {
       {/* Max pane indicator - shown during drag when at limit */}
       {isDragging && !canSplit && (
         <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex justify-center">
-          <div className="border-border-emphasis bg-surface-overlay text-text-muted rounded-md border px-3 py-1.5 text-xs font-medium">
+          <div className="border-border bg-popover text-muted-foreground rounded-md border px-3 py-1.5 text-xs font-medium">
             Maximum {MAX_PANES} panes reached
           </div>
         </div>

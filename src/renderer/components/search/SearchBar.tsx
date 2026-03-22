@@ -117,7 +117,7 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
     : `${currentSearchIndex + 1} of ${searchResultCount}`;
 
   return (
-    <div className="border-border bg-surface absolute top-2 right-4 z-20 flex items-center gap-2 rounded-lg border px-3 py-2 shadow-lg">
+    <div className="border-border bg-background absolute top-2 right-4 z-20 flex items-center gap-2 rounded-lg border px-3 py-2 shadow-lg">
       <Input
         ref={inputRef}
         type="text"
@@ -129,7 +129,7 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
       />
 
       {searchQuery && (
-        <span className="text-text-secondary text-xs whitespace-nowrap">
+        <span className="text-muted-foreground text-xs whitespace-nowrap">
           {searchResultCount > 0 ? resultLabel : 'No results'}
         </span>
       )}

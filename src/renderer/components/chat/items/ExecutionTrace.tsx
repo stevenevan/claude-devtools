@@ -58,7 +58,7 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
 
   if (!items || items.length === 0) {
     return (
-      <div className="px-3 py-2 text-xs text-[var(--card-icon-muted)]">No execution items</div>
+      <div className="px-3 py-2 text-xs text-muted-foreground">No execution items</div>
     );
   }
 
@@ -140,7 +140,7 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
             return (
               <div
                 key={`nested-subagent-${index}`}
-                className="px-2 py-1 text-xs text-[var(--card-icon-muted)]"
+                className="px-2 py-1 text-xs text-muted-foreground"
               >
                 Nested: {item.subagent.description ?? item.subagent.id}
               </div>
@@ -185,40 +185,40 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
                 {/* Header — matches CompactBoundary.tsx amber styling */}
                 <button
                   onClick={() => handleItemClick(itemId)}
-                  className="group flex w-full cursor-pointer items-center gap-2 rounded-lg border border-[var(--tool-call-border)] bg-[var(--tool-call-bg)] px-3 py-2 transition-all duration-200"
+                  className="group flex w-full cursor-pointer items-center gap-2 rounded-lg border border-amber-700/40 bg-amber-900/20 px-3 py-2 transition-all duration-200"
                   aria-expanded={isExpanded}
                 >
-                  <div className="flex shrink-0 items-center gap-1.5 text-[var(--tool-call-text)]">
+                  <div className="flex shrink-0 items-center gap-1.5 text-amber-300">
                     <ChevronRight
                       size={14}
                       className={cn('transition-transform duration-200', isExpanded && 'rotate-90')}
                     />
                     <Layers size={14} />
                   </div>
-                  <span className="shrink-0 text-xs font-medium text-[var(--tool-call-text)]">
+                  <span className="shrink-0 text-xs font-medium text-amber-300">
                     Compacted
                   </span>
                   {item.tokenDelta && (
-                    <span className="text-text-muted min-w-0 truncate text-[11px] tabular-nums">
+                    <span className="text-muted-foreground min-w-0 truncate text-[11px] tabular-nums">
                       {formatTokensCompact(item.tokenDelta.preCompactionTokens)} →{' '}
                       {formatTokensCompact(item.tokenDelta.postCompactionTokens)}
-                      <span className="text-[var(--metric-compaction-freed)]">
+                      <span className="text-green-400">
                         {' '}
                         ({formatTokensCompact(Math.abs(item.tokenDelta.delta))} freed)
                       </span>
                     </span>
                   )}
-                  <span className="shrink-0 rounded-sm bg-[var(--accent-badge-bg)] px-1.5 py-0.5 text-[10px] text-[var(--accent-badge-text)]">
+                  <span className="shrink-0 rounded-sm bg-indigo-500/15 px-1.5 py-0.5 text-[10px] text-indigo-400">
                     Phase {item.phaseNumber}
                   </span>
-                  <span className="text-text-muted ml-auto shrink-0 text-[11px]">
+                  <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
                     {format(new Date(item.timestamp), 'h:mm:ss a')}
                   </span>
                 </button>
                 {/* Expanded content */}
                 {isExpanded && item.content && (
-                  <div className="mt-1 overflow-hidden rounded-lg border border-[var(--code-border)] bg-[var(--code-bg)]">
-                    <div className="max-h-64 overflow-y-auto border-l-2 border-[var(--chat-ai-border)] px-3 py-2">
+                  <div className="mt-1 overflow-hidden rounded-lg border border-border bg-muted">
+                    <div className="max-h-64 overflow-y-auto border-l-2 border-indigo-500/20 px-3 py-2">
                       <MarkdownViewer content={item.content} copyable />
                     </div>
                   </div>

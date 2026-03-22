@@ -82,7 +82,7 @@ export const LastOutputDisplay = ({
     const textContent = lastOutput.text || '';
 
     return (
-      <div className="group relative overflow-hidden rounded-lg border border-[var(--code-border)] bg-[var(--code-bg)]">
+      <div className="group relative overflow-hidden rounded-lg border border-border bg-muted">
         <CopyButton text={textContent} />
 
         {/* Content - scrollable */}
@@ -105,8 +105,8 @@ export const LastOutputDisplay = ({
         className={cn(
           'overflow-hidden rounded-lg border',
           isError
-            ? 'bg-[var(--tool-result-error-bg)] border-[var(--tool-result-error-border)]'
-            : 'bg-[var(--tool-result-success-bg)] border-[var(--tool-result-success-border)]'
+            ? 'bg-red-900/20 border-red-700/40'
+            : 'bg-green-900/20 border-green-700/40'
         )}
       >
         {/* Header */}
@@ -114,31 +114,31 @@ export const LastOutputDisplay = ({
           className={cn(
             'flex items-center gap-2 px-4 py-2 border-b',
             isError
-              ? 'border-[var(--tool-result-error-border)]'
-              : 'border-[var(--tool-result-success-border)]'
+              ? 'border-red-700/40'
+              : 'border-green-700/40'
           )}
         >
           <Icon
             className={cn(
               'size-4',
               isError
-                ? 'text-[var(--tool-result-error-text)]'
-                : 'text-[var(--tool-result-success-text)]'
+                ? 'text-red-300'
+                : 'text-green-300'
             )}
           />
           {lastOutput.toolName && (
-            <code className="rounded-sm border border-[var(--tag-border)] bg-[var(--tag-bg)] px-1.5 py-0.5 text-xs text-[var(--tag-text)]">
+            <code className="rounded-sm border border-border bg-card px-1.5 py-0.5 text-xs text-muted-foreground">
               {lastOutput.toolName}
             </code>
           )}
           {isError && (
-            <span className="text-xs font-medium text-[var(--tool-result-error-text)]">Error</span>
+            <span className="text-xs font-medium text-red-300">Error</span>
           )}
         </div>
 
         {/* Content */}
         <div className="px-4 py-3">
-          <pre className="text-text max-h-96 overflow-y-auto font-mono text-sm break-words whitespace-pre-wrap">
+          <pre className="text-foreground max-h-96 overflow-y-auto font-mono text-sm break-words whitespace-pre-wrap">
             {lastOutput.toolResult}
           </pre>
         </div>
@@ -149,9 +149,9 @@ export const LastOutputDisplay = ({
   // Render interruption as a simple horizontal banner
   if (type === 'interruption') {
     return (
-      <div className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--warning-border)] bg-[var(--warning-bg)] px-4 py-2">
-        <AlertTriangle className="size-4 shrink-0 text-[var(--warning-text)]" />
-        <span className="text-sm text-[var(--warning-text)]">Request interrupted by user</span>
+      <div className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/15 px-4 py-2">
+        <AlertTriangle className="size-4 shrink-0 text-amber-400" />
+        <span className="text-sm text-amber-400">Request interrupted by user</span>
       </div>
     );
   }
@@ -165,7 +165,7 @@ export const LastOutputDisplay = ({
       <div className="space-y-3">
         {/* Preamble text (e.g., "The plan is complete. Let me exit plan mode...") */}
         {planPreamble && (
-          <div className="overflow-hidden rounded-lg border border-[var(--code-border)] bg-[var(--code-bg)]">
+          <div className="overflow-hidden rounded-lg border border-border bg-muted">
             <div className="px-4 py-3">
               <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
                 {planPreamble}
@@ -175,12 +175,12 @@ export const LastOutputDisplay = ({
         )}
 
         {/* Plan content block */}
-        <div className="overflow-hidden rounded-lg border border-[var(--plan-exit-border)] bg-[var(--plan-exit-bg)]">
+        <div className="overflow-hidden rounded-lg border border-green-500/25 bg-green-500/5">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-[var(--plan-exit-border)] bg-[var(--plan-exit-header-bg)] px-4 py-2">
+          <div className="flex items-center justify-between border-b border-green-500/25 bg-green-500/10 px-4 py-2">
             <div className="flex items-center gap-2">
-              <FileCheck className="size-4 text-[var(--plan-exit-text)]" />
-              <span className="text-sm font-medium text-[var(--plan-exit-text)]">
+              <FileCheck className="size-4 text-green-400" />
+              <span className="text-sm font-medium text-green-400">
                 Plan Ready for Approval
               </span>
             </div>

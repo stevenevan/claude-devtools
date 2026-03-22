@@ -20,6 +20,8 @@ const logger = createLogger('Component:DashboardView');
 import { formatDistanceToNow } from 'date-fns';
 import { Command, FolderGit2, FolderOpen, GitBranch, Search, Settings } from 'lucide-react';
 
+import { Skeleton } from '@renderer/components/ui/skeleton';
+
 import { AgentsGrid } from './AgentsGrid';
 import { DashboardTabContent, DashboardTabs } from './DashboardTabs';
 import { GlobalSettingsView } from './GlobalSettingsView';
@@ -70,19 +72,19 @@ const CommandSearch = ({
       {/* Search container with glow effect on focus */}
       <div
         className={cn(
-          'bg-surface-raised relative flex items-center gap-3 rounded-xs border px-4 py-3 transition-all duration-200',
+          'bg-card relative flex items-center gap-3 rounded-xs border px-4 py-3 transition-all duration-200',
           isFocused
             ? 'border-zinc-500 shadow-[0_0_20px_rgba(255,255,255,0.04)] ring-1 ring-zinc-600/30'
             : 'border-border hover:border-zinc-600'
         )}
       >
-        <Search className="text-text-muted size-4 shrink-0" />
+        <Search className="text-muted-foreground size-4 shrink-0" />
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="text-text placeholder:text-text-muted flex-1 bg-transparent text-sm outline-hidden"
+          className="text-foreground placeholder:text-muted-foreground flex-1 bg-transparent text-sm outline-hidden"
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />
@@ -96,10 +98,10 @@ const CommandSearch = ({
               : `Search projects (${formatShortcut('K')})`
           }
         >
-          <kbd className="border-border bg-surface-overlay text-text-muted flex h-5 items-center justify-center rounded-sm border px-1.5 text-[10px] font-medium">
+          <kbd className="border-border bg-popover text-muted-foreground flex h-5 items-center justify-center rounded-sm border px-1.5 text-[10px] font-medium">
             <Command className="size-2.5" />
           </kbd>
-          <kbd className="border-border bg-surface-overlay text-text-muted flex size-5 items-center justify-center rounded-sm border text-[10px] font-medium">
+          <kbd className="border-border bg-popover text-muted-foreground flex size-5 items-center justify-center rounded-sm border text-[10px] font-medium">
             K
           </kbd>
         </button>
@@ -177,34 +179,34 @@ const RepositoryCard = ({
       className={cn(
         'group relative flex min-h-[120px] flex-col overflow-hidden rounded-xs border p-4 text-left transition-all duration-300',
         isHighlighted
-          ? 'border-border-emphasis bg-surface-raised'
-          : 'bg-surface/50 border-border hover:border-border-emphasis hover:bg-surface-raised'
+          ? 'border-border bg-card'
+          : 'bg-background/50 border-border hover:bg-card'
       )}
     >
       {/* Icon with subtle border */}
-      <div className="border-border bg-surface-overlay group-hover:border-border-emphasis mb-3 flex size-8 items-center justify-center rounded-xs border transition-colors duration-300">
-        <FolderGit2 className="text-text-secondary group-hover:text-text size-4 transition-colors" />
+      <div className="border-border bg-popover mb-3 flex size-8 items-center justify-center rounded-xs border transition-colors duration-300">
+        <FolderGit2 className="text-muted-foreground group-hover:text-foreground size-4 transition-colors" />
       </div>
 
       {/* Project name */}
-      <h3 className="text-text group-hover:text-text mb-1 truncate text-sm font-medium transition-colors duration-200">
+      <h3 className="text-foreground mb-1 truncate text-sm font-medium transition-colors duration-200">
         {repo.name}
       </h3>
 
       {/* Project path - monospace, muted */}
-      <p className="text-text-muted mb-auto truncate font-mono text-[10px]">{formattedPath}</p>
+      <p className="text-muted-foreground mb-auto truncate font-mono text-[10px]">{formattedPath}</p>
 
       {/* Meta row: worktrees, sessions, time */}
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {hasMultipleWorktrees && (
-          <span className="text-text-secondary inline-flex items-center gap-1 text-[10px]">
+          <span className="text-muted-foreground inline-flex items-center gap-1 text-[10px]">
             <GitBranch className="size-3" />
             {worktreeCount} worktrees
           </span>
         )}
-        <span className="text-text-secondary text-[10px]">{repo.totalSessions} sessions</span>
-        <span className="text-text-muted">·</span>
-        <span className="text-text-muted text-[10px]">{lastActivity}</span>
+        <span className="text-muted-foreground text-[10px]">{repo.totalSessions} sessions</span>
+        <span className="text-muted-foreground">·</span>
+        <span className="text-muted-foreground text-[10px]">{lastActivity}</span>
       </div>
     </button>
   );
@@ -253,14 +255,14 @@ const NewProjectCard = (): React.JSX.Element => {
 
   return (
     <button
-      className="hover:bg-surface/30 group border-border hover:border-border-emphasis relative flex min-h-[120px] flex-col items-center justify-center rounded-xs border border-dashed bg-transparent p-4 transition-all duration-300"
+      className="hover:bg-background/30 group border-border relative flex min-h-[120px] flex-col items-center justify-center rounded-xs border border-dashed bg-transparent p-4 transition-all duration-300"
       onClick={handleClick}
       title="Select a project folder"
     >
-      <div className="border-border group-hover:border-border-emphasis mb-2 flex size-8 items-center justify-center rounded-xs border border-dashed transition-colors duration-300">
-        <FolderOpen className="text-text-muted group-hover:text-text-secondary size-4 transition-colors" />
+      <div className="border-border mb-2 flex size-8 items-center justify-center rounded-xs border border-dashed transition-colors duration-300">
+        <FolderOpen className="text-muted-foreground size-4 transition-colors" />
       </div>
-      <span className="text-text-muted group-hover:text-text-secondary text-xs transition-colors">
+      <span className="text-muted-foreground text-xs transition-colors">
         Select Folder
       </span>
     </button>
@@ -372,29 +374,29 @@ const ProjectsGrid = ({
     return (
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div
+          <Skeleton
             key={i}
-            className="skeleton-card border-border flex min-h-[120px] flex-col rounded-xs border bg-[var(--skeleton-base)] p-4"
+            className="border-border flex min-h-[120px] flex-col rounded-xs border p-4"
             style={{ animationDelay: `${i * 80}ms` }}
           >
             {/* Icon placeholder */}
-            <div className="mb-3 size-8 rounded-xs bg-[var(--skeleton-base-light)]" />
+            <div className="mb-3 size-8 rounded-xs bg-muted-foreground/10" />
             {/* Title placeholder */}
             <div
-              className="mb-2 h-3.5 rounded-xs bg-[var(--skeleton-base-light)]"
+              className="mb-2 h-3.5 rounded-xs bg-muted-foreground/10"
               style={{ width: `${titleWidths[i]}%` }}
             />
             {/* Path placeholder */}
             <div
-              className="mb-auto h-2.5 rounded-xs bg-[var(--skeleton-base-dim)]"
+              className="mb-auto h-2.5 rounded-xs bg-muted-foreground/5"
               style={{ width: `${pathWidths[i]}%` }}
             />
             {/* Meta row placeholder */}
             <div className="mt-3 flex gap-2">
-              <div className="h-2.5 w-16 rounded-xs bg-[var(--skeleton-base-dim)]" />
-              <div className="h-2.5 w-12 rounded-xs bg-[var(--skeleton-base-dim)]" />
+              <div className="h-2.5 w-16 rounded-xs bg-muted-foreground/5" />
+              <div className="h-2.5 w-12 rounded-xs bg-muted-foreground/5" />
             </div>
-          </div>
+          </Skeleton>
         ))}
       </div>
     );
@@ -403,11 +405,11 @@ const ProjectsGrid = ({
   if (filteredRepos.length === 0 && searchQuery.trim()) {
     return (
       <div className="border-border flex flex-col items-center justify-center rounded-xs border border-dashed px-8 py-16">
-        <div className="border-border bg-surface-raised mb-4 flex size-12 items-center justify-center rounded-xs border">
-          <Search className="text-text-muted size-6" />
+        <div className="border-border bg-card mb-4 flex size-12 items-center justify-center rounded-xs border">
+          <Search className="text-muted-foreground size-6" />
         </div>
-        <p className="text-text-secondary mb-1 text-sm">No projects found</p>
-        <p className="text-text-muted text-xs">No matches for &quot;{searchQuery}&quot;</p>
+        <p className="text-muted-foreground mb-1 text-sm">No projects found</p>
+        <p className="text-muted-foreground text-xs">No matches for &quot;{searchQuery}&quot;</p>
       </div>
     );
   }
@@ -415,11 +417,11 @@ const ProjectsGrid = ({
   if ((useFlat ? projects : repositoryGroups).length === 0) {
     return (
       <div className="border-border flex flex-col items-center justify-center rounded-xs border border-dashed px-8 py-16">
-        <div className="border-border bg-surface-raised mb-4 flex size-12 items-center justify-center rounded-xs border">
-          <FolderGit2 className="text-text-muted size-6" />
+        <div className="border-border bg-card mb-4 flex size-12 items-center justify-center rounded-xs border">
+          <FolderGit2 className="text-muted-foreground size-6" />
         </div>
-        <p className="text-text-secondary mb-1 text-sm">No projects found</p>
-        <p className="text-text-muted font-mono text-xs">~/.claude/projects/</p>
+        <p className="text-muted-foreground mb-1 text-sm">No projects found</p>
+        <p className="text-muted-foreground font-mono text-xs">~/.claude/projects/</p>
       </div>
     );
   }
@@ -476,7 +478,7 @@ export const DashboardView = (): React.JSX.Element => {
   };
 
   return (
-    <div className="bg-surface relative flex-1 overflow-auto">
+    <div className="bg-background relative flex-1 overflow-auto">
       {/* Spotlight gradient background */}
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-[600px] bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(99,102,241,0.08),transparent)]"
@@ -498,14 +500,14 @@ export const DashboardView = (): React.JSX.Element => {
         <DashboardTabs activeTab={dashboardActiveTab} onTabChange={handleTabChange}>
           {/* Section header */}
           <div className="mt-6 mb-4 flex items-center justify-between">
-            <h2 className="text-text-muted text-xs font-medium tracking-wider uppercase">
+            <h2 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
               {searchQuery.trim() ? 'Search Results' : SECTION_LABELS[dashboardActiveTab]}
             </h2>
             <div className="flex items-center gap-3">
               {searchQuery.trim() && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="text-text-muted hover:text-text-secondary text-xs transition-colors"
+                  className="text-muted-foreground hover:text-foreground text-xs transition-colors"
                 >
                   Clear search
                 </button>
@@ -513,7 +515,7 @@ export const DashboardView = (): React.JSX.Element => {
               {dashboardActiveTab === 'projects' && (
                 <button
                   onClick={() => openSettingsTab('general')}
-                  className="text-text-muted hover:text-text-secondary flex items-center gap-1.5 text-xs transition-colors"
+                  className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-xs transition-colors"
                   title="Change Claude data folder"
                 >
                   <Settings className="size-3" />

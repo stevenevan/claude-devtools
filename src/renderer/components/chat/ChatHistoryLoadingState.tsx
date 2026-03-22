@@ -2,6 +2,8 @@
  * Loading skeleton for ChatHistory while conversation is loading.
  * Industrial shimmer with organic line widths — no generic pulse.
  */
+import { Skeleton } from '@renderer/components/ui/skeleton';
+
 export const ChatHistoryLoadingState = (): JSX.Element => {
   const rows = [
     { user: ['85%', '60%'], ai: ['92%', '70%', '82%', '45%'] },
@@ -10,7 +12,7 @@ export const ChatHistoryLoadingState = (): JSX.Element => {
   ];
 
   return (
-    <div className="bg-surface flex flex-1 items-center justify-center overflow-hidden">
+    <div className="bg-background flex flex-1 items-center justify-center overflow-hidden">
       <div className="w-full max-w-5xl space-y-8 px-6">
         {rows.map((row, i) => (
           <div key={i} className="space-y-6">
@@ -18,9 +20,9 @@ export const ChatHistoryLoadingState = (): JSX.Element => {
             <div className="flex justify-end">
               <div className="w-2/3 space-y-2">
                 {row.user.map((width, j) => (
-                  <div
+                  <Skeleton
                     key={j}
-                    className="skeleton-shimmer ml-auto h-3 rounded-xs bg-[var(--skeleton-base)]"
+                    className="ml-auto h-3 rounded-xs"
                     style={{ width }}
                   />
                 ))}
@@ -29,9 +31,9 @@ export const ChatHistoryLoadingState = (): JSX.Element => {
             {/* AI response skeleton — left aligned with border accent */}
             <div className="border-border space-y-2.5 border-l-2 pl-3">
               {row.ai.map((width, j) => (
-                <div
+                <Skeleton
                   key={j}
-                  className="skeleton-shimmer h-3 rounded-xs bg-[var(--skeleton-base)]"
+                  className="h-3 rounded-xs"
                   style={{ width }}
                 />
               ))}

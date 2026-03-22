@@ -60,31 +60,31 @@ export const MetricsPill = ({
   return (
     <HoverCard>
       <HoverCardTrigger
-        className="inline-flex cursor-default items-center gap-1 rounded-sm border border-[var(--tag-border)] bg-[var(--tag-bg)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--tag-text)]"
+        className="inline-flex cursor-default items-center gap-1 rounded-sm border border-border bg-card px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground"
         render={<span />}
       >
         {mainValue && <span className="tabular-nums">{mainValue}</span>}
-        {mainValue && isolatedValue && <span className="text-[var(--card-separator)]">|</span>}
+        {mainValue && isolatedValue && <span className="text-muted-foreground">|</span>}
         {isolatedValue && <span className="tabular-nums">{isolatedValue}</span>}
       </HoverCardTrigger>
       <HoverCardContent
         side="top"
         sideOffset={6}
-        className="bg-surface-overlay w-[220px] border-[var(--tag-border)] p-2 text-[11px] shadow-xl [backdrop-filter:blur(8px)]"
+        className="w-[220px] border-border bg-popover p-2 text-[11px] shadow-xl [backdrop-filter:blur(8px)]"
       >
         <div className="space-y-1">
           {hasMainImpact && (
             <div className="flex items-center justify-between gap-3">
-              <span className="text-text-muted">Main Context</span>
-              <span className="font-mono text-[var(--card-text-light)] tabular-nums">
+              <span className="text-muted-foreground">Main Context</span>
+              <span className="font-mono text-foreground tabular-nums">
                 {mainSessionImpact.totalTokens.toLocaleString()}
               </span>
             </div>
           )}
           {hasIsolated && (
             <div className="flex items-center justify-between gap-3">
-              <span className="text-text-muted">{rightLabel}</span>
-              <span className="font-mono text-[var(--card-text-light)] tabular-nums">
+              <span className="text-muted-foreground">{rightLabel}</span>
+              <span className="font-mono text-foreground tabular-nums">
                 {isolatedTotal.toLocaleString()}
               </span>
             </div>
@@ -92,13 +92,13 @@ export const MetricsPill = ({
           {hasPhases &&
             phaseBreakdown.map((phase) => (
               <div key={phase.phaseNumber} className="flex items-center justify-between gap-3 pl-2">
-                <span className="text-[10px] text-[var(--card-icon-muted)]">
+                <span className="text-[10px] text-muted-foreground">
                   Phase {phase.phaseNumber}
                 </span>
-                <span className="font-mono text-[10px] text-[var(--card-icon-muted)] tabular-nums">
+                <span className="font-mono text-[10px] text-muted-foreground tabular-nums">
                   {formatTokensCompact(phase.peakTokens)}
                   {phase.postCompaction != null && (
-                    <span className="text-[var(--metric-compaction-freed)]">
+                    <span className="text-green-400">
                       {' '}
                       → {formatTokensCompact(phase.postCompaction)}
                     </span>
@@ -106,7 +106,7 @@ export const MetricsPill = ({
                 </span>
               </div>
             ))}
-          <div className="mt-1 border-t border-[var(--tag-border)] pt-1.5 text-[10px] text-[var(--card-icon-muted)]">
+          <div className="mt-1 border-t border-border pt-1.5 text-[10px] text-muted-foreground">
             {hasMainImpact && hasIsolated
               ? 'Left: parent injection · Right: internal'
               : hasMainImpact

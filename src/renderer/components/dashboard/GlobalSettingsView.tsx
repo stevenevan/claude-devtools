@@ -20,7 +20,7 @@ const BadgeList = ({ items, color }: Readonly<BadgeListProps>): React.JSX.Elemen
     {items.map((item) => (
       <span
         key={item}
-        className="border-border bg-surface-overlay rounded-sm border px-2 py-0.5 font-mono text-[10px]"
+        className="border-border bg-popover rounded-sm border px-2 py-0.5 font-mono text-[10px]"
         style={{ color }}
       >
         {item}
@@ -40,10 +40,10 @@ const SettingsSection = ({
   title,
   children,
 }: Readonly<SettingsSectionProps>): React.JSX.Element => (
-  <div className="border-border bg-surface rounded-xs border p-4">
+  <div className="border-border bg-background rounded-xs border p-4">
     <div className="mb-3 flex items-center gap-2">
-      <Icon className="text-text-secondary size-4" />
-      <h3 className="text-text text-sm font-medium">{title}</h3>
+      <Icon className="text-muted-foreground size-4" />
+      <h3 className="text-foreground text-sm font-medium">{title}</h3>
     </div>
     {children}
   </div>
@@ -73,7 +73,7 @@ export const GlobalSettingsView = (): React.JSX.Element | null => {
   if (globalSettingsLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="text-text-muted flex items-center gap-3">
+        <div className="text-muted-foreground flex items-center gap-3">
           <Loader2 className="size-5 animate-spin" />
           <span className="text-sm">Loading settings...</span>
         </div>
@@ -114,7 +114,7 @@ export const GlobalSettingsView = (): React.JSX.Element | null => {
       <div className="flex justify-end">
         <button
           onClick={() => void api.openPath('~/.claude/settings.json')}
-          className="text-text-muted hover:text-text-secondary flex items-center gap-1.5 text-xs transition-colors"
+          className="text-muted-foreground hover:text-muted-foreground flex items-center gap-1.5 text-xs transition-colors"
           title="Open settings.json in editor"
         >
           <ExternalLink className="size-3" />
@@ -127,23 +127,23 @@ export const GlobalSettingsView = (): React.JSX.Element | null => {
         <div className="space-y-3">
           {defaultMode && (
             <div>
-              <p className="text-text-muted mb-1 text-[10px] tracking-wider uppercase">
+              <p className="text-muted-foreground mb-1 text-[10px] tracking-wider uppercase">
                 Default Mode
               </p>
-              <span className="border-border text-text-secondary rounded-sm border px-2 py-0.5 text-xs">
+              <span className="border-border text-muted-foreground rounded-sm border px-2 py-0.5 text-xs">
                 {defaultMode}
               </span>
             </div>
           )}
           {allowList.length > 0 && (
             <div>
-              <p className="text-text-muted mb-1.5 text-[10px] tracking-wider uppercase">Allow</p>
+              <p className="text-muted-foreground mb-1.5 text-[10px] tracking-wider uppercase">Allow</p>
               <BadgeList items={allowList} color="var(--color-text-secondary)" />
             </div>
           )}
           {denyList.length > 0 && (
             <div>
-              <p className="text-text-muted mb-1.5 text-[10px] tracking-wider uppercase">Deny</p>
+              <p className="text-muted-foreground mb-1.5 text-[10px] tracking-wider uppercase">Deny</p>
               <BadgeList items={denyList} color="rgb(248,113,113)" />
             </div>
           )}
@@ -162,7 +162,7 @@ export const GlobalSettingsView = (): React.JSX.Element | null => {
         <div className="space-y-2">
           {alwaysThinkingEnabled !== undefined && (
             <div className="flex items-center justify-between">
-              <span className="text-text-secondary text-xs">Always Thinking</span>
+              <span className="text-muted-foreground text-xs">Always Thinking</span>
               <span
                 className={cn(
                   'text-xs',
@@ -175,8 +175,8 @@ export const GlobalSettingsView = (): React.JSX.Element | null => {
           )}
           {autoUpdatesChannel && (
             <div className="flex items-center justify-between">
-              <span className="text-text-secondary text-xs">Auto Updates Channel</span>
-              <span className="text-text-muted text-xs">{autoUpdatesChannel}</span>
+              <span className="text-muted-foreground text-xs">Auto Updates Channel</span>
+              <span className="text-muted-foreground text-xs">{autoUpdatesChannel}</span>
             </div>
           )}
         </div>

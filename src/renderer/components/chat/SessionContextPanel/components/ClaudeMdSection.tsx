@@ -48,15 +48,15 @@ export const ClaudeMdSubSection = ({
       >
         <ChevronRight
           className={cn(
-            'text-text-muted size-3 shrink-0 transition-transform',
+            'size-3 shrink-0 transition-transform text-muted-foreground',
             expanded && 'rotate-90'
           )}
         />
-        <span className="text-text-secondary">{label}</span>
-        <span className="bg-surface-overlay text-text-muted rounded-sm px-1 py-0.5 text-xs">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="rounded-sm bg-popover px-1 py-0.5 text-xs text-muted-foreground">
           {injections.length}
         </span>
-        <span className="text-text-muted">(~{formatTokens(sectionTokens)})</span>
+        <span className="text-muted-foreground">(~{formatTokens(sectionTokens)})</span>
       </div>
 
       {expanded && (
