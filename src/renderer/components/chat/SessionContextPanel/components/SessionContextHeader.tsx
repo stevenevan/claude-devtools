@@ -103,7 +103,7 @@ export const SessionContextHeader = ({
               className={cn(
                 'rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
                 selectedPhase === phase.phaseNumber
-                  ? 'bg-[rgba(99,102,241,0.2)] text-[#818cf8]'
+                  ? 'bg-[var(--accent-badge-bg)] text-[var(--accent-badge-text)]'
                   : 'bg-surface-overlay text-text-muted'
               )}
             >
@@ -115,7 +115,7 @@ export const SessionContextHeader = ({
             className={cn(
               'rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
               selectedPhase === null
-                ? 'bg-[rgba(99,102,241,0.2)] text-[#818cf8]'
+                ? 'bg-[var(--accent-badge-bg)] text-[var(--accent-badge-text)]'
                 : 'bg-surface-overlay text-text-muted'
             )}
           >
@@ -132,7 +132,7 @@ export const SessionContextHeader = ({
           className={cn(
             'flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
             viewMode === 'category'
-              ? 'bg-[rgba(99,102,241,0.2)] text-[#818cf8]'
+              ? 'bg-[var(--accent-badge-bg)] text-[var(--accent-badge-text)]'
               : 'bg-surface-overlay text-text-muted'
           )}
         >
@@ -144,7 +144,7 @@ export const SessionContextHeader = ({
           className={cn(
             'flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
             viewMode === 'ranked'
-              ? 'bg-[rgba(99,102,241,0.2)] text-[#818cf8]'
+              ? 'bg-[var(--accent-badge-bg)] text-[var(--accent-badge-text)]'
               : 'bg-surface-overlay text-text-muted'
           )}
         >

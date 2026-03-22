@@ -37,7 +37,7 @@ export const TaskCoordinationItem = ({
         <span
           role="link"
           tabIndex={0}
-          className="cursor-pointer text-xs text-[#93c5fd] underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
+          className="cursor-pointer text-xs text-[var(--link-text)] underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
           onClick={(e) => {
             e.stopPropagation();
             onNavigateToTurn(turnIndex);

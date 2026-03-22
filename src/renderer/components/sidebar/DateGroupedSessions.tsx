@@ -402,7 +402,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
             onClick={toggleSidebarMultiSelect}
             className={cn(
               'rounded-sm p-1 transition-colors hover:bg-white/5',
-              sidebarMultiSelectActive ? 'text-[#818cf8]' : 'text-text-muted'
+              sidebarMultiSelectActive ? 'text-[var(--accent-badge-text)]' : 'text-text-muted'
             )}
             title={sidebarMultiSelectActive ? 'Exit selection mode' : 'Select sessions'}
           >
@@ -414,7 +414,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
               onClick={toggleShowHiddenSessions}
               className={cn(
                 'rounded-sm p-1 transition-colors hover:bg-white/5',
-                showHiddenSessions ? 'text-[#818cf8]' : 'text-text-muted'
+                showHiddenSessions ? 'text-[var(--accent-badge-text)]' : 'text-text-muted'
               )}
               title={showHiddenSessions ? 'Hide hidden sessions' : 'Show hidden sessions'}
             >
@@ -428,7 +428,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
             }
             className={cn(
               'rounded-sm p-1 transition-colors hover:bg-white/5',
-              sessionSortMode === 'most-context' ? 'text-[#818cf8]' : 'text-text-muted'
+              sessionSortMode === 'most-context' ? 'text-[var(--accent-badge-text)]' : 'text-text-muted'
             )}
             title={sessionSortMode === 'recent' ? 'Sort by context consumption' : 'Sort by recent'}
           >

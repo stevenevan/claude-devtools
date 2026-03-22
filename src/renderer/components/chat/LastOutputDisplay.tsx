@@ -149,9 +149,9 @@ export const LastOutputDisplay = ({
   // Render interruption as a simple horizontal banner
   if (type === 'interruption') {
     return (
-      <div className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--warning-border,rgba(245,158,11,0.3))] bg-[var(--warning-bg,rgba(245,158,11,0.1))] px-4 py-2">
-        <AlertTriangle className="size-4 shrink-0 text-[var(--warning-text,#f59e0b)]" />
-        <span className="text-sm text-[var(--warning-text,#f59e0b)]">
+      <div className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--warning-border)] bg-[var(--warning-bg)] px-4 py-2">
+        <AlertTriangle className="size-4 shrink-0 text-[var(--warning-text)]" />
+        <span className="text-sm text-[var(--warning-text)]">
           Request interrupted by user
         </span>
       </div>

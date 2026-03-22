@@ -252,7 +252,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
           {
             maxWidth: '75%',
             WebkitAppRegion: 'no-drag',
-            outline: isDroppableOver ? '1px dashed var(--color-accent, #6366f1)' : 'none',
+            outline: isDroppableOver ? '1px dashed var(--color-accent)' : 'none',
             outlineOffset: '-1px',
           } as React.CSSProperties
         }

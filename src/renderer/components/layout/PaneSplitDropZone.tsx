@@ -40,10 +40,10 @@ export const PaneSplitDropZone = ({
       {isOver && (
         <div
           className={cn(
-            'absolute inset-0 opacity-[0.12] bg-[var(--color-accent,#6366f1)]',
+            'absolute inset-0 opacity-[0.12] bg-[var(--color-accent)]',
             side === 'right'
-              ? 'border-l-2 border-[var(--color-accent,#6366f1)]'
-              : 'border-r-2 border-[var(--color-accent,#6366f1)]'
+              ? 'border-l-2 border-[var(--color-accent)]'
+              : 'border-r-2 border-[var(--color-accent)]'
           )}
         />
       )}

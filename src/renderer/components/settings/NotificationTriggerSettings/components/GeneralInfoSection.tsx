@@ -59,7 +59,7 @@ export const GeneralInfoSection = ({
           className={cn('border-border text-text rounded-sm border bg-transparent px-2 py-1 text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden', saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')}
         >
           {TOOL_NAME_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value} className="bg-[#141416]">
+            <option key={option.value} value={option.value} className="bg-surface">
               {option.label}
             </option>
           ))}

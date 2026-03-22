@@ -82,7 +82,7 @@ export const CompactBoundary = ({
           <span className="text-text-muted ml-2 min-w-0 truncate text-xs tabular-nums">
             {formatTokens(compactGroup.tokenDelta.preCompactionTokens)} →{' '}
             {formatTokens(compactGroup.tokenDelta.postCompactionTokens)}
-            <span className="text-[#4ade80]">
+            <span className="text-[var(--metric-compaction-freed)]">
               {' '}
               ({formatTokens(Math.abs(compactGroup.tokenDelta.delta))} freed)
             </span>
@@ -91,7 +91,7 @@ export const CompactBoundary = ({
 
         {/* Phase badge */}
         {compactGroup.startingPhaseNumber && (
-          <span className="shrink-0 rounded-sm bg-[rgba(99,102,241,0.15)] px-1.5 py-0.5 text-[10px] whitespace-nowrap text-[#818cf8]">
+          <span className="shrink-0 rounded-sm bg-[var(--accent-badge-bg)] px-1.5 py-0.5 text-[10px] whitespace-nowrap text-[var(--accent-badge-text)]">
             Phase {compactGroup.startingPhaseNumber}
           </span>
         )}

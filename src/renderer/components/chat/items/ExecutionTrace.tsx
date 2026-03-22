@@ -208,7 +208,7 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
                       </span>
                     </span>
                   )}
-                  <span className="shrink-0 rounded-sm bg-[rgba(99,102,241,0.15)] px-1.5 py-0.5 text-[10px] text-[#818cf8]">
+                  <span className="shrink-0 rounded-sm bg-[var(--accent-badge-bg)] px-1.5 py-0.5 text-[10px] text-[var(--accent-badge-text)]">
                     Phase {item.phaseNumber}
                   </span>
                   <span className="text-text-muted ml-auto shrink-0 text-[11px]">

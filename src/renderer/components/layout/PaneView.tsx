@@ -55,7 +55,7 @@ export const PaneView = ({ paneId }: PaneViewProps): React.JSX.Element => {
       <div
         className={cn(
           'border-t-2',
-          isFocused && paneCount > 1 ? 'border-[var(--color-accent,#6366f1)]' : 'border-transparent'
+          isFocused && paneCount > 1 ? 'border-[var(--color-accent)]' : 'border-transparent'
         )}
       >
         <TabBar paneId={paneId} />

@@ -202,7 +202,7 @@ export const TokenUsageDisplay = ({
     <div className={cn(`text-text-muted inline-flex items-center gap-1`, textSize)}>
       <span className="font-medium">{formattedTotal}</span>
       {totalPhases && totalPhases > 1 && phaseNumber && (
-        <span className="rounded-sm bg-[rgba(99,102,241,0.15)] px-1 py-0.5 text-[10px] text-[#818cf8]">
+        <span className="rounded-sm bg-[var(--accent-badge-bg)] px-1 py-0.5 text-[10px] text-[var(--accent-badge-text)]">
           Phase {phaseNumber}/{totalPhases}
         </span>
       )}

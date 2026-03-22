@@ -18,12 +18,12 @@ import type { ContextInjection } from '@renderer/types/contextInjection';
 // =============================================================================
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  'claude-md': { bg: 'rgba(99, 102, 241, 0.15)', text: '#818cf8', label: 'CLAUDE.md' },
-  'mentioned-file': { bg: 'rgba(52, 211, 153, 0.15)', text: '#34d399', label: 'File' },
-  'tool-output': { bg: 'rgba(251, 191, 36, 0.15)', text: '#fbbf24', label: 'Tool' },
-  'thinking-text': { bg: 'rgba(167, 139, 250, 0.15)', text: '#a78bfa', label: 'Thinking' },
-  'task-coordination': { bg: 'rgba(251, 146, 60, 0.15)', text: '#fb923c', label: 'Team' },
-  'user-message': { bg: 'rgba(96, 165, 250, 0.15)', text: '#60a5fa', label: 'User' },
+  'claude-md': { bg: 'var(--ctx-claudemd-bg)', text: 'var(--ctx-claudemd-text)', label: 'CLAUDE.md' },
+  'mentioned-file': { bg: 'var(--ctx-file-bg)', text: 'var(--ctx-file-text)', label: 'File' },
+  'tool-output': { bg: 'var(--ctx-tool-bg)', text: 'var(--ctx-tool-text)', label: 'Tool' },
+  'thinking-text': { bg: 'var(--ctx-thinking-bg)', text: 'var(--ctx-thinking-text)', label: 'Thinking' },
+  'task-coordination': { bg: 'var(--ctx-team-bg)', text: 'var(--ctx-team-text)', label: 'Team' },
+  'user-message': { bg: 'var(--ctx-user-bg)', text: 'var(--ctx-user-text)', label: 'User' },
 };
 
 // =============================================================================
@@ -174,8 +174,8 @@ export const FlatInjectionList = ({
     <div className="space-y-0.5">
       {rows.map((row) => {
         const categoryInfo = CATEGORY_COLORS[row.category] ?? {
-          bg: 'rgba(161, 161, 170, 0.15)',
-          text: '#a1a1aa',
+          bg: 'var(--ctx-unknown-bg)',
+          text: 'var(--ctx-unknown-text)',
           label: row.category,
         };
 
@@ -211,7 +211,7 @@ export const FlatInjectionList = ({
               </span>
               {/* Error badge */}
               {row.isError && (
-                <span className="shrink-0 rounded-sm bg-[rgba(239,68,68,0.15)] px-1 py-0.5 text-[10px] text-[#ef4444]">
+                <span className="shrink-0 rounded-sm bg-[var(--error-badge-bg)] px-1 py-0.5 text-[10px] text-[var(--error-badge-text)]">
                   error
                 </span>
               )}

@@ -52,7 +52,7 @@ export const DirectoryTreeNode = ({
           (isClickable ? (
             <button
               type="button"
-              className="cursor-pointer text-xs text-[#93c5fd] underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
+              className="cursor-pointer text-xs text-[var(--link-text)] underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
               onClick={() => onNavigateToTurn(turnIndex)}
             >
               @{formatFirstSeen(node.firstSeenInGroup)}

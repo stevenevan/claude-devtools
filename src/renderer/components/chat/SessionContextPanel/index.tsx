@@ -254,7 +254,7 @@ export const SessionContextPanel = ({
                 className={cn(
                   'rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
                   !flatMode
-                    ? 'bg-[rgba(99,102,241,0.2)] text-[#818cf8]'
+                    ? 'bg-[var(--accent-badge-bg)] text-[var(--accent-badge-text)]'
                     : 'bg-surface-overlay text-text-muted'
                 )}
               >
@@ -265,7 +265,7 @@ export const SessionContextPanel = ({
                 className={cn(
                   'rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
                   flatMode
-                    ? 'bg-[rgba(99,102,241,0.2)] text-[#818cf8]'
+                    ? 'bg-[var(--accent-badge-bg)] text-[var(--accent-badge-text)]'
                     : 'bg-surface-overlay text-text-muted'
                 )}
               >

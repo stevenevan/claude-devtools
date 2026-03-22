@@ -262,13 +262,13 @@ export const DisplayItemList = React.memo(function DisplayItemList({
                     <span className="text-text-muted min-w-0 truncate text-[11px] tabular-nums">
                       {formatTokensCompact(item.tokenDelta.preCompactionTokens)} →{' '}
                       {formatTokensCompact(item.tokenDelta.postCompactionTokens)}
-                      <span className="text-[#4ade80]">
+                      <span className="text-[var(--metric-compaction-freed)]">
                         {' '}
                         ({formatTokensCompact(Math.abs(item.tokenDelta.delta))} freed)
                       </span>
                     </span>
                   )}
-                  <span className="shrink-0 rounded-sm bg-[rgba(99,102,241,0.15)] px-1.5 py-0.5 text-[10px] text-[#818cf8]">
+                  <span className="shrink-0 rounded-sm bg-[var(--accent-badge-bg)] px-1.5 py-0.5 text-[10px] text-[var(--accent-badge-text)]">
                     Phase {item.phaseNumber}
                   </span>
                   <span className="text-text-muted ml-auto shrink-0 text-[11px]">
