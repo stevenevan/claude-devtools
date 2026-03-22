@@ -11,7 +11,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
-import { Dialog, DialogContent, DialogOverlay, DialogPortal } from '@renderer/components/ui/dialog';
+import { Dialog, DialogPortal } from '@renderer/components/ui/dialog';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatModifierShortcut } from '@renderer/utils/keyboardUtils';
@@ -410,7 +410,11 @@ export const CommandPalette = (): React.JSX.Element | null => {
       }}
     >
       <DialogPortal>
-        <DialogOverlay />
+        <div
+          className="fixed inset-0 z-50 bg-black/80 supports-backdrop-filter:backdrop-blur-xs"
+          onClick={closeCommandPalette}
+          aria-hidden="true"
+        />
         <div
           className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
           onClick={closeCommandPalette}
