@@ -4,6 +4,7 @@
 
 import { useCallback } from 'react';
 
+import { cn } from '@renderer/lib/utils';
 import { ChevronDown, ChevronUp, Loader2, Plus } from 'lucide-react';
 
 import { useAddTriggerFormHandlers } from '../hooks/useAddTriggerFormHandlers';
@@ -213,14 +214,14 @@ export const AddTriggerForm = ({
               type="button"
               onClick={handlers.handleCancel}
               disabled={saving}
-              className={`bg-surface-raised text-text-secondary hover:bg-surface-overlay rounded-sm px-3 py-1.5 text-sm transition-colors ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
+              className={cn('bg-surface-raised text-text-secondary hover:bg-surface-overlay rounded-sm px-3 py-1.5 text-sm transition-colors', saving && 'cursor-not-allowed opacity-50')}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving || !name.trim() || !!patternError}
-              className={`flex items-center gap-2 rounded-sm bg-indigo-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-indigo-600 focus:ring-1 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-[#141416] focus:outline-hidden ${saving || !name.trim() || !!patternError ? 'cursor-not-allowed opacity-50' : ''} `}
+              className={cn('flex items-center gap-2 rounded-sm bg-indigo-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-indigo-600 focus:ring-1 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-[#141416] focus:outline-hidden', (saving || !name.trim() || !!patternError) && 'cursor-not-allowed opacity-50')}
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
               Add Trigger

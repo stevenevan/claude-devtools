@@ -83,7 +83,7 @@ const PopoverSection = ({
         }}
       >
         <ChevronRight
-          className={`size-3 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`}
+          className={cn('size-3 shrink-0 transition-transform', expanded && 'rotate-90')}
         />
         <span>
           {title} ({count}) ~{formatTokens(tokenCount)} tokens

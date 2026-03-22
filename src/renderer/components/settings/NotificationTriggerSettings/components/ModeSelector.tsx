@@ -2,6 +2,8 @@
  * ModeSelector - Segmented control for selecting trigger mode - Linear style.
  */
 
+import { cn } from '@renderer/lib/utils';
+
 import { MODE_OPTIONS } from '../utils/constants';
 
 import type { TriggerMode } from '@renderer/types/data';
@@ -29,11 +31,13 @@ export const ModeSelector = ({
             type="button"
             onClick={() => onChange(mode.value)}
             disabled={disabled}
-            className={`flex items-center gap-1.5 rounded-sm px-2.5 py-1.5 text-xs font-medium transition-colors ${
+            className={cn(
+              'flex items-center gap-1.5 rounded-sm px-2.5 py-1.5 text-xs font-medium transition-colors',
               isActive
                 ? 'bg-indigo-500/20 text-indigo-400'
-                : 'text-text-muted hover:bg-surface-raised hover:text-text-secondary'
-            } ${disabled ? 'cursor-not-allowed opacity-50' : ''} `}
+                : 'text-text-muted hover:bg-surface-raised hover:text-text-secondary',
+              disabled && 'cursor-not-allowed opacity-50'
+            )}
           >
             <Icon className="size-3.5" />
             {mode.label}

@@ -4,6 +4,7 @@
 
 import React, { useState } from 'react';
 
+import { cn } from '@renderer/lib/utils';
 import { ChevronRight, Wrench } from 'lucide-react';
 
 import { formatTokens } from '../utils/formatting';
@@ -30,7 +31,7 @@ export const ToolOutputItem = ({
     <>
       {hasBreakdown && (
         <ChevronRight
-          className={`text-text-muted size-3 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`}
+          className={cn('text-text-muted size-3 shrink-0 transition-transform', expanded && 'rotate-90')}
         />
       )}
       <Wrench size={12} className="text-text-muted shrink-0" />

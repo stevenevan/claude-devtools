@@ -3,6 +3,7 @@
  * Used by both TriggerCard and AddTriggerForm.
  */
 
+import { cn } from '@renderer/lib/utils';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 
 import type { PreviewResult } from '../types';
@@ -39,7 +40,7 @@ export const TriggerPreview = ({
           type={isFormContext ? 'button' : undefined}
           onClick={onTest}
           disabled={isLoading}
-          className={`bg-surface-raised text-text-secondary hover:bg-surface-overlay rounded-sm px-2 py-1 text-xs transition-colors ${isLoading ? 'cursor-not-allowed opacity-50' : ''} `}
+          className={cn('bg-surface-raised text-text-secondary hover:bg-surface-overlay rounded-sm px-2 py-1 text-xs transition-colors', isLoading && 'cursor-not-allowed opacity-50')}
         >
           {isLoading ? (
             <span className="flex items-center gap-1">

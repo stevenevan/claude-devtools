@@ -7,6 +7,7 @@
 import React, { useCallback } from 'react';
 
 import { useClipboard } from '@renderer/hooks/mantine';
+import { cn } from '@renderer/lib/utils';
 import { Check, Copy } from 'lucide-react';
 
 interface CopyablePathProps {
@@ -48,7 +49,7 @@ export const CopyablePath = ({
         if (e.key === 'Enter' || e.key === ' ') void handleCopy(e as unknown as React.MouseEvent);
       }}
     >
-      <span className={`min-w-0 truncate ${className}`} style={style}>
+      <span className={cn('min-w-0 truncate', className)} style={style}>
         {displayText}
       </span>
       <span

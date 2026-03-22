@@ -272,7 +272,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
       )}
 
       {/* Markdown content with scroll */}
-      <div className={`overflow-auto ${maxHeight}`}>
+      <div className={cn('overflow-auto', maxHeight)}>
         <div className="p-4">
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
             {content}

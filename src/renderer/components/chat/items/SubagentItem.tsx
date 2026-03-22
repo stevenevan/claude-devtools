@@ -308,7 +308,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
 
         {/* Model */}
         {modelInfo && (
-          <span className={`text-[11px] ${getModelColorClass(modelInfo.family)}`}>
+          <span className={cn('text-[11px]', getModelColorClass(modelInfo.family))}>
             {modelInfo.name}
           </span>
         )}
@@ -364,7 +364,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                 <span className="text-[var(--card-separator)]">•</span>
                 <span>
                   <span className="text-[var(--card-icon-muted)]">Model</span>{' '}
-                  <span className={`font-mono ${getModelColorClass(modelInfo.family)}`}>
+                  <span className={cn('font-mono', getModelColorClass(modelInfo.family))}>
                     {modelInfo.name}
                   </span>
                 </span>

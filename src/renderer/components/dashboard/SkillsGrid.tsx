@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 
 import { api } from '@renderer/api';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Search, Sparkles } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -33,11 +34,12 @@ const SkillCard = ({ skill, isHighlighted }: Readonly<SkillCardProps>): React.JS
   return (
     <button
       onClick={() => void api.openPath(skill.resolvedPath)}
-      className={`group relative flex min-h-[120px] flex-col overflow-hidden rounded-xs border p-4 text-left transition-all duration-300 ${
+      className={cn(
+        'group relative flex min-h-[120px] flex-col overflow-hidden rounded-xs border p-4 text-left transition-all duration-300',
         isHighlighted
           ? 'border-border-emphasis bg-surface-raised'
           : 'bg-surface/50 border-border hover:border-border-emphasis hover:bg-surface-raised'
-      } `}
+      )}
     >
       <div className="border-border bg-surface-overlay group-hover:border-border-emphasis mb-3 flex size-8 items-center justify-center rounded-xs border transition-colors duration-300">
         <Sparkles className="text-text-secondary group-hover:text-text size-4 transition-colors" />

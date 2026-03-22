@@ -5,6 +5,7 @@
 
 import React from 'react';
 
+import { cn } from '@renderer/lib/utils';
 import { Loader2 } from 'lucide-react';
 
 interface OngoingIndicatorProps {
@@ -29,9 +30,9 @@ export const OngoingIndicator = ({
 
   return (
     <span className="inline-flex items-center gap-2" title="Session in progress">
-      <span className={`relative flex ${dotSize} shrink-0`}>
+      <span className={cn('relative flex shrink-0', dotSize)}>
         <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-400 opacity-75" />
-        <span className={`relative inline-flex rounded-full ${dotSize} bg-green-500`} />
+        <span className={cn('relative inline-flex rounded-full bg-green-500', dotSize)} />
       </span>
       {showLabel && <span className="text-sm text-[var(--info-text,#3b82f6)]">{label}</span>}
     </span>

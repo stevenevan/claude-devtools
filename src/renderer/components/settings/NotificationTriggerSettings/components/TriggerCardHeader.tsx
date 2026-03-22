@@ -3,6 +3,7 @@
  */
 
 import { Switch } from '@renderer/components/ui/switch';
+import { cn } from '@renderer/lib/utils';
 import { getTriggerColorDef } from '@shared/constants/triggerColors';
 import { ChevronDown, ChevronUp, Pencil, Shield, X } from 'lucide-react';
 
@@ -113,7 +114,7 @@ export const TriggerCardHeader = ({
           <button
             onClick={onRemove}
             disabled={saving}
-            className={`text-text-muted rounded-sm p-1 transition-colors hover:bg-red-500/10 hover:text-red-400 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
+            className={cn('text-text-muted rounded-sm p-1 transition-colors hover:bg-red-500/10 hover:text-red-400', saving && 'cursor-not-allowed opacity-50')}
             aria-label="Delete trigger"
           >
             <X className="size-4" />

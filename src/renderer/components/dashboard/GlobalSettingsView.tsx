@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import { api } from '@renderer/api';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { ExternalLink, Loader2, Shield, Sliders, Zap } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -163,7 +164,7 @@ export const GlobalSettingsView = (): React.JSX.Element | null => {
             <div className="flex items-center justify-between">
               <span className="text-text-secondary text-xs">Always Thinking</span>
               <span
-                className={`text-xs ${alwaysThinkingEnabled ? 'text-emerald-400' : 'text-zinc-500'}`}
+                className={cn('text-xs', alwaysThinkingEnabled ? 'text-emerald-400' : 'text-zinc-500')}
               >
                 {alwaysThinkingEnabled ? 'Enabled' : 'Disabled'}
               </span>

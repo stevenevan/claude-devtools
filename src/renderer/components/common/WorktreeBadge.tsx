@@ -3,6 +3,8 @@
  * Shows subtle, muted colors for each worktree type.
  */
 
+import { cn } from '@renderer/lib/utils';
+
 import type { WorktreeSource } from '@renderer/types/data';
 
 interface WorktreeBadgeProps {
@@ -34,11 +36,11 @@ export const WorktreeBadge = ({
   isMain = false,
   className = '',
 }: Readonly<WorktreeBadgeProps>): React.ReactElement | null => {
-  const baseClasses = `inline-flex shrink-0 items-center rounded-sm px-1 py-px text-[9px] font-medium ${className}`;
+  const baseClasses = cn('inline-flex shrink-0 items-center rounded-sm px-1 py-px text-[9px] font-medium', className);
 
   // Show Default badge if isMain is true (the default/primary worktree)
   if (isMain) {
-    return <span className={`${baseClasses} ${DEFAULT_BADGE_CLASSES}`}>Default</span>;
+    return <span className={cn(baseClasses, DEFAULT_BADGE_CLASSES)}>Default</span>;
   }
 
   const label = SOURCE_LABELS[source];
@@ -49,7 +51,7 @@ export const WorktreeBadge = ({
   }
 
   return (
-    <span className={`${baseClasses} ${BADGE_CLASSES}`} title={`Created by ${label}`}>
+    <span className={cn(baseClasses, BADGE_CLASSES)} title={`Created by ${label}`}>
       {label}
     </span>
   );

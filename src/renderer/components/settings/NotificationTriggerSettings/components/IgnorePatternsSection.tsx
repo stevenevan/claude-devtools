@@ -2,6 +2,7 @@
  * IgnorePatternsSection - Collapsible section for ignore patterns - Linear style.
  */
 
+import { cn } from '@renderer/lib/utils';
 import { X } from 'lucide-react';
 
 interface IgnorePatternsSectionProps {
@@ -35,7 +36,7 @@ export const IgnorePatternsSection = ({
               type="button"
               onClick={() => onRemove(idx)}
               disabled={disabled}
-              className={`text-text-muted rounded-sm p-1 transition-colors hover:bg-red-500/10 hover:text-red-400 ${disabled ? 'cursor-not-allowed opacity-50' : ''} `}
+              className={cn('text-text-muted rounded-sm p-1 transition-colors hover:bg-red-500/10 hover:text-red-400', disabled && 'cursor-not-allowed opacity-50')}
               aria-label="Remove ignore pattern"
             >
               <X className="size-3" />
@@ -47,7 +48,7 @@ export const IgnorePatternsSection = ({
             type="text"
             placeholder="Add ignore regex..."
             disabled={disabled}
-            className={`border-border text-text placeholder:text-text-muted flex-1 rounded-sm border bg-transparent px-2 py-1 font-mono text-xs focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden ${disabled ? 'cursor-not-allowed opacity-50' : ''} `}
+            className={cn('border-border text-text placeholder:text-text-muted flex-1 rounded-sm border bg-transparent px-2 py-1 font-mono text-xs focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden', disabled && 'cursor-not-allowed opacity-50')}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && e.currentTarget.value.trim()) {
                 e.preventDefault();

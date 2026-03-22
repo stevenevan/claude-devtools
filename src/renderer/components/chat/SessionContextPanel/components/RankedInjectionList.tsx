@@ -9,6 +9,7 @@
 import React, { useMemo, useState } from 'react';
 
 import { CopyButton } from '@renderer/components/common/CopyButton';
+import { cn } from '@renderer/lib/utils';
 import { ChevronRight } from 'lucide-react';
 
 import { formatTokens } from '../utils/formatting';
@@ -121,7 +122,7 @@ const ToolOutputRankedItem = ({
         {/* Expand chevron */}
         {hasBreakdown && (
           <ChevronRight
-            className={`text-text-muted size-3 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`}
+            className={cn('text-text-muted size-3 shrink-0 transition-transform', expanded && 'rotate-90')}
           />
         )}
         {/* Category pill */}

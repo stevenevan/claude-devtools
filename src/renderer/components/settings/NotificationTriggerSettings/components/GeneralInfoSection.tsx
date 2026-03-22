@@ -2,6 +2,8 @@
  * GeneralInfoSection - Name input and tool select for AddTriggerForm.
  */
 
+import { cn } from '@renderer/lib/utils';
+
 import { TOOL_NAME_OPTIONS } from '../utils/constants';
 
 import { SectionHeader } from './SectionHeader';
@@ -40,7 +42,7 @@ export const GeneralInfoSection = ({
           placeholder="e.g., Build Failure Alert"
           disabled={saving}
           required
-          className={`border-border text-text placeholder:text-text-muted w-full rounded-sm border bg-transparent px-2 py-1.5 text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
+          className={cn('border-border text-text placeholder:text-text-muted w-full rounded-sm border bg-transparent px-2 py-1.5 text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden', saving && 'cursor-not-allowed opacity-50')}
         />
       </div>
 
@@ -54,7 +56,7 @@ export const GeneralInfoSection = ({
           value={toolName}
           onChange={(e) => onToolNameChange(e.target.value)}
           disabled={saving}
-          className={`border-border text-text rounded-sm border bg-transparent px-2 py-1 text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden ${saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} `}
+          className={cn('border-border text-text rounded-sm border bg-transparent px-2 py-1 text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden', saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')}
         >
           {TOOL_NAME_OPTIONS.map((option) => (
             <option key={option.value} value={option.value} className="bg-[#141416]">

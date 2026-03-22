@@ -12,6 +12,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import { Dialog, DialogContent, DialogOverlay, DialogPortal } from '@renderer/components/ui/dialog';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatModifierShortcut } from '@renderer/utils/keyboardUtils';
 import { createLogger } from '@shared/utils/logger';
@@ -61,9 +62,7 @@ const ProjectResultItemInner = ({
   return (
     <button
       onClick={onClick}
-      className={`w-full px-4 py-3 text-left transition-colors ${
-        isSelected ? 'bg-surface-raised' : 'hover:bg-surface-raised/50'
-      }`}
+      className={cn('w-full px-4 py-3 text-left transition-colors', isSelected ? 'bg-surface-raised' : 'hover:bg-surface-raised/50')}
     >
       <div className="flex items-start gap-3">
         <div className="text-text-secondary mt-0.5 shrink-0">
@@ -111,15 +110,11 @@ const SessionResultItemInner = ({
   return (
     <button
       onClick={onClick}
-      className={`w-full px-4 py-3 text-left transition-colors ${
-        isSelected ? 'bg-surface-raised' : 'hover:bg-surface-raised/50'
-      }`}
+      className={cn('w-full px-4 py-3 text-left transition-colors', isSelected ? 'bg-surface-raised' : 'hover:bg-surface-raised/50')}
     >
       <div className="flex items-start gap-3">
         <div
-          className={`mt-0.5 shrink-0 ${
-            result.messageType === 'user' ? 'text-blue-400' : 'text-green-400'
-          }`}
+          className={cn('mt-0.5 shrink-0', result.messageType === 'user' ? 'text-blue-400' : 'text-green-400')}
         >
           {result.messageType === 'user' ? <User className="size-4" /> : <Bot className="size-4" />}
         </div>

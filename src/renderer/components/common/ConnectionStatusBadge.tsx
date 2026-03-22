@@ -9,6 +9,7 @@
  * - SSH error: WifiOff icon (red)
  */
 
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Loader2, Monitor, Wifi, WifiOff } from 'lucide-react';
 
@@ -28,7 +29,7 @@ export const ConnectionStatusBadge = ({
 
   // Local context always shows Monitor icon
   if (contextId === 'local') {
-    return <Monitor className={`text-text-muted size-3.5 ${className ?? ''}`} />;
+    return <Monitor className={cn('text-text-muted size-3.5', className)} />;
   }
 
   // SSH context - determine if this specific SSH context matches connected host
@@ -40,14 +41,14 @@ export const ConnectionStatusBadge = ({
   // Render icon based on connection state
   switch (effectiveState) {
     case 'connected':
-      return <Wifi className={`size-3.5 text-green-400 ${className ?? ''}`} />;
+      return <Wifi className={cn('size-3.5 text-green-400', className)} />;
     case 'connecting':
-      return <Loader2 className={`text-text-muted size-3.5 animate-spin ${className ?? ''}`} />;
+      return <Loader2 className={cn('text-text-muted size-3.5 animate-spin', className)} />;
     case 'disconnected':
-      return <WifiOff className={`text-text-muted size-3.5 ${className ?? ''}`} />;
+      return <WifiOff className={cn('text-text-muted size-3.5', className)} />;
     case 'error':
-      return <WifiOff className={`size-3.5 text-red-400 ${className ?? ''}`} />;
+      return <WifiOff className={cn('size-3.5 text-red-400', className)} />;
     default:
-      return <WifiOff className={`text-text-muted size-3.5 ${className ?? ''}`} />;
+      return <WifiOff className={cn('text-text-muted size-3.5', className)} />;
   }
 };

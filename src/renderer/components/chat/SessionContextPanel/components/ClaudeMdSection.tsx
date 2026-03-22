@@ -4,6 +4,7 @@
 
 import React, { useState } from 'react';
 
+import { cn } from '@renderer/lib/utils';
 import { ChevronRight } from 'lucide-react';
 
 import { buildDirectoryTree } from '../DirectoryTree/buildDirectoryTree';
@@ -46,7 +47,7 @@ export const ClaudeMdSubSection = ({
         }}
       >
         <ChevronRight
-          className={`text-text-muted size-3 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`}
+          className={cn('text-text-muted size-3 shrink-0 transition-transform', expanded && 'rotate-90')}
         />
         <span className="text-text-secondary">{label}</span>
         <span className="bg-surface-overlay text-text-muted rounded-sm px-1 py-0.5 text-xs">

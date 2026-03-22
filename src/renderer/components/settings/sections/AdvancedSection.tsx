@@ -97,7 +97,7 @@ export const AdvancedSection = ({
         <button
           onClick={onResetToDefaults}
           disabled={saving}
-          className={`border-border text-text-secondary flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
+          className={cn('border-border text-text-secondary flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150', saving && 'cursor-not-allowed opacity-50')}
         >
           <RefreshCw className="size-4" />
           Reset to Defaults
@@ -105,7 +105,7 @@ export const AdvancedSection = ({
         <button
           onClick={onExportConfig}
           disabled={saving}
-          className={`border-border text-text-secondary flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
+          className={cn('border-border text-text-secondary flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150', saving && 'cursor-not-allowed opacity-50')}
         >
           <Download className="size-4" />
           Export Config
@@ -113,7 +113,7 @@ export const AdvancedSection = ({
         <button
           onClick={onImportConfig}
           disabled={saving}
-          className={`border-border text-text-secondary flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
+          className={cn('border-border text-text-secondary flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150', saving && 'cursor-not-allowed opacity-50')}
         >
           <Upload className="size-4" />
           Import Config

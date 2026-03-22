@@ -410,7 +410,7 @@ const AIChatGroupInner = ({
 
             {/* Main agent model */}
             {enhanced.mainModel && (
-              <span className={`shrink-0 text-xs ${getModelColorClass(enhanced.mainModel.family)}`}>
+              <span className={cn('shrink-0 text-xs', getModelColorClass(enhanced.mainModel.family))}>
                 {enhanced.mainModel.name}
               </span>
             )}

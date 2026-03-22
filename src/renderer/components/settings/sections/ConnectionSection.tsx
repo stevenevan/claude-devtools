@@ -401,11 +401,12 @@ export const ConnectionSection = (): React.JSX.Element => {
           {/* Test result */}
           {testResult && (
             <div
-              className={`rounded-md border px-3 py-2 text-sm ${
+              className={cn(
+                'rounded-md border px-3 py-2 text-sm',
                 testResult.success
                   ? 'border-green-500/20 bg-green-500/10 text-green-400'
                   : 'border-red-500/20 bg-red-500/10 text-red-400'
-              }`}
+              )}
             >
               {testResult.success
                 ? 'Connection successful'

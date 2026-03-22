@@ -8,6 +8,7 @@
 
 import { useCallback, useState } from 'react';
 
+import { cn } from '@renderer/lib/utils';
 import {
   isPresetColorKey,
   resolveColorHex,
@@ -75,7 +76,7 @@ export const ColorPaletteSelector = ({
     showHexInput && hexInput && HEX_RE.test(hexInput) ? hexInput : resolveColorHex(value);
 
   return (
-    <div className={`space-y-2 ${disabled ? 'pointer-events-none opacity-50' : ''}`}>
+    <div className={cn('space-y-2', disabled && 'pointer-events-none opacity-50')}>
       {/* Color preview + presets row */}
       <div className="flex items-center gap-2">
         {/* Live preview swatch */}
@@ -95,7 +96,7 @@ export const ColorPaletteSelector = ({
               title={color.label}
               onClick={() => handlePresetClick(color.key as TriggerColor)}
               disabled={disabled}
-              className={`size-5 rounded-full transition-all ${isSelected ? 'ring-offset-surface ring-2 ring-white/60 ring-offset-1' : 'hover:ring-1 hover:ring-white/30'}`}
+              className={cn('size-5 rounded-full transition-all', isSelected ? 'ring-offset-surface ring-2 ring-white/60 ring-offset-1' : 'hover:ring-1 hover:ring-white/30')}
               style={{ backgroundColor: color.hex }}
             />
           );
@@ -107,11 +108,12 @@ export const ColorPaletteSelector = ({
           title="Custom hex color"
           onClick={handleCustomClick}
           disabled={disabled}
-          className={`flex size-5 items-center justify-center rounded-full border text-[9px] leading-none font-bold transition-all ${
+          className={cn(
+            'flex size-5 items-center justify-center rounded-full border text-[9px] leading-none font-bold transition-all',
             isCustom
               ? 'ring-offset-surface border-white/40 text-white ring-2 ring-white/60 ring-offset-1'
               : 'border-border-emphasis text-text-muted hover:ring-1 hover:ring-white/30'
-          }`}
+          )}
           style={isCustom ? { backgroundColor: resolveColorHex(value) } : undefined}
         >
           {isCustom ? '' : '#'}
@@ -130,9 +132,10 @@ export const ColorPaletteSelector = ({
             placeholder="#ff6600"
             maxLength={9}
             disabled={disabled}
-            className={`text-text placeholder:text-text-muted w-24 rounded-sm border bg-transparent px-2 py-1 font-mono text-xs focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden ${
+            className={cn(
+              'text-text placeholder:text-text-muted w-24 rounded-sm border bg-transparent px-2 py-1 font-mono text-xs focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden',
               hexInput && !HEX_RE.test(hexInput) ? 'border-red-500' : 'border-border'
-            }`}
+            )}
           />
           {hexInput && !HEX_RE.test(hexInput) && (
             <span className="text-xs text-red-400">Invalid hex</span>

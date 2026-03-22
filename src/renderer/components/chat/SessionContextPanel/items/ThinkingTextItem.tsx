@@ -4,6 +4,7 @@
 
 import React, { useState } from 'react';
 
+import { cn } from '@renderer/lib/utils';
 import { Brain, ChevronRight } from 'lucide-react';
 
 import { formatTokens } from '../utils/formatting';
@@ -31,7 +32,7 @@ export const ThinkingTextItem = ({
         onClick={() => setExpanded(!expanded)}
       >
         <ChevronRight
-          className={`text-text-muted size-3 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`}
+          className={cn('text-text-muted size-3 shrink-0 transition-transform', expanded && 'rotate-90')}
         />
         <Brain size={12} className="text-text-muted shrink-0" />
         {isClickable ? (

@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Puzzle, Search } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -52,20 +53,22 @@ const PluginCard = ({ plugin, isHighlighted }: Readonly<PluginCardProps>): React
 
   return (
     <div
-      className={`group relative flex min-h-[120px] flex-col overflow-hidden rounded-xs border p-4 text-left transition-all duration-300 ${
+      className={cn(
+        'group relative flex min-h-[120px] flex-col overflow-hidden rounded-xs border p-4 text-left transition-all duration-300',
         isHighlighted
           ? 'border-border-emphasis bg-surface-raised'
           : 'bg-surface/50 border-border hover:border-border-emphasis hover:bg-surface-raised'
-      } `}
+      )}
     >
       <div className="mb-3 flex items-center gap-2">
         <div className="border-border bg-surface-overlay group-hover:border-border-emphasis flex size-8 items-center justify-center rounded-xs border transition-colors duration-300">
           <Puzzle className="text-text-secondary group-hover:text-text size-4 transition-colors" />
         </div>
         <span
-          className={`rounded-sm px-1.5 py-0.5 text-[10px] font-medium ${
+          className={cn(
+            'rounded-sm px-1.5 py-0.5 text-[10px] font-medium',
             plugin.enabled ? 'bg-emerald-500/10 text-emerald-400' : 'bg-zinc-500/10 text-zinc-500'
-          }`}
+          )}
         >
           {plugin.enabled ? 'Enabled' : 'Disabled'}
         </span>

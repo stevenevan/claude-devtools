@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 
 import { CopyablePath } from '@renderer/components/common/CopyablePath';
+import { cn } from '@renderer/lib/utils';
 import { ChevronRight } from 'lucide-react';
 
 import { formatTokens } from '../utils/formatting';
@@ -86,7 +87,7 @@ export const DirectoryTreeNode = ({
           }}
         >
           <ChevronRight
-            className={`text-text-muted size-3 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`}
+            className={cn('text-text-muted size-3 shrink-0 transition-transform', expanded && 'rotate-90')}
           />
           <span className="text-text-muted">{node.name}/</span>
         </div>

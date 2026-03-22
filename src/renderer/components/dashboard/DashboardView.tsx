@@ -10,6 +10,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { api } from '@renderer/api';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatShortcut } from '@renderer/utils/stringUtils';
 import { createLogger } from '@shared/utils/logger';
@@ -68,11 +69,12 @@ const CommandSearch = ({
     <div className="relative mx-auto w-full max-w-xl">
       {/* Search container with glow effect on focus */}
       <div
-        className={`bg-surface-raised relative flex items-center gap-3 rounded-xs border px-4 py-3 transition-all duration-200 ${
+        className={cn(
+          'bg-surface-raised relative flex items-center gap-3 rounded-xs border px-4 py-3 transition-all duration-200',
           isFocused
             ? 'border-zinc-500 shadow-[0_0_20px_rgba(255,255,255,0.04)] ring-1 ring-zinc-600/30'
             : 'border-border hover:border-zinc-600'
-        } `}
+        )}
       >
         <Search className="text-text-muted size-4 shrink-0" />
         <input
@@ -172,11 +174,12 @@ const RepositoryCard = ({
   return (
     <button
       onClick={onClick}
-      className={`group relative flex min-h-[120px] flex-col overflow-hidden rounded-xs border p-4 text-left transition-all duration-300 ${
+      className={cn(
+        'group relative flex min-h-[120px] flex-col overflow-hidden rounded-xs border p-4 text-left transition-all duration-300',
         isHighlighted
           ? 'border-border-emphasis bg-surface-raised'
           : 'bg-surface/50 border-border hover:border-border-emphasis hover:bg-surface-raised'
-      } `}
+      )}
     >
       {/* Icon with subtle border */}
       <div className="border-border bg-surface-overlay group-hover:border-border-emphasis mb-3 flex size-8 items-center justify-center rounded-xs border transition-colors duration-300">
