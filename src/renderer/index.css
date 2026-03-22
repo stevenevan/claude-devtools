@@ -35,6 +35,9 @@
   --color-semantic-warning: #f59e0b;
   --color-semantic-info: #3b82f6;
 
+  /* Accent color */
+  --color-accent: var(--color-accent);
+
   /* Claude dark aliases */
   --color-claude-dark-bg: var(--color-surface);
   --color-claude-dark-surface: var(--color-surface-raised);
@@ -243,6 +246,60 @@
   --event-success-bg: rgba(34, 197, 94, 0.1);
   --event-success-border: rgba(34, 197, 94, 0.3);
   --event-success-text: #4ade80;
+  --event-queue-bg: rgba(139, 92, 246, 0.1);
+  --event-queue-border: rgba(139, 92, 246, 0.3);
+  --event-queue-text: #a78bfa;
+
+  /* Info/status colors */
+  --info-text: #3b82f6;
+  --info-bg: rgba(59, 130, 246, 0.1);
+  --info-border: rgba(59, 130, 246, 0.3);
+
+  /* Metric compaction freed */
+  --metric-compaction-freed: #4ade80;
+
+  /* Accent badge (indigo) */
+  --accent-badge-bg: rgba(99, 102, 241, 0.15);
+  --accent-badge-text: #818cf8;
+
+  /* Error badge (inline) */
+  --error-badge-bg: rgba(239, 68, 68, 0.15);
+  --error-badge-text: #ef4444;
+
+  /* Link text */
+  --link-text: #93c5fd;
+
+  /* Accent color */
+  --color-accent: #6366f1;
+
+  /* Subagent icon colors */
+  --subagent-icon-main: rgba(251, 191, 36, 0.7);
+  --subagent-icon-output: rgba(168, 85, 247, 0.7);
+  --subagent-icon-context: rgba(56, 189, 248, 0.7);
+
+  /* Worktree icon */
+  --worktree-icon: #34d399;
+  --worktree-icon-muted: rgba(52, 211, 153, 0.7);
+
+  /* Status dot colors */
+  --status-ok: #22c55e;
+  --status-error: #ef4444;
+  --status-pending: #eab308;
+
+  /* Context injection category colors */
+  --ctx-claudemd-bg: rgba(99, 102, 241, 0.15);
+  --ctx-claudemd-text: #818cf8;
+  --ctx-file-bg: rgba(52, 211, 153, 0.15);
+  --ctx-file-text: #34d399;
+  --ctx-tool-bg: rgba(251, 191, 36, 0.15);
+  --ctx-tool-text: #fbbf24;
+  --ctx-thinking-bg: rgba(167, 139, 250, 0.15);
+  --ctx-thinking-text: #a78bfa;
+  --ctx-team-bg: rgba(251, 146, 60, 0.15);
+  --ctx-team-text: #fb923c;
+  --ctx-user-bg: rgba(96, 165, 250, 0.15);
+  --ctx-user-text: #60a5fa;
+  --ctx-unknown-text: #a1a1aa;
 
   /* Plan exit/Green colors (for ExitPlanMode) */
   --plan-exit-bg: rgba(34, 197, 94, 0.05);
@@ -473,6 +530,60 @@
   --event-success-bg: rgba(34, 197, 94, 0.1);
   --event-success-border: rgba(34, 197, 94, 0.4);
   --event-success-text: #16a34a;
+  --event-queue-bg: rgba(139, 92, 246, 0.1);
+  --event-queue-border: rgba(139, 92, 246, 0.4);
+  --event-queue-text: #7c3aed;
+
+  /* Info/status colors */
+  --info-text: #2563eb;
+  --info-bg: rgba(59, 130, 246, 0.1);
+  --info-border: rgba(59, 130, 246, 0.4);
+
+  /* Metric compaction freed */
+  --metric-compaction-freed: #16a34a;
+
+  /* Accent badge (indigo) */
+  --accent-badge-bg: rgba(99, 102, 241, 0.12);
+  --accent-badge-text: #4f46e5;
+
+  /* Error badge (inline) */
+  --error-badge-bg: rgba(239, 68, 68, 0.12);
+  --error-badge-text: #dc2626;
+
+  /* Link text */
+  --link-text: #2563eb;
+
+  /* Accent color */
+  --color-accent: #6366f1;
+
+  /* Subagent icon colors */
+  --subagent-icon-main: rgba(217, 119, 6, 0.8);
+  --subagent-icon-output: rgba(126, 34, 206, 0.8);
+  --subagent-icon-context: rgba(14, 116, 144, 0.8);
+
+  /* Worktree icon */
+  --worktree-icon: #059669;
+  --worktree-icon-muted: rgba(5, 150, 105, 0.7);
+
+  /* Status dot colors */
+  --status-ok: #16a34a;
+  --status-error: #dc2626;
+  --status-pending: #ca8a04;
+
+  /* Context injection category colors */
+  --ctx-claudemd-bg: rgba(99, 102, 241, 0.12);
+  --ctx-claudemd-text: #4f46e5;
+  --ctx-file-bg: rgba(5, 150, 105, 0.12);
+  --ctx-file-text: #059669;
+  --ctx-tool-bg: rgba(217, 119, 6, 0.12);
+  --ctx-tool-text: #d97706;
+  --ctx-thinking-bg: rgba(126, 34, 206, 0.12);
+  --ctx-thinking-text: #7c3aed;
+  --ctx-team-bg: rgba(234, 88, 12, 0.12);
+  --ctx-team-text: #ea580c;
+  --ctx-user-bg: rgba(37, 99, 235, 0.12);
+  --ctx-user-text: #2563eb;
+  --ctx-unknown-text: #6d6b65;
 
   /* Plan exit/Green colors (for ExitPlanMode) */
   --plan-exit-bg: #f0fdf4;
