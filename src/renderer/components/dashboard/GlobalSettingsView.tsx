@@ -19,12 +19,8 @@ const BadgeList = ({ items, color }: Readonly<BadgeListProps>): React.JSX.Elemen
     {items.map((item) => (
       <span
         key={item}
-        className="rounded-sm border px-2 py-0.5 font-mono text-[10px]"
-        style={{
-          borderColor: 'var(--color-border)',
-          backgroundColor: 'var(--color-surface-overlay)',
-          color,
-        }}
+        className="rounded-sm border border-border bg-surface-overlay px-2 py-0.5 font-mono text-[10px]"
+        style={{ color }}
       >
         {item}
       </span>
@@ -43,16 +39,10 @@ const SettingsSection = ({
   title,
   children,
 }: Readonly<SettingsSectionProps>): React.JSX.Element => (
-  <div
-    className="rounded-xs border p-4"
-    style={{
-      borderColor: 'var(--color-border)',
-      backgroundColor: 'var(--color-surface)',
-    }}
-  >
+  <div className="rounded-xs border border-border bg-surface p-4">
     <div className="mb-3 flex items-center gap-2">
       <Icon className="text-text-secondary size-4" />
-      <h3 className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>
+      <h3 className="text-sm font-medium text-text">
         {title}
       </h3>
     </div>
@@ -84,7 +74,7 @@ export const GlobalSettingsView = (): React.JSX.Element | null => {
   if (globalSettingsLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="flex items-center gap-3" style={{ color: 'var(--color-text-muted)' }}>
+        <div className="flex items-center gap-3 text-text-muted">
           <Loader2 className="size-5 animate-spin" />
           <span className="text-sm">Loading settings...</span>
         </div>
@@ -141,13 +131,7 @@ export const GlobalSettingsView = (): React.JSX.Element | null => {
               <p className="text-text-muted mb-1 text-[10px] uppercase tracking-wider">
                 Default Mode
               </p>
-              <span
-                className="rounded-sm border px-2 py-0.5 text-xs"
-                style={{
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-secondary)',
-                }}
-              >
+              <span className="rounded-sm border border-border px-2 py-0.5 text-xs text-text-secondary">
                 {defaultMode}
               </span>
             </div>

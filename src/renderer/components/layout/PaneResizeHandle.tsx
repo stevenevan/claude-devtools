@@ -5,6 +5,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 
 interface PaneResizeHandleProps {
@@ -72,12 +73,10 @@ export const PaneResizeHandle = ({ leftPaneId }: PaneResizeHandleProps): React.J
   return (
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- resize handle requires mouse interaction
     <div
-      className={`flex w-1 shrink-0 cursor-col-resize items-center justify-center transition-colors hover:bg-blue-500/50 ${
-        isResizing ? 'bg-blue-500/50' : ''
-      }`}
-      style={{
-        backgroundColor: isResizing ? undefined : 'var(--color-border)',
-      }}
+      className={cn(
+        'flex w-1 shrink-0 cursor-col-resize items-center justify-center transition-colors hover:bg-blue-500/50',
+        isResizing ? 'bg-blue-500/50' : 'bg-border'
+      )}
       onMouseDown={handleMouseDown}
     />
   );

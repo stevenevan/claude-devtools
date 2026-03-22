@@ -391,11 +391,7 @@ export const CommandPalette = (): React.JSX.Element | null => {
       <>
         <span>{before}</span>
         <mark
-          className="rounded px-0.5"
-          style={{
-            backgroundColor: 'var(--highlight-bg)',
-            color: 'var(--highlight-text)',
-          }}
+          className="rounded bg-[var(--highlight-bg)] px-0.5 text-[var(--highlight-text)]"
         >
           {match}
         </mark>

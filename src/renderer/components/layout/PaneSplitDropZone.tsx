@@ -5,6 +5,7 @@
  */
 
 import { useDroppable } from '@dnd-kit/core';
+import { cn } from '@renderer/lib/utils';
 
 interface PaneSplitDropZoneProps {
   paneId: string;
@@ -29,24 +30,16 @@ export const PaneSplitDropZone = ({
   return (
     <div
       ref={setNodeRef}
-      className="absolute top-0 z-30"
-      style={{
-        [side]: 0,
-        width: '50%',
-        height: '100%',
-        pointerEvents: isActive ? 'auto' : 'none',
-      }}
+      className={cn('absolute top-0 z-30 w-1/2 h-full', isActive ? 'pointer-events-auto' : 'pointer-events-none')}
+      style={{ [side]: 0 }}
     >
       {/* Semi-transparent overlay highlight when hovering */}
       {isOver && (
         <div
-          className="absolute inset-0"
-          style={{
-            backgroundColor: 'var(--color-accent, #6366f1)',
-            opacity: 0.12,
-            borderLeft: side === 'right' ? '2px solid var(--color-accent, #6366f1)' : 'none',
-            borderRight: side === 'left' ? '2px solid var(--color-accent, #6366f1)' : 'none',
-          }}
+          className={cn(
+            'absolute inset-0 opacity-[0.12] bg-[var(--color-accent,#6366f1)]',
+            side === 'right' ? 'border-l-2 border-[var(--color-accent,#6366f1)]' : 'border-r-2 border-[var(--color-accent,#6366f1)]'
+          )}
         />
       )}
     </div>

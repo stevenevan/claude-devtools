@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 
+import { useClipboard } from '@renderer/hooks/mantine';
 import { Check, Copy } from 'lucide-react';
 
 interface CopyButtonProps {
@@ -26,28 +27,18 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
   bgColor = 'var(--code-bg)',
   inline = false,
 }) => {
-  const [isCopied, setIsCopied] = useState(false);
+  const { copy, copied } = useClipboard({ timeout: 2000 });
 
-  const handleCopy = async (): Promise<void> => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch {
-      // Silently fail — clipboard API may be unavailable
-    }
-  };
-
-  const icon = isCopied ? (
-    <Check className="size-3.5" style={{ color: 'var(--badge-success-bg)' }} />
+  const icon = copied ? (
+    <Check className="size-3.5 text-[var(--badge-success-bg)]" />
   ) : (
-    <Copy className="size-3.5" style={{ color: 'var(--color-text-muted)' }} />
+    <Copy className="size-3.5 text-text-muted" />
   );
 
   if (inline) {
     return (
       <button
-        onClick={handleCopy}
+        onClick={() => copy(text)}
         className="rounded-sm p-1 transition-colors hover:opacity-80"
         title="Copy to clipboard"
       >
@@ -66,7 +57,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
       {/* Solid background holding the button */}
       <div className="rounded-bl-lg p-1.5" style={{ backgroundColor: bgColor }}>
         <button
-          onClick={handleCopy}
+          onClick={() => copy(text)}
           className="pointer-events-auto rounded-sm p-1.5"
           title="Copy to clipboard"
         >

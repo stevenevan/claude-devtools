@@ -5,6 +5,7 @@
  */
 
 import { useDndContext } from '@dnd-kit/core';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { MAX_PANES } from '@renderer/types/panes';
 import { useShallow } from 'zustand/react/shallow';
@@ -52,12 +53,10 @@ export const PaneView = ({ paneId }: PaneViewProps): React.JSX.Element => {
     >
       {/* Focus indicator - accent border on top of focused pane's TabBar */}
       <div
-        style={{
-          borderTop:
-            isFocused && paneCount > 1
-              ? '2px solid var(--color-accent, #6366f1)'
-              : '2px solid transparent',
-        }}
+        className={cn(
+          'border-t-2',
+          isFocused && paneCount > 1 ? 'border-[var(--color-accent,#6366f1)]' : 'border-transparent'
+        )}
       >
         <TabBar paneId={paneId} />
       </div>
@@ -72,12 +71,7 @@ export const PaneView = ({ paneId }: PaneViewProps): React.JSX.Element => {
       {isDragging && !canSplit && (
         <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex justify-center">
           <div
-            className="rounded-md px-3 py-1.5 text-xs font-medium"
-            style={{
-              backgroundColor: 'var(--color-surface-overlay)',
-              border: '1px solid var(--color-border-emphasis)',
-              color: 'var(--color-text-muted)',
-            }}
+            className="rounded-md border border-border-emphasis bg-surface-overlay px-3 py-1.5 text-xs font-medium text-text-muted"
           >
             Maximum {MAX_PANES} panes reached
           </div>

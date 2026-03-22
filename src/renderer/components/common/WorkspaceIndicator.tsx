@@ -8,6 +8,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Check, ChevronDown } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -65,22 +66,17 @@ export const WorkspaceIndicator = (): React.JSX.Element | null => {
       <button
         onClick={() => !isContextSwitching && setIsOpen(!isOpen)}
         disabled={isContextSwitching}
-        className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-xs shadow-lg transition-opacity hover:opacity-90 ${isContextSwitching ? 'opacity-50' : ''}`}
-        style={{
-          backgroundColor: 'var(--color-surface-raised)',
-          border: '1px solid var(--color-border-emphasis)',
-        }}
+        className={cn(
+          'flex items-center gap-2 rounded-full border border-border-emphasis bg-surface-raised px-3 py-1.5 text-xs shadow-lg transition-opacity hover:opacity-90',
+          isContextSwitching && 'opacity-50'
+        )}
       >
         <ConnectionStatusBadge contextId={activeContextId} />
-        <span
-          className="font-medium"
-          style={{ color: isContextSwitching ? 'var(--color-text-muted)' : 'var(--color-text)' }}
-        >
+        <span className={cn('font-medium', isContextSwitching ? 'text-text-muted' : 'text-text')}>
           {activeLabel}
         </span>
         <ChevronDown
-          className={`size-3 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-          style={{ color: 'var(--color-text-muted)' }}
+          className={cn('size-3 text-text-muted transition-transform', isOpen && 'rotate-180')}
         />
       </button>
 
@@ -96,19 +92,10 @@ export const WorkspaceIndicator = (): React.JSX.Element | null => {
 
           {/* Dropdown content - opens upward */}
           <div
-            className="absolute right-0 bottom-full z-20 mb-2 max-h-[250px] w-56 overflow-y-auto rounded-lg py-1 shadow-xl"
-            style={{
-              backgroundColor: 'var(--color-surface-sidebar)',
-              borderWidth: '1px',
-              borderStyle: 'solid',
-              borderColor: 'var(--color-border)',
-            }}
+            className="absolute right-0 bottom-full z-20 mb-2 max-h-[250px] w-56 overflow-y-auto rounded-lg border border-border bg-[var(--color-surface-sidebar)] py-1 shadow-xl"
           >
             {/* Header */}
-            <div
-              className="px-3 py-2 text-[10px] font-semibold tracking-wider uppercase"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
+            <div className="px-3 py-2 text-[10px] font-semibold tracking-wider uppercase text-text-muted">
               Switch Workspace
             </div>
 
@@ -153,28 +140,16 @@ const ContextItem = ({
   isSelected,
   onSelect,
 }: Readonly<ContextItemProps>): React.JSX.Element => {
-  const [isHovered, setIsHovered] = useState(false);
-
-  const buttonStyle: React.CSSProperties = isSelected
-    ? { backgroundColor: 'var(--color-surface-raised)', color: 'var(--color-text)' }
-    : {
-        backgroundColor: isHovered ? 'var(--color-surface-raised)' : 'transparent',
-        opacity: isHovered ? 0.5 : 1,
-      };
-
   return (
     <button
       onClick={onSelect}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors"
-      style={buttonStyle}
+      className={cn(
+        'flex w-full items-center gap-2 px-3 py-2 text-left transition-colors',
+        isSelected ? 'bg-surface-raised' : 'hover:bg-surface-raised hover:opacity-50'
+      )}
     >
       <ConnectionStatusBadge contextId={contextId} />
-      <span
-        className="flex-1 truncate text-sm"
-        style={{ color: isSelected ? 'var(--color-text)' : 'var(--color-text-muted)' }}
-      >
+      <span className={cn('flex-1 truncate text-sm', isSelected ? 'text-text' : 'text-text-muted')}>
         {label}
       </span>
       {isSelected && <Check className="size-3.5 shrink-0 text-indigo-400" />}

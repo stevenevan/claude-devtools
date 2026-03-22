@@ -3,8 +3,6 @@
  * Shows subtle, muted colors for each worktree type.
  */
 
-import { WORKTREE_BADGE_BG, WORKTREE_BADGE_TEXT } from '@renderer/constants/cssVariables';
-
 import type { WorktreeSource } from '@renderer/types/data';
 
 interface WorktreeBadgeProps {
@@ -15,104 +13,53 @@ interface WorktreeBadgeProps {
   className?: string;
 }
 
-/**
- * Configuration for each worktree source type.
- * Uses muted, subtle colors to avoid being too flashy.
- */
-interface SourceConfig {
-  label: string;
-  bgColor: string;
-  textColor: string;
-}
-
-// Muted color palette - all using zinc/neutral tones with subtle tints
-const SOURCE_CONFIG: Record<WorktreeSource, SourceConfig> = {
-  'vibe-kanban': {
-    label: 'Vibe',
-    bgColor: WORKTREE_BADGE_BG, // zinc-400
-    textColor: WORKTREE_BADGE_TEXT, // zinc-400
-  },
-  conductor: {
-    label: 'Conductor',
-    bgColor: WORKTREE_BADGE_BG,
-    textColor: WORKTREE_BADGE_TEXT,
-  },
-  'auto-claude': {
-    label: 'Auto',
-    bgColor: WORKTREE_BADGE_BG,
-    textColor: WORKTREE_BADGE_TEXT,
-  },
-  '21st': {
-    label: '21st',
-    bgColor: WORKTREE_BADGE_BG,
-    textColor: WORKTREE_BADGE_TEXT,
-  },
-  'claude-desktop': {
-    label: 'Desktop',
-    bgColor: WORKTREE_BADGE_BG,
-    textColor: WORKTREE_BADGE_TEXT,
-  },
-  ccswitch: {
-    label: 'ccswitch',
-    bgColor: WORKTREE_BADGE_BG,
-    textColor: WORKTREE_BADGE_TEXT,
-  },
-  git: {
-    label: '',
-    bgColor: 'transparent',
-    textColor: 'transparent',
-  },
-  unknown: {
-    label: '',
-    bgColor: 'transparent',
-    textColor: 'transparent',
-  },
+/** Label per worktree source type */
+const SOURCE_LABELS: Partial<Record<WorktreeSource, string>> = {
+  'vibe-kanban': 'Vibe',
+  conductor: 'Conductor',
+  'auto-claude': 'Auto',
+  '21st': '21st',
+  'claude-desktop': 'Desktop',
+  ccswitch: 'ccswitch',
 };
 
-// Default worktree badge config (not "Main" to avoid confusion with main branch)
-const DEFAULT_CONFIG: SourceConfig = {
-  label: 'Default',
-  bgColor: 'rgba(82, 82, 91, 0.3)', // zinc-600
-  textColor: '#71717a', // zinc-500
-};
+/** Shared Tailwind classes for all source badges (zinc-400 tone) */
+const BADGE_CLASSES =
+  'bg-[rgba(161,161,170,0.15)] text-zinc-400';
+
+/** Classes for the default/main worktree badge (zinc-600/30 bg, zinc-500 text) */
+const DEFAULT_BADGE_CLASSES =
+  'bg-[rgba(82,82,91,0.3)] text-zinc-500';
 
 export const WorktreeBadge = ({
   source,
   isMain = false,
   className = '',
 }: Readonly<WorktreeBadgeProps>): React.ReactElement | null => {
+  const baseClasses = `inline-flex shrink-0 items-center rounded-sm px-1 py-px text-[9px] font-medium ${className}`;
+
   // Show Default badge if isMain is true (the default/primary worktree)
   if (isMain) {
     return (
-      <span
-        className={`inline-flex shrink-0 items-center rounded-sm px-1 py-px text-[9px] font-medium ${className}`}
-        style={{
-          backgroundColor: DEFAULT_CONFIG.bgColor,
-          color: DEFAULT_CONFIG.textColor,
-        }}
-      >
-        {DEFAULT_CONFIG.label}
+      <span className={`${baseClasses} ${DEFAULT_BADGE_CLASSES}`}>
+        Default
       </span>
     );
   }
 
-  const config = SOURCE_CONFIG[source];
+  const label = SOURCE_LABELS[source];
 
   // Don't render badge for standard git or unknown sources
-  if (source === 'git' || source === 'unknown' || !config.label) {
+  if (!label) {
     return null;
   }
 
   return (
     <span
-      className={`inline-flex shrink-0 items-center rounded-sm px-1 py-px text-[9px] font-medium ${className}`}
-      style={{
-        backgroundColor: config.bgColor,
-        color: config.textColor,
-      }}
-      title={`Created by ${config.label}`}
+      className={`${baseClasses} ${BADGE_CLASSES}`}
+      title={`Created by ${label}`}
     >
-      {config.label}
+      {label}
     </span>
   );
 };

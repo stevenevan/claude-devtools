@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 
+import { cn } from '@renderer/lib/utils';
 import { getTriggerColorDef } from '@shared/constants/triggerColors';
 import { formatDistanceToNow } from 'date-fns';
 import { ArrowRight, Bot, Check, Trash2 } from 'lucide-react';
@@ -70,21 +71,17 @@ export const NotificationRow = ({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="flex h-full cursor-pointer items-center gap-3 border-b px-4 transition-colors"
-      style={{
-        borderColor: 'var(--color-border)',
-        backgroundColor: isHovered ? 'var(--color-surface-raised)' : undefined,
-        opacity: isUnread ? 1 : 0.5,
-      }}
+      className={cn(
+        'flex h-full cursor-pointer items-center gap-3 border-b border-border px-4 transition-colors',
+        isHovered && 'bg-surface-raised',
+        !isUnread && 'opacity-50'
+      )}
     >
       {/* Color Dot — always visible, opacity indicates read state */}
       <div className="flex w-3 shrink-0 justify-center">
         <span
-          className="size-2.5 rounded-full"
-          style={{
-            backgroundColor: colorDef.hex,
-            opacity: isUnread ? 1 : 0.4,
-          }}
+          className={cn('size-2.5 rounded-full', !isUnread && 'opacity-40')}
+          style={{ backgroundColor: colorDef.hex }}
         />
       </div>
 
@@ -92,32 +89,22 @@ export const NotificationRow = ({
       <div className="min-w-0 flex-1 py-2">
         {/* Title Row */}
         <div className="flex items-center gap-1.5">
-          <span
-            className="truncate text-sm font-medium"
-            style={{ color: isUnread ? 'var(--color-text)' : 'var(--color-text-secondary)' }}
-          >
+          <span className={cn('truncate text-sm font-medium', isUnread ? 'text-text' : 'text-text-secondary')}>
             {displayName}
           </span>
-          <span style={{ color: 'var(--color-text-muted)' }}>&middot;</span>
-          <span className="truncate text-sm" style={{ color: 'var(--color-text-muted)' }}>
+          <span className="text-text-muted">&middot;</span>
+          <span className="truncate text-sm text-text-muted">
             {projectName}
           </span>
           {error.subagentId && (
-            <span
-              className="inline-flex shrink-0 items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] font-medium"
-              style={{
-                backgroundColor: 'var(--tag-bg)',
-                border: '1px solid var(--tag-border)',
-                color: 'var(--color-text-muted)',
-              }}
-            >
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-[var(--tag-border)] bg-[var(--tag-bg)] px-1.5 py-0.5 text-[10px] font-medium text-text-muted">
               <Bot className="size-3" />
               subagent
             </span>
           )}
         </div>
         {/* Description */}
-        <p className="mt-0.5 truncate text-xs" style={{ color: 'var(--color-text-muted)' }}>
+        <p className="mt-0.5 truncate text-xs text-text-muted">
           {truncatedMessage}
         </p>
       </div>
@@ -132,10 +119,7 @@ export const NotificationRow = ({
             onNavigateClick={handleNavigateClick}
           />
         ) : (
-          <span
-            className="text-[11px] whitespace-nowrap"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
+          <span className="text-[11px] whitespace-nowrap text-text-muted">
             {relativeTime}
           </span>
         )}
@@ -160,28 +144,13 @@ const HoverActions = ({
   onDeleteClick,
   onNavigateClick,
 }: HoverActionsProps): React.JSX.Element => {
-  const [hoveredButton, setHoveredButton] = useState<string | null>(null);
-
-  const getButtonStyle = (buttonId: string, isDelete = false): React.CSSProperties => ({
-    color:
-      hoveredButton === buttonId
-        ? isDelete
-          ? 'var(--tool-result-error-text)'
-          : 'var(--color-text)'
-        : 'var(--color-text-muted)',
-    backgroundColor: hoveredButton === buttonId ? 'var(--color-border-emphasis)' : undefined,
-  });
-
   return (
     <>
       {/* Archive Button (mark as read) */}
       {isUnread && (
         <button
           onClick={onArchiveClick}
-          onMouseEnter={() => setHoveredButton('archive')}
-          onMouseLeave={() => setHoveredButton(null)}
-          className="rounded-sm p-1.5 transition-colors"
-          style={getButtonStyle('archive')}
+          className="rounded-sm p-1.5 text-text-muted transition-colors hover:bg-border-emphasis hover:text-text"
           title="Mark as read"
         >
           <Check className="size-4" />
@@ -190,10 +159,7 @@ const HoverActions = ({
       {/* Delete Button */}
       <button
         onClick={onDeleteClick}
-        onMouseEnter={() => setHoveredButton('delete')}
-        onMouseLeave={() => setHoveredButton(null)}
-        className="rounded-sm p-1.5 transition-colors"
-        style={getButtonStyle('delete', true)}
+        className="rounded-sm p-1.5 text-text-muted transition-colors hover:bg-border-emphasis hover:text-[var(--tool-result-error-text)]"
         title="Delete"
       >
         <Trash2 className="size-4" />
@@ -201,10 +167,7 @@ const HoverActions = ({
       {/* Navigate Button */}
       <button
         onClick={onNavigateClick}
-        onMouseEnter={() => setHoveredButton('navigate')}
-        onMouseLeave={() => setHoveredButton(null)}
-        className="rounded-sm p-1.5 transition-colors"
-        style={getButtonStyle('navigate')}
+        className="rounded-sm p-1.5 text-text-muted transition-colors hover:bg-border-emphasis hover:text-text"
         title="View in session"
       >
         <ArrowRight className="size-4" />

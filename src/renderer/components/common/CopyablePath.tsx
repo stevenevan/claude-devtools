@@ -4,8 +4,9 @@
  * A small icon appears on hover as visual affordance.
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 
+import { useClipboard } from '@renderer/hooks/mantine';
 import { Check, Copy } from 'lucide-react';
 
 interface CopyablePathProps {
@@ -25,21 +26,15 @@ export const CopyablePath = ({
   className = '',
   style,
 }: Readonly<CopyablePathProps>): React.ReactElement => {
-  const [copied, setCopied] = useState(false);
+  const { copy, copied } = useClipboard({ timeout: 1500 });
 
   const handleCopy = useCallback(
-    async (e: React.MouseEvent) => {
+    (e: React.MouseEvent) => {
       e.stopPropagation();
       e.preventDefault();
-      try {
-        await navigator.clipboard.writeText(copyText);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      } catch {
-        // Clipboard API may not be available in all contexts
-      }
+      copy(copyText);
     },
-    [copyText]
+    [copy, copyText]
   );
 
   return (
@@ -57,8 +52,8 @@ export const CopyablePath = ({
         {displayText}
       </span>
       <span
-        className="flex shrink-0 items-center opacity-0 transition-opacity group-hover/copypath:opacity-60"
-        style={{ color: style?.color ?? 'var(--color-text-muted)' }}
+        className="flex shrink-0 items-center opacity-0 transition-opacity group-hover/copypath:opacity-60 text-text-muted"
+        style={style?.color ? { color: style.color } : undefined}
         aria-hidden="true"
       >
         {copied ? <Check size={11} /> : <Copy size={11} />}

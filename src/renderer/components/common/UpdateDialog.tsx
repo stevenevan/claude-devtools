@@ -62,12 +62,7 @@ export const UpdateDialog = (): React.JSX.Element => {
 
         {releaseNotes && (
           <div
-            className="prose prose-sm max-h-48 overflow-y-auto rounded-sm border p-2 text-xs"
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              borderColor: 'var(--color-border)',
-              color: 'var(--color-text-muted)',
-            }}
+            className="prose prose-sm max-h-48 overflow-y-auto rounded-sm border border-border bg-surface p-2 text-xs text-text-muted"
           >
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
               {normalizeReleaseNotes(releaseNotes)}

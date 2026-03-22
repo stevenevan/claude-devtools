@@ -15,6 +15,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { isDesktopMode } from '@renderer/api';
 import { HEADER_ROW1_HEIGHT, HEADER_ROW2_HEIGHT } from '@renderer/constants/layout';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatShortcut, truncateMiddle } from '@renderer/utils/stringUtils';
 import { Check, ChevronDown, GitBranch, PanelLeft } from 'lucide-react';
@@ -103,34 +104,27 @@ const WorktreeItem = ({
 }: Readonly<WorktreeItemProps>): React.JSX.Element => {
   const [isHovered, setIsHovered] = useState(false);
 
-  const buttonStyle: React.CSSProperties = isSelected
-    ? { backgroundColor: 'var(--color-surface-raised)', color: 'var(--color-text)' }
-    : {
-        backgroundColor: isHovered ? 'var(--color-surface-raised)' : 'transparent',
-        opacity: isHovered ? 0.5 : 1,
-      };
-
   return (
     <button
       onClick={onSelect}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="flex w-full items-center gap-1.5 px-4 py-1.5 text-left transition-colors"
-      style={buttonStyle}
+      className={cn(
+        'flex w-full items-center gap-1.5 px-4 py-1.5 text-left transition-colors',
+        isSelected ? 'bg-surface-raised text-text' : isHovered ? 'bg-surface-raised opacity-50' : ''
+      )}
     >
       <GitBranch
-        className="size-3.5 shrink-0"
-        style={{ color: isSelected ? '#34d399' : 'var(--color-text-muted)' }}
+        className={cn('size-3.5 shrink-0', isSelected ? 'text-emerald-400' : 'text-text-muted')}
       />
       {/* Only show badge for main worktree - others are grouped by header */}
       {worktree.isMainWorktree && <WorktreeBadge source={worktree.source} isMain />}
       <span
-        className="flex-1 truncate font-mono text-xs"
-        style={{ color: isSelected ? 'var(--color-text)' : 'var(--color-text-muted)' }}
+        className={cn('flex-1 truncate font-mono text-xs', isSelected ? 'text-text' : 'text-text-muted')}
       >
         {truncateMiddle(worktree.name, 28)}
       </span>
-      <span className="shrink-0 text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+      <span className="shrink-0 text-[10px] text-text-muted">
         {worktree.sessions.length}
       </span>
       {isSelected && <Check className="size-3.5 shrink-0 text-indigo-400" />}
@@ -158,35 +152,32 @@ const ProjectDropdownItem = ({
 }: Readonly<ProjectDropdownItemProps>): React.JSX.Element => {
   const [isHovered, setIsHovered] = useState(false);
 
-  const buttonStyle: React.CSSProperties = isSelected
-    ? { backgroundColor: 'var(--color-surface-raised)', color: 'var(--color-text)' }
-    : {
-        backgroundColor: isHovered ? 'var(--color-surface-raised)' : 'transparent',
-        opacity: isHovered ? 0.5 : 1,
-      };
-
   return (
     <button
       onClick={onSelect}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors"
-      style={buttonStyle}
+      className={cn(
+        'flex w-full items-center gap-2 px-3 py-2 text-left transition-colors',
+        isSelected ? 'bg-surface-raised text-text' : isHovered ? 'bg-surface-raised opacity-50' : ''
+      )}
     >
       <div className="min-w-0 flex-1">
         <span
-          className={`block truncate text-sm ${isSelected ? 'font-medium' : ''}`}
-          style={{ color: isSelected ? 'var(--color-text)' : 'var(--color-text-muted)' }}
+          className={cn(
+            'block truncate text-sm',
+            isSelected ? 'font-medium text-text' : 'text-text-muted'
+          )}
         >
           {name}
         </span>
         {path && (
-          <span className="block truncate text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+          <span className="block truncate text-[10px] text-text-muted">
             {path}
           </span>
         )}
       </div>
-      <span className="shrink-0 text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+      <span className="shrink-0 text-[10px] text-text-muted">
         {sessionCount}
       </span>
       {isSelected && <Check className="size-3.5 shrink-0 text-indigo-400" />}
@@ -322,10 +313,7 @@ export const SidebarHeader = (): React.JSX.Element => {
   const [isCollapseHovered, setIsCollapseHovered] = useState(false);
 
   return (
-    <div
-      className="flex w-full flex-col"
-      style={{ backgroundColor: 'var(--color-surface-sidebar)' }}
-    >
+    <div className="flex w-full flex-col bg-surface-sidebar">
       {/* ROW 1: Project Identity (Title Bar / Drag Region) */}
       <div
         ref={projectDropdownRef}
@@ -345,14 +333,18 @@ export const SidebarHeader = (): React.JSX.Element => {
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
           <span
-            className="min-w-0 truncate text-sm font-bold tracking-tight"
-            style={{ color: hasSelection ? 'var(--color-text)' : 'var(--color-text-muted)' }}
+            className={cn(
+              'min-w-0 truncate text-sm font-bold tracking-tight',
+              hasSelection ? 'text-text' : 'text-text-muted'
+            )}
           >
             {projectName}
           </span>
           <ChevronDown
-            className={`size-3.5 shrink-0 transition-transform ${isProjectDropdownOpen ? 'rotate-180' : ''}`}
-            style={{ color: 'var(--color-text-muted)' }}
+            className={cn(
+              'size-3.5 shrink-0 transition-transform text-text-muted',
+              isProjectDropdownOpen ? 'rotate-180' : ''
+            )}
           />
         </button>
 
@@ -361,14 +353,11 @@ export const SidebarHeader = (): React.JSX.Element => {
           onClick={toggleSidebar}
           onMouseEnter={() => setIsCollapseHovered(true)}
           onMouseLeave={() => setIsCollapseHovered(false)}
-          className="ml-auto shrink-0 rounded-md p-1.5 transition-colors"
-          style={
-            {
-              WebkitAppRegion: 'no-drag',
-              color: isCollapseHovered ? 'var(--color-text-secondary)' : 'var(--color-text-muted)',
-              backgroundColor: isCollapseHovered ? 'var(--color-surface-raised)' : 'transparent',
-            } as React.CSSProperties
-          }
+          className={cn(
+            'ml-auto shrink-0 rounded-md p-1.5 transition-colors',
+            isCollapseHovered ? 'text-text-secondary bg-surface-raised' : 'text-text-muted'
+          )}
+          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           title={`Collapse sidebar (${formatShortcut('B')})`}
         >
           <PanelLeft className="size-4" />
@@ -383,23 +372,14 @@ export const SidebarHeader = (): React.JSX.Element => {
               onClick={() => setIsProjectDropdownOpen(false)}
             />
             <div
-              className="absolute inset-x-4 top-full z-20 mt-1 max-h-[350px] overflow-y-auto rounded-lg py-1 shadow-xl"
-              style={{
-                backgroundColor: 'var(--color-surface-sidebar)',
-                borderWidth: '1px',
-                borderStyle: 'solid',
-                borderColor: 'var(--color-border)',
-              }}
+              className="absolute inset-x-4 top-full z-20 mt-1 max-h-[350px] overflow-y-auto rounded-lg border border-border bg-surface-sidebar py-1 shadow-xl"
             >
-              <div
-                className="px-3 py-2 text-[10px] font-semibold tracking-wider uppercase"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
+              <div className="px-3 py-2 text-[10px] font-semibold tracking-wider uppercase text-text-muted">
                 Switch {viewMode === 'grouped' ? 'Repository' : 'Project'}
               </div>
 
               {projectItems.length === 0 ? (
-                <div className="p-3 text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                <div className="p-3 text-sm text-text-muted">
                   No {viewMode === 'grouped' ? 'repositories' : 'projects'} found
                 </div>
               ) : (
@@ -447,14 +427,14 @@ export const SidebarHeader = (): React.JSX.Element => {
               hasMultipleWorktrees && setIsWorktreeDropdownOpen(!isWorktreeDropdownOpen)
             }
             disabled={!hasMultipleWorktrees}
-            className={`flex w-full items-center justify-between px-4 text-left transition-colors ${hasMultipleWorktrees ? 'cursor-pointer' : 'cursor-default'}`}
-            style={{
-              height: `${HEADER_ROW2_HEIGHT}px`,
-              backgroundColor: isWorktreeDropdownOpen
-                ? 'var(--color-surface-raised)'
-                : 'var(--color-surface-sidebar)',
-              color: isWorktreeDropdownOpen ? 'var(--color-text)' : 'var(--color-text-muted)',
-            }}
+            className={cn(
+              'flex w-full items-center justify-between px-4 text-left transition-colors',
+              hasMultipleWorktrees ? 'cursor-pointer' : 'cursor-default',
+              isWorktreeDropdownOpen
+                ? 'bg-surface-raised text-text'
+                : 'bg-surface-sidebar text-text-muted'
+            )}
+            style={{ height: `${HEADER_ROW2_HEIGHT}px` }}
           >
             <div className="flex flex-1 items-center gap-1.5 overflow-hidden">
               <GitBranch
@@ -470,8 +450,10 @@ export const SidebarHeader = (): React.JSX.Element => {
             </div>
             {hasMultipleWorktrees && (
               <ChevronDown
-                className={`size-4 shrink-0 transition-transform ${isWorktreeDropdownOpen ? 'rotate-180' : ''}`}
-                style={{ color: 'var(--color-text-muted)' }}
+                className={cn(
+                  'size-4 shrink-0 transition-transform text-text-muted',
+                  isWorktreeDropdownOpen ? 'rotate-180' : ''
+                )}
               />
             )}
           </button>
@@ -485,19 +467,9 @@ export const SidebarHeader = (): React.JSX.Element => {
                 onClick={() => setIsWorktreeDropdownOpen(false)}
               />
               <div
-                className="absolute inset-x-0 top-full z-20 mt-0 max-h-[400px] overflow-y-auto py-1 shadow-xl"
-                style={{
-                  backgroundColor: 'var(--color-surface-sidebar)',
-                  borderWidth: '1px',
-                  borderTopWidth: '0',
-                  borderStyle: 'solid',
-                  borderColor: 'var(--color-border)',
-                }}
+                className="absolute inset-x-0 top-full z-20 mt-0 max-h-[400px] overflow-y-auto border border-t-0 border-border bg-surface-sidebar py-1 shadow-xl"
               >
-                <div
-                  className="px-4 py-2 text-[10px] font-semibold tracking-wider uppercase"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
+                <div className="px-4 py-2 text-[10px] font-semibold tracking-wider uppercase text-text-muted">
                   Switch Worktree
                 </div>
 
@@ -515,13 +487,7 @@ export const SidebarHeader = (): React.JSX.Element => {
                   <div key={group.source}>
                     {/* Group header */}
                     <div
-                      className="mt-1 px-4 py-1.5 text-[9px] font-medium tracking-wider uppercase"
-                      style={{
-                        borderTopWidth: '1px',
-                        borderTopStyle: 'solid',
-                        borderTopColor: 'var(--color-border)',
-                        color: 'var(--color-text-muted)',
-                      }}
+                      className="mt-1 border-t border-border px-4 py-1.5 text-[9px] font-medium tracking-wider uppercase text-text-muted"
                     >
                       {group.label}
                     </div>

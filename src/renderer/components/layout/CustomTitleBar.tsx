@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 
 import { api, isDesktopMode } from '@renderer/api';
 import faviconUrl from '@renderer/favicon.png';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Minus, Square, X } from 'lucide-react';
 
@@ -40,21 +41,22 @@ export const CustomTitleBar = (): React.JSX.Element | null => {
     setIsMaximized(maximized);
   };
 
-  const buttonBase =
-    'flex h-full w-12 items-center justify-center transition-colors border-0 outline-hidden';
-  const buttonHover = 'hover:bg-white/10';
-
-  const titleBarStyle = {
-    height: `${TITLE_BAR_HEIGHT}px`,
-    backgroundColor: 'var(--color-surface-sidebar)',
-    borderBottom: '1px solid var(--color-border)',
-    WebkitAppRegion: 'drag',
-  } as React.CSSProperties;
+  const buttonBase = cn(
+    'flex h-full w-12 items-center justify-center transition-colors border-0 outline-hidden text-text-secondary'
+  );
 
   return (
-    <div className="flex shrink-0 items-stretch select-none" style={titleBarStyle}>
+    <div
+      className="flex shrink-0 items-stretch select-none bg-surface-sidebar border-b border-border"
+      style={
+        {
+          height: `${TITLE_BAR_HEIGHT}px`,
+          WebkitAppRegion: 'drag',
+        } as React.CSSProperties
+      }
+    >
       {/* Draggable area — app icon */}
-      <div className="flex flex-1 items-center pl-3" style={{ minWidth: 0 }}>
+      <div className="flex flex-1 min-w-0 items-center pl-3">
         <img src={faviconUrl} alt="" className="size-5 shrink-0 rounded-sm" draggable={false} />
       </div>
 
@@ -62,8 +64,7 @@ export const CustomTitleBar = (): React.JSX.Element | null => {
       <div className="flex shrink-0" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
         <button
           type="button"
-          className={`${buttonBase} ${buttonHover}`}
-          style={{ color: 'var(--color-text-secondary)' }}
+          className={cn(buttonBase, 'hover:bg-white/10')}
           onClick={() => void minimize()}
           title="Minimize"
           aria-label="Minimize"
@@ -72,8 +73,7 @@ export const CustomTitleBar = (): React.JSX.Element | null => {
         </button>
         <button
           type="button"
-          className={`${buttonBase} ${buttonHover}`}
-          style={{ color: 'var(--color-text-secondary)' }}
+          className={cn(buttonBase, 'hover:bg-white/10')}
           onClick={() => void handleMaximize()}
           title={isMaximized ? 'Restore' : 'Maximize'}
           aria-label={isMaximized ? 'Restore' : 'Maximize'}
@@ -82,8 +82,7 @@ export const CustomTitleBar = (): React.JSX.Element | null => {
         </button>
         <button
           type="button"
-          className={`${buttonBase} hover:bg-red-500/90 hover:text-white`}
-          style={{ color: 'var(--color-text-secondary)' }}
+          className={cn(buttonBase, 'hover:bg-red-500/90 hover:text-white')}
           onClick={() => void close()}
           title="Close"
           aria-label="Close"

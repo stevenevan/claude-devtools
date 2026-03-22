@@ -360,43 +360,25 @@ const ProjectsGrid = ({
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
-            className="skeleton-card border-border flex min-h-[120px] flex-col rounded-xs border p-4"
-            style={{
-              animationDelay: `${i * 80}ms`,
-              backgroundColor: 'var(--skeleton-base)',
-            }}
+            className="skeleton-card border-border flex min-h-[120px] flex-col rounded-xs border bg-[var(--skeleton-base)] p-4"
+            style={{ animationDelay: `${i * 80}ms` }}
           >
             {/* Icon placeholder */}
-            <div
-              className="mb-3 size-8 rounded-xs"
-              style={{ backgroundColor: 'var(--skeleton-base-light)' }}
-            />
+            <div className="mb-3 size-8 rounded-xs bg-[var(--skeleton-base-light)]" />
             {/* Title placeholder */}
             <div
-              className="mb-2 h-3.5 rounded-xs"
-              style={{
-                width: `${titleWidths[i]}%`,
-                backgroundColor: 'var(--skeleton-base-light)',
-              }}
+              className="mb-2 h-3.5 rounded-xs bg-[var(--skeleton-base-light)]"
+              style={{ width: `${titleWidths[i]}%` }}
             />
             {/* Path placeholder */}
             <div
-              className="mb-auto h-2.5 rounded-xs"
-              style={{
-                width: `${pathWidths[i]}%`,
-                backgroundColor: 'var(--skeleton-base-dim)',
-              }}
+              className="mb-auto h-2.5 rounded-xs bg-[var(--skeleton-base-dim)]"
+              style={{ width: `${pathWidths[i]}%` }}
             />
             {/* Meta row placeholder */}
             <div className="mt-3 flex gap-2">
-              <div
-                className="h-2.5 w-16 rounded-xs"
-                style={{ backgroundColor: 'var(--skeleton-base-dim)' }}
-              />
-              <div
-                className="h-2.5 w-12 rounded-xs"
-                style={{ backgroundColor: 'var(--skeleton-base-dim)' }}
-              />
+              <div className="h-2.5 w-16 rounded-xs bg-[var(--skeleton-base-dim)]" />
+              <div className="h-2.5 w-12 rounded-xs bg-[var(--skeleton-base-dim)]" />
             </div>
           </div>
         ))}

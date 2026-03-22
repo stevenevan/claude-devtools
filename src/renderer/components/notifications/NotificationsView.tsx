@@ -6,6 +6,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { getTriggerColorDef } from '@shared/constants/triggerColors';
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -178,16 +179,10 @@ export const NotificationsView = (): React.JSX.Element => {
   // Loading state
   if (isLoading) {
     return (
-      <div
-        className="flex flex-1 flex-col overflow-hidden"
-        style={{ backgroundColor: 'var(--color-surface)' }}
-      >
+      <div className="flex flex-1 flex-col overflow-hidden bg-surface">
         <div className="flex items-center justify-center py-16">
-          <Loader2
-            className="mr-2 size-5 animate-spin"
-            style={{ color: 'var(--color-text-muted)' }}
-          />
-          <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+          <Loader2 className="mr-2 size-5 animate-spin text-text-muted" />
+          <span className="text-sm text-text-muted">
             Loading notifications...
           </span>
         </div>
@@ -196,21 +191,18 @@ export const NotificationsView = (): React.JSX.Element => {
   }
 
   return (
-    <div
-      className="flex flex-1 flex-col overflow-hidden"
-      style={{ backgroundColor: 'var(--color-surface)' }}
-    >
+    <div className="flex flex-1 flex-col overflow-hidden bg-surface">
       {/* Header */}
-      <div className="shrink-0 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
+      <div className="shrink-0 border-b border-border-subtle">
         <div className="flex items-center justify-between px-4 py-3">
           {/* Title */}
           <div className="flex items-center gap-2">
-            <Inbox className="size-4" style={{ color: 'var(--color-text-secondary)' }} />
-            <span className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>
+            <Inbox className="size-4 text-text-secondary" />
+            <span className="text-sm font-medium text-text">
               Notifications
             </span>
             {notifications.length > 0 && (
-              <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+              <span className="text-xs text-text-muted">
                 {activeFilter !== null
                   ? filteredUnreadCount > 0
                     ? `${filteredUnreadCount} unread in filter`
@@ -229,8 +221,7 @@ export const NotificationsView = (): React.JSX.Element => {
               {filteredUnreadCount > 0 && (
                 <button
                   onClick={handleMarkAllRead}
-                  className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition-colors hover:opacity-80"
-                  style={{ color: 'var(--color-text-muted)' }}
+                  className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-text-muted transition-colors hover:opacity-80"
                   title={activeFilter !== null ? 'Mark filtered as read' : 'Mark all as read'}
                 >
                   <CheckCheck className="size-4" />
@@ -242,12 +233,12 @@ export const NotificationsView = (): React.JSX.Element => {
               {/* Clear all/filtered */}
               <button
                 onClick={handleClearAll}
-                className={`flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition-colors ${
+                className={cn(
+                  'flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition-colors',
                   showClearConfirm
                     ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                    : 'hover:opacity-80'
-                }`}
-                style={showClearConfirm ? undefined : { color: 'var(--color-text-muted)' }}
+                    : 'text-text-muted hover:opacity-80'
+                )}
                 title={
                   activeFilter !== null ? 'Clear filtered notifications' : 'Clear all notifications'
                 }
@@ -268,23 +259,17 @@ export const NotificationsView = (): React.JSX.Element => {
 
       {/* Filter Chip Bar */}
       {filterChips.length > 1 && (
-        <div
-          className="scrollbar-none shrink-0 overflow-x-auto border-b"
-          style={{ borderColor: 'var(--color-border-subtle)' }}
-        >
+        <div className="scrollbar-none shrink-0 overflow-x-auto border-b border-border-subtle">
           <div className="flex items-center gap-1.5 px-4 py-2">
             {/* All chip */}
             <button
               onClick={() => setActiveFilter(null)}
-              className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs transition-colors"
-              style={{
-                backgroundColor: activeFilter === null ? 'var(--color-surface-raised)' : undefined,
-                color: activeFilter === null ? 'var(--color-text)' : 'var(--color-text-muted)',
-                border:
-                  activeFilter === null
-                    ? '1px solid var(--color-border-emphasis)'
-                    : '1px solid var(--color-border)',
-              }}
+              className={cn(
+                'flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors',
+                activeFilter === null
+                  ? 'border-border-emphasis bg-surface-raised text-text'
+                  : 'border-border text-text-muted'
+              )}
             >
               All
               <span className="opacity-60">({sortedNotifications.length})</span>
@@ -294,17 +279,12 @@ export const NotificationsView = (): React.JSX.Element => {
               <button
                 key={chip.label}
                 onClick={() => handleFilterClick(chip.label)}
-                className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs transition-colors"
-                style={{
-                  backgroundColor:
-                    activeFilter === chip.label ? 'var(--color-surface-raised)' : undefined,
-                  color:
-                    activeFilter === chip.label ? 'var(--color-text)' : 'var(--color-text-muted)',
-                  border:
-                    activeFilter === chip.label
-                      ? '1px solid var(--color-border-emphasis)'
-                      : '1px solid var(--color-border)',
-                }}
+                className={cn(
+                  'flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors',
+                  activeFilter === chip.label
+                    ? 'border-border-emphasis bg-surface-raised text-text'
+                    : 'border-border text-text-muted'
+                )}
               >
                 <span className="size-2 rounded-full" style={{ backgroundColor: chip.colorHex }} />
                 {chip.label}
@@ -318,10 +298,7 @@ export const NotificationsView = (): React.JSX.Element => {
       {/* Notifications List */}
       <div ref={parentRef} className="flex-1 overflow-y-auto">
         {filteredNotifications.length === 0 ? (
-          <div
-            className="flex flex-col items-center justify-center py-16"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
+          <div className="flex flex-col items-center justify-center py-16 text-text-muted">
             <Inbox className="mb-3 size-10 opacity-30" />
             <p className="mb-1 text-sm font-medium">
               {activeFilter !== null ? 'No matching notifications' : 'No notifications'}
