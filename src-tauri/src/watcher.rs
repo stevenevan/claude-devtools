@@ -140,7 +140,7 @@ fn parse_todo_file(
 // Resolve claude base directory
 // ---------------------------------------------------------------------------
 
-fn resolve_claude_dir() -> Option<PathBuf> {
+pub fn resolve_claude_dir() -> Option<PathBuf> {
     // Respect CLAUDE_ROOT env var (same as the TypeScript sidecar)
     if let Ok(root) = std::env::var("CLAUDE_ROOT") {
         let p = PathBuf::from(root);

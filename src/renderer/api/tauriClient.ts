@@ -114,8 +114,20 @@ export class TauriAPIClient implements ElectronAPI {
   getSessionDetail = (projectId: string, sessionId: string): Promise<SessionDetail | null> =>
     this.http.getSessionDetail(projectId, sessionId);
 
-  getSessionMetrics = (projectId: string, sessionId: string): Promise<SessionMetrics | null> =>
-    this.http.getSessionMetrics(projectId, sessionId);
+  getSessionMetrics = async (
+    projectId: string,
+    sessionId: string
+  ): Promise<SessionMetrics | null> => {
+    try {
+      return await invoke<SessionMetrics>('parse_session_metrics', {
+        projectId,
+        sessionId,
+      });
+    } catch {
+      // Fallback to sidecar HTTP
+      return this.http.getSessionMetrics(projectId, sessionId);
+    }
+  };
 
   getWaterfallData = (projectId: string, sessionId: string): Promise<WaterfallData | null> =>
     this.http.getWaterfallData(projectId, sessionId);
