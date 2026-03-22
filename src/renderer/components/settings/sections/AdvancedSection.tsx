@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { api, isDesktopMode } from '@renderer/api';
+import { cn } from '@renderer/lib/utils';
 import appIcon from '@renderer/favicon.png';
 import { useStore } from '@renderer/store';
 import { CheckCircle, Code2, Download, Loader2, RefreshCw, Upload } from 'lucide-react';
@@ -96,11 +97,7 @@ export const AdvancedSection = ({
         <button
           onClick={onResetToDefaults}
           disabled={saving}
-          className={`flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
-          style={{
-            borderColor: 'var(--color-border)',
-            color: 'var(--color-text-secondary)',
-          }}
+          className={`flex w-full items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-medium text-text-secondary transition-all duration-150 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
         >
           <RefreshCw className="size-4" />
           Reset to Defaults
@@ -108,11 +105,7 @@ export const AdvancedSection = ({
         <button
           onClick={onExportConfig}
           disabled={saving}
-          className={`flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
-          style={{
-            borderColor: 'var(--color-border)',
-            color: 'var(--color-text-secondary)',
-          }}
+          className={`flex w-full items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-medium text-text-secondary transition-all duration-150 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
         >
           <Download className="size-4" />
           Export Config
@@ -120,11 +113,7 @@ export const AdvancedSection = ({
         <button
           onClick={onImportConfig}
           disabled={saving}
-          className={`flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
-          style={{
-            borderColor: 'var(--color-border)',
-            color: 'var(--color-text-secondary)',
-          }}
+          className={`flex w-full items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-medium text-text-secondary transition-all duration-150 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
         >
           <Upload className="size-4" />
           Import Config
@@ -132,11 +121,7 @@ export const AdvancedSection = ({
         {isElectron && (
           <button
             onClick={onOpenInEditor}
-            className="flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150"
-            style={{
-              borderColor: 'var(--color-border)',
-              color: 'var(--color-text-secondary)',
-            }}
+            className="flex w-full items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-medium text-text-secondary transition-all duration-150"
           >
             <Code2 className="size-4" />
             Open in Editor
@@ -149,43 +134,35 @@ export const AdvancedSection = ({
         <img src={appIcon} alt="App Icon" className="size-10 rounded-lg" />
         <div>
           <div className="flex items-center gap-3">
-            <p className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>
+            <p className="text-sm font-medium text-text">
               claude-devtools
             </p>
             {isElectron && (
               <button
                 onClick={handleCheckForUpdates}
                 disabled={updateStatus === 'checking'}
-                className="flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-white/5 disabled:opacity-50"
-                style={{
-                  borderColor: 'var(--color-border)',
-                  color:
-                    updateStatus === 'not-available'
-                      ? 'var(--color-text-muted)'
-                      : updateStatus === 'available' || updateStatus === 'downloaded'
-                        ? '#60a5fa'
-                        : 'var(--color-text-secondary)',
-                }}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-white/5 disabled:opacity-50',
+                  updateStatus === 'not-available'
+                    ? 'text-text-muted'
+                    : updateStatus === 'available' || updateStatus === 'downloaded'
+                      ? 'text-blue-400'
+                      : 'text-text-secondary'
+                )}
               >
                 {getUpdateButtonContent()}
               </button>
             )}
             {!isElectron && (
-              <span
-                className="rounded-md border px-2.5 py-1 text-xs font-medium"
-                style={{
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-muted)',
-                }}
-              >
+              <span className="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-text-muted">
                 Standalone
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-xs" style={{ color: 'var(--color-text-muted)' }}>
+          <p className="mt-0.5 text-xs text-text-muted">
             Version {version || '...'}
           </p>
-          <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+          <p className="mt-2 text-xs leading-relaxed text-text-muted">
             Visualize and analyze Claude Code session executions with interactive waterfall charts
             and detailed insights.
           </p>

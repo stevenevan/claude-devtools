@@ -6,13 +6,21 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
+import { Button } from '@renderer/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@renderer/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
+import { Switch } from '@renderer/components/ui/switch';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { getFullResetState } from '@renderer/store/utils/stateResetHelpers';
 import { Check, Copy, FolderOpen, Laptop, Loader2, RotateCcw } from 'lucide-react';
-
-import { Switch } from '@renderer/components/ui/switch';
-
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
 
 import { SettingRow, SettingsSectionHeader } from '../components';
 
@@ -334,7 +342,7 @@ export const GeneralSection = ({
       {isElectron && (
         <>
           <SettingsSectionHeader title="Local Claude Root" />
-          <p className="mb-4 text-sm" style={{ color: 'var(--color-text-muted)' }}>
+          <p className="mb-4 text-sm text-text-muted">
             Choose which local folder is treated as your Claude data root
           </p>
 
@@ -343,69 +351,54 @@ export const GeneralSection = ({
             description={isCustomClaudeRoot ? 'Using custom path' : 'Using auto-detected path'}
           >
             <div className="max-w-96 text-right">
-              <div className="truncate font-mono text-xs" style={{ color: 'var(--color-text)' }}>
+              <div className="truncate font-mono text-xs text-text">
                 {resolvedClaudeRootPath}
               </div>
-              <div className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+              <div className="text-[11px] text-text-muted">
                 Auto-detected: {defaultClaudeRootPath}
               </div>
             </div>
           </SettingRow>
 
           <div className="flex items-center gap-3 py-2">
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => void handleSelectClaudeRootFolder()}
               disabled={updatingClaudeRoot}
-              className="rounded-md px-4 py-1.5 text-sm transition-colors disabled:opacity-50"
-              style={{
-                backgroundColor: 'var(--color-surface-raised)',
-                color: 'var(--color-text)',
-              }}
             >
-              <span className="flex items-center gap-2">
-                {updatingClaudeRoot ? (
-                  <Loader2 className="size-3 animate-spin" />
-                ) : (
-                  <FolderOpen className="size-3" />
-                )}
-                Select Folder
-              </span>
-            </button>
+              {updatingClaudeRoot ? (
+                <Loader2 className="size-3 animate-spin" />
+              ) : (
+                <FolderOpen className="size-3" />
+              )}
+              Select Folder
+            </Button>
 
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => void handleResetClaudeRoot()}
               disabled={updatingClaudeRoot || !isCustomClaudeRoot}
-              className="rounded-md px-4 py-1.5 text-sm transition-colors disabled:opacity-50"
-              style={{
-                backgroundColor: 'var(--color-surface-raised)',
-                color: 'var(--color-text-secondary)',
-              }}
             >
-              <span className="flex items-center gap-2">
-                <RotateCcw className="size-3" />
-                Use Auto-Detect
-              </span>
-            </button>
+              <RotateCcw className="size-3" />
+              Use Auto-Detect
+            </Button>
 
             {isWindowsStyleDefaultPath && (
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => void handleUseWslForClaude()}
                 disabled={updatingClaudeRoot || findingWslRoots}
-                className="rounded-md px-4 py-1.5 text-sm transition-colors disabled:opacity-50"
-                style={{
-                  backgroundColor: 'var(--color-surface-raised)',
-                  color: 'var(--color-text-secondary)',
-                }}
               >
-                <span className="flex items-center gap-2">
-                  {findingWslRoots ? (
-                    <Loader2 className="size-3 animate-spin" />
-                  ) : (
-                    <Laptop className="size-3" />
-                  )}
-                  Using Linux/WSL?
-                </span>
-              </button>
+                {findingWslRoots ? (
+                  <Loader2 className="size-3 animate-spin" />
+                ) : (
+                  <Laptop className="size-3" />
+                )}
+                Using Linux/WSL?
+              </Button>
             )}
           </div>
 
@@ -415,94 +408,60 @@ export const GeneralSection = ({
             </div>
           )}
 
-          {showWslModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <button
-                className="absolute inset-0 cursor-default"
-                style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
-                onClick={() => setShowWslModal(false)}
-                aria-label="Close WSL path modal"
-                tabIndex={-1}
-              />
-              <div
-                className="relative mx-4 w-full max-w-2xl rounded-lg border p-5 shadow-xl"
-                style={{
-                  backgroundColor: 'var(--color-surface-overlay)',
-                  borderColor: 'var(--color-border-emphasis)',
-                }}
-              >
-                <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text)' }}>
-                  Select WSL Claude Root
-                </h3>
-                <p className="mt-1 text-xs" style={{ color: 'var(--color-text-muted)' }}>
+          <Dialog open={showWslModal} onOpenChange={setShowWslModal}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Select WSL Claude Root</DialogTitle>
+                <DialogDescription>
                   Detected WSL distributions and Claude root candidates
-                </p>
+                </DialogDescription>
+              </DialogHeader>
 
-                <div className="mt-4 space-y-2">
-                  {wslCandidates.map((candidate) => (
-                    <div
-                      key={`${candidate.distro}:${candidate.path}`}
-                      className="flex items-center justify-between gap-3 rounded-md border px-3 py-2"
-                      style={{ borderColor: 'var(--color-border)' }}
-                    >
-                      <div className="min-w-0">
-                        <p className="text-xs font-medium" style={{ color: 'var(--color-text)' }}>
-                          {candidate.distro}
+              <div className="space-y-2">
+                {wslCandidates.map((candidate) => (
+                  <div
+                    key={`${candidate.distro}:${candidate.path}`}
+                    className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-text">{candidate.distro}</p>
+                      <p className="truncate font-mono text-[11px] text-text-muted">
+                        {candidate.path}
+                      </p>
+                      {!candidate.hasProjectsDir && (
+                        <p className="text-[11px] text-amber-400">
+                          No projects directory detected
                         </p>
-                        <p
-                          className="truncate font-mono text-[11px]"
-                          style={{ color: 'var(--color-text-muted)' }}
-                        >
-                          {candidate.path}
-                        </p>
-                        {!candidate.hasProjectsDir && (
-                          <p className="text-[11px] text-amber-400">
-                            No projects directory detected
-                          </p>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => void applyWslCandidate(candidate)}
-                        className="rounded-md px-3 py-1.5 text-xs transition-colors"
-                        style={{
-                          backgroundColor: 'var(--color-surface-raised)',
-                          color: 'var(--color-text)',
-                        }}
-                      >
-                        Use This Path
-                      </button>
+                      )}
                     </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 flex items-center justify-end gap-2">
-                  <button
-                    onClick={() => setShowWslModal(false)}
-                    className="rounded-md border px-3 py-1.5 text-xs transition-colors hover:bg-white/5"
-                    style={{
-                      borderColor: 'var(--color-border)',
-                      color: 'var(--color-text-secondary)',
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowWslModal(false);
-                      void handleSelectClaudeRootFolder();
-                    }}
-                    className="rounded-md px-3 py-1.5 text-xs transition-colors"
-                    style={{
-                      backgroundColor: 'var(--color-surface-raised)',
-                      color: 'var(--color-text)',
-                    }}
-                  >
-                    Select Folder Manually
-                  </button>
-                </div>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => void applyWslCandidate(candidate)}
+                    >
+                      Use This Path
+                    </Button>
+                  </div>
+                ))}
               </div>
-            </div>
-          )}
+
+              <DialogFooter>
+                <Button variant="outline" size="sm" onClick={() => setShowWslModal(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setShowWslModal(false);
+                    void handleSelectClaudeRootFolder();
+                  }}
+                >
+                  Select Folder Manually
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </>
       )}
 
@@ -514,10 +473,7 @@ export const GeneralSection = ({
             description="Start an HTTP server to access the UI from a browser or embed in iframes"
           >
             {serverLoading ? (
-              <Loader2
-                className="size-5 animate-spin"
-                style={{ color: 'var(--color-text-muted)' }}
-              />
+              <Loader2 className="size-5 animate-spin text-text-muted" />
             ) : (
               <Switch
                 checked={serverStatus.running}
@@ -528,37 +484,18 @@ export const GeneralSection = ({
           </SettingRow>
 
           {serverStatus.running && (
-            <div
-              className="mb-2 flex items-center gap-3 rounded-md px-3 py-2.5"
-              style={{ backgroundColor: 'var(--color-surface-raised)' }}
-            >
-              <div
-                className="size-2 shrink-0 rounded-full"
-                style={{ backgroundColor: '#22c55e' }}
-              />
-              <span
-                className="text-xs font-medium"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                Running on
-              </span>
-              <code
-                className="rounded-sm px-1.5 py-0.5 font-mono text-xs"
-                style={{
-                  backgroundColor: 'var(--color-surface)',
-                  color: 'var(--color-text)',
-                  border: '1px solid var(--color-border)',
-                }}
-              >
+            <div className="mb-2 flex items-center gap-3 rounded-md bg-surface-raised px-3 py-2.5">
+              <div className="size-2 shrink-0 rounded-full bg-green-500" />
+              <span className="text-xs font-medium text-text-secondary">Running on</span>
+              <code className="rounded-sm border border-border bg-surface px-1.5 py-0.5 font-mono text-xs text-text">
                 {serverUrl}
               </code>
               <button
                 onClick={handleCopyUrl}
-                className="ml-auto flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-white/5"
-                style={{
-                  borderColor: 'var(--color-border)',
-                  color: copied ? '#22c55e' : 'var(--color-text-secondary)',
-                }}
+                className={cn(
+                  'ml-auto flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-white/5',
+                  copied ? 'text-green-500' : 'text-text-secondary'
+                )}
               >
                 {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
                 {copied ? 'Copied' : 'Copy URL'}
@@ -569,22 +506,10 @@ export const GeneralSection = ({
       ) : (
         <>
           <SettingsSectionHeader title="Server" />
-          <div
-            className="mb-2 flex items-center gap-3 rounded-md px-3 py-2.5"
-            style={{ backgroundColor: 'var(--color-surface-raised)' }}
-          >
-            <div className="size-2 shrink-0 rounded-full" style={{ backgroundColor: '#22c55e' }} />
-            <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>
-              Running on
-            </span>
-            <code
-              className="rounded-sm px-1.5 py-0.5 font-mono text-xs"
-              style={{
-                backgroundColor: 'var(--color-surface)',
-                color: 'var(--color-text)',
-                border: '1px solid var(--color-border)',
-              }}
-            >
+          <div className="mb-2 flex items-center gap-3 rounded-md bg-surface-raised px-3 py-2.5">
+            <div className="size-2 shrink-0 rounded-full bg-green-500" />
+            <span className="text-xs font-medium text-text-secondary">Running on</span>
+            <code className="rounded-sm border border-border bg-surface px-1.5 py-0.5 font-mono text-xs text-text">
               {window.location.origin}
             </code>
             <button
@@ -593,17 +518,16 @@ export const GeneralSection = ({
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
               }}
-              className="ml-auto flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-white/5"
-              style={{
-                borderColor: 'var(--color-border)',
-                color: copied ? '#22c55e' : 'var(--color-text-secondary)',
-              }}
+              className={cn(
+                'ml-auto flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-white/5',
+                copied ? 'text-green-500' : 'text-text-secondary'
+              )}
             >
               {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
               {copied ? 'Copied' : 'Copy URL'}
             </button>
           </div>
-          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+          <p className="text-xs text-text-muted">
             Running in standalone mode. The HTTP server is always active. System notifications are
             not available — notification triggers are logged in-app only.
           </p>

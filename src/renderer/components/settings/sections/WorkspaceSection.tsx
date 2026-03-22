@@ -22,12 +22,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 import type { SshAuthMethod, SshConnectionProfile } from '@shared/types';
 
-const inputClass = 'w-full rounded-md border px-3 py-1.5 text-sm focus:outline-hidden focus:ring-1';
-const inputStyle = {
-  backgroundColor: 'var(--color-surface-raised)',
-  borderColor: 'var(--color-border)',
-  color: 'var(--color-text)',
-};
+const inputClass =
+  'w-full rounded-md border border-border bg-surface-raised px-3 py-1.5 text-sm text-text focus:outline-hidden focus:ring-1';
 
 const authMethodOptions: readonly { value: SshAuthMethod; label: string }[] = [
   { value: 'auto', label: 'Auto (from SSH Config)' },
@@ -162,19 +158,12 @@ export const WorkspaceSection = (): React.JSX.Element => {
     formName.trim() !== '' && formHost.trim() !== '' && formUsername.trim() !== '';
 
   const renderForm = (onSave: () => Promise<void>, onCancel: () => void): React.JSX.Element => (
-    <div
-      className="space-y-3 rounded-md border p-4"
-      style={{
-        backgroundColor: 'var(--color-surface-raised)',
-        borderColor: 'var(--color-border)',
-      }}
-    >
+    <div className="space-y-3 rounded-md border border-border bg-surface-raised p-4">
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label
             htmlFor="ws-profile-name"
-            className="mb-1 block text-xs"
-            style={{ color: 'var(--color-text-muted)' }}
+            className="mb-1 block text-xs text-text-muted"
           >
             Name
           </label>
@@ -185,14 +174,12 @@ export const WorkspaceSection = (): React.JSX.Element => {
             onChange={(e) => setFormName(e.target.value)}
             placeholder="My Server"
             className={inputClass}
-            style={inputStyle}
           />
         </div>
         <div>
           <label
             htmlFor="ws-profile-host"
-            className="mb-1 block text-xs"
-            style={{ color: 'var(--color-text-muted)' }}
+            className="mb-1 block text-xs text-text-muted"
           >
             Host
           </label>
@@ -203,7 +190,6 @@ export const WorkspaceSection = (): React.JSX.Element => {
             onChange={(e) => setFormHost(e.target.value)}
             placeholder="hostname or IP"
             className={inputClass}
-            style={inputStyle}
           />
         </div>
       </div>
@@ -212,8 +198,7 @@ export const WorkspaceSection = (): React.JSX.Element => {
         <div>
           <label
             htmlFor="ws-profile-port"
-            className="mb-1 block text-xs"
-            style={{ color: 'var(--color-text-muted)' }}
+            className="mb-1 block text-xs text-text-muted"
           >
             Port
           </label>
@@ -224,14 +209,12 @@ export const WorkspaceSection = (): React.JSX.Element => {
             onChange={(e) => setFormPort(e.target.value)}
             placeholder="22"
             className={inputClass}
-            style={inputStyle}
           />
         </div>
         <div>
           <label
             htmlFor="ws-profile-username"
-            className="mb-1 block text-xs"
-            style={{ color: 'var(--color-text-muted)' }}
+            className="mb-1 block text-xs text-text-muted"
           >
             Username
           </label>
@@ -242,16 +225,15 @@ export const WorkspaceSection = (): React.JSX.Element => {
             onChange={(e) => setFormUsername(e.target.value)}
             placeholder="user"
             className={inputClass}
-            style={inputStyle}
           />
         </div>
       </div>
 
       <div>
-        <label className="mb-1 block text-xs" style={{ color: 'var(--color-text-muted)' }}>
+        <label className="mb-1 block text-xs text-text-muted">
           Authentication
         </label>
-        <Select value={formAuthMethod} onValueChange={(v) => setFormAuthMethod(v as SshAuthMethod)}>
+        <Select value={formAuthMethod} onValueChange={(v) => setFormAuthMethod(v!)}>
           <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
@@ -267,8 +249,7 @@ export const WorkspaceSection = (): React.JSX.Element => {
         <div>
           <label
             htmlFor="ws-profile-private-key-path"
-            className="mb-1 block text-xs"
-            style={{ color: 'var(--color-text-muted)' }}
+            className="mb-1 block text-xs text-text-muted"
           >
             Private Key Path
           </label>
@@ -279,13 +260,12 @@ export const WorkspaceSection = (): React.JSX.Element => {
             onChange={(e) => setFormPrivateKeyPath(e.target.value)}
             placeholder="~/.ssh/id_rsa"
             className={inputClass}
-            style={inputStyle}
           />
         </div>
       )}
 
       {formAuthMethod === 'password' && (
-        <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+        <p className="text-xs text-text-muted">
           You will be prompted for the password when connecting.
         </p>
       )}
@@ -294,22 +274,14 @@ export const WorkspaceSection = (): React.JSX.Element => {
         <button
           onClick={() => void onSave()}
           disabled={!isFormValid}
-          className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors disabled:opacity-50"
-          style={{
-            backgroundColor: 'var(--color-surface-raised)',
-            color: 'var(--color-text)',
-          }}
+          className="flex items-center gap-1.5 rounded-md bg-surface-raised px-3 py-1.5 text-sm text-text transition-colors disabled:opacity-50"
         >
           <Save className="size-3.5" />
           Save
         </button>
         <button
           onClick={onCancel}
-          className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors"
-          style={{
-            backgroundColor: 'transparent',
-            color: 'var(--color-text-muted)',
-          }}
+          className="flex items-center gap-1.5 rounded-md bg-transparent px-3 py-1.5 text-sm text-text-muted transition-colors"
         >
           <X className="size-3.5" />
           Cancel
@@ -321,25 +293,19 @@ export const WorkspaceSection = (): React.JSX.Element => {
   return (
     <div className="space-y-6">
       <SettingsSectionHeader title="Workspace Profiles" />
-      <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+      <p className="text-sm text-text-muted">
         Save SSH connection profiles for quick reconnection
       </p>
 
       {loading && (
-        <div className="flex items-center gap-2 py-4" style={{ color: 'var(--color-text-muted)' }}>
+        <div className="flex items-center gap-2 py-4 text-text-muted">
           <Loader2 className="size-4 animate-spin" />
           <span className="text-sm">Loading profiles...</span>
         </div>
       )}
 
       {!loading && profiles.length === 0 && !showAddForm && (
-        <div
-          className="rounded-md border py-8 text-center"
-          style={{
-            borderColor: 'var(--color-border)',
-            color: 'var(--color-text-muted)',
-          }}
-        >
+        <div className="rounded-md border border-border py-8 text-center text-text-muted">
           <Server className="mx-auto mb-2 size-8 opacity-40" />
           <p className="text-sm">No saved profiles</p>
           <p className="mt-1 text-xs">Add an SSH profile to connect quickly</p>
@@ -359,45 +325,30 @@ export const WorkspaceSection = (): React.JSX.Element => {
             ) : (
               <div
                 key={profile.id}
-                className="flex items-center gap-3 rounded-md border p-4"
-                style={{
-                  backgroundColor: 'var(--color-surface-raised)',
-                  borderColor: 'var(--color-border)',
-                }}
+                className="flex items-center gap-3 rounded-md border border-border bg-surface-raised p-4"
               >
-                <Server className="size-4 shrink-0" style={{ color: 'var(--color-text-muted)' }} />
+                <Server className="size-4 shrink-0 text-text-muted" />
                 <div className="min-w-0 flex-1">
-                  <p
-                    className="truncate text-sm font-medium"
-                    style={{ color: 'var(--color-text)' }}
-                  >
+                  <p className="truncate text-sm font-medium text-text">
                     {profile.name}
                   </p>
-                  <p className="truncate text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  <p className="truncate text-xs text-text-muted">
                     {profile.username}@{profile.host}:{profile.port}
                   </p>
                 </div>
-                <span
-                  className="shrink-0 rounded-sm px-1.5 py-0.5 text-xs"
-                  style={{
-                    backgroundColor: 'var(--color-surface)',
-                    color: 'var(--color-text-muted)',
-                  }}
-                >
+                <span className="shrink-0 rounded-sm bg-surface px-1.5 py-0.5 text-xs text-text-muted">
                   {profile.authMethod}
                 </span>
                 <button
                   onClick={() => setEditingId(profile.id)}
-                  className="hover:bg-surface-raised shrink-0 rounded-sm p-1 transition-colors"
-                  style={{ color: 'var(--color-text-muted)' }}
+                  className="hover:bg-surface-raised shrink-0 rounded-sm p-1 text-text-muted transition-colors"
                   title="Edit profile"
                 >
                   <Edit2 className="size-3.5" />
                 </button>
                 <button
                   onClick={() => void handleDelete(profile.id)}
-                  className="hover:bg-surface-raised shrink-0 rounded-sm p-1 transition-colors"
-                  style={{ color: 'var(--color-text-muted)' }}
+                  className="hover:bg-surface-raised shrink-0 rounded-sm p-1 text-text-muted transition-colors"
                   title="Delete profile"
                 >
                   <Trash2 className="size-3.5" />
@@ -421,11 +372,7 @@ export const WorkspaceSection = (): React.JSX.Element => {
                 resetForm();
                 setShowAddForm(true);
               }}
-              className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors"
-              style={{
-                backgroundColor: 'var(--color-surface-raised)',
-                color: 'var(--color-text-secondary)',
-              }}
+              className="flex items-center gap-1.5 rounded-md bg-surface-raised px-3 py-1.5 text-sm text-text-secondary transition-colors"
             >
               <Plus className="size-3.5" />
               Add Profile

@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { api } from '@renderer/api';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Loader2, Monitor, Server, Wifi, WifiOff } from 'lucide-react';
 
@@ -189,45 +190,30 @@ export const ConnectionSection = (): React.JSX.Element => {
   const resolvedClaudeRootPath = claudeRootInfo?.resolvedPath ?? '~/.claude';
 
   const inputClass =
-    'w-full rounded-md border px-3 py-1.5 text-sm focus:outline-hidden focus:ring-1';
-  const inputStyle = {
-    backgroundColor: 'var(--color-surface-raised)',
-    borderColor: 'var(--color-border)',
-    color: 'var(--color-text)',
-  };
+    'w-full rounded-md border border-border bg-surface-raised px-3 py-1.5 text-sm text-text focus:outline-hidden focus:ring-1';
 
   return (
     <div className="space-y-6">
       <SettingsSectionHeader title="Remote Connection" />
-      <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+      <p className="text-sm text-text-muted">
         Connect to a remote machine to view Claude Code sessions running there
       </p>
 
       {/* Connection Status */}
       {isConnected && (
-        <div
-          className="flex items-center gap-3 rounded-md border px-4 py-3"
-          style={{
-            borderColor: 'rgba(34, 197, 94, 0.3)',
-            backgroundColor: 'rgba(34, 197, 94, 0.05)',
-          }}
-        >
+        <div className="flex items-center gap-3 rounded-md border border-green-500/30 bg-green-500/5 px-4 py-3">
           <Wifi className="size-4 text-green-400" />
           <div className="flex-1">
-            <p className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>
+            <p className="text-sm font-medium text-text">
               Connected to {connectedHost}
             </p>
-            <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            <p className="text-xs text-text-muted">
               Viewing remote sessions via SSH
             </p>
           </div>
           <button
             onClick={() => void handleDisconnect()}
-            className="rounded-md px-3 py-1.5 text-sm transition-colors"
-            style={{
-              backgroundColor: 'var(--color-surface-raised)',
-              color: 'var(--color-text-secondary)',
-            }}
+            className="rounded-md bg-surface-raised px-3 py-1.5 text-sm text-text-secondary transition-colors"
           >
             Disconnect
           </button>
@@ -243,10 +229,7 @@ export const ConnectionSection = (): React.JSX.Element => {
       {/* Mode indicator */}
       {!isConnected && (
         <SettingRow label="Current Mode" description="Data source for session files">
-          <div
-            className="flex items-center gap-2 text-sm"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
+          <div className="flex items-center gap-2 text-sm text-text-secondary">
             <Monitor className="size-4" />
             <span>Local ({resolvedClaudeRootPath})</span>
           </div>
@@ -256,7 +239,7 @@ export const ConnectionSection = (): React.JSX.Element => {
       {/* Saved Profiles */}
       {!isConnected && savedProfiles.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+          <h3 className="text-sm font-medium text-text-secondary">
             Saved Profiles
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -267,21 +250,18 @@ export const ConnectionSection = (): React.JSX.Element => {
                   key={profile.id}
                   type="button"
                   onClick={() => handleSelectProfile(profile)}
-                  className={`flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors ${isSelected ? '' : 'hover:bg-surface-raised'}`}
-                  style={{
-                    borderColor: isSelected ? 'rgba(99, 102, 241, 0.4)' : 'var(--color-border)',
-                    backgroundColor: isSelected ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-                    color: isSelected ? 'var(--color-text)' : 'var(--color-text-secondary)',
-                  }}
+                  className={cn(
+                    'flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors',
+                    isSelected
+                      ? 'border-indigo-500/40 bg-indigo-500/10 text-text'
+                      : 'border-border text-text-secondary hover:bg-surface-raised'
+                  )}
                 >
                   <Server
-                    className="size-3.5"
-                    style={{
-                      color: isSelected ? 'rgb(129, 140, 248)' : 'var(--color-text-muted)',
-                    }}
+                    className={cn('size-3.5', isSelected ? 'text-indigo-400' : 'text-text-muted')}
                   />
                   <span>{profile.name}</span>
-                  <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                  <span className="text-xs text-text-muted">
                     {profile.username}@{profile.host}
                   </span>
                 </button>
@@ -294,7 +274,7 @@ export const ConnectionSection = (): React.JSX.Element => {
       {/* SSH Connection Form */}
       {!isConnected && (
         <div className="space-y-4">
-          <h3 className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+          <h3 className="text-sm font-medium text-text-secondary">
             SSH Connection
           </h3>
 
@@ -303,8 +283,7 @@ export const ConnectionSection = (): React.JSX.Element => {
             <div className="relative">
               <label
                 htmlFor="ssh-host"
-                className="mb-1 block text-xs"
-                style={{ color: 'var(--color-text-muted)' }}
+                className="mb-1 block text-xs text-text-muted"
               >
                 Host
               </label>
@@ -322,35 +301,26 @@ export const ConnectionSection = (): React.JSX.Element => {
                 onFocus={() => setShowDropdown(true)}
                 placeholder="hostname or ssh config alias"
                 className={inputClass}
-                style={inputStyle}
               />
               {showDropdown && filteredHosts.length > 0 && (
                 <div
                   ref={dropdownRef}
-                  className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border shadow-lg"
-                  style={{
-                    backgroundColor: 'var(--color-surface-overlay)',
-                    borderColor: 'var(--color-border-emphasis)',
-                  }}
+                  className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-border-emphasis bg-surface-overlay shadow-lg"
                 >
                   {filteredHosts.map((entry) => (
                     <button
                       key={entry.alias}
                       type="button"
-                      className="hover:bg-surface-raised flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors"
-                      style={{
-                        color: 'var(--color-text)',
-                      }}
+                      className="hover:bg-surface-raised flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-text transition-colors"
                       onClick={() => handleSelectConfigHost(entry)}
                     >
                       <span className="font-medium">{entry.alias}</span>
                       {entry.hostName && (
-                        <span style={{ color: 'var(--color-text-muted)' }}>{entry.hostName}</span>
+                        <span className="text-text-muted">{entry.hostName}</span>
                       )}
                       {entry.user && (
                         <span
-                          className="ml-auto text-xs"
-                          style={{ color: 'var(--color-text-muted)' }}
+                          className="ml-auto text-xs text-text-muted"
                         >
                           {entry.user}
                         </span>
@@ -363,8 +333,7 @@ export const ConnectionSection = (): React.JSX.Element => {
             <div>
               <label
                 htmlFor="ssh-port"
-                className="mb-1 block text-xs"
-                style={{ color: 'var(--color-text-muted)' }}
+                className="mb-1 block text-xs text-text-muted"
               >
                 Port
               </label>
@@ -375,7 +344,6 @@ export const ConnectionSection = (): React.JSX.Element => {
                 onChange={(e) => setPort(e.target.value)}
                 placeholder="22"
                 className={inputClass}
-                style={inputStyle}
               />
             </div>
           </div>
@@ -383,8 +351,7 @@ export const ConnectionSection = (): React.JSX.Element => {
           <div>
             <label
               htmlFor="ssh-username"
-              className="mb-1 block text-xs"
-              style={{ color: 'var(--color-text-muted)' }}
+              className="mb-1 block text-xs text-text-muted"
             >
               Username
             </label>
@@ -398,15 +365,14 @@ export const ConnectionSection = (): React.JSX.Element => {
               }}
               placeholder="user"
               className={inputClass}
-              style={inputStyle}
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            <label className="mb-1 block text-xs text-text-muted">
               Authentication
             </label>
-            <Select value={authMethod} onValueChange={(v) => setAuthMethod(v as SshAuthMethod)}>
+            <Select value={authMethod} onValueChange={(v) => setAuthMethod(v!)}>
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
@@ -422,8 +388,7 @@ export const ConnectionSection = (): React.JSX.Element => {
             <div>
               <label
                 htmlFor="ssh-private-key-path"
-                className="mb-1 block text-xs"
-                style={{ color: 'var(--color-text-muted)' }}
+                className="mb-1 block text-xs text-text-muted"
               >
                 Private Key Path
               </label>
@@ -434,7 +399,6 @@ export const ConnectionSection = (): React.JSX.Element => {
                 onChange={(e) => setPrivateKeyPath(e.target.value)}
                 placeholder="~/.ssh/id_rsa"
                 className={inputClass}
-                style={inputStyle}
               />
             </div>
           )}
@@ -443,8 +407,7 @@ export const ConnectionSection = (): React.JSX.Element => {
             <div>
               <label
                 htmlFor="ssh-password"
-                className="mb-1 block text-xs"
-                style={{ color: 'var(--color-text-muted)' }}
+                className="mb-1 block text-xs text-text-muted"
               >
                 Password
               </label>
@@ -454,7 +417,6 @@ export const ConnectionSection = (): React.JSX.Element => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className={inputClass}
-                style={inputStyle}
               />
             </div>
           )}
@@ -479,11 +441,7 @@ export const ConnectionSection = (): React.JSX.Element => {
             <button
               onClick={() => void handleTest()}
               disabled={!host || testing || isConnecting}
-              className="rounded-md px-4 py-1.5 text-sm transition-colors disabled:opacity-50"
-              style={{
-                backgroundColor: 'var(--color-surface-raised)',
-                color: 'var(--color-text-secondary)',
-              }}
+              className="rounded-md bg-surface-raised px-4 py-1.5 text-sm text-text-secondary transition-colors disabled:opacity-50"
             >
               {testing ? (
                 <span className="flex items-center gap-2">
@@ -498,11 +456,7 @@ export const ConnectionSection = (): React.JSX.Element => {
             <button
               onClick={() => void handleConnect()}
               disabled={!host || isConnecting}
-              className="rounded-md px-4 py-1.5 text-sm transition-colors disabled:opacity-50"
-              style={{
-                backgroundColor: 'var(--color-surface-raised)',
-                color: 'var(--color-text)',
-              }}
+              className="rounded-md bg-surface-raised px-4 py-1.5 text-sm text-text transition-colors disabled:opacity-50"
             >
               {isConnecting ? (
                 <span className="flex items-center gap-2">

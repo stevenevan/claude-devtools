@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 
+import { Button } from '@renderer/components/ui/button';
 import { useStore } from '@renderer/store';
 import { Loader2 } from 'lucide-react';
 
@@ -61,11 +62,8 @@ export const SettingsView = (): React.JSX.Element | null => {
   // Loading state
   if (loading) {
     return (
-      <div
-        className="flex flex-1 items-center justify-center"
-        style={{ backgroundColor: 'var(--color-surface)' }}
-      >
-        <div className="flex items-center gap-3" style={{ color: 'var(--color-text-muted)' }}>
+      <div className="flex flex-1 items-center justify-center bg-surface">
+        <div className="flex items-center gap-3 text-text-muted">
           <Loader2 className="size-5 animate-spin" />
           <span>Loading settings...</span>
         </div>
@@ -76,22 +74,12 @@ export const SettingsView = (): React.JSX.Element | null => {
   // Error state
   if (error && !config) {
     return (
-      <div
-        className="flex flex-1 items-center justify-center"
-        style={{ backgroundColor: 'var(--color-surface)' }}
-      >
+      <div className="flex flex-1 items-center justify-center bg-surface">
         <div className="text-center">
           <p className="mb-4 text-red-400">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="rounded-md px-4 py-2 transition-colors"
-            style={{
-              backgroundColor: 'var(--color-surface-raised)',
-              color: 'var(--color-text-secondary)',
-            }}
-          >
+          <Button variant="secondary" onClick={() => window.location.reload()}>
             Retry
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -100,16 +88,12 @@ export const SettingsView = (): React.JSX.Element | null => {
   if (!config) return null;
 
   return (
-    <div className="flex-1 overflow-auto" style={{ backgroundColor: 'var(--color-surface)' }}>
+    <div className="flex-1 overflow-auto bg-surface">
       <div className="mx-auto max-w-2xl px-6 py-8">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-lg font-medium" style={{ color: 'var(--color-text)' }}>
-            Settings
-          </h1>
-          <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-            Manage your app preferences
-          </p>
+          <h1 className="text-lg font-medium text-text">Settings</h1>
+          <p className="text-sm text-text-muted">Manage your app preferences</p>
           {error && (
             <div className="mt-4 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2">
               <p className="text-sm text-red-400">{error}</p>

@@ -16,15 +16,14 @@ export const SettingRow = ({
 }: SettingRowProps): React.JSX.Element => {
   return (
     <div
-      className="flex items-center justify-between border-b py-3"
-      style={{ borderColor: 'var(--color-border-subtle)' }}
+      className="flex items-center justify-between border-b border-border-subtle py-3"
     >
       <div>
-        <div className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>
+        <div className="text-sm font-medium text-text">
           {label}
         </div>
         {description && (
-          <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+          <div className="text-xs text-text-muted">
             {description}
           </div>
         )}

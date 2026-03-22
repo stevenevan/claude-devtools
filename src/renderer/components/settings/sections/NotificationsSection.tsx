@@ -142,7 +142,7 @@ export const NotificationsSection = ({
       </SettingRow>
 
       <SettingsSectionHeader title="Ignored Repositories" />
-      <p className="mb-3 text-xs" style={{ color: 'var(--color-text-muted)' }}>
+      <p className="mb-3 text-xs text-text-muted">
         Notifications from these repositories will be ignored
       </p>
       {ignoredRepositoryItems.length > 0 ? (
@@ -158,10 +158,9 @@ export const NotificationsSection = ({
         </div>
       ) : (
         <div
-          className="mb-3 rounded-md border border-dashed py-3 text-center"
-          style={{ borderColor: 'var(--color-border)' }}
+          className="mb-3 rounded-md border border-dashed border-border py-3 text-center"
         >
-          <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+          <p className="text-sm text-text-muted">
             No repositories ignored
           </p>
         </div>
