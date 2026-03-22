@@ -4,7 +4,7 @@
  * Includes a right-click context menu via shadcn ContextMenu.
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -16,6 +16,7 @@ import {
   ContextMenuShortcut,
   ContextMenuTrigger,
 } from '@renderer/components/ui/context-menu';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatShortcut } from '@renderer/utils/stringUtils';
 import { Bell, FileText, LayoutDashboard, Pin, Search, Settings, X } from 'lucide-react';
@@ -65,8 +66,6 @@ export const SortableTab = ({
   disableSplit,
   setRef,
 }: SortableTabProps): React.JSX.Element => {
-  const [isHovered, setIsHovered] = useState(false);
-
   const { isPinned, isHidden, togglePinSession, toggleHideSession } = useStore(
     useShallow((s) => ({
       isPinned:
@@ -90,21 +89,6 @@ export const SortableTab = ({
       paneId,
     },
   });
-
-  const style = {
-    WebkitAppRegion: 'no-drag',
-    transform: CSS.Transform.toString(transform),
-    transition: isDragging ? 'none' : transition,
-    opacity: isDragging ? 0.3 : 1,
-    backgroundColor: isActive
-      ? 'var(--color-surface-raised)'
-      : isHovered
-        ? 'var(--color-surface-overlay)'
-        : 'transparent',
-    color: isActive || isHovered ? 'var(--color-text)' : 'var(--color-text-muted)',
-    outline: isSelected ? '1px solid var(--color-border-emphasis)' : 'none',
-    outlineOffset: '-1px',
-  };
 
   const Icon = TAB_ICONS[tab.type];
   const isSessionTab = tab.type === 'session';
@@ -130,12 +114,23 @@ export const SortableTab = ({
             role="tab"
             tabIndex={0}
             aria-selected={isActive}
-            className="group flex max-w-[200px] min-w-0 shrink-0 cursor-grab items-center gap-2 rounded-md px-3 py-1.5"
-            style={style}
+            className={cn(
+              'group flex max-w-[200px] min-w-0 shrink-0 cursor-grab items-center gap-2 rounded-md px-3 py-1.5',
+              isActive
+                ? 'bg-surface-raised text-text'
+                : 'text-text-muted hover:bg-surface-overlay hover:text-text',
+              isSelected && 'outline outline-1 -outline-offset-1 outline-border-emphasis'
+            )}
+            style={
+              {
+                WebkitAppRegion: 'no-drag',
+                transform: CSS.Transform.toString(transform),
+                transition: isDragging ? 'none' : transition,
+                opacity: isDragging ? 0.3 : undefined,
+              } as React.CSSProperties
+            }
             onClick={(e) => onTabClick(tab.id, e)}
             onMouseDown={(e) => onMouseDown(tab.id, e)}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -158,8 +153,7 @@ export const SortableTab = ({
         )}
         <span className="truncate text-sm">{tab.label}</span>
         <button
-          className="flex size-4 shrink-0 items-center justify-center rounded-xs opacity-0 transition-opacity group-hover:opacity-100"
-          style={{ backgroundColor: 'transparent' }}
+          className="flex size-4 shrink-0 items-center justify-center rounded-xs bg-transparent opacity-0 transition-opacity group-hover:opacity-100"
           onClick={(e) => {
             e.stopPropagation();
             onClose(tab.id);
@@ -224,16 +218,7 @@ export const DragOverlayTab = ({ tab }: { tab: Tab }): React.JSX.Element => {
   const Icon = TAB_ICONS[tab.type];
 
   return (
-    <div
-      className="flex max-w-[200px] min-w-0 items-center gap-2 rounded-md border-2 px-3 py-1.5"
-      style={{
-        backgroundColor: 'var(--color-surface-raised)',
-        borderColor: 'var(--color-accent, #6366f1)',
-        color: 'var(--color-text)',
-        opacity: 0.9,
-        cursor: 'grabbing',
-      }}
-    >
+    <div className="flex max-w-[200px] min-w-0 cursor-grabbing items-center gap-2 rounded-md border-2 border-[var(--color-accent,#6366f1)] bg-surface-raised px-3 py-1.5 text-text opacity-90">
       <Icon className="size-4 shrink-0" />
       <span className="truncate text-sm">{tab.label}</span>
     </div>

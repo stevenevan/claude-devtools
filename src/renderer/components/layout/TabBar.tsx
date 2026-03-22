@@ -7,12 +7,13 @@
  * When sidebar is collapsed, shows expand button on the left with macOS traffic light spacing.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { useDroppable } from '@dnd-kit/core';
 import { horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { isDesktopMode } from '@renderer/api';
 import { HEADER_ROW1_HEIGHT } from '@renderer/constants/layout';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatShortcut } from '@renderer/utils/stringUtils';
 import { Bell, PanelLeft, Plus, RefreshCw } from 'lucide-react';
@@ -84,12 +85,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
   const activeTabSessionDetail = activeTabId
     ? (tabSessionData[activeTabId]?.sessionDetail ?? null)
     : null;
-
-  // Hover states for buttons
-  const [expandHover, setExpandHover] = useState(false);
-  const [refreshHover, setRefreshHover] = useState(false);
-  const [newTabHover, setNewTabHover] = useState(false);
-  const [notificationsHover, setNotificationsHover] = useState(false);
 
   // Track last clicked tab for Shift range selection
   const lastClickedTabIdRef = useRef<string | null>(null);
@@ -218,7 +213,10 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
 
   return (
     <div
-      className="flex items-center justify-between pr-2"
+      className={cn(
+        'flex items-center justify-between border-b border-border bg-surface pr-2',
+        !(isFocused || paneCount === 1) && 'opacity-70'
+      )}
       style={
         {
           height: `${HEADER_ROW1_HEIGHT}px`,
@@ -227,9 +225,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
               ? 'var(--macos-traffic-light-padding-left, 72px)'
               : '8px',
           WebkitAppRegion: isDesktopMode() && isLeftmostPane ? 'drag' : undefined,
-          backgroundColor: 'var(--color-surface)',
-          borderBottom: '1px solid var(--color-border)',
-          opacity: isFocused || paneCount === 1 ? 1 : 0.7,
         } as React.CSSProperties
       }
     >
@@ -237,16 +232,8 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
       {sidebarCollapsed && isLeftmostPane && (
         <button
           onClick={toggleSidebar}
-          onMouseEnter={() => setExpandHover(true)}
-          onMouseLeave={() => setExpandHover(false)}
-          className="mr-2 shrink-0 rounded-md p-1.5 transition-colors"
-          style={
-            {
-              WebkitAppRegion: 'no-drag',
-              color: expandHover ? 'var(--color-text)' : 'var(--color-text-muted)',
-              backgroundColor: expandHover ? 'var(--color-surface-raised)' : 'transparent',
-            } as React.CSSProperties
-          }
+          className="mr-2 shrink-0 rounded-md p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           title="Expand sidebar"
         >
           <PanelLeft className="size-4" />
@@ -300,13 +287,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         {/* Refresh button - show only for session tabs */}
         {activeTab?.type === 'session' && (
           <button
-            className="flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
-            style={{
-              color: refreshHover ? 'var(--color-text)' : 'var(--color-text-muted)',
-              backgroundColor: refreshHover ? 'var(--color-surface-raised)' : 'transparent',
-            }}
-            onMouseEnter={() => setRefreshHover(true)}
-            onMouseLeave={() => setRefreshHover(false)}
+            className="flex size-8 shrink-0 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
             onClick={handleRefresh}
             title={`Refresh Session (${formatShortcut('R')})`}
           >
@@ -335,13 +316,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         {/* New tab button */}
         <button
           onClick={openDashboard}
-          onMouseEnter={() => setNewTabHover(true)}
-          onMouseLeave={() => setNewTabHover(false)}
-          className="rounded-md p-2 transition-colors"
-          style={{
-            color: newTabHover ? 'var(--color-text)' : 'var(--color-text-muted)',
-            backgroundColor: newTabHover ? 'var(--color-surface-raised)' : 'transparent',
-          }}
+          className="rounded-md p-2 text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
           title="New tab (Dashboard)"
         >
           <Plus className="size-4" />
@@ -350,13 +325,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         {/* Notifications bell icon */}
         <button
           onClick={openNotificationsTab}
-          onMouseEnter={() => setNotificationsHover(true)}
-          onMouseLeave={() => setNotificationsHover(false)}
-          className="relative rounded-md p-2 transition-colors"
-          style={{
-            color: notificationsHover ? 'var(--color-text)' : 'var(--color-text-muted)',
-            backgroundColor: notificationsHover ? 'var(--color-surface-raised)' : 'transparent',
-          }}
+          className="relative rounded-md p-2 text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
           title="Notifications"
         >
           <Bell className="size-4" />
