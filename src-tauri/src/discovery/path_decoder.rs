@@ -12,19 +12,6 @@ use std::sync::LazyLock;
 // Core Encoding/Decoding
 // =============================================================================
 
-/// Encode an absolute path into Claude Code's directory naming format.
-pub fn encode_path(absolute_path: &str) -> String {
-    if absolute_path.is_empty() {
-        return String::new();
-    }
-    let encoded = absolute_path.replace(['/', '\\'], "-");
-    if encoded.starts_with('-') {
-        encoded
-    } else {
-        format!("-{encoded}")
-    }
-}
-
 /// Decode a project directory name to its original path (lossy).
 pub fn decode_path(encoded_name: &str) -> String {
     if encoded_name.is_empty() {
@@ -87,9 +74,6 @@ static VALID_ENCODED: LazyLock<Regex> =
 static LEGACY_WIN_VALID: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^[a-zA-Z]--[a-zA-Z0-9_.\s-]+$").unwrap());
 
-static COMPOSITE_HASH: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^[a-f0-9]{8}$").unwrap());
-
 /// Validate if a directory name follows the Claude Code encoding pattern.
 pub fn is_valid_encoded_path(encoded_name: &str) -> bool {
     if encoded_name.is_empty() {
@@ -124,21 +108,6 @@ pub fn is_valid_encoded_path(encoded_name: &str) -> bool {
     true
 }
 
-/// Validate a project ID (plain or composite `{encoded}::{hash}`).
-pub fn is_valid_project_id(project_id: &str) -> bool {
-    if project_id.is_empty() {
-        return false;
-    }
-
-    if let Some(sep) = project_id.find("::") {
-        let base = &project_id[..sep];
-        let hash = &project_id[sep + 2..];
-        is_valid_encoded_path(base) && COMPOSITE_HASH.is_match(hash)
-    } else {
-        is_valid_encoded_path(project_id)
-    }
-}
-
 /// Extract the base directory from a project ID.
 /// For composite IDs (`{encoded}::{hash}`), returns the encoded part.
 pub fn extract_base_dir(project_id: &str) -> &str {
@@ -153,19 +122,6 @@ pub fn extract_base_dir(project_id: &str) -> &str {
 // Path Construction
 // =============================================================================
 
-pub fn build_session_path(base_path: &Path, project_id: &str, session_id: &str) -> PathBuf {
-    base_path
-        .join(extract_base_dir(project_id))
-        .join(format!("{session_id}.jsonl"))
-}
-
-pub fn build_subagents_path(base_path: &Path, project_id: &str, session_id: &str) -> PathBuf {
-    base_path
-        .join(extract_base_dir(project_id))
-        .join(session_id)
-        .join("subagents")
-}
-
 pub fn build_todo_path(claude_base: &Path, session_id: &str) -> PathBuf {
     claude_base.join("todos").join(format!("{session_id}.json"))
 }
@@ -174,13 +130,43 @@ pub fn get_projects_base_path(claude_dir: &Path) -> PathBuf {
     claude_dir.join("projects")
 }
 
-pub fn get_todos_base_path(claude_dir: &Path) -> PathBuf {
-    claude_dir.join("todos")
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn encode_path(absolute_path: &str) -> String {
+        if absolute_path.is_empty() {
+            return String::new();
+        }
+        let encoded = absolute_path.replace(['/', '\\'], "-");
+        if encoded.starts_with('-') {
+            encoded
+        } else {
+            format!("-{encoded}")
+        }
+    }
+
+    fn is_valid_project_id(project_id: &str) -> bool {
+        static COMPOSITE_HASH: LazyLock<Regex> =
+            LazyLock::new(|| Regex::new(r"^[a-f0-9]{8}$").unwrap());
+
+        if project_id.is_empty() {
+            return false;
+        }
+        if let Some(sep) = project_id.find("::") {
+            let base = &project_id[..sep];
+            let hash = &project_id[sep + 2..];
+            is_valid_encoded_path(base) && COMPOSITE_HASH.is_match(hash)
+        } else {
+            is_valid_encoded_path(project_id)
+        }
+    }
+
+    fn build_session_path(base_path: &Path, project_id: &str, session_id: &str) -> PathBuf {
+        base_path
+            .join(extract_base_dir(project_id))
+            .join(format!("{session_id}.jsonl"))
+    }
 
     #[test]
     fn test_encode_path() {

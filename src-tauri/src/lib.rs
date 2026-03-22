@@ -9,7 +9,6 @@ mod ssh;
 mod types;
 mod watcher;
 
-use tauri::Manager;
 use tauri_plugin_autostart::MacosLauncher;
 
 pub fn run() {
@@ -56,6 +55,10 @@ pub fn run() {
             commands::read_directory_claude_md,
             commands::read_mentioned_file,
             commands::read_agent_configs,
+            commands::read_global_agents,
+            commands::read_global_skills,
+            commands::read_global_plugins,
+            commands::read_global_settings,
             commands::search_sessions,
             commands::search_all_projects,
             commands::get_waterfall_data,

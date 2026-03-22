@@ -77,7 +77,7 @@ import type {
   WaterfallData,
   WslClaudeRootCandidate,
 } from '@shared/types';
-import type { AgentConfig } from '@shared/types/api';
+import type { AgentConfig, GlobalAgent, GlobalPlugin, GlobalSkill } from '@shared/types/api';
 
 export class TauriAPIClient implements ElectronAPI {
   // ---------------------------------------------------------------------------
@@ -206,6 +206,22 @@ export class TauriAPIClient implements ElectronAPI {
 
   readAgentConfigs = (projectRoot: string): Promise<Record<string, AgentConfig>> =>
     invoke<Record<string, AgentConfig>>('read_agent_configs', { projectRoot });
+
+  // ---------------------------------------------------------------------------
+  // Global ~/.claude/ config reading
+  // ---------------------------------------------------------------------------
+
+  readGlobalAgents = (): Promise<GlobalAgent[]> =>
+    invoke<GlobalAgent[]>('read_global_agents');
+
+  readGlobalSkills = (): Promise<GlobalSkill[]> =>
+    invoke<GlobalSkill[]>('read_global_skills');
+
+  readGlobalPlugins = (): Promise<GlobalPlugin[]> =>
+    invoke<GlobalPlugin[]>('read_global_plugins');
+
+  readGlobalSettings = (): Promise<Record<string, unknown>> =>
+    invoke<Record<string, unknown>>('read_global_settings');
 
   // ---------------------------------------------------------------------------
   // Notifications — Rust commands + Tauri events

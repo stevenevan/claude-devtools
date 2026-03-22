@@ -2,7 +2,6 @@
 
 use serde_json::Value;
 
-use super::triggers;
 use super::types::NotificationTrigger;
 
 const MAX_SNOOZE_MINUTES: u32 = 24 * 60;

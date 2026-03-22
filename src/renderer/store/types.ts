@@ -3,6 +3,7 @@
  * Contains the combined AppState interface and shared types used across slices.
  */
 
+import type { ClaudeConfigSlice } from './slices/claudeConfigSlice';
 import type { ConfigSlice } from './slices/configSlice';
 import type { ConnectionSlice } from './slices/connectionSlice';
 import type { ContextSlice } from './slices/contextSlice';
@@ -88,6 +89,7 @@ export type AppState = ProjectSlice &
   UISlice &
   NotificationSlice &
   ConfigSlice &
+  ClaudeConfigSlice &
   ConnectionSlice &
   ContextSlice &
   UpdateSlice;

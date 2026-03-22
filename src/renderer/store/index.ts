@@ -5,6 +5,7 @@
 import { api } from '@renderer/api';
 import { create } from 'zustand';
 
+import { createClaudeConfigSlice } from './slices/claudeConfigSlice';
 import { createConfigSlice } from './slices/configSlice';
 import { createConnectionSlice } from './slices/connectionSlice';
 import { createContextSlice } from './slices/contextSlice';
@@ -42,6 +43,7 @@ export const useStore = create<AppState>()((...args) => ({
   ...createUISlice(...args),
   ...createNotificationSlice(...args),
   ...createConfigSlice(...args),
+  ...createClaudeConfigSlice(...args),
   ...createConnectionSlice(...args),
   ...createContextSlice(...args),
   ...createUpdateSlice(...args),

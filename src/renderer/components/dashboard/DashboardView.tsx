@@ -19,7 +19,14 @@ const logger = createLogger('Component:DashboardView');
 import { formatDistanceToNow } from 'date-fns';
 import { Command, FolderGit2, FolderOpen, GitBranch, Search, Settings } from 'lucide-react';
 
+import type { DashboardTab } from '@renderer/store/slices/claudeConfigSlice';
 import type { RepositoryGroup } from '@renderer/types/data';
+
+import { AgentsGrid } from './AgentsGrid';
+import { DashboardTabs } from './DashboardTabs';
+import { GlobalSettingsView } from './GlobalSettingsView';
+import { PluginsGrid } from './PluginsGrid';
+import { SkillsGrid } from './SkillsGrid';
 
 // =============================================================================
 // Command Search Input
@@ -28,9 +35,10 @@ import type { RepositoryGroup } from '@renderer/types/data';
 interface CommandSearchProps {
   value: string;
   onChange: (value: string) => void;
+  placeholder?: string;
 }
 
-const CommandSearch = ({ value, onChange }: Readonly<CommandSearchProps>): React.JSX.Element => {
+const CommandSearch = ({ value, onChange, placeholder = 'Search projects...' }: Readonly<CommandSearchProps>): React.JSX.Element => {
   const [isFocused, setIsFocused] = useState(false);
   const { openCommandPalette, selectedProjectId } = useStore(
     useShallow((s) => ({
@@ -67,7 +75,7 @@ const CommandSearch = ({ value, onChange }: Readonly<CommandSearchProps>): React
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Search projects..."
+          placeholder={placeholder}
           className="text-text placeholder:text-text-muted flex-1 bg-transparent text-sm outline-hidden"
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -441,9 +449,37 @@ const ProjectsGrid = ({
 // Dashboard View
 // =============================================================================
 
+const SEARCH_PLACEHOLDERS: Record<DashboardTab, string> = {
+  projects: 'Search projects...',
+  agents: 'Search agents...',
+  skills: 'Search skills...',
+  plugins: 'Search plugins...',
+  settings: 'Search settings...',
+};
+
+const SECTION_LABELS: Record<DashboardTab, string> = {
+  projects: 'Recent Projects',
+  agents: 'Agents',
+  skills: 'Skills',
+  plugins: 'Plugins',
+  settings: 'Global Settings',
+};
+
 export const DashboardView = (): React.JSX.Element => {
   const [searchQuery, setSearchQuery] = useState('');
-  const openSettingsTab = useStore((s) => s.openSettingsTab);
+  const { openSettingsTab, dashboardActiveTab, setDashboardActiveTab } = useStore(
+    useShallow((s) => ({
+      openSettingsTab: s.openSettingsTab,
+      dashboardActiveTab: s.dashboardActiveTab,
+      setDashboardActiveTab: s.setDashboardActiveTab,
+    }))
+  );
+
+  // Clear search when switching tabs
+  const handleTabChange = (tab: DashboardTab): void => {
+    setSearchQuery('');
+    setDashboardActiveTab(tab);
+  };
 
   return (
     <div className="bg-surface relative flex-1 overflow-auto">
@@ -456,14 +492,23 @@ export const DashboardView = (): React.JSX.Element => {
       {/* Content */}
       <div className="relative mx-auto max-w-5xl px-8 py-12">
         {/* Command Search */}
-        <div className="mb-12">
-          <CommandSearch value={searchQuery} onChange={setSearchQuery} />
+        <div className="mb-8">
+          <CommandSearch
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder={SEARCH_PLACEHOLDERS[dashboardActiveTab]}
+          />
+        </div>
+
+        {/* Dashboard Tabs */}
+        <div className="mb-6">
+          <DashboardTabs activeTab={dashboardActiveTab} onTabChange={handleTabChange} />
         </div>
 
         {/* Section header */}
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-text-muted text-xs font-medium tracking-wider uppercase">
-            {searchQuery.trim() ? 'Search Results' : 'Recent Projects'}
+            {searchQuery.trim() ? 'Search Results' : SECTION_LABELS[dashboardActiveTab]}
           </h2>
           <div className="flex items-center gap-3">
             {searchQuery.trim() && (
@@ -474,19 +519,25 @@ export const DashboardView = (): React.JSX.Element => {
                 Clear search
               </button>
             )}
-            <button
-              onClick={() => openSettingsTab('general')}
-              className="text-text-muted hover:text-text-secondary flex items-center gap-1.5 text-xs transition-colors"
-              title="Change Claude data folder"
-            >
-              <Settings className="size-3" />
-              Change default folder
-            </button>
+            {dashboardActiveTab === 'projects' && (
+              <button
+                onClick={() => openSettingsTab('general')}
+                className="text-text-muted hover:text-text-secondary flex items-center gap-1.5 text-xs transition-colors"
+                title="Change Claude data folder"
+              >
+                <Settings className="size-3" />
+                Change default folder
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Projects Grid */}
-        <ProjectsGrid searchQuery={searchQuery} />
+        {/* Tab Content */}
+        {dashboardActiveTab === 'projects' && <ProjectsGrid searchQuery={searchQuery} />}
+        {dashboardActiveTab === 'agents' && <AgentsGrid searchQuery={searchQuery} />}
+        {dashboardActiveTab === 'skills' && <SkillsGrid searchQuery={searchQuery} />}
+        {dashboardActiveTab === 'plugins' && <PluginsGrid searchQuery={searchQuery} />}
+        {dashboardActiveTab === 'settings' && <GlobalSettingsView />}
       </div>
     </div>
   );

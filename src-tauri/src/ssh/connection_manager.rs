@@ -8,7 +8,6 @@ use russh_sftp::client::SftpSession;
 
 use super::agent_discovery;
 use super::config_parser;
-use super::sftp_provider::SftpFileSystemProvider;
 use super::types::{SshConfigHostEntry, SshConnectionConfig, SshConnectionStatus};
 
 // =============================================================================
@@ -35,10 +34,10 @@ impl client::Handler for SshHandler {
 // =============================================================================
 
 pub struct SshConnection {
-    handle: client::Handle<SshHandler>,
-    pub sftp: SftpSession,
+    _handle: client::Handle<SshHandler>,
+    _sftp: SftpSession,
     pub remote_projects_path: String,
-    pub remote_todos_path: String,
+    _remote_todos_path: String,
     host: String,
 }
 
@@ -69,16 +68,6 @@ impl SshState {
         }
     }
 
-    pub fn is_connected(&self) -> bool {
-        self.connection.is_some()
-    }
-
-    pub fn provider(&self) -> Option<&SftpFileSystemProvider> {
-        self.connection
-            .as_ref()
-            .map(|c| &c.sftp)
-            .and_then(|_| None) // Provider is built on demand from sftp
-    }
 }
 
 // =============================================================================
@@ -152,10 +141,10 @@ pub async fn connect(config: &SshConnectionConfig) -> Result<SshConnection, Stri
     };
 
     Ok(SshConnection {
-        handle: session,
-        sftp,
+        _handle: session,
+        _sftp: sftp,
         remote_projects_path,
-        remote_todos_path,
+        _remote_todos_path: remote_todos_path,
         host: config.host.clone(),
     })
 }

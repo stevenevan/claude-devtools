@@ -38,6 +38,37 @@ export interface AgentConfig {
 }
 
 // =============================================================================
+// Global ~/.claude/ Config Types
+// =============================================================================
+
+export interface GlobalAgent {
+  name: string;
+  description: string;
+  tools: string;
+  model: string;
+  filePath: string;
+  content: string;
+}
+
+export interface GlobalSkill {
+  name: string;
+  description: string;
+  userInvocable: boolean;
+  resolvedPath: string;
+  symlinkPath: string;
+}
+
+export interface GlobalPlugin {
+  id: string;
+  name: string;
+  marketplace: string;
+  version: string;
+  installedAt: string;
+  lastUpdated: string;
+  enabled: boolean;
+}
+
+// =============================================================================
 // Notifications API
 // =============================================================================
 
@@ -376,6 +407,12 @@ export interface ElectronAPI {
 
   // Agent config reading
   readAgentConfigs: (projectRoot: string) => Promise<Record<string, AgentConfig>>;
+
+  // Global ~/.claude/ config reading
+  readGlobalAgents: () => Promise<GlobalAgent[]>;
+  readGlobalSkills: () => Promise<GlobalSkill[]>;
+  readGlobalPlugins: () => Promise<GlobalPlugin[]>;
+  readGlobalSettings: () => Promise<Record<string, unknown>>;
 
   // Notifications API
   notifications: NotificationsAPI;

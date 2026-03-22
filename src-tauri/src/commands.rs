@@ -272,6 +272,240 @@ pub fn read_agent_configs(
     Ok(Value::Object(configs))
 }
 
+// ---------------------------------------------------------------------------
+// Global ~/.claude/ config readers
+// ---------------------------------------------------------------------------
+
+/// Parse YAML-like frontmatter from markdown content.
+/// Returns key-value pairs from the block between the first two `---` markers.
+fn parse_frontmatter(content: &str) -> std::collections::HashMap<String, String> {
+    let mut map = std::collections::HashMap::new();
+    let trimmed = content.trim_start();
+    if !trimmed.starts_with("---") {
+        return map;
+    }
+    // Find the closing `---` after the opening one
+    if let Some(end) = trimmed[3..].find("\n---") {
+        let block = &trimmed[3..3 + end];
+        for line in block.lines() {
+            let line = line.trim();
+            if let Some(colon_pos) = line.find(':') {
+                let key = line[..colon_pos].trim().to_string();
+                let val = line[colon_pos + 1..].trim().to_string();
+                if !key.is_empty() {
+                    map.insert(key, val);
+                }
+            }
+        }
+    }
+    map
+}
+
+/// Read global agent configs from ~/.claude/agents/*.md.
+#[tauri::command]
+pub fn read_global_agents() -> Result<Value, String> {
+    let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
+    let agents_dir = claude_dir.join("agents");
+
+    let mut agents = Vec::new();
+
+    if agents_dir.is_dir() {
+        if let Ok(entries) = std::fs::read_dir(&agents_dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.extension().and_then(|e| e.to_str()) == Some("md") {
+                    if let Ok(content) = std::fs::read_to_string(&path) {
+                        let fm = parse_frontmatter(&content);
+                        let name = fm
+                            .get("name")
+                            .cloned()
+                            .unwrap_or_else(|| {
+                                path.file_stem()
+                                    .unwrap_or_default()
+                                    .to_string_lossy()
+                                    .to_string()
+                            });
+                        agents.push(serde_json::json!({
+                            "name": name,
+                            "description": fm.get("description").cloned().unwrap_or_default(),
+                            "tools": fm.get("tools").cloned().unwrap_or_default(),
+                            "model": fm.get("model").cloned().unwrap_or_default(),
+                            "filePath": path.to_string_lossy(),
+                            "content": content,
+                        }));
+                    }
+                }
+            }
+        }
+    }
+
+    // Sort by name for stable ordering
+    agents.sort_by(|a, b| {
+        let a_name = a.get("name").and_then(|v| v.as_str()).unwrap_or("");
+        let b_name = b.get("name").and_then(|v| v.as_str()).unwrap_or("");
+        a_name.cmp(b_name)
+    });
+
+    Ok(Value::Array(agents))
+}
+
+/// Read global skills from ~/.claude/skills/ (symlinks to skill directories).
+#[tauri::command]
+pub fn read_global_skills() -> Result<Value, String> {
+    let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
+    let skills_dir = claude_dir.join("skills");
+
+    let mut skills = Vec::new();
+
+    if skills_dir.is_dir() {
+        if let Ok(entries) = std::fs::read_dir(&skills_dir) {
+            for entry in entries.flatten() {
+                let symlink_path = entry.path();
+
+                // Skip non-symlinks and hidden files
+                let file_name = entry.file_name().to_string_lossy().to_string();
+                if file_name.starts_with('.') {
+                    continue;
+                }
+
+                // Resolve symlink target
+                let resolved_path = match std::fs::canonicalize(&symlink_path) {
+                    Ok(p) => p,
+                    Err(_) => continue, // Broken symlink, skip
+                };
+
+                if !resolved_path.is_dir() {
+                    continue;
+                }
+
+                // Look for SKILL.md
+                let skill_md = resolved_path.join("SKILL.md");
+                let (description, user_invocable) = if skill_md.is_file() {
+                    if let Ok(content) = std::fs::read_to_string(&skill_md) {
+                        let fm = parse_frontmatter(&content);
+                        let desc = fm.get("description").cloned().unwrap_or_default();
+                        let invocable = fm.get("user-invocable")
+                            .map(|v| v == "true")
+                            .unwrap_or(false);
+                        (desc, invocable)
+                    } else {
+                        (String::new(), false)
+                    }
+                } else {
+                    (String::new(), false)
+                };
+
+                skills.push(serde_json::json!({
+                    "name": file_name,
+                    "description": description,
+                    "userInvocable": user_invocable,
+                    "resolvedPath": resolved_path.to_string_lossy(),
+                    "symlinkPath": symlink_path.to_string_lossy(),
+                }));
+            }
+        }
+    }
+
+    skills.sort_by(|a, b| {
+        let a_name = a.get("name").and_then(|v| v.as_str()).unwrap_or("");
+        let b_name = b.get("name").and_then(|v| v.as_str()).unwrap_or("");
+        a_name.cmp(b_name)
+    });
+
+    Ok(Value::Array(skills))
+}
+
+/// Read installed plugins from ~/.claude/plugins/installed_plugins.json
+/// and cross-reference enabled state from ~/.claude/settings.json.
+#[tauri::command]
+pub fn read_global_plugins() -> Result<Value, String> {
+    let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
+
+    // Read installed plugins
+    let plugins_file = claude_dir.join("plugins").join("installed_plugins.json");
+    let plugins_data: Value = if plugins_file.is_file() {
+        let content = std::fs::read_to_string(&plugins_file).map_err(|e| e.to_string())?;
+        serde_json::from_str(&content).map_err(|e| e.to_string())?
+    } else {
+        return Ok(Value::Array(Vec::new()));
+    };
+
+    // Read settings for enabledPlugins
+    let settings_file = claude_dir.join("settings.json");
+    let enabled_plugins: std::collections::HashSet<String> = if settings_file.is_file() {
+        if let Ok(content) = std::fs::read_to_string(&settings_file) {
+            if let Ok(settings) = serde_json::from_str::<Value>(&content) {
+                if let Some(plugins) = settings.get("enabledPlugins").and_then(|v| v.as_object()) {
+                    plugins.iter()
+                        .filter(|(_, v)| v.as_bool().unwrap_or(false))
+                        .map(|(k, _)| k.clone())
+                        .collect()
+                } else {
+                    std::collections::HashSet::new()
+                }
+            } else {
+                std::collections::HashSet::new()
+            }
+        } else {
+            std::collections::HashSet::new()
+        }
+    } else {
+        std::collections::HashSet::new()
+    };
+
+    let mut result = Vec::new();
+
+    if let Some(plugins_map) = plugins_data.get("plugins").and_then(|v| v.as_object()) {
+        for (key, entries) in plugins_map {
+            // Key format: "name@marketplace"
+            let (name, marketplace) = if let Some(at_pos) = key.find('@') {
+                (key[..at_pos].to_string(), key[at_pos + 1..].to_string())
+            } else {
+                (key.clone(), String::new())
+            };
+
+            // Take the first (most recent) entry
+            if let Some(entry) = entries.as_array().and_then(|arr| arr.first()) {
+                let enabled = enabled_plugins.contains(key)
+                    || enabled_plugins.contains(&name);
+
+                result.push(serde_json::json!({
+                    "id": key,
+                    "name": name,
+                    "marketplace": marketplace,
+                    "version": entry.get("version").and_then(|v| v.as_str()).unwrap_or(""),
+                    "installedAt": entry.get("installedAt").and_then(|v| v.as_str()).unwrap_or(""),
+                    "lastUpdated": entry.get("lastUpdated").and_then(|v| v.as_str()).unwrap_or(""),
+                    "enabled": enabled,
+                }));
+            }
+        }
+    }
+
+    result.sort_by(|a, b| {
+        let a_name = a.get("name").and_then(|v| v.as_str()).unwrap_or("");
+        let b_name = b.get("name").and_then(|v| v.as_str()).unwrap_or("");
+        a_name.cmp(b_name)
+    });
+
+    Ok(Value::Array(result))
+}
+
+/// Read global settings from ~/.claude/settings.json.
+#[tauri::command]
+pub fn read_global_settings() -> Result<Value, String> {
+    let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
+    let settings_file = claude_dir.join("settings.json");
+
+    if settings_file.is_file() {
+        let content = std::fs::read_to_string(&settings_file).map_err(|e| e.to_string())?;
+        let value: Value = serde_json::from_str(&content).map_err(|e| e.to_string())?;
+        Ok(value)
+    } else {
+        Ok(serde_json::json!({}))
+    }
+}
+
 /// Search sessions within a project.
 #[tauri::command]
 pub fn search_sessions(
@@ -279,7 +513,7 @@ pub fn search_sessions(
     query: String,
     max_results: Option<usize>,
     registry: tauri::State<'_, Arc<Mutex<SubprojectRegistry>>>,
-    cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+    _cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
 ) -> Result<Value, String> {
     let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
     let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
@@ -329,7 +563,7 @@ pub fn search_all_projects(
     query: String,
     max_results: Option<usize>,
     registry: tauri::State<'_, Arc<Mutex<SubprojectRegistry>>>,
-    cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+    _cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
 ) -> Result<Value, String> {
     let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
     let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
@@ -397,7 +631,7 @@ pub fn get_subagent_detail(
     project_id: String,
     session_id: String,
     subagent_id: String,
-    cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+    _cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
 ) -> Result<Option<SessionDetail>, String> {
     let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
     let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
@@ -445,9 +679,9 @@ pub fn get_subagent_detail(
 /// Get conversation groups (returns session detail chunks).
 #[tauri::command]
 pub fn get_session_groups(
-    project_id: String,
-    session_id: String,
-    cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+    _project_id: String,
+    _session_id: String,
+    _cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
 ) -> Result<Value, String> {
     // Session groups are built from the session detail on the frontend.
     // Return empty array — the frontend's ConversationGroupBuilder handles this client-side.
@@ -457,7 +691,7 @@ pub fn get_session_groups(
 /// Get repository groups.
 #[tauri::command]
 pub fn get_repository_groups(
-    registry: tauri::State<'_, Arc<Mutex<SubprojectRegistry>>>,
+    _registry: tauri::State<'_, Arc<Mutex<SubprojectRegistry>>>,
 ) -> Result<Value, String> {
     // Repository grouping requires git identity resolution.
     // Return empty for now — this is a secondary UI feature.
@@ -467,7 +701,7 @@ pub fn get_repository_groups(
 /// Get worktree sessions.
 #[tauri::command]
 pub fn get_worktree_sessions(
-    worktree_id: String,
+    _worktree_id: String,
 ) -> Result<Vec<Session>, String> {
     // Worktree sessions require git identity resolution.
     // Return empty for now — this is a secondary UI feature.

@@ -50,12 +50,14 @@ impl SessionCache {
         );
     }
 
-    /// Invalidate a specific session.
+}
+
+#[cfg(test)]
+impl SessionCache {
     pub fn invalidate(&mut self, key: &str) {
         self.inner.pop(key);
     }
 
-    /// Invalidate all sessions for a project.
     pub fn invalidate_project(&mut self, project_id: &str) {
         let prefix = format!("{project_id}/");
         let keys_to_remove: Vec<String> = self
@@ -67,11 +69,6 @@ impl SessionCache {
         for key in keys_to_remove {
             self.inner.pop(&key);
         }
-    }
-
-    /// Clear the entire cache.
-    pub fn clear(&mut self) {
-        self.inner.clear();
     }
 }
 

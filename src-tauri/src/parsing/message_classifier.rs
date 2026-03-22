@@ -101,11 +101,6 @@ pub fn is_parsed_system_chunk_message(msg: &ParsedMessage) -> bool {
     }
 }
 
-/// Internal user message: type=user and isMeta=true.
-pub fn is_parsed_internal_user_message(msg: &ParsedMessage) -> bool {
-    msg.message_type == "user" && msg.is_meta
-}
-
 /// Hard noise message — NEVER rendered.
 pub fn is_parsed_hard_noise_message(msg: &ParsedMessage) -> bool {
     // Filter structural metadata types

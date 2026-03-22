@@ -52,53 +52,6 @@ pub struct ImageSource {
 }
 
 // =============================================================================
-// Usage Metadata
-// =============================================================================
-
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct UsageMetadata {
-    #[serde(default)]
-    pub input_tokens: u64,
-    #[serde(default)]
-    pub output_tokens: u64,
-    #[serde(default)]
-    pub cache_read_input_tokens: Option<u64>,
-    #[serde(default)]
-    pub cache_creation_input_tokens: Option<u64>,
-}
-
-// =============================================================================
-// Messages (nested in entries)
-// =============================================================================
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserMessage {
-    pub role: String,
-    pub content: MessageContent,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AssistantMessage {
-    pub role: String,
-    pub model: String,
-    pub id: String,
-    #[serde(rename = "type")]
-    pub msg_type: String,
-    pub content: Vec<ContentBlock>,
-    pub stop_reason: Option<String>,
-    pub stop_sequence: Option<String>,
-    pub usage: UsageMetadata,
-}
-
-/// User message content can be a string or array of content blocks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum MessageContent {
-    Text(String),
-    Blocks(Vec<ContentBlock>),
-}
-
-// =============================================================================
 // JSONL Entries
 // =============================================================================
 
@@ -121,8 +74,6 @@ pub struct RawJsonlEntry {
     pub is_sidechain: bool,
     pub user_type: Option<String>,
     pub cwd: Option<String>,
-    pub session_id: Option<String>,
-    pub version: Option<String>,
     pub git_branch: Option<String>,
 
     // User entry fields
@@ -137,14 +88,6 @@ pub struct RawJsonlEntry {
 
     // Assistant entry fields
     pub request_id: Option<String>,
-
-    // System entry fields
-    pub subtype: Option<String>,
-    pub duration_ms: Option<f64>,
-
-    // Summary entry fields
-    pub summary: Option<String>,
-    pub leaf_uuid: Option<String>,
 
     // Compact summary marker
     #[serde(default)]

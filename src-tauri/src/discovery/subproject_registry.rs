@@ -10,7 +10,6 @@ use sha2::{Digest, Sha256};
 /// Entry in the subproject registry.
 #[derive(Debug, Clone)]
 pub struct SubprojectEntry {
-    pub cwd: String,
     pub session_ids: HashSet<String>,
 }
 
@@ -37,7 +36,6 @@ impl SubprojectRegistry {
 
         let entry = self.entries.entry(composite_id.clone()).or_insert_with(|| {
             SubprojectEntry {
-                cwd: cwd.to_string(),
                 session_ids: HashSet::new(),
             }
         });
@@ -53,11 +51,6 @@ impl SubprojectRegistry {
     /// Returns None if the project ID is not composite.
     pub fn get_session_filter(&self, project_id: &str) -> Option<&HashSet<String>> {
         self.entries.get(project_id).map(|e| &e.session_ids)
-    }
-
-    /// Check if a project ID is a composite ID.
-    pub fn is_composite(project_id: &str) -> bool {
-        project_id.contains("::")
     }
 
     /// Clear the registry.
@@ -101,10 +94,9 @@ mod tests {
 
     #[test]
     fn test_is_composite() {
-        assert!(SubprojectRegistry::is_composite(
-            "-Users-name-project::abcdef01"
-        ));
-        assert!(!SubprojectRegistry::is_composite("-Users-name-project"));
+        let is_composite = |id: &str| id.contains("::");
+        assert!(is_composite("-Users-name-project::abcdef01"));
+        assert!(!is_composite("-Users-name-project"));
     }
 
     #[test]

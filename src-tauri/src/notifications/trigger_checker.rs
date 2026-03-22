@@ -18,12 +18,10 @@ use super::types::{create_detected_error, CreateDetectedErrorParams, DetectedErr
 
 pub struct ToolUseInfo {
     pub name: String,
-    pub input: Value,
 }
 
 pub struct ToolResultInfo {
     pub content: String,
-    pub is_error: bool,
 }
 
 // =============================================================================
@@ -40,12 +38,11 @@ pub fn build_tool_use_map(messages: &[ParsedMessage]) -> HashMap<String, ToolUse
         // From content blocks
         if let ParsedMessageContent::Blocks(blocks) = &msg.content {
             for block in blocks {
-                if let ContentBlock::ToolUse { id, name, input } = block {
+                if let ContentBlock::ToolUse { id, name, .. } = block {
                     map.insert(
                         id.clone(),
                         ToolUseInfo {
                             name: name.clone(),
-                            input: input.clone(),
                         },
                     );
                 }
@@ -55,7 +52,6 @@ pub fn build_tool_use_map(messages: &[ParsedMessage]) -> HashMap<String, ToolUse
         for tc in &msg.tool_calls {
             map.entry(tc.id.clone()).or_insert_with(|| ToolUseInfo {
                 name: tc.name.clone(),
-                input: tc.input.clone(),
             });
         }
     }
@@ -72,7 +68,7 @@ pub fn build_tool_result_map(messages: &[ParsedMessage]) -> HashMap<String, Tool
                 if let ContentBlock::ToolResult {
                     tool_use_id,
                     content,
-                    is_error,
+                    ..
                 } = block
                 {
                     let content_str = match content {
@@ -85,7 +81,6 @@ pub fn build_tool_result_map(messages: &[ParsedMessage]) -> HashMap<String, Tool
                         tool_use_id.clone(),
                         ToolResultInfo {
                             content: content_str,
-                            is_error: is_error.unwrap_or(false),
                         },
                     );
                 }
@@ -97,7 +92,6 @@ pub fn build_tool_result_map(messages: &[ParsedMessage]) -> HashMap<String, Tool
             map.entry(tr.tool_use_id.clone())
                 .or_insert_with(|| ToolResultInfo {
                     content: content_str,
-                    is_error: tr.is_error,
                 });
         }
         // From toolUseResult
@@ -105,14 +99,8 @@ pub fn build_tool_result_map(messages: &[ParsedMessage]) -> HashMap<String, Tool
             (&msg.tool_use_result, &msg.source_tool_use_id)
         {
             let content_str = extract_content_from_tool_use_result(tur);
-            let is_error = tur.get("isError").and_then(|v| v.as_bool()).unwrap_or(false)
-                || tur
-                    .get("is_error")
-                    .and_then(|v| v.as_bool())
-                    .unwrap_or(false);
             map.entry(stuid.clone()).or_insert_with(|| ToolResultInfo {
                 content: content_str,
-                is_error,
             });
         }
     }
