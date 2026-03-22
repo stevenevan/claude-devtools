@@ -1,11 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import React from 'react';
 
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@renderer/components/ui/hover-card';
 import { formatTokensCompact } from '@renderer/utils/formatters';
 
-// =============================================================================
-// Types
-// =============================================================================
 import type { PhaseTokenBreakdown } from '@renderer/types/data';
 
 interface MetricsPillProps {
@@ -28,10 +29,6 @@ interface MetricsPillProps {
   phaseBreakdown?: PhaseTokenBreakdown[];
 }
 
-// =============================================================================
-// Unified Metrics Pill - Compact monospace pill with tooltip
-// =============================================================================
-
 export const MetricsPill = ({
   mainSessionImpact,
   lastUsage,
@@ -39,11 +36,6 @@ export const MetricsPill = ({
   isolatedOverride,
   phaseBreakdown,
 }: Readonly<MetricsPillProps>): React.ReactElement | null => {
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
-  const containerRef = useRef<HTMLDivElement>(null);
-  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const hasMainImpact = mainSessionImpact && mainSessionImpact.totalTokens > 0;
   const hasIsolated =
     isolatedOverride != null
@@ -61,53 +53,6 @@ export const MetricsPill = ({
 
   const hasPhases = phaseBreakdown && phaseBreakdown.length > 1;
 
-  const clearHideTimeout = (): void => {
-    if (hideTimeoutRef.current) {
-      clearTimeout(hideTimeoutRef.current);
-      hideTimeoutRef.current = null;
-    }
-  };
-
-  const handleMouseEnter = (): void => {
-    clearHideTimeout();
-    setShowTooltip(true);
-  };
-
-  const handleMouseLeave = (): void => {
-    clearHideTimeout();
-    hideTimeoutRef.current = setTimeout(() => setShowTooltip(false), 100);
-  };
-
-  useEffect(() => {
-    if (showTooltip && containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const tooltipWidth = 220;
-      let left = rect.left + rect.width / 2 - tooltipWidth / 2;
-      if (left < 8) left = 8;
-      if (left + tooltipWidth > window.innerWidth - 8) {
-        left = window.innerWidth - tooltipWidth - 8;
-      }
-      setTooltipStyle({
-        position: 'fixed',
-        bottom: window.innerHeight - rect.top + 6,
-        left,
-        width: tooltipWidth,
-        zIndex: 99999,
-      });
-    }
-  }, [showTooltip]);
-
-  useEffect(() => {
-    if (!showTooltip) return;
-    const handleScroll = (): void => setShowTooltip(false);
-    window.addEventListener('scroll', handleScroll, true);
-    return () => window.removeEventListener('scroll', handleScroll, true);
-  }, [showTooltip]);
-
-  useEffect(() => {
-    return () => clearHideTimeout();
-  }, []);
-
   if (!hasMainImpact && !hasIsolated) {
     return null;
   }
@@ -117,76 +62,66 @@ export const MetricsPill = ({
   const rightLabel = isolatedLabel ?? 'Subagent Context';
 
   return (
-    <>
-      <div
-        ref={containerRef}
-        role="tooltip"
+    <HoverCard>
+      <HoverCardTrigger
         className="inline-flex cursor-default items-center gap-1 rounded-sm border border-[var(--tag-border)] bg-[var(--tag-bg)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--tag-text)]"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        render={<span />}
       >
         {mainValue && <span className="tabular-nums">{mainValue}</span>}
         {mainValue && isolatedValue && <span className="text-[var(--card-separator)]">|</span>}
         {isolatedValue && <span className="tabular-nums">{isolatedValue}</span>}
-      </div>
-
-      {showTooltip &&
-        createPortal(
-          <div
-            role="tooltip"
-            className="bg-surface-overlay rounded-md border border-[var(--tag-border)] p-2 text-[11px] shadow-xl [backdrop-filter:blur(8px)]"
-            style={tooltipStyle}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-          >
-            <div className="space-y-1">
-              {hasMainImpact && (
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-text-muted">Main Context</span>
-                  <span className="font-mono text-[var(--card-text-light)] tabular-nums">
-                    {mainSessionImpact.totalTokens.toLocaleString()}
-                  </span>
-                </div>
-              )}
-              {hasIsolated && (
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-text-muted">{rightLabel}</span>
-                  <span className="font-mono text-[var(--card-text-light)] tabular-nums">
-                    {isolatedTotal.toLocaleString()}
-                  </span>
-                </div>
-              )}
-              {hasPhases &&
-                phaseBreakdown.map((phase) => (
-                  <div
-                    key={phase.phaseNumber}
-                    className="flex items-center justify-between gap-3 pl-2"
-                  >
-                    <span className="text-[10px] text-[var(--card-icon-muted)]">
-                      Phase {phase.phaseNumber}
-                    </span>
-                    <span className="font-mono text-[10px] text-[var(--card-icon-muted)] tabular-nums">
-                      {formatTokensCompact(phase.peakTokens)}
-                      {phase.postCompaction != null && (
-                        <span className="text-[var(--metric-compaction-freed)]">
-                          {' '}
-                          → {formatTokensCompact(phase.postCompaction)}
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                ))}
-              <div className="mt-1 border-t border-[var(--tag-border)] pt-1.5 text-[10px] text-[var(--card-icon-muted)]">
-                {hasMainImpact && hasIsolated
-                  ? 'Left: parent injection · Right: internal'
-                  : hasMainImpact
-                    ? 'Tokens injected to parent'
-                    : 'Internal token usage'}
-              </div>
+      </HoverCardTrigger>
+      <HoverCardContent
+        side="top"
+        sideOffset={6}
+        className="w-[220px] bg-surface-overlay border-[var(--tag-border)] p-2 text-[11px] shadow-xl [backdrop-filter:blur(8px)]"
+      >
+        <div className="space-y-1">
+          {hasMainImpact && (
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-text-muted">Main Context</span>
+              <span className="font-mono text-[var(--card-text-light)] tabular-nums">
+                {mainSessionImpact.totalTokens.toLocaleString()}
+              </span>
             </div>
-          </div>,
-          document.body
-        )}
-    </>
+          )}
+          {hasIsolated && (
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-text-muted">{rightLabel}</span>
+              <span className="font-mono text-[var(--card-text-light)] tabular-nums">
+                {isolatedTotal.toLocaleString()}
+              </span>
+            </div>
+          )}
+          {hasPhases &&
+            phaseBreakdown.map((phase) => (
+              <div
+                key={phase.phaseNumber}
+                className="flex items-center justify-between gap-3 pl-2"
+              >
+                <span className="text-[10px] text-[var(--card-icon-muted)]">
+                  Phase {phase.phaseNumber}
+                </span>
+                <span className="font-mono text-[10px] text-[var(--card-icon-muted)] tabular-nums">
+                  {formatTokensCompact(phase.peakTokens)}
+                  {phase.postCompaction != null && (
+                    <span className="text-[var(--metric-compaction-freed)]">
+                      {' '}
+                      → {formatTokensCompact(phase.postCompaction)}
+                    </span>
+                  )}
+                </span>
+              </div>
+            ))}
+          <div className="mt-1 border-t border-[var(--tag-border)] pt-1.5 text-[10px] text-[var(--card-icon-muted)]">
+            {hasMainImpact && hasIsolated
+              ? 'Left: parent injection · Right: internal'
+              : hasMainImpact
+                ? 'Tokens injected to parent'
+                : 'Internal token usage'}
+          </div>
+        </div>
+      </HoverCardContent>
+    </HoverCard>
   );
 };
