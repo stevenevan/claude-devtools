@@ -94,7 +94,6 @@ pub struct ParsedMessage {
 // =============================================================================
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct TokenUsage {
     #[serde(default)]
     pub input_tokens: u64,
