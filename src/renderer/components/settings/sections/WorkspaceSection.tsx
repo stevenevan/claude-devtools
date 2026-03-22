@@ -18,7 +18,7 @@ import { useStore } from '@renderer/store';
 import { Edit2, Loader2, Plus, Save, Server, Trash2, X } from 'lucide-react';
 
 import { SettingsSectionHeader } from '../components/SettingsSectionHeader';
-import { SettingsSelect } from '../components/SettingsSelect';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
 
 import type { SshAuthMethod, SshConnectionProfile } from '@shared/types';
 
@@ -248,16 +248,19 @@ export const WorkspaceSection = (): React.JSX.Element => {
       </div>
 
       <div>
-        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- SettingsSelect is a custom dropdown without a native control */}
         <label className="mb-1 block text-xs" style={{ color: 'var(--color-text-muted)' }}>
           Authentication
         </label>
-        <SettingsSelect
-          value={formAuthMethod}
-          options={authMethodOptions}
-          onChange={setFormAuthMethod}
-          fullWidth
-        />
+        <Select value={formAuthMethod} onValueChange={(v) => setFormAuthMethod(v as SshAuthMethod)}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {authMethodOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {formAuthMethod === 'privateKey' && (

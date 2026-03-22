@@ -10,7 +10,11 @@ import { useStore } from '@renderer/store';
 import { getFullResetState } from '@renderer/store/utils/stateResetHelpers';
 import { Check, Copy, FolderOpen, Laptop, Loader2, RotateCcw } from 'lucide-react';
 
-import { SettingRow, SettingsSectionHeader, SettingsSelect, SettingsToggle } from '../components';
+import { Switch } from '@renderer/components/ui/switch';
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
+
+import { SettingRow, SettingsSectionHeader } from '../components';
 
 import type { SafeConfig } from '../hooks/useSettingsConfig';
 import type { ClaudeRootInfo, WslClaudeRootCandidate } from '@shared/types';
@@ -257,9 +261,9 @@ export const GeneralSection = ({
             label="Launch at login"
             description="Automatically start the app when you log in"
           >
-            <SettingsToggle
-              enabled={safeConfig.general.launchAtLogin}
-              onChange={(v) => onGeneralToggle('launchAtLogin', v)}
+            <Switch
+              checked={safeConfig.general.launchAtLogin}
+              onCheckedChange={(v) => onGeneralToggle('launchAtLogin', v)}
               disabled={saving}
             />
           </SettingRow>
@@ -268,9 +272,9 @@ export const GeneralSection = ({
               label="Show dock icon"
               description="Display the app icon in the dock (macOS)"
             >
-              <SettingsToggle
-                enabled={safeConfig.general.showDockIcon}
-                onChange={(v) => onGeneralToggle('showDockIcon', v)}
+              <Switch
+                checked={safeConfig.general.showDockIcon}
+                onCheckedChange={(v) => onGeneralToggle('showDockIcon', v)}
                 disabled={saving}
               />
             </SettingRow>
@@ -280,20 +284,24 @@ export const GeneralSection = ({
 
       <SettingsSectionHeader title="Appearance" />
       <SettingRow label="Theme" description="Choose your preferred color theme">
-        <SettingsSelect
-          value={safeConfig.general.theme}
-          options={THEME_OPTIONS}
-          onChange={onThemeChange}
-          disabled={saving}
-        />
+        <Select value={safeConfig.general.theme} onValueChange={(v) => { if (v) onThemeChange(v); }} disabled={saving}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {THEME_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </SettingRow>
       <SettingRow
         label="Expand AI responses by default"
         description="Automatically expand each response turn when opening a transcript or receiving a new message"
       >
-        <SettingsToggle
-          enabled={safeConfig.general.autoExpandAIGroups ?? false}
-          onChange={(v) => onGeneralToggle('autoExpandAIGroups', v)}
+        <Switch
+          checked={safeConfig.general.autoExpandAIGroups ?? false}
+          onCheckedChange={(v) => onGeneralToggle('autoExpandAIGroups', v)}
           disabled={saving}
         />
       </SettingRow>
@@ -302,9 +310,9 @@ export const GeneralSection = ({
           label="Use native title bar"
           description="Use the default system window frame instead of the custom title bar"
         >
-          <SettingsToggle
-            enabled={safeConfig.general.useNativeTitleBar}
-            onChange={async (v) => {
+          <Switch
+            checked={safeConfig.general.useNativeTitleBar}
+            onCheckedChange={async (v) => {
               const shouldRelaunch = await confirm({
                 title: 'Restart required',
                 message: 'The app needs to restart to apply the title bar change. Restart now?',
@@ -511,9 +519,9 @@ export const GeneralSection = ({
                 style={{ color: 'var(--color-text-muted)' }}
               />
             ) : (
-              <SettingsToggle
-                enabled={serverStatus.running}
-                onChange={handleServerToggle}
+              <Switch
+                checked={serverStatus.running}
+                onCheckedChange={handleServerToggle}
                 disabled={saving}
               />
             )}

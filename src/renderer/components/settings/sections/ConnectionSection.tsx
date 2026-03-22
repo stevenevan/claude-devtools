@@ -16,7 +16,7 @@ import { Loader2, Monitor, Server, Wifi, WifiOff } from 'lucide-react';
 
 import { SettingRow } from '../components/SettingRow';
 import { SettingsSectionHeader } from '../components/SettingsSectionHeader';
-import { SettingsSelect } from '../components/SettingsSelect';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
 
 import type {
   ClaudeRootInfo,
@@ -403,16 +403,19 @@ export const ConnectionSection = (): React.JSX.Element => {
           </div>
 
           <div>
-            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- SettingsSelect is a custom dropdown without a native control */}
             <label className="mb-1 block text-xs" style={{ color: 'var(--color-text-muted)' }}>
               Authentication
             </label>
-            <SettingsSelect
-              value={authMethod}
-              options={authMethodOptions}
-              onChange={setAuthMethod}
-              fullWidth
-            />
+            <Select value={authMethod} onValueChange={(v) => setAuthMethod(v as SshAuthMethod)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {authMethodOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {authMethod === 'privateKey' && (

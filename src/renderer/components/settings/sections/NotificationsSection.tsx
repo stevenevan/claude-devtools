@@ -7,7 +7,11 @@ import {
   SelectedRepositoryItem,
 } from '@renderer/components/common/RepositoryDropdown';
 
-import { SettingRow, SettingsSectionHeader, SettingsSelect, SettingsToggle } from '../components';
+import { Switch } from '@renderer/components/ui/switch';
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
+
+import { SettingRow, SettingsSectionHeader } from '../components';
 import { NotificationTriggerSettings } from '../NotificationTriggerSettings';
 
 import type { RepositoryDropdownItem, SafeConfig } from '../hooks/useSettingsConfig';
@@ -77,16 +81,16 @@ export const NotificationsSection = ({
         label="Enable System Notifications"
         description="Show system notifications for errors and events"
       >
-        <SettingsToggle
-          enabled={safeConfig.notifications.enabled}
-          onChange={(v) => onNotificationToggle('enabled', v)}
+        <Switch
+          checked={safeConfig.notifications.enabled}
+          onCheckedChange={(v) => onNotificationToggle('enabled', v)}
           disabled={saving}
         />
       </SettingRow>
       <SettingRow label="Play sound" description="Play a sound when notifications appear">
-        <SettingsToggle
-          enabled={safeConfig.notifications.soundEnabled}
-          onChange={(v) => onNotificationToggle('soundEnabled', v)}
+        <Switch
+          checked={safeConfig.notifications.soundEnabled}
+          onCheckedChange={(v) => onNotificationToggle('soundEnabled', v)}
           disabled={saving || !safeConfig.notifications.enabled}
         />
       </SettingRow>
@@ -94,9 +98,9 @@ export const NotificationsSection = ({
         label="Include subagent errors"
         description="Detect and notify about errors in subagent sessions"
       >
-        <SettingsToggle
-          enabled={safeConfig.notifications.includeSubagentErrors}
-          onChange={(v) => onNotificationToggle('includeSubagentErrors', v)}
+        <Switch
+          checked={safeConfig.notifications.includeSubagentErrors}
+          onCheckedChange={(v) => onNotificationToggle('includeSubagentErrors', v)}
           disabled={saving || !safeConfig.notifications.enabled}
         />
       </SettingRow>
@@ -118,13 +122,21 @@ export const NotificationsSection = ({
               Clear Snooze
             </button>
           ) : (
-            <SettingsSelect
-              value={0}
-              options={[{ value: 0, label: 'Select duration...' }, ...SNOOZE_OPTIONS]}
-              onChange={(v) => v !== 0 && onSnooze(v)}
+            <Select
+              value="0"
+              onValueChange={(v) => { const n = Number(v); if (n !== 0) void onSnooze(n); }}
               disabled={saving || !safeConfig.notifications.enabled}
-              dropUp
-            />
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent side="top">
+                <SelectItem value="0">Select duration...</SelectItem>
+                {SNOOZE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
         </div>
       </SettingRow>

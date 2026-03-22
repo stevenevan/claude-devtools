@@ -2,7 +2,7 @@
  * TriggerCardHeader - Header row for TriggerCard with name, badges, toggle, and actions.
  */
 
-import { SettingsToggle } from '@renderer/components/settings/components';
+import { Switch } from '@renderer/components/ui/switch';
 import { getTriggerColorDef } from '@shared/constants/triggerColors';
 import { ChevronDown, ChevronUp, Pencil, Shield, X } from 'lucide-react';
 
@@ -99,7 +99,7 @@ export const TriggerCardHeader = ({
 
       {/* Right side: Toggle and actions */}
       <div className="flex items-center gap-2">
-        <SettingsToggle enabled={trigger.enabled} onChange={onToggleEnabled} disabled={saving} />
+        <Switch checked={trigger.enabled} onCheckedChange={onToggleEnabled} disabled={saving} />
 
         <button
           onClick={onToggleExpanded}
