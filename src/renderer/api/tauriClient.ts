@@ -1,9 +1,8 @@
 /**
  * Tauri-based implementation of ElectronAPI.
  *
- * Delegates all data operations to an internal HttpAPIClient connected
- * to the sidecar server, while using Tauri plugin APIs for native
- * operations (dialogs, shell, window controls, etc.).
+ * All data operations use Tauri invoke() to call native Rust commands.
+ * Native operations (dialogs, shell, window controls) use Tauri plugin APIs.
  */
 
 import { invoke } from '@tauri-apps/api/core';
@@ -13,8 +12,6 @@ import { getVersion } from '@tauri-apps/api/app';
 import { open } from '@tauri-apps/plugin-dialog';
 import { openPath, openUrl } from '@tauri-apps/plugin-opener';
 import { relaunch } from '@tauri-apps/plugin-process';
-
-import { HttpAPIClient } from './httpClient';
 
 // eslint-disable-next-line security/detect-unsafe-regex -- anchored pattern with bounded quantifier; no backtracking risk
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})?$/;
@@ -83,37 +80,6 @@ import type {
 import type { AgentConfig } from '@shared/types/api';
 
 export class TauriAPIClient implements ElectronAPI {
-  private http: HttpAPIClient;
-
-  constructor(sidecarPort: number) {
-    this.http = new HttpAPIClient(`http://127.0.0.1:${sidecarPort}`);
-  }
-
-  // ---------------------------------------------------------------------------
-  // Static factory — resolves sidecar port from Tauri command
-  // ---------------------------------------------------------------------------
-
-  static async create(): Promise<TauriAPIClient | null> {
-    // Try window global first (injected by Rust setup)
-    if (window.__SIDECAR_PORT__) {
-      return new TauriAPIClient(window.__SIDECAR_PORT__);
-    }
-    // Poll invoke until the sidecar reports its port.
-    // The webview JS may run before the Rust setup() finishes starting the sidecar.
-    const MAX_ATTEMPTS = 50;
-    const POLL_INTERVAL_MS = 100;
-    for (let i = 0; i < MAX_ATTEMPTS; i++) {
-      try {
-        const port = await invoke<number>('get_sidecar_port');
-        return new TauriAPIClient(port);
-      } catch {
-        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-      }
-    }
-    console.error('[TauriAPIClient] Sidecar did not start within 5 seconds');
-    return null;
-  }
-
   // ---------------------------------------------------------------------------
   // Native: App version (from Cargo.toml via Tauri)
   // ---------------------------------------------------------------------------
@@ -121,171 +87,137 @@ export class TauriAPIClient implements ElectronAPI {
   getAppVersion = (): Promise<string> => getVersion();
 
   // ---------------------------------------------------------------------------
-  // Data operations — delegate to HTTP sidecar
+  // Data operations — Rust invoke()
   // ---------------------------------------------------------------------------
 
-  getProjects = async (): Promise<Project[]> => {
-    try {
-      return await invoke<Project[]>('get_projects');
-    } catch {
-      return this.http.getProjects();
-    }
-  };
+  getProjects = (): Promise<Project[]> => invoke<Project[]>('get_projects');
 
-  getSessions = (projectId: string): Promise<Session[]> => this.http.getSessions(projectId);
+  getSessions = (projectId: string): Promise<Session[]> =>
+    invoke<Session[]>('get_sessions', { projectId });
 
-  getSessionsPaginated = async (
+  getSessionsPaginated = (
     projectId: string,
     cursor: string | null,
     limit?: number,
     options?: SessionsPaginationOptions
-  ): Promise<PaginatedSessionsResult> => {
-    try {
-      return await invoke<PaginatedSessionsResult>('get_sessions_paginated', {
-        projectId,
-        cursor,
-        limit,
-        options,
-      });
-    } catch {
-      return this.http.getSessionsPaginated(projectId, cursor, limit, options);
-    }
-  };
+  ): Promise<PaginatedSessionsResult> =>
+    invoke<PaginatedSessionsResult>('get_sessions_paginated', {
+      projectId,
+      cursor,
+      limit,
+      options,
+    });
 
   searchSessions = (
     projectId: string,
     query: string,
     maxResults?: number
-  ): Promise<SearchSessionsResult> => this.http.searchSessions(projectId, query, maxResults);
+  ): Promise<SearchSessionsResult> =>
+    invoke<SearchSessionsResult>('search_sessions', { projectId, query, maxResults });
 
   searchAllProjects = (query: string, maxResults?: number): Promise<SearchSessionsResult> =>
-    this.http.searchAllProjects(query, maxResults);
+    invoke<SearchSessionsResult>('search_all_projects', { query, maxResults });
 
   getSessionDetail = async (
     projectId: string,
     sessionId: string
   ): Promise<SessionDetail | null> => {
-    try {
-      const raw = await invoke<SessionDetail>('get_session_detail', { projectId, sessionId });
-      return reviveDates(raw);
-    } catch {
-      return this.http.getSessionDetail(projectId, sessionId);
-    }
+    const raw = await invoke<SessionDetail>('get_session_detail', { projectId, sessionId });
+    return reviveDates(raw);
   };
 
-  getSessionMetrics = async (
+  getSessionMetrics = (
     projectId: string,
     sessionId: string
-  ): Promise<SessionMetrics | null> => {
-    try {
-      return await invoke<SessionMetrics>('parse_session_metrics', {
-        projectId,
-        sessionId,
-      });
-    } catch {
-      // Fallback to sidecar HTTP
-      return this.http.getSessionMetrics(projectId, sessionId);
-    }
+  ): Promise<SessionMetrics | null> =>
+    invoke<SessionMetrics>('parse_session_metrics', { projectId, sessionId });
+
+  getWaterfallData = async (
+    projectId: string,
+    sessionId: string
+  ): Promise<WaterfallData | null> => {
+    const raw = await invoke<WaterfallData | null>('get_waterfall_data', {
+      projectId,
+      sessionId,
+    });
+    return raw ? reviveDates(raw) : null;
   };
 
-  getWaterfallData = (projectId: string, sessionId: string): Promise<WaterfallData | null> =>
-    this.http.getWaterfallData(projectId, sessionId);
-
-  getSubagentDetail = (
+  getSubagentDetail = async (
     projectId: string,
     sessionId: string,
     subagentId: string
-  ): Promise<SubagentDetail | null> =>
-    this.http.getSubagentDetail(projectId, sessionId, subagentId);
+  ): Promise<SubagentDetail | null> => {
+    const raw = await invoke<SubagentDetail | null>('get_subagent_detail', {
+      projectId,
+      sessionId,
+      subagentId,
+    });
+    return raw ? reviveDates(raw) : null;
+  };
 
   getSessionGroups = (projectId: string, sessionId: string): Promise<ConversationGroup[]> =>
-    this.http.getSessionGroups(projectId, sessionId);
+    invoke<ConversationGroup[]>('get_session_groups', { projectId, sessionId });
 
   getSessionsByIds = (
     projectId: string,
     sessionIds: string[],
-    options?: SessionsByIdsOptions
-  ): Promise<Session[]> => this.http.getSessionsByIds(projectId, sessionIds, options);
+    _options?: SessionsByIdsOptions
+  ): Promise<Session[]> =>
+    invoke<Session[]>('get_sessions_by_ids', { projectId, sessionIds });
 
-  getRepositoryGroups = (): Promise<RepositoryGroup[]> => this.http.getRepositoryGroups();
+  getRepositoryGroups = (): Promise<RepositoryGroup[]> =>
+    invoke<RepositoryGroup[]>('get_repository_groups');
 
   getWorktreeSessions = (worktreeId: string): Promise<Session[]> =>
-    this.http.getWorktreeSessions(worktreeId);
+    invoke<Session[]>('get_worktree_sessions', { worktreeId });
 
   validatePath = (
     relativePath: string,
     projectPath: string
   ): Promise<{ exists: boolean; isDirectory?: boolean }> =>
-    this.http.validatePath(relativePath, projectPath);
+    invoke<{ exists: boolean; isDirectory?: boolean }>('validate_path', {
+      relativePath,
+      projectPath,
+    });
 
   validateMentions = (
     mentions: { type: 'path'; value: string }[],
     projectPath: string
-  ): Promise<Record<string, boolean>> => this.http.validateMentions(mentions, projectPath);
+  ): Promise<Record<string, boolean>> =>
+    invoke<Record<string, boolean>>('validate_mentions', { mentions, projectPath });
 
   readClaudeMdFiles = (projectRoot: string): Promise<Record<string, ClaudeMdFileInfo>> =>
-    this.http.readClaudeMdFiles(projectRoot);
+    invoke<Record<string, ClaudeMdFileInfo>>('read_claude_md_files', { projectRoot });
 
   readDirectoryClaudeMd = (dirPath: string): Promise<ClaudeMdFileInfo> =>
-    this.http.readDirectoryClaudeMd(dirPath);
+    invoke<ClaudeMdFileInfo>('read_directory_claude_md', { dirPath });
 
   readMentionedFile = (
     absolutePath: string,
     projectRoot: string,
     maxTokens?: number
   ): Promise<ClaudeMdFileInfo | null> =>
-    this.http.readMentionedFile(absolutePath, projectRoot, maxTokens);
+    invoke<ClaudeMdFileInfo | null>('read_mentioned_file', {
+      absolutePath,
+      projectRoot,
+      maxTokens,
+    });
 
   readAgentConfigs = (projectRoot: string): Promise<Record<string, AgentConfig>> =>
-    this.http.readAgentConfigs(projectRoot);
+    invoke<Record<string, AgentConfig>>('read_agent_configs', { projectRoot });
 
   // ---------------------------------------------------------------------------
-  // Notifications — Rust commands with HTTP fallback, Tauri events for real-time
+  // Notifications — Rust commands + Tauri events
   // ---------------------------------------------------------------------------
 
   notifications: NotificationsAPI = {
-    get: async (options) => {
-      try {
-        return await invoke('notifications_get', { options });
-      } catch {
-        return this.http.notifications.get(options);
-      }
-    },
-    markRead: async (id) => {
-      try {
-        return await invoke<boolean>('notifications_mark_read', { id });
-      } catch {
-        return this.http.notifications.markRead(id);
-      }
-    },
-    markAllRead: async () => {
-      try {
-        return await invoke<boolean>('notifications_mark_all_read');
-      } catch {
-        return this.http.notifications.markAllRead();
-      }
-    },
-    delete: async (id) => {
-      try {
-        return await invoke<boolean>('notifications_delete', { id });
-      } catch {
-        return this.http.notifications.delete(id);
-      }
-    },
-    clear: async () => {
-      try {
-        return await invoke<boolean>('notifications_clear');
-      } catch {
-        return this.http.notifications.clear();
-      }
-    },
-    getUnreadCount: async () => {
-      try {
-        return await invoke<number>('notifications_get_unread_count');
-      } catch {
-        return this.http.notifications.getUnreadCount();
-      }
-    },
+    get: (options) => invoke('notifications_get', { options }),
+    markRead: (id) => invoke<boolean>('notifications_mark_read', { id }),
+    markAllRead: () => invoke<boolean>('notifications_mark_all_read'),
+    delete: (id) => invoke<boolean>('notifications_delete', { id }),
+    clear: () => invoke<boolean>('notifications_clear'),
+    getUnreadCount: () => invoke<number>('notifications_get_unread_count'),
     onNew: (callback) => {
       let unlisten: UnlistenFn | null = null;
       listen('notification:new', (event) => {
@@ -322,158 +254,41 @@ export class TauriAPIClient implements ElectronAPI {
   };
 
   // ---------------------------------------------------------------------------
-  // Config — mostly HTTP sidecar, with native dialog overrides
+  // Config — Rust commands + native dialog overrides
   // ---------------------------------------------------------------------------
 
   config: ConfigAPI = {
-    // Data operations via Rust commands with HTTP fallback
-    get: async () => {
-      try {
-        return await invoke<AppConfig>('config_get');
-      } catch {
-        return this.http.config.get();
-      }
-    },
-    update: async (section, data) => {
-      try {
-        return await invoke<AppConfig>('config_update', { section, data });
-      } catch {
-        return this.http.config.update(section, data);
-      }
-    },
-    addIgnoreRegex: async (pattern) => {
-      try {
-        return await invoke<AppConfig>('config_add_ignore_regex', { pattern });
-      } catch {
-        return this.http.config.addIgnoreRegex(pattern);
-      }
-    },
-    removeIgnoreRegex: async (pattern) => {
-      try {
-        return await invoke<AppConfig>('config_remove_ignore_regex', { pattern });
-      } catch {
-        return this.http.config.removeIgnoreRegex(pattern);
-      }
-    },
-    addIgnoreRepository: async (repositoryId) => {
-      try {
-        return await invoke<AppConfig>('config_add_ignore_repository', { repositoryId });
-      } catch {
-        return this.http.config.addIgnoreRepository(repositoryId);
-      }
-    },
-    removeIgnoreRepository: async (repositoryId) => {
-      try {
-        return await invoke<AppConfig>('config_remove_ignore_repository', { repositoryId });
-      } catch {
-        return this.http.config.removeIgnoreRepository(repositoryId);
-      }
-    },
-    snooze: async (minutes) => {
-      try {
-        return await invoke<AppConfig>('config_snooze', { minutes });
-      } catch {
-        return this.http.config.snooze(minutes);
-      }
-    },
-    clearSnooze: async () => {
-      try {
-        return await invoke<AppConfig>('config_clear_snooze');
-      } catch {
-        return this.http.config.clearSnooze();
-      }
-    },
-    addTrigger: async (trigger) => {
-      try {
-        return await invoke<AppConfig>('config_add_trigger', { trigger });
-      } catch {
-        return this.http.config.addTrigger(trigger);
-      }
-    },
-    updateTrigger: async (triggerId, updates) => {
-      try {
-        return await invoke<AppConfig>('config_update_trigger', { triggerId, updates });
-      } catch {
-        return this.http.config.updateTrigger(triggerId, updates);
-      }
-    },
-    removeTrigger: async (triggerId) => {
-      try {
-        return await invoke<AppConfig>('config_remove_trigger', { triggerId });
-      } catch {
-        return this.http.config.removeTrigger(triggerId);
-      }
-    },
-    getTriggers: async () => {
-      try {
-        return await invoke<NotificationTrigger[]>('config_get_triggers');
-      } catch {
-        return this.http.config.getTriggers();
-      }
-    },
-    testTrigger: async (trigger: NotificationTrigger): Promise<TriggerTestResult> => {
-      try {
-        return await invoke<TriggerTestResult>('notifications_test_trigger', { trigger });
-      } catch {
-        return this.http.config.testTrigger(trigger);
-      }
-    },
-    pinSession: async (projectId, sessionId) => {
-      try {
-        await invoke('config_pin_session', { projectId, sessionId });
-      } catch {
-        await this.http.config.pinSession(projectId, sessionId);
-      }
-    },
-    unpinSession: async (projectId, sessionId) => {
-      try {
-        await invoke('config_unpin_session', { projectId, sessionId });
-      } catch {
-        await this.http.config.unpinSession(projectId, sessionId);
-      }
-    },
-    hideSession: async (projectId, sessionId) => {
-      try {
-        await invoke('config_hide_session', { projectId, sessionId });
-      } catch {
-        await this.http.config.hideSession(projectId, sessionId);
-      }
-    },
-    unhideSession: async (projectId, sessionId) => {
-      try {
-        await invoke('config_unhide_session', { projectId, sessionId });
-      } catch {
-        await this.http.config.unhideSession(projectId, sessionId);
-      }
-    },
-    hideSessions: async (projectId, sessionIds) => {
-      try {
-        await invoke('config_hide_sessions', { projectId, sessionIds });
-      } catch {
-        await this.http.config.hideSessions(projectId, sessionIds);
-      }
-    },
-    unhideSessions: async (projectId, sessionIds) => {
-      try {
-        await invoke('config_unhide_sessions', { projectId, sessionIds });
-      } catch {
-        await this.http.config.unhideSessions(projectId, sessionIds);
-      }
-    },
-    getClaudeRootInfo: async () => {
-      try {
-        return await invoke<ClaudeRootInfo>('config_get_claude_root_info');
-      } catch {
-        return this.http.config.getClaudeRootInfo();
-      }
-    },
-    openInEditor: async () => {
-      try {
-        await invoke('config_open_in_editor');
-      } catch {
-        await this.http.config.openInEditor();
-      }
-    },
+    get: () => invoke<AppConfig>('config_get'),
+    update: (section, data) => invoke<AppConfig>('config_update', { section, data }),
+    addIgnoreRegex: (pattern) => invoke<AppConfig>('config_add_ignore_regex', { pattern }),
+    removeIgnoreRegex: (pattern) => invoke<AppConfig>('config_remove_ignore_regex', { pattern }),
+    addIgnoreRepository: (repositoryId) =>
+      invoke<AppConfig>('config_add_ignore_repository', { repositoryId }),
+    removeIgnoreRepository: (repositoryId) =>
+      invoke<AppConfig>('config_remove_ignore_repository', { repositoryId }),
+    snooze: (minutes) => invoke<AppConfig>('config_snooze', { minutes }),
+    clearSnooze: () => invoke<AppConfig>('config_clear_snooze'),
+    addTrigger: (trigger) => invoke<AppConfig>('config_add_trigger', { trigger }),
+    updateTrigger: (triggerId, updates) =>
+      invoke<AppConfig>('config_update_trigger', { triggerId, updates }),
+    removeTrigger: (triggerId) => invoke<AppConfig>('config_remove_trigger', { triggerId }),
+    getTriggers: () => invoke<NotificationTrigger[]>('config_get_triggers'),
+    testTrigger: (trigger: NotificationTrigger): Promise<TriggerTestResult> =>
+      invoke<TriggerTestResult>('notifications_test_trigger', { trigger }),
+    pinSession: (projectId, sessionId) =>
+      invoke('config_pin_session', { projectId, sessionId }),
+    unpinSession: (projectId, sessionId) =>
+      invoke('config_unpin_session', { projectId, sessionId }),
+    hideSession: (projectId, sessionId) =>
+      invoke('config_hide_session', { projectId, sessionId }),
+    unhideSession: (projectId, sessionId) =>
+      invoke('config_unhide_session', { projectId, sessionId }),
+    hideSessions: (projectId, sessionIds) =>
+      invoke('config_hide_sessions', { projectId, sessionIds }),
+    unhideSessions: (projectId, sessionIds) =>
+      invoke('config_unhide_sessions', { projectId, sessionIds }),
+    getClaudeRootInfo: () => invoke<ClaudeRootInfo>('config_get_claude_root_info'),
+    openInEditor: () => invoke('config_open_in_editor'),
 
     // Native: folder selection dialogs via Tauri plugin
     selectFolders: async (): Promise<string[]> => {
@@ -488,19 +303,20 @@ export class TauriAPIClient implements ElectronAPI {
       return {
         path,
         isClaudeDirName: path.endsWith('.claude'),
-        hasProjectsDir: false, // Will be validated by the config handler
+        hasProjectsDir: false,
       };
     },
     findWslClaudeRoots: async (): Promise<WslClaudeRootCandidate[]> => [],
   };
 
   // ---------------------------------------------------------------------------
-  // Session navigation — sidecar
+  // Session navigation
   // ---------------------------------------------------------------------------
 
-  get session(): SessionAPI {
-    return this.http.session;
-  }
+  session: SessionAPI = {
+    scrollToLine: (sessionId: string, lineNumber: number) =>
+      invoke('session_scroll_to_line', { sessionId, lineNumber }),
+  };
 
   // ---------------------------------------------------------------------------
   // Zoom — Tauri doesn't have Electron's zoom sync mechanism
@@ -598,7 +414,7 @@ export class TauriAPIClient implements ElectronAPI {
   };
 
   // ---------------------------------------------------------------------------
-  // Updater — stub for now (Tauri updater has different manifest format)
+  // Updater — stub (Tauri updater has different manifest format)
   // ---------------------------------------------------------------------------
 
   updater: UpdaterAPI = {
@@ -611,66 +427,18 @@ export class TauriAPIClient implements ElectronAPI {
   };
 
   // ---------------------------------------------------------------------------
-  // SSH — Rust commands with HTTP fallback
+  // SSH — Rust commands + Tauri events
   // ---------------------------------------------------------------------------
 
   ssh: SshAPI = {
-    connect: async (config) => {
-      try {
-        return await invoke<SshConnectionStatus>('ssh_connect', { config });
-      } catch {
-        return this.http.ssh.connect(config);
-      }
-    },
-    disconnect: async () => {
-      try {
-        return await invoke<SshConnectionStatus>('ssh_disconnect');
-      } catch {
-        return this.http.ssh.disconnect();
-      }
-    },
-    getState: async () => {
-      try {
-        return await invoke<SshConnectionStatus>('ssh_get_state');
-      } catch {
-        return this.http.ssh.getState();
-      }
-    },
-    test: async (config) => {
-      try {
-        return await invoke<{ success: boolean; error?: string }>('ssh_test', { config });
-      } catch {
-        return this.http.ssh.test(config);
-      }
-    },
-    getConfigHosts: async () => {
-      try {
-        return await invoke<SshConfigHostEntry[]>('ssh_get_config_hosts');
-      } catch {
-        return this.http.ssh.getConfigHosts();
-      }
-    },
-    resolveHost: async (alias) => {
-      try {
-        return await invoke<SshConfigHostEntry | null>('ssh_resolve_host', { alias });
-      } catch {
-        return this.http.ssh.resolveHost(alias);
-      }
-    },
-    saveLastConnection: async (config) => {
-      try {
-        await invoke('ssh_save_last_connection', { config });
-      } catch {
-        await this.http.ssh.saveLastConnection(config);
-      }
-    },
-    getLastConnection: async () => {
-      try {
-        return await invoke<SshLastConnection | null>('ssh_get_last_connection');
-      } catch {
-        return this.http.ssh.getLastConnection();
-      }
-    },
+    connect: (config) => invoke<SshConnectionStatus>('ssh_connect', { config }),
+    disconnect: () => invoke<SshConnectionStatus>('ssh_disconnect'),
+    getState: () => invoke<SshConnectionStatus>('ssh_get_state'),
+    test: (config) => invoke<{ success: boolean; error?: string }>('ssh_test', { config }),
+    getConfigHosts: () => invoke<SshConfigHostEntry[]>('ssh_get_config_hosts'),
+    resolveHost: (alias) => invoke<SshConfigHostEntry | null>('ssh_resolve_host', { alias }),
+    saveLastConnection: (config) => invoke('ssh_save_last_connection', { config }),
+    getLastConnection: () => invoke<SshLastConnection | null>('ssh_get_last_connection'),
     onStatus: (callback) => {
       let unlisten: UnlistenFn | null = null;
       listen<SshConnectionStatus>('ssh-status', (event) => {
@@ -685,30 +453,26 @@ export class TauriAPIClient implements ElectronAPI {
   };
 
   // ---------------------------------------------------------------------------
-  // Context — delegate to HTTP sidecar
+  // Context — always local (SSH context handled by Rust SSH state)
   // ---------------------------------------------------------------------------
 
   context = {
-    list: (): Promise<ContextInfo[]> => this.http.context.list(),
-    getActive: (): Promise<string> => this.http.context.getActive(),
+    list: (): Promise<ContextInfo[]> => invoke('context_list'),
+    getActive: (): Promise<string> => invoke('context_get_active'),
     switch: (contextId: string): Promise<{ contextId: string }> =>
-      this.http.context.switch(contextId),
-    onChanged: (callback: (event: unknown, data: ContextInfo) => void): (() => void) =>
-      this.http.context.onChanged(callback),
+      invoke('context_switch', { contextId }),
+    onChanged: (_callback: (event: unknown, data: ContextInfo) => void): (() => void) => {
+      return () => {};
+    },
   };
 
   // ---------------------------------------------------------------------------
-  // HTTP Server — sidecar IS the HTTP server
+  // HTTP Server — no separate server in Tauri mode
   // ---------------------------------------------------------------------------
 
   httpServer: HttpServerAPI = {
-    start: (): Promise<HttpServerStatus> =>
-      Promise.resolve({ running: true, port: window.__SIDECAR_PORT__ }),
-    stop: (): Promise<HttpServerStatus> => {
-      console.warn('[TauriAPIClient] Cannot stop sidecar HTTP server');
-      return Promise.resolve({ running: true, port: window.__SIDECAR_PORT__ });
-    },
-    getStatus: (): Promise<HttpServerStatus> =>
-      Promise.resolve({ running: true, port: window.__SIDECAR_PORT__ }),
+    start: (): Promise<HttpServerStatus> => Promise.resolve({ running: true, port: 0 }),
+    stop: (): Promise<HttpServerStatus> => Promise.resolve({ running: true, port: 0 }),
+    getStatus: (): Promise<HttpServerStatus> => Promise.resolve({ running: true, port: 0 }),
   };
 }

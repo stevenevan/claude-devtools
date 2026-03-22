@@ -5,7 +5,6 @@ mod config;
 mod discovery;
 mod notifications;
 mod parsing;
-mod sidecar;
 mod ssh;
 mod types;
 mod watcher;
@@ -24,7 +23,6 @@ pub fn run() {
             None,
         ))
         .plugin(tauri_plugin_process::init())
-        .manage(std::sync::Mutex::new(sidecar::SidecarState::default()))
         .manage(std::sync::Mutex::new(watcher::WatcherState::default()))
         .manage(std::sync::Arc::new(std::sync::Mutex::new(cache::SessionCache::default())))
         .manage(std::sync::Arc::new(std::sync::Mutex::new(discovery::subproject_registry::SubprojectRegistry::new())))
@@ -39,26 +37,9 @@ pub fn run() {
                 eprintln!("[tauri] WARNING: File watcher failed to start: {e}");
             }
 
-            // Start sidecar in a background thread so setup() returns immediately.
-            // The webview polls get_sidecar_port via invoke(), which needs the main
-            // thread — blocking here would deadlock those calls.
-            std::thread::spawn(move || {
-                match sidecar::start_sidecar(&handle) {
-                    Ok(()) => {
-                        let state = handle.state::<std::sync::Mutex<sidecar::SidecarState>>();
-                        let port = state.lock().unwrap().port;
-                        eprintln!("[tauri] Sidecar ready on port {port}");
-                    }
-                    Err(e) => {
-                        eprintln!("[tauri] WARNING: Sidecar failed to start: {e}");
-                        eprintln!("[tauri] The app will open but backend services won't be available.");
-                    }
-                }
-            });
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            commands::get_sidecar_port,
             commands::get_app_version,
             commands::start_watching,
             commands::stop_watching,
@@ -67,6 +48,25 @@ pub fn run() {
             commands::get_projects,
             commands::get_sessions_paginated,
             commands::get_session_detail,
+            commands::get_sessions,
+            commands::get_sessions_by_ids,
+            commands::validate_path,
+            commands::validate_mentions,
+            commands::read_claude_md_files,
+            commands::read_directory_claude_md,
+            commands::read_mentioned_file,
+            commands::read_agent_configs,
+            commands::search_sessions,
+            commands::search_all_projects,
+            commands::get_waterfall_data,
+            commands::get_subagent_detail,
+            commands::get_session_groups,
+            commands::get_repository_groups,
+            commands::get_worktree_sessions,
+            commands::context_list,
+            commands::context_get_active,
+            commands::context_switch,
+            commands::session_scroll_to_line,
             config::commands::config_get,
             config::commands::config_update,
             config::commands::config_add_ignore_regex,
@@ -108,7 +108,6 @@ pub fn run() {
         .run(|app, event| {
             if let tauri::RunEvent::Exit = event {
                 let _ = watcher::stop_watcher(app);
-                sidecar::stop_sidecar(app);
             }
         });
 }
