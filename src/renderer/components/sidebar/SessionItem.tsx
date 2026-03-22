@@ -4,9 +4,11 @@
  * Supports right-click context menu for pane management.
  */
 
-import React, { useCallback, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useCallback } from 'react';
 
+import { ContextMenu, ContextMenuTrigger } from '@renderer/components/ui/context-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/ui/tooltip';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { formatDistanceToNowStrict } from 'date-fns';
@@ -52,7 +54,7 @@ function formatShortTime(date: Date): string {
 }
 
 /**
- * Consumption badge with hover popover showing phase breakdown.
+ * Consumption badge with hover tooltip showing phase breakdown.
  */
 const ConsumptionBadge = ({
   contextConsumption,
@@ -61,72 +63,43 @@ const ConsumptionBadge = ({
   contextConsumption: number;
   phaseBreakdown?: PhaseTokenBreakdown[];
 }>): React.JSX.Element => {
-  const [popoverPosition, setPopoverPosition] = useState<{
-    top: number;
-    left: number;
-  } | null>(null);
-  const badgeRef = useRef<HTMLSpanElement>(null);
   const isHigh = contextConsumption > 150_000;
+  const hasBreakdown = phaseBreakdown && phaseBreakdown.length > 0;
 
-  const showPopover = popoverPosition !== null;
+  const badge = (
+    <span className={cn('tabular-nums', isHigh && 'text-amber-400')}>
+      {formatTokensCompact(contextConsumption)}
+    </span>
+  );
+
+  if (!hasBreakdown) return badge;
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- tooltip trigger via hover, not interactive
-    <span
-      ref={badgeRef}
-      className="tabular-nums"
-      style={{ color: isHigh ? 'rgb(251, 191, 36)' : undefined }}
-      onMouseEnter={() => {
-        const rect = badgeRef.current?.getBoundingClientRect();
-        if (rect) {
-          setPopoverPosition({
-            top: rect.top - 6,
-            left: rect.left + rect.width / 2,
-          });
-        }
-      }}
-      onMouseLeave={() => setPopoverPosition(null)}
-    >
-      {formatTokensCompact(contextConsumption)}
-      {showPopover &&
-        popoverPosition &&
-        phaseBreakdown &&
-        phaseBreakdown.length > 0 &&
-        createPortal(
-          <div
-            className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full rounded-lg px-3 py-2 text-[10px] whitespace-nowrap shadow-xl"
-            style={{
-              top: popoverPosition.top,
-              left: popoverPosition.left,
-              backgroundColor: 'var(--color-surface-overlay)',
-              border: '1px solid var(--color-border-emphasis)',
-              color: 'var(--color-text-secondary)',
-            }}
-          >
-            <div className="mb-1 font-medium" style={{ color: 'var(--color-text)' }}>
-              Total Context: {formatTokensCompact(contextConsumption)} tokens
+    <Tooltip>
+      <TooltipTrigger render={<span className={cn('tabular-nums', isHigh && 'text-amber-400')} />}>
+        {formatTokensCompact(contextConsumption)}
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs text-[10px]">
+        <div className="mb-1 font-medium">
+          Total Context: {formatTokensCompact(contextConsumption)} tokens
+        </div>
+        {phaseBreakdown.length === 1 ? (
+          <div>Context: {formatTokensCompact(phaseBreakdown[0].peakTokens)}</div>
+        ) : (
+          phaseBreakdown.map((phase) => (
+            <div key={phase.phaseNumber} className="flex items-center gap-1">
+              <span className="text-muted-foreground">Phase {phase.phaseNumber}:</span>
+              <span className="tabular-nums">{formatTokensCompact(phase.contribution)}</span>
+              {phase.postCompaction != null && (
+                <span className="text-muted-foreground">
+                  (compacted to {formatTokensCompact(phase.postCompaction)})
+                </span>
+              )}
             </div>
-            {phaseBreakdown.length === 1 ? (
-              <div>Context: {formatTokensCompact(phaseBreakdown[0].peakTokens)}</div>
-            ) : (
-              phaseBreakdown.map((phase) => (
-                <div key={phase.phaseNumber} className="flex items-center gap-1">
-                  <span style={{ color: 'var(--color-text-muted)' }}>
-                    Phase {phase.phaseNumber}:
-                  </span>
-                  <span className="tabular-nums">{formatTokensCompact(phase.contribution)}</span>
-                  {phase.postCompaction != null && (
-                    <span style={{ color: 'var(--color-text-muted)' }}>
-                      (compacted to {formatTokensCompact(phase.postCompaction)})
-                    </span>
-                  )}
-                </div>
-              ))
-            )}
-          </div>,
-          document.body
+          ))
         )}
-    </span>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 
@@ -159,8 +132,6 @@ export const SessionItem = React.memo(function SessionItem({
     }))
   );
 
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
-
   const handleClick = (event: React.MouseEvent): void => {
     if (!activeProjectId) return;
 
@@ -185,11 +156,6 @@ export const SessionItem = React.memo(function SessionItem({
 
     selectSession(session.id);
   };
-
-  const handleContextMenu = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY });
-  }, []);
 
   const sessionLabel = session.customTitle ?? session.firstMessage?.slice(0, 50) ?? 'Session';
 
@@ -242,16 +208,18 @@ export const SessionItem = React.memo(function SessionItem({
 
   // Height must match SESSION_HEIGHT (48px) in DateGroupedSessions.tsx for virtual scroll
   return (
-    <>
-      <button
-        onClick={handleClick}
-        onContextMenu={handleContextMenu}
-        className={`h-[48px] w-full overflow-hidden border-b px-3 py-2 text-left transition-all duration-150 ${isActive ? '' : 'bg-transparent hover:opacity-80'} `}
-        style={{
-          borderColor: 'var(--color-border)',
-          ...(isActive ? { backgroundColor: 'var(--color-surface-raised)' } : {}),
-          ...(isHidden ? { opacity: 0.5 } : {}),
-        }}
+    <ContextMenu>
+      <ContextMenuTrigger
+        render={
+          <button
+            onClick={handleClick}
+            className={cn(
+              'h-[48px] w-full overflow-hidden border-b border-border px-3 py-2 text-left transition-all duration-150',
+              isActive ? 'bg-surface-raised' : 'bg-transparent hover:opacity-80',
+              isHidden && 'opacity-50'
+            )}
+          />
+        }
       >
         {/* First line: title + ongoing indicator + pin/hidden icons */}
         <div className="flex items-center gap-1.5">
@@ -268,27 +236,26 @@ export const SessionItem = React.memo(function SessionItem({
           {isPinned && <Pin className="size-2.5 shrink-0 text-blue-400" />}
           {isHidden && <EyeOff className="size-2.5 shrink-0 text-zinc-500" />}
           <span
-            className="truncate text-[13px] leading-tight font-medium"
-            style={{ color: isActive ? 'var(--color-text)' : 'var(--color-text-muted)' }}
+            className={cn(
+              'truncate text-[13px] leading-tight font-medium',
+              isActive ? 'text-text' : 'text-text-muted'
+            )}
           >
             {session.customTitle ?? session.firstMessage ?? 'Untitled'}
           </span>
         </div>
 
         {/* Second line: message count + time + context consumption */}
-        <div
-          className="mt-0.5 flex items-center gap-2 text-[10px] leading-tight"
-          style={{ color: 'var(--color-text-muted)' }}
-        >
+        <div className="mt-0.5 flex items-center gap-2 text-[10px] leading-tight text-text-muted">
           <span className="flex items-center gap-0.5">
             <MessageSquare className="size-2.5" />
             {session.messageCount}
           </span>
-          <span style={{ opacity: 0.5 }}>·</span>
+          <span className="opacity-50">·</span>
           <span className="tabular-nums">{formatShortTime(new Date(session.createdAt))}</span>
           {session.contextConsumption != null && session.contextConsumption > 0 && (
             <>
-              <span style={{ opacity: 0.5 }}>·</span>
+              <span className="opacity-50">·</span>
               <ConsumptionBadge
                 contextConsumption={session.contextConsumption}
                 phaseBreakdown={session.phaseBreakdown}
@@ -296,29 +263,21 @@ export const SessionItem = React.memo(function SessionItem({
             </>
           )}
         </div>
-      </button>
+      </ContextMenuTrigger>
 
-      {contextMenu &&
-        activeProjectId &&
-        createPortal(
-          <SessionContextMenu
-            x={contextMenu.x}
-            y={contextMenu.y}
-            sessionId={session.id}
-            projectId={activeProjectId}
-            sessionLabel={sessionLabel}
-            paneCount={paneCount}
-            isPinned={isPinned ?? false}
-            isHidden={isHidden ?? false}
-            onClose={() => setContextMenu(null)}
-            onOpenInCurrentPane={handleOpenInCurrentPane}
-            onOpenInNewTab={handleOpenInNewTab}
-            onSplitRightAndOpen={handleSplitRightAndOpen}
-            onTogglePin={() => void togglePinSession(session.id)}
-            onToggleHide={() => void toggleHideSession(session.id)}
-          />,
-          document.body
-        )}
-    </>
+      {activeProjectId && (
+        <SessionContextMenu
+          sessionId={session.id}
+          paneCount={paneCount}
+          isPinned={isPinned ?? false}
+          isHidden={isHidden ?? false}
+          onOpenInCurrentPane={handleOpenInCurrentPane}
+          onOpenInNewTab={handleOpenInNewTab}
+          onSplitRightAndOpen={handleSplitRightAndOpen}
+          onTogglePin={() => void togglePinSession(session.id)}
+          onToggleHide={() => void toggleHideSession(session.id)}
+        />
+      )}
+    </ContextMenu>
   );
 });

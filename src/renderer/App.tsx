@@ -4,6 +4,7 @@ import { api } from './api';
 import { ConfirmDialog } from './components/common/ConfirmDialog';
 import { ContextSwitchOverlay } from './components/common/ContextSwitchOverlay';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { TooltipProvider } from './components/ui/tooltip';
 import { TabbedLayout } from './components/layout/TabbedLayout';
 import { useTheme } from './hooks/useTheme';
 import { initializeNotificationListeners, useStore } from './store';
@@ -43,9 +44,11 @@ export const App = (): React.JSX.Element => {
 
   return (
     <ErrorBoundary>
-      <ContextSwitchOverlay />
-      <TabbedLayout />
-      <ConfirmDialog />
+      <TooltipProvider>
+        <ContextSwitchOverlay />
+        <TabbedLayout />
+        <ConfirmDialog />
+      </TooltipProvider>
     </ErrorBoundary>
   );
 };
