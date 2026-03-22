@@ -265,42 +265,84 @@ const ProjectsGrid = ({
   searchQuery,
   maxProjects = 12,
 }: Readonly<ProjectsGridProps>): React.JSX.Element => {
-  const { repositoryGroups, repositoryGroupsLoading, fetchRepositoryGroups, selectRepository } =
-    useStore(
-      useShallow((s) => ({
-        repositoryGroups: s.repositoryGroups,
-        repositoryGroupsLoading: s.repositoryGroupsLoading,
-        fetchRepositoryGroups: s.fetchRepositoryGroups,
-        selectRepository: s.selectRepository,
-      }))
-    );
+  const {
+    repositoryGroups,
+    repositoryGroupsLoading,
+    fetchRepositoryGroups,
+    selectRepository,
+    projects,
+    projectsLoading,
+    fetchProjects,
+    setActiveProject,
+  } = useStore(
+    useShallow((s) => ({
+      repositoryGroups: s.repositoryGroups,
+      repositoryGroupsLoading: s.repositoryGroupsLoading,
+      fetchRepositoryGroups: s.fetchRepositoryGroups,
+      selectRepository: s.selectRepository,
+      projects: s.projects,
+      projectsLoading: s.projectsLoading,
+      fetchProjects: s.fetchProjects,
+      setActiveProject: s.setActiveProject,
+    }))
+  );
+
+  // Use flat projects when repository groups are empty
+  const useFlat = repositoryGroups.length === 0;
 
   useEffect(() => {
-    if (repositoryGroups.length === 0) {
+    if (useFlat) {
+      if (projects.length === 0 && !projectsLoading) {
+        void fetchProjects();
+      }
+    } else if (repositoryGroups.length === 0) {
       void fetchRepositoryGroups();
     }
-  }, [repositoryGroups.length, fetchRepositoryGroups]);
+  }, [useFlat, repositoryGroups.length, projects.length, projectsLoading, fetchRepositoryGroups, fetchProjects]);
 
-  // Filter projects based on search query
+  // Build unified items for rendering
   const filteredRepos = useMemo(() => {
+    // Convert flat projects to RepositoryGroup-like shape for RepositoryCard
+    const items: RepositoryGroup[] = useFlat
+      ? projects
+          .filter((p) => p.sessions.length > 0)
+          .map((p) => ({
+            id: p.id,
+            name: p.name,
+            identity: null,
+            totalSessions: p.sessions.length,
+            mostRecentSession: p.mostRecentSession,
+            worktrees: [
+              {
+                id: p.id,
+                name: 'main',
+                path: p.path,
+                sessions: p.sessions,
+                isMainWorktree: true,
+                source: 'unknown' as const,
+                createdAt: p.createdAt,
+                mostRecentSession: p.mostRecentSession,
+              },
+            ],
+          }))
+      : repositoryGroups;
+
     if (!searchQuery.trim()) {
-      return repositoryGroups.slice(0, maxProjects);
+      return items.slice(0, maxProjects);
     }
 
     const query = searchQuery.toLowerCase().trim();
-    return repositoryGroups
+    return items
       .filter((repo) => {
-        // Match by name
         if (repo.name.toLowerCase().includes(query)) return true;
-        // Match by path
         const path = repo.worktrees[0]?.path || '';
         if (path.toLowerCase().includes(query)) return true;
         return false;
       })
       .slice(0, maxProjects);
-  }, [repositoryGroups, searchQuery, maxProjects]);
+  }, [useFlat, projects, repositoryGroups, searchQuery, maxProjects]);
 
-  if (repositoryGroupsLoading) {
+  if (useFlat ? projectsLoading : repositoryGroupsLoading) {
     // Organic widths per card — no repeating stamp
     const titleWidths = [60, 66, 50, 55, 75, 45, 40, 65];
     const pathWidths = [80, 75, 85, 66, 70, 80, 60, 72];
@@ -366,7 +408,7 @@ const ProjectsGrid = ({
     );
   }
 
-  if (repositoryGroups.length === 0) {
+  if ((useFlat ? projects : repositoryGroups).length === 0) {
     return (
       <div className="border-border flex flex-col items-center justify-center rounded-xs border border-dashed px-8 py-16">
         <div className="border-border bg-surface-raised mb-4 flex size-12 items-center justify-center rounded-xs border">
@@ -384,7 +426,9 @@ const ProjectsGrid = ({
         <RepositoryCard
           key={repo.id}
           repo={repo}
-          onClick={() => selectRepository(repo.id)}
+          onClick={() =>
+            useFlat ? setActiveProject(repo.id) : selectRepository(repo.id)
+          }
           isHighlighted={!!searchQuery.trim()}
         />
       ))}
