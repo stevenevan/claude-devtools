@@ -33,39 +33,23 @@ export const ClaudeMdItem = ({
       <CopyablePath
         displayText={displayPath}
         copyText={absolutePath}
-        className="text-xs"
-        style={{ color: 'var(--color-text-secondary)' }}
+        className="text-xs text-text-secondary"
       />
       <div className="mt-0.5 flex items-center gap-2">
-        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+        <span className="text-xs text-text-muted">
           ~{formatTokens(injection.estimatedTokens)} tokens
         </span>
         {isClickable ? (
           <button
             type="button"
-            className="cursor-pointer text-xs transition-opacity hover:opacity-80"
-            style={{
-              color: '#93c5fd',
-              textDecoration: 'underline',
-              textDecorationStyle: 'dotted' as const,
-              textUnderlineOffset: '2px',
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              font: 'inherit',
-              fontSize: '12px',
-            }}
+            className="cursor-pointer text-xs text-[#93c5fd] underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
             onClick={() => onNavigateToTurn(turnIndex)}
           >
             @{formatFirstSeen(injection.firstSeenInGroup)}
           </button>
         ) : (
           <span
-            className="text-xs"
-            style={{
-              color: 'var(--color-text-muted)',
-              opacity: 0.7,
-            }}
+            className="text-xs text-text-muted opacity-70"
           >
             @{formatFirstSeen(injection.firstSeenInGroup)}
           </span>

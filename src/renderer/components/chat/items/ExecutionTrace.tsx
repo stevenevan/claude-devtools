@@ -1,15 +1,7 @@
 import React, { useState } from 'react';
 
-import {
-  CARD_ICON_MUTED,
-  CODE_BG,
-  CODE_BORDER,
-  COLOR_TEXT_MUTED,
-  TOOL_CALL_BG,
-  TOOL_CALL_BORDER,
-  TOOL_CALL_TEXT,
-} from '@renderer/constants/cssVariables';
 import { truncateText } from '@renderer/utils/aiGroupEnhancer';
+import { cn } from '@renderer/lib/utils';
 import { formatTokensCompact } from '@renderer/utils/formatters';
 import { format } from 'date-fns';
 import { ChevronRight, Layers, MailOpen } from 'lucide-react';
@@ -66,7 +58,7 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
 
   if (!items || items.length === 0) {
     return (
-      <div className="px-3 py-2 text-xs" style={{ color: CARD_ICON_MUTED }}>
+      <div className="px-3 py-2 text-xs text-[var(--card-icon-muted)]">
         No execution items
       </div>
     );
@@ -150,8 +142,7 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
             return (
               <div
                 key={`nested-subagent-${index}`}
-                className="px-2 py-1 text-xs"
-                style={{ color: CARD_ICON_MUTED }}
+                className="px-2 py-1 text-xs text-[var(--card-icon-muted)]"
               >
                 Nested: {item.subagent.description ?? item.subagent.id}
               </div>
@@ -196,31 +187,21 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
                 {/* Header — matches CompactBoundary.tsx amber styling */}
                 <button
                   onClick={() => handleItemClick(itemId)}
-                  className="group flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 transition-all duration-200"
-                  style={{
-                    backgroundColor: TOOL_CALL_BG,
-                    border: `1px solid ${TOOL_CALL_BORDER}`,
-                  }}
+                  className="group flex w-full cursor-pointer items-center gap-2 rounded-lg border border-[var(--tool-call-border)] bg-[var(--tool-call-bg)] px-3 py-2 transition-all duration-200"
                   aria-expanded={isExpanded}
                 >
-                  <div
-                    className="flex shrink-0 items-center gap-1.5"
-                    style={{ color: TOOL_CALL_TEXT }}
-                  >
+                  <div className="flex shrink-0 items-center gap-1.5 text-[var(--tool-call-text)]">
                     <ChevronRight
                       size={14}
-                      className={`transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+                      className={cn('transition-transform duration-200', isExpanded && 'rotate-90')}
                     />
                     <Layers size={14} />
                   </div>
-                  <span className="shrink-0 text-xs font-medium" style={{ color: TOOL_CALL_TEXT }}>
+                  <span className="shrink-0 text-xs font-medium text-[var(--tool-call-text)]">
                     Compacted
                   </span>
                   {item.tokenDelta && (
-                    <span
-                      className="min-w-0 truncate text-[11px] tabular-nums"
-                      style={{ color: COLOR_TEXT_MUTED }}
-                    >
+                    <span className="min-w-0 truncate text-[11px] tabular-nums text-text-muted">
                       {formatTokensCompact(item.tokenDelta.preCompactionTokens)} →{' '}
                       {formatTokensCompact(item.tokenDelta.postCompactionTokens)}
                       <span style={{ color: '#4ade80' }}>
@@ -229,35 +210,17 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
                       </span>
                     </span>
                   )}
-                  <span
-                    className="shrink-0 rounded-sm px-1.5 py-0.5 text-[10px]"
-                    style={{
-                      backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                      color: '#818cf8',
-                    }}
-                  >
+                  <span className="shrink-0 rounded-sm bg-[rgba(99,102,241,0.15)] px-1.5 py-0.5 text-[10px] text-[#818cf8]">
                     Phase {item.phaseNumber}
                   </span>
-                  <span
-                    className="ml-auto shrink-0 text-[11px]"
-                    style={{ color: COLOR_TEXT_MUTED }}
-                  >
+                  <span className="ml-auto shrink-0 text-[11px] text-text-muted">
                     {format(new Date(item.timestamp), 'h:mm:ss a')}
                   </span>
                 </button>
                 {/* Expanded content */}
                 {isExpanded && item.content && (
-                  <div
-                    className="mt-1 overflow-hidden rounded-lg"
-                    style={{
-                      backgroundColor: CODE_BG,
-                      border: `1px solid ${CODE_BORDER}`,
-                    }}
-                  >
-                    <div
-                      className="max-h-64 overflow-y-auto border-l-2 px-3 py-2"
-                      style={{ borderColor: 'var(--chat-ai-border)' }}
-                    >
+                  <div className="mt-1 overflow-hidden rounded-lg border border-[var(--code-border)] bg-[var(--code-bg)]">
+                    <div className="max-h-64 overflow-y-auto border-l-2 border-[var(--chat-ai-border)] px-3 py-2">
                       <MarkdownViewer content={item.content} copyable />
                     </div>
                   </div>

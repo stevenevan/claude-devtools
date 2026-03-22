@@ -23,17 +23,10 @@ export const DefaultToolViewer: React.FC<DefaultToolViewerProps> = ({ linkedTool
     <>
       {/* Input Section */}
       <div>
-        <div className="mb-1 text-xs" style={{ color: 'var(--tool-item-muted)' }}>
+        <div className="mb-1 text-xs text-[var(--tool-item-muted)]">
           Input
         </div>
-        <div
-          className="max-h-96 overflow-auto rounded p-3 font-mono text-xs"
-          style={{
-            backgroundColor: 'var(--code-bg)',
-            border: '1px solid var(--code-border)',
-            color: 'var(--color-text-secondary)',
-          }}
-        >
+        <div className="max-h-96 overflow-auto rounded border border-[var(--code-border)] bg-[var(--code-bg)] p-3 font-mono text-xs text-text-secondary">
           {renderInput(linkedTool.name, linkedTool.input)}
         </div>
       </div>

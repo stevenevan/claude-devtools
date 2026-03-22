@@ -7,6 +7,7 @@
 import React from 'react';
 
 import { DiffViewer } from '@renderer/components/chat/viewers';
+import { cn } from '@renderer/lib/utils';
 
 import { type ItemStatus, StatusDot } from '../BaseItem';
 import { formatTokens } from '../baseItemHelpers';
@@ -41,28 +42,20 @@ export const EditToolViewer: React.FC<EditToolViewerProps> = ({ linkedTool, stat
       {/* Show result status if available */}
       {!linkedTool.isOrphaned && linkedTool.result != null && (
         <div>
-          <div
-            className="mb-1 flex items-center gap-2 text-xs"
-            style={{ color: 'var(--tool-item-muted)' }}
-          >
+          <div className="mb-1 flex items-center gap-2 text-xs text-[var(--tool-item-muted)]">
             Result
             <StatusDot status={status} />
             {linkedTool.result?.tokenCount !== undefined && linkedTool.result.tokenCount > 0 && (
-              <span style={{ color: 'var(--color-text-muted)' }}>
+              <span className="text-text-muted">
                 ~{formatTokens(linkedTool.result.tokenCount)} tokens
               </span>
             )}
           </div>
           <div
-            className="max-h-96 overflow-auto rounded-sm p-3 font-mono text-xs"
-            style={{
-              backgroundColor: 'var(--code-bg)',
-              border: '1px solid var(--code-border)',
-              color:
-                status === 'error'
-                  ? 'var(--tool-result-error-text)'
-                  : 'var(--color-text-secondary)',
-            }}
+            className={cn(
+              'max-h-96 overflow-auto rounded-sm border border-[var(--code-border)] bg-[var(--code-bg)] p-3 font-mono text-xs',
+              status === 'error' ? 'text-[var(--tool-result-error-text)]' : 'text-text-secondary'
+            )}
           >
             {renderOutput(linkedTool.result.content)}
           </div>

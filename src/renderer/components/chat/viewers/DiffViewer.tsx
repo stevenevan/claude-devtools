@@ -1,23 +1,6 @@
 import React from 'react';
 
-import {
-  CODE_BG,
-  CODE_BORDER,
-  CODE_FILENAME,
-  CODE_HEADER_BG,
-  CODE_LINE_NUMBER,
-  COLOR_TEXT_MUTED,
-  COLOR_TEXT_SECONDARY,
-  DIFF_ADDED_BG,
-  DIFF_ADDED_BORDER,
-  DIFF_ADDED_TEXT,
-  DIFF_REMOVED_BG,
-  DIFF_REMOVED_BORDER,
-  DIFF_REMOVED_TEXT,
-  TAG_BG,
-  TAG_BORDER,
-  TAG_TEXT,
-} from '@renderer/constants/cssVariables';
+import { cn } from '@renderer/lib/utils';
 import { getBaseName } from '@renderer/utils/pathUtils';
 import { formatTokens } from '@shared/utils/tokenFormatting';
 import { Pencil } from 'lucide-react';
@@ -224,58 +207,45 @@ interface DiffLineRowProps {
 }
 
 const DiffLineRow: React.FC<DiffLineRowProps> = ({ line }): React.JSX.Element => {
-  // Theme-aware styles using CSS variables
-  const getStyles = (
-    type: DiffLine['type']
-  ): { bg: string; text: string; border: string; prefix: string } => {
-    switch (type) {
-      case 'removed':
-        return {
-          bg: DIFF_REMOVED_BG,
-          text: DIFF_REMOVED_TEXT,
-          border: DIFF_REMOVED_BORDER,
-          prefix: '-',
-        };
-      case 'added':
-        return {
-          bg: DIFF_ADDED_BG,
-          text: DIFF_ADDED_TEXT,
-          border: DIFF_ADDED_BORDER,
-          prefix: '+',
-        };
-      default:
-        return {
-          bg: 'transparent',
-          text: COLOR_TEXT_SECONDARY,
-          border: 'transparent',
-          prefix: ' ',
-        };
-    }
-  };
+  const isRemoved = line.type === 'removed';
+  const isAdded = line.type === 'added';
+  const isContext = line.type === 'context';
 
-  const style = getStyles(line.type);
+  const prefix = isRemoved ? '-' : isAdded ? '+' : ' ';
 
   return (
     <div
-      className="flex min-w-full"
-      style={{
-        backgroundColor: style.bg,
-        borderLeft: `3px solid ${style.border}`,
-      }}
+      className={cn(
+        'flex min-w-full border-l-[3px]',
+        isRemoved && 'bg-[var(--diff-removed-bg)] border-[var(--diff-removed-border)]',
+        isAdded && 'bg-[var(--diff-added-bg)] border-[var(--diff-added-border)]',
+        isContext && 'bg-transparent border-transparent'
+      )}
     >
       {/* Line number */}
-      <span
-        className="w-10 shrink-0 px-2 text-right select-none"
-        style={{ color: CODE_LINE_NUMBER }}
-      >
+      <span className="w-10 shrink-0 px-2 text-right select-none text-[var(--code-line-number)]">
         {line.lineNumber}
       </span>
       {/* Prefix */}
-      <span className="w-6 shrink-0 select-none" style={{ color: style.text }}>
-        {style.prefix}
+      <span
+        className={cn(
+          'w-6 shrink-0 select-none',
+          isRemoved && 'text-[var(--diff-removed-text)]',
+          isAdded && 'text-[var(--diff-added-text)]',
+          isContext && 'text-text-secondary'
+        )}
+      >
+        {prefix}
       </span>
       {/* Content */}
-      <span className="flex-1 whitespace-pre" style={{ color: style.text }}>
+      <span
+        className={cn(
+          'flex-1 whitespace-pre',
+          isRemoved && 'text-[var(--diff-removed-text)]',
+          isAdded && 'text-[var(--diff-added-text)]',
+          isContext && 'text-text-secondary'
+        )}
+      >
         {line.content || ' '}
       </span>
     </div>
@@ -306,62 +276,43 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
   const displayName = getBaseName(fileName);
 
   return (
-    <div
-      className="overflow-hidden rounded-lg shadow-xs"
-      style={{
-        backgroundColor: CODE_BG,
-        border: `1px solid ${CODE_BORDER}`,
-      }}
-    >
+    <div className="overflow-hidden rounded-lg shadow-xs bg-[var(--code-bg)] border border-[var(--code-border)]">
       {/* Header - matches CodeBlockViewer style */}
-      <div
-        className="flex items-center gap-2 px-3 py-2"
-        style={{
-          backgroundColor: CODE_HEADER_BG,
-          borderBottom: `1px solid ${CODE_BORDER}`,
-        }}
-      >
-        <Pencil className="size-4 shrink-0" style={{ color: COLOR_TEXT_MUTED }} />
-        <span className="truncate font-mono text-sm" style={{ color: CODE_FILENAME }}>
+      <div className="flex items-center gap-2 px-3 py-2 bg-[var(--code-header-bg)] border-b border-[var(--code-border)]">
+        <Pencil className="size-4 shrink-0 text-text-muted" />
+        <span className="truncate font-mono text-sm text-[var(--code-filename)]">
           {displayName}
         </span>
-        <span
-          className="shrink-0 rounded-sm px-1.5 py-0.5 text-xs"
-          style={{
-            backgroundColor: TAG_BG,
-            color: TAG_TEXT,
-            border: `1px solid ${TAG_BORDER}`,
-          }}
-        >
+        <span className="shrink-0 rounded-sm px-1.5 py-0.5 text-xs bg-[var(--tag-bg)] text-[var(--tag-text)] border border-[var(--tag-border)]">
           {detectedLanguage}
         </span>
-        <span style={{ color: COLOR_TEXT_MUTED }}>-</span>
+        <span className="text-text-muted">-</span>
         <span className="shrink-0 text-sm">
           {stats.added > 0 && (
-            <span className="mr-1" style={{ color: DIFF_ADDED_TEXT }}>
+            <span className="mr-1 text-[var(--diff-added-text)]">
               +{stats.added}
             </span>
           )}
-          {stats.removed > 0 && <span style={{ color: DIFF_REMOVED_TEXT }}>-{stats.removed}</span>}
+          {stats.removed > 0 && <span className="text-[var(--diff-removed-text)]">-{stats.removed}</span>}
           {stats.added === 0 && stats.removed === 0 && (
-            <span style={{ color: COLOR_TEXT_MUTED }}>Changed</span>
+            <span className="text-text-muted">Changed</span>
           )}
         </span>
         {tokenCount !== undefined && tokenCount > 0 && (
-          <span className="ml-auto text-xs" style={{ color: COLOR_TEXT_MUTED }}>
+          <span className="ml-auto text-xs text-text-muted">
             ~{formatTokens(tokenCount)} tokens
           </span>
         )}
       </div>
 
       {/* Diff content */}
-      <div className={`overflow-auto font-mono text-xs ${maxHeight}`}>
+      <div className={cn('overflow-auto font-mono text-xs', maxHeight)}>
         <div className="inline-block min-w-full">
           {diffLines.map((line, index) => (
             <DiffLineRow key={index} line={line} />
           ))}
           {diffLines.length === 0 && (
-            <div className="px-3 py-2 italic" style={{ color: COLOR_TEXT_MUTED }}>
+            <div className="px-3 py-2 italic text-text-muted">
               No changes detected
             </div>
           )}

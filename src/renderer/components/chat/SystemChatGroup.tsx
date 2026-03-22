@@ -28,12 +28,9 @@ const SystemChatGroupInner = ({
     <div className="flex justify-start">
       <div className="max-w-[85%] space-y-2">
         {/* Header - system icon */}
-        <div
-          className="flex items-center gap-2 text-xs"
-          style={{ color: 'var(--color-text-muted)' }}
-        >
-          <Terminal className="size-3.5" style={{ color: 'var(--color-text-muted)' }} />
-          <span className="font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+        <div className="flex items-center gap-2 text-xs text-text-muted">
+          <Terminal className="size-3.5 text-text-muted" />
+          <span className="font-medium text-text-secondary">
             System
           </span>
           <span>·</span>
@@ -41,14 +38,8 @@ const SystemChatGroupInner = ({
         </div>
 
         {/* Content - theme-aware neutral styling */}
-        <div
-          className="rounded-2xl rounded-bl-sm px-4 py-3"
-          style={{ backgroundColor: 'var(--chat-system-bg)' }}
-        >
-          <pre
-            className="font-mono text-sm whitespace-pre-wrap"
-            style={{ color: 'var(--chat-system-text)' }}
-          >
+        <div className="rounded-2xl rounded-bl-sm px-4 py-3 bg-[var(--chat-system-bg)]">
+          <pre className="font-mono text-sm whitespace-pre-wrap text-[var(--chat-system-text)]">
             {cleanOutput}
           </pre>
         </div>

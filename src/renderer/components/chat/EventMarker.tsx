@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { COLOR_TEXT_MUTED } from '@renderer/constants/cssVariables';
 import { format } from 'date-fns';
 import { AlertTriangle, BookMarked, Inbox, Radio, Timer } from 'lucide-react';
 
@@ -131,29 +130,23 @@ export const EventMarker = ({ eventGroup }: Readonly<EventMarkerProps>): React.J
   return (
     <div className="my-3">
       <div
-        className="flex items-center gap-3 rounded-lg px-4 py-2"
+        className="flex items-center gap-3 rounded-lg px-4 py-2 border"
         style={{
           backgroundColor: style.bg,
-          border: `1px solid ${style.border}`,
+          borderColor: style.border,
         }}
       >
-        <Icon size={14} style={{ color: style.text, flexShrink: 0 }} />
+        <Icon size={14} className="shrink-0" style={{ color: style.text }} />
         <span
           className="shrink-0 text-xs font-medium whitespace-nowrap"
           style={{ color: style.text }}
         >
           {style.label}
         </span>
-        <span
-          className="min-w-0 truncate text-xs"
-          style={{ color: COLOR_TEXT_MUTED }}
-        >
+        <span className="min-w-0 truncate text-xs text-text-muted">
           {detail}
         </span>
-        <span
-          className="ml-auto shrink-0 text-xs whitespace-nowrap"
-          style={{ color: COLOR_TEXT_MUTED }}
-        >
+        <span className="ml-auto shrink-0 text-xs whitespace-nowrap text-text-muted">
           {format(timestamp, 'h:mm:ss a')}
         </span>
       </div>

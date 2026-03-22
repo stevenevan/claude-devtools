@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { TOOL_ITEM_MUTED } from '@renderer/constants/cssVariables';
+import { cn } from '@renderer/lib/utils';
 import { getTriggerColorDef, type TriggerColor } from '@shared/constants/triggerColors';
 import { ChevronRight } from 'lucide-react';
 
@@ -104,32 +104,25 @@ export const BaseItem: React.FC<BaseItemProps> = ({
             onClick();
           }
         }}
-        className="group flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5"
-        style={{ backgroundColor: 'transparent' }}
-        onMouseEnter={(e) =>
-          Object.assign(e.currentTarget.style, { backgroundColor: 'var(--tool-item-hover-bg)' })
-        }
-        onMouseLeave={(e) =>
-          Object.assign(e.currentTarget.style, { backgroundColor: 'transparent' })
-        }
+        className="group flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-[var(--tool-item-hover-bg)]"
       >
         {/* Icon */}
-        <span className="size-4 shrink-0" style={{ color: TOOL_ITEM_MUTED }}>
+        <span className="size-4 shrink-0 text-[var(--tool-item-muted)]">
           {icon}
         </span>
 
         {/* Label */}
-        <span className="text-sm font-medium" style={{ color: 'var(--tool-item-name)' }}>
+        <span className="text-sm font-medium text-[var(--tool-item-name)]">
           {label}
         </span>
 
         {/* Separator and Summary */}
         {summary && (
           <>
-            <span className="text-sm" style={{ color: TOOL_ITEM_MUTED }}>
+            <span className="text-sm text-[var(--tool-item-muted)]">
               -
             </span>
-            <span className="flex-1 truncate text-sm" style={{ color: 'var(--tool-item-summary)' }}>
+            <span className="flex-1 truncate text-sm text-[var(--tool-item-summary)]">
               {summary}
             </span>
           </>
@@ -140,13 +133,7 @@ export const BaseItem: React.FC<BaseItemProps> = ({
 
         {/* Token count badge */}
         {tokenCount != null && tokenCount > 0 && (
-          <span
-            className="shrink-0 rounded-sm px-1.5 py-0.5 text-xs"
-            style={{
-              color: TOOL_ITEM_MUTED,
-              backgroundColor: 'var(--tool-item-badge-bg)',
-            }}
-          >
+          <span className="shrink-0 rounded-sm bg-[var(--tool-item-badge-bg)] px-1.5 py-0.5 text-xs text-[var(--tool-item-muted)]">
             ~{formatTokens(tokenCount)} {tokenLabel}
           </span>
         )}
@@ -164,7 +151,7 @@ export const BaseItem: React.FC<BaseItemProps> = ({
 
         {/* Duration */}
         {durationMs !== undefined && (
-          <span className="shrink-0 text-xs" style={{ color: TOOL_ITEM_MUTED }}>
+          <span className="shrink-0 text-xs text-[var(--tool-item-muted)]">
             {formatDuration(durationMs)}
           </span>
         )}
@@ -172,18 +159,14 @@ export const BaseItem: React.FC<BaseItemProps> = ({
         {/* Expand/collapse chevron */}
         {hasExpandableContent && (
           <ChevronRight
-            className={`size-3 shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-            style={{ color: TOOL_ITEM_MUTED }}
+            className={cn('size-3 shrink-0 transition-transform text-[var(--tool-item-muted)]', isExpanded && 'rotate-90')}
           />
         )}
       </div>
 
       {/* Expanded Content */}
       {isExpanded && children && (
-        <div
-          className="mt-2 ml-2 space-y-3 pl-6"
-          style={{ borderLeft: '2px solid var(--color-border)' }}
-        >
+        <div className="mt-2 ml-2 space-y-3 border-l-2 border-border pl-6">
           {children}
         </div>
       )}

@@ -4,7 +4,6 @@
 
 import React from 'react';
 
-import { COLOR_TEXT_MUTED, COLOR_TEXT_SECONDARY } from '@renderer/constants/cssVariables';
 import { MessageSquare } from 'lucide-react';
 
 import { formatTokens } from '../utils/formatting';
@@ -26,18 +25,12 @@ export const UserMessageItem = ({
   return (
     <div className="rounded-sm px-2 py-1.5">
       <div className="flex w-full items-center gap-1.5">
-        <MessageSquare size={12} style={{ color: COLOR_TEXT_MUTED, flexShrink: 0 }} />
+        <MessageSquare size={12} className="shrink-0 text-text-muted" />
         {isClickable ? (
           <span
             role="link"
             tabIndex={0}
-            className="cursor-pointer text-xs transition-opacity hover:opacity-80"
-            style={{
-              color: '#93c5fd',
-              textDecoration: 'underline',
-              textDecorationStyle: 'dotted' as const,
-              textUnderlineOffset: '2px',
-            }}
+            className="cursor-pointer text-xs text-[#93c5fd] underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
             onClick={() => onNavigateToTurn(turnIndex)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -48,18 +41,17 @@ export const UserMessageItem = ({
             @Turn {turnIndex + 1}
           </span>
         ) : (
-          <span className="text-xs" style={{ color: COLOR_TEXT_SECONDARY }}>
+          <span className="text-xs text-text-secondary">
             @Turn {turnIndex + 1}
           </span>
         )}
-        <span className="text-xs" style={{ color: COLOR_TEXT_MUTED }}>
+        <span className="text-xs text-text-muted">
           ~{formatTokens(injection.estimatedTokens)} tokens
         </span>
       </div>
       {injection.textPreview && (
         <div
-          className="mt-0.5 truncate pl-5 text-xs italic"
-          style={{ color: COLOR_TEXT_MUTED, opacity: 0.7 }}
+          className="mt-0.5 truncate pl-5 text-xs italic text-text-muted opacity-70"
         >
           {injection.textPreview}
         </div>

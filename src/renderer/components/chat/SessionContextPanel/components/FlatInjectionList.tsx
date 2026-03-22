@@ -7,7 +7,6 @@
 import React, { useMemo } from 'react';
 
 import { CopyButton } from '@renderer/components/common/CopyButton';
-import { COLOR_TEXT_MUTED, COLOR_TEXT_SECONDARY } from '@renderer/constants/cssVariables';
 
 import { formatTokens } from '../utils/formatting';
 import { parseTurnIndex } from '../utils/pathParsing';
@@ -208,28 +207,21 @@ export const FlatInjectionList = ({
               </span>
               {/* Description */}
               <span
-                className="min-w-0 flex-1 truncate text-xs"
-                style={{ color: COLOR_TEXT_SECONDARY }}
+                className="min-w-0 flex-1 truncate text-xs text-text-secondary"
               >
                 {displayText}
               </span>
               {/* Error badge */}
               {row.isError && (
                 <span
-                  className="shrink-0 rounded-sm px-1 py-0.5"
-                  style={{
-                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                    color: '#ef4444',
-                    fontSize: '10px',
-                  }}
+                  className="shrink-0 rounded-sm bg-[rgba(239,68,68,0.15)] px-1 py-0.5 text-[10px] text-[#ef4444]"
                 >
                   error
                 </span>
               )}
               {/* Token count */}
               <span
-                className="shrink-0 text-xs font-medium tabular-nums"
-                style={{ color: COLOR_TEXT_MUTED }}
+                className="shrink-0 text-xs font-medium tabular-nums text-text-muted"
               >
                 {formatTokens(row.tokens)}
               </span>

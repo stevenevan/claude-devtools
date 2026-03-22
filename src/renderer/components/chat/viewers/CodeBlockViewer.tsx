@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 
+import { cn } from '@renderer/lib/utils';
 import { getBaseName } from '@renderer/utils/pathUtils';
 import { createLogger } from '@shared/utils/logger';
 import { Check, Copy, FileCode } from 'lucide-react';
@@ -152,43 +153,23 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
   const displayFileName = getBaseName(fileName) || fileName;
 
   return (
-    <div
-      className="overflow-hidden rounded-lg shadow-xs"
-      style={{
-        backgroundColor: 'var(--code-bg)',
-        border: '1px solid var(--code-border)',
-      }}
-    >
+    <div className="overflow-hidden rounded-lg shadow-xs bg-[var(--code-bg)] border border-[var(--code-border)]">
       {/* Header */}
-      <div
-        className="flex items-center justify-between px-3 py-2"
-        style={{
-          backgroundColor: 'var(--code-header-bg)',
-          borderBottom: '1px solid var(--code-border)',
-        }}
-      >
+      <div className="flex items-center justify-between px-3 py-2 bg-[var(--code-header-bg)] border-b border-[var(--code-border)]">
         <div className="flex min-w-0 items-center gap-2">
-          <FileCode className="size-4 shrink-0" style={{ color: 'var(--color-text-muted)' }} />
+          <FileCode className="size-4 shrink-0 text-text-muted" />
           <span
-            className="truncate font-mono text-sm"
+            className="truncate font-mono text-sm text-[var(--code-filename)]"
             title={fileName}
-            style={{ color: 'var(--code-filename)' }}
           >
             {displayFileName}
           </span>
           {(startLine > 1 || endLine) && (
-            <span className="shrink-0 text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            <span className="shrink-0 text-xs text-text-muted">
               (lines {startLine}-{actualEndLine})
             </span>
           )}
-          <span
-            className="shrink-0 rounded-sm px-1.5 py-0.5 text-xs"
-            style={{
-              backgroundColor: 'var(--tag-bg)',
-              color: 'var(--tag-text)',
-              border: '1px solid var(--tag-border)',
-            }}
-          >
+          <span className="shrink-0 rounded-sm px-1.5 py-0.5 text-xs bg-[var(--tag-bg)] text-[var(--tag-text)] border border-[var(--tag-border)]">
             {detectedLanguage}
           </span>
         </div>
@@ -196,20 +177,19 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
         {/* Copy button */}
         <button
           onClick={handleCopy}
-          className="rounded-sm p-1 transition-colors hover:opacity-80"
+          className="rounded-sm p-1 transition-colors hover:opacity-80 bg-transparent"
           title="Copy to clipboard"
-          style={{ backgroundColor: 'transparent' }}
         >
           {isCopied ? (
-            <Check className="size-4" style={{ color: 'var(--badge-success-bg)' }} />
+            <Check className="size-4 text-[var(--badge-success-bg)]" />
           ) : (
-            <Copy className="size-4" style={{ color: 'var(--color-text-muted)' }} />
+            <Copy className="size-4 text-text-muted" />
           )}
         </button>
       </div>
 
       {/* Code content */}
-      <div className={`overflow-auto ${maxHeight}`}>
+      <div className={cn('overflow-auto', maxHeight)}>
         <pre className="m-0 bg-transparent p-0">
           <code className="block font-mono text-xs leading-relaxed">
             {lines.map((line, index) => {
@@ -217,20 +197,11 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
               return (
                 <div key={index} className="flex hover:bg-[var(--color-surface-overlay)]">
                   {/* Line number */}
-                  <span
-                    className="w-12 shrink-0 px-3 py-0.5 text-right select-none"
-                    style={{
-                      color: 'var(--code-line-number)',
-                      borderRight: '1px solid var(--code-border)',
-                    }}
-                  >
+                  <span className="w-12 shrink-0 px-3 py-0.5 text-right select-none text-[var(--code-line-number)] border-r border-[var(--code-border)]">
                     {lineNumber}
                   </span>
                   {/* Code line */}
-                  <span
-                    className="flex-1 px-4 py-0.5 whitespace-pre"
-                    style={{ color: 'var(--color-text)' }}
-                  >
+                  <span className="flex-1 px-4 py-0.5 whitespace-pre text-text">
                     {highlightLine(line, detectedLanguage)}
                   </span>
                 </div>

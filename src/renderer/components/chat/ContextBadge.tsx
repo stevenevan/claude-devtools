@@ -2,14 +2,7 @@ import React, { useMemo, useState } from 'react';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
 import { Separator } from '@renderer/components/ui/separator';
-import {
-  COLOR_BORDER,
-  COLOR_BORDER_SUBTLE,
-  COLOR_SURFACE_RAISED,
-  COLOR_TEXT,
-  COLOR_TEXT_MUTED,
-  COLOR_TEXT_SECONDARY,
-} from '@renderer/constants/cssVariables';
+import { cn } from '@renderer/lib/utils';
 import { resolveAbsolutePath, shortenDisplayPath } from '@renderer/utils/pathDisplay';
 import { formatTokensCompact as formatTokens } from '@shared/utils/tokenFormatting';
 import { ChevronRight } from 'lucide-react';
@@ -76,8 +69,7 @@ const PopoverSection = ({
       <div
         role="button"
         tabIndex={0}
-        className="mb-1 flex cursor-pointer items-center gap-1 text-xs font-medium hover:opacity-80"
-        style={{ color: COLOR_TEXT_MUTED }}
+        className="mb-1 flex cursor-pointer items-center gap-1 text-xs font-medium text-text-muted hover:opacity-80"
         onClick={(e) => {
           e.stopPropagation();
           setExpanded(!expanded);
@@ -192,12 +184,6 @@ export const ContextBadge = ({
     [newUserMessageInjections]
   );
 
-  const badgeStyle: React.CSSProperties = {
-    backgroundColor: COLOR_SURFACE_RAISED,
-    border: `1px solid ${COLOR_BORDER}`,
-    color: COLOR_TEXT_SECONDARY,
-  };
-
   if (totalNew === 0) {
     return null;
   }
@@ -206,8 +192,7 @@ export const ContextBadge = ({
     <Popover>
       <PopoverTrigger className="inline-flex">
         <span
-          className="inline-flex cursor-pointer items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
-          style={badgeStyle}
+          className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-border bg-surface-raised px-2 py-0.5 text-xs font-medium text-text-secondary"
         >
           <span>Context</span>
           <span className="font-semibold">+{totalNew}</span>
@@ -215,11 +200,7 @@ export const ContextBadge = ({
       </PopoverTrigger>
       <PopoverContent className="w-80 max-h-96 overflow-y-auto p-3" align="start">
         <div
-          className="mb-2 pb-2 text-xs font-semibold"
-          style={{
-            color: COLOR_TEXT,
-            borderBottom: `1px solid ${COLOR_BORDER_SUBTLE}`,
-          }}
+          className="mb-2 border-b border-border-subtle pb-2 text-xs font-semibold text-text"
         >
           New Context Injected In This Turn
         </div>
@@ -234,17 +215,16 @@ export const ContextBadge = ({
               {newUserMessageInjections.map((injection) => (
                 <div key={injection.id} className="min-w-0">
                   <div className="flex items-center justify-between text-xs">
-                    <span style={{ color: COLOR_TEXT_SECONDARY }}>
+                    <span className="text-text-secondary">
                       Turn {injection.turnIndex + 1}
                     </span>
-                    <span style={{ color: COLOR_TEXT_MUTED }}>
+                    <span className="text-text-muted">
                       ~{formatTokens(injection.estimatedTokens)} tokens
                     </span>
                   </div>
                   {injection.textPreview && (
                     <div
-                      className="mt-0.5 truncate text-xs italic"
-                      style={{ color: COLOR_TEXT_MUTED, opacity: 0.8 }}
+                      className="mt-0.5 truncate text-xs italic text-text-muted opacity-80"
                     >
                       {injection.textPreview}
                     </div>
@@ -269,10 +249,9 @@ export const ContextBadge = ({
                     <CopyablePath
                       displayText={displayPath}
                       copyText={absolutePath}
-                      className="text-xs"
-                      style={{ color: COLOR_TEXT_SECONDARY }}
+                      className="text-xs text-text-secondary"
                     />
-                    <div className="text-xs" style={{ color: COLOR_TEXT_MUTED }}>
+                    <div className="text-xs text-text-muted">
                       ~{formatTokens(injection.estimatedTokens)} tokens
                     </div>
                   </div>
@@ -295,10 +274,9 @@ export const ContextBadge = ({
                     <CopyablePath
                       displayText={displayPath}
                       copyText={absolutePath}
-                      className="text-xs"
-                      style={{ color: COLOR_TEXT_SECONDARY }}
+                      className="text-xs text-text-secondary"
                     />
-                    <div className="text-xs" style={{ color: COLOR_TEXT_MUTED }}>
+                    <div className="text-xs text-text-muted">
                       ~{formatTokens(injection.estimatedTokens)} tokens
                     </div>
                   </div>
@@ -319,8 +297,8 @@ export const ContextBadge = ({
                     key={`${injection.id}-${tool.toolName}-${idx}`}
                     className="flex items-center justify-between text-xs"
                   >
-                    <span style={{ color: COLOR_TEXT_SECONDARY }}>{tool.toolName}</span>
-                    <span style={{ color: COLOR_TEXT_MUTED }}>
+                    <span className="text-text-secondary">{tool.toolName}</span>
+                    <span className="text-text-muted">
                       ~{formatTokens(tool.tokenCount)} tokens
                     </span>
                   </div>
@@ -341,8 +319,8 @@ export const ContextBadge = ({
                     key={`${injection.id}-${item.label}-${idx}`}
                     className="flex items-center justify-between text-xs"
                   >
-                    <span style={{ color: COLOR_TEXT_SECONDARY }}>{item.label}</span>
-                    <span style={{ color: COLOR_TEXT_MUTED }}>
+                    <span className="text-text-secondary">{item.label}</span>
+                    <span className="text-text-muted">
                       ~{formatTokens(item.tokenCount)} tokens
                     </span>
                   </div>
@@ -359,7 +337,7 @@ export const ContextBadge = ({
             >
               {newThinkingTextInjections.map((injection) => (
                 <div key={injection.id} className="min-w-0">
-                  <div className="text-xs" style={{ color: COLOR_TEXT_SECONDARY }}>
+                  <div className="text-xs text-text-secondary">
                     Turn {injection.turnIndex + 1}
                   </div>
                   <div className="space-y-0.5 pl-2">
@@ -368,10 +346,10 @@ export const ContextBadge = ({
                         key={`${item.type}-${idx}`}
                         className="flex items-center justify-between text-xs"
                       >
-                        <span style={{ color: COLOR_TEXT_MUTED }}>
+                        <span className="text-text-muted">
                           {item.type === 'thinking' ? 'Thinking' : 'Text'}
                         </span>
-                        <span style={{ color: COLOR_TEXT_MUTED }}>
+                        <span className="text-text-muted">
                           ~{formatTokens(item.tokenCount)} tokens
                         </span>
                       </div>
@@ -384,11 +362,10 @@ export const ContextBadge = ({
         </div>
 
         <div
-          className="mt-2 flex items-center justify-between pt-2 text-xs"
-          style={{ borderTop: `1px solid ${COLOR_BORDER_SUBTLE}` }}
+          className="mt-2 flex items-center justify-between border-t border-border-subtle pt-2 text-xs"
         >
-          <span style={{ color: COLOR_TEXT_MUTED }}>Total new tokens</span>
-          <span style={{ color: COLOR_TEXT_SECONDARY }}>
+          <span className="text-text-muted">Total new tokens</span>
+          <span className="text-text-secondary">
             ~{formatTokens(totalNewTokens)} tokens
           </span>
         </div>

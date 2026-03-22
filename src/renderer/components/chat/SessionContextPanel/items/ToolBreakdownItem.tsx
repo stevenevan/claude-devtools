@@ -17,17 +17,16 @@ export const ToolBreakdownItem = ({
 }: Readonly<ToolBreakdownItemProps>): React.ReactElement => {
   return (
     <div className="flex items-center gap-2 py-0.5 text-xs">
-      <span style={{ color: 'var(--color-text-muted)' }}>{tool.toolName}</span>
-      <span style={{ color: 'var(--color-text-muted)', opacity: 0.7 }}>
+      <span className="text-text-muted">{tool.toolName}</span>
+      <span className="text-text-muted opacity-70">
         ~{formatTokens(tool.tokenCount)}
       </span>
       {tool.isError && (
         <span
-          className="rounded-sm px-1 py-0.5"
+          className="rounded-sm px-1 py-0.5 text-[10px]"
           style={{
             backgroundColor: 'var(--color-error-subtle)',
             color: 'var(--color-error)',
-            fontSize: '10px',
           }}
         >
           error

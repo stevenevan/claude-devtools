@@ -1,15 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import {
-  CARD_ICON_MUTED,
-  CARD_SEPARATOR,
-  CARD_TEXT_LIGHT,
-  COLOR_TEXT_MUTED,
-  TAG_BG,
-  TAG_BORDER,
-  TAG_TEXT,
-} from '@renderer/constants/cssVariables';
 import { formatTokensCompact } from '@renderer/utils/formatters';
 
 // =============================================================================
@@ -130,17 +121,12 @@ export const MetricsPill = ({
       <div
         ref={containerRef}
         role="tooltip"
-        className="inline-flex cursor-default items-center gap-1 rounded-sm px-1.5 py-0.5 font-mono text-[11px]"
-        style={{
-          backgroundColor: TAG_BG,
-          border: `1px solid ${TAG_BORDER}`,
-          color: TAG_TEXT,
-        }}
+        className="inline-flex cursor-default items-center gap-1 rounded-sm border border-[var(--tag-border)] bg-[var(--tag-bg)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--tag-text)]"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         {mainValue && <span className="tabular-nums">{mainValue}</span>}
-        {mainValue && isolatedValue && <span style={{ color: CARD_SEPARATOR }}>|</span>}
+        {mainValue && isolatedValue && <span className="text-[var(--card-separator)]">|</span>}
         {isolatedValue && <span className="tabular-nums">{isolatedValue}</span>}
       </div>
 
@@ -148,28 +134,24 @@ export const MetricsPill = ({
         createPortal(
           <div
             role="tooltip"
-            className="bg-surface-overlay rounded-md p-2 text-[11px] shadow-xl"
-            style={{
-              ...tooltipStyle,
-              border: `1px solid ${TAG_BORDER}`,
-              backdropFilter: 'blur(8px)',
-            }}
+            className="bg-surface-overlay rounded-md border border-[var(--tag-border)] p-2 text-[11px] shadow-xl [backdrop-filter:blur(8px)]"
+            style={tooltipStyle}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
             <div className="space-y-1">
               {hasMainImpact && (
                 <div className="flex items-center justify-between gap-3">
-                  <span style={{ color: COLOR_TEXT_MUTED }}>Main Context</span>
-                  <span className="font-mono tabular-nums" style={{ color: CARD_TEXT_LIGHT }}>
+                  <span className="text-text-muted">Main Context</span>
+                  <span className="font-mono tabular-nums text-[var(--card-text-light)]">
                     {mainSessionImpact.totalTokens.toLocaleString()}
                   </span>
                 </div>
               )}
               {hasIsolated && (
                 <div className="flex items-center justify-between gap-3">
-                  <span style={{ color: COLOR_TEXT_MUTED }}>{rightLabel}</span>
-                  <span className="font-mono tabular-nums" style={{ color: CARD_TEXT_LIGHT }}>
+                  <span className="text-text-muted">{rightLabel}</span>
+                  <span className="font-mono tabular-nums text-[var(--card-text-light)]">
                     {isolatedTotal.toLocaleString()}
                   </span>
                 </div>
@@ -180,13 +162,10 @@ export const MetricsPill = ({
                     key={phase.phaseNumber}
                     className="flex items-center justify-between gap-3 pl-2"
                   >
-                    <span className="text-[10px]" style={{ color: CARD_ICON_MUTED }}>
+                    <span className="text-[10px] text-[var(--card-icon-muted)]">
                       Phase {phase.phaseNumber}
                     </span>
-                    <span
-                      className="font-mono text-[10px] tabular-nums"
-                      style={{ color: CARD_ICON_MUTED }}
-                    >
+                    <span className="font-mono text-[10px] tabular-nums text-[var(--card-icon-muted)]">
                       {formatTokensCompact(phase.peakTokens)}
                       {phase.postCompaction != null && (
                         <span style={{ color: '#4ade80' }}>
@@ -197,10 +176,7 @@ export const MetricsPill = ({
                     </span>
                   </div>
                 ))}
-              <div
-                className="mt-1 pt-1.5 text-[10px]"
-                style={{ borderTop: `1px solid ${TAG_BORDER}`, color: CARD_ICON_MUTED }}
-              >
+              <div className="mt-1 border-t border-[var(--tag-border)] pt-1.5 text-[10px] text-[var(--card-icon-muted)]">
                 {hasMainImpact && hasIsolated
                   ? 'Left: parent injection · Right: internal'
                   : hasMainImpact

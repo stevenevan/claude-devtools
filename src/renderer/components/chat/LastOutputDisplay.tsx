@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { AlertTriangle, CheckCircle, FileCheck, XCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -81,13 +82,7 @@ export const LastOutputDisplay = ({
     const textContent = lastOutput.text || '';
 
     return (
-      <div
-        className="group relative overflow-hidden rounded-lg"
-        style={{
-          backgroundColor: 'var(--code-bg)',
-          border: '1px solid var(--code-border)',
-        }}
-      >
+      <div className="group relative overflow-hidden rounded-lg bg-[var(--code-bg)] border border-[var(--code-border)]">
         <CopyButton text={textContent} />
 
         {/* Content - scrollable */}
@@ -107,44 +102,33 @@ export const LastOutputDisplay = ({
 
     return (
       <div
-        className="overflow-hidden rounded-lg"
-        style={{
-          backgroundColor: isError
-            ? 'var(--tool-result-error-bg)'
-            : 'var(--tool-result-success-bg)',
-          border: `1px solid ${isError ? 'var(--tool-result-error-border)' : 'var(--tool-result-success-border)'}`,
-        }}
+        className={cn(
+          'overflow-hidden rounded-lg border',
+          isError
+            ? 'bg-[var(--tool-result-error-bg)] border-[var(--tool-result-error-border)]'
+            : 'bg-[var(--tool-result-success-bg)] border-[var(--tool-result-success-border)]'
+        )}
       >
         {/* Header */}
         <div
-          className="flex items-center gap-2 px-4 py-2"
-          style={{
-            borderBottom: `1px solid ${isError ? 'var(--tool-result-error-border)' : 'var(--tool-result-success-border)'}`,
-          }}
+          className={cn(
+            'flex items-center gap-2 px-4 py-2 border-b',
+            isError ? 'border-[var(--tool-result-error-border)]' : 'border-[var(--tool-result-success-border)]'
+          )}
         >
           <Icon
-            className="size-4"
-            style={{
-              color: isError ? 'var(--tool-result-error-text)' : 'var(--tool-result-success-text)',
-            }}
+            className={cn(
+              'size-4',
+              isError ? 'text-[var(--tool-result-error-text)]' : 'text-[var(--tool-result-success-text)]'
+            )}
           />
           {lastOutput.toolName && (
-            <code
-              className="rounded-sm px-1.5 py-0.5 text-xs"
-              style={{
-                backgroundColor: 'var(--tag-bg)',
-                color: 'var(--tag-text)',
-                border: '1px solid var(--tag-border)',
-              }}
-            >
+            <code className="rounded-sm px-1.5 py-0.5 text-xs bg-[var(--tag-bg)] text-[var(--tag-text)] border border-[var(--tag-border)]">
               {lastOutput.toolName}
             </code>
           )}
           {isError && (
-            <span
-              className="text-xs font-medium"
-              style={{ color: 'var(--tool-result-error-text)' }}
-            >
+            <span className="text-xs font-medium text-[var(--tool-result-error-text)]">
               Error
             </span>
           )}
@@ -152,10 +136,7 @@ export const LastOutputDisplay = ({
 
         {/* Content */}
         <div className="px-4 py-3">
-          <pre
-            className="max-h-96 overflow-y-auto font-mono text-sm break-words whitespace-pre-wrap"
-            style={{ color: 'var(--color-text)' }}
-          >
+          <pre className="max-h-96 overflow-y-auto font-mono text-sm break-words whitespace-pre-wrap text-text">
             {lastOutput.toolResult}
           </pre>
         </div>
@@ -166,18 +147,9 @@ export const LastOutputDisplay = ({
   // Render interruption as a simple horizontal banner
   if (type === 'interruption') {
     return (
-      <div
-        className="flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2"
-        style={{
-          backgroundColor: 'var(--warning-bg, rgba(245, 158, 11, 0.1))',
-          border: '1px solid var(--warning-border, rgba(245, 158, 11, 0.3))',
-        }}
-      >
-        <AlertTriangle
-          className="size-4 shrink-0"
-          style={{ color: 'var(--warning-text, #f59e0b)' }}
-        />
-        <span className="text-sm" style={{ color: 'var(--warning-text, #f59e0b)' }}>
+      <div className="flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 bg-[var(--warning-bg,rgba(245,158,11,0.1))] border border-[var(--warning-border,rgba(245,158,11,0.3))]">
+        <AlertTriangle className="size-4 shrink-0 text-[var(--warning-text,#f59e0b)]" />
+        <span className="text-sm text-[var(--warning-text,#f59e0b)]">
           Request interrupted by user
         </span>
       </div>
@@ -193,13 +165,7 @@ export const LastOutputDisplay = ({
       <div className="space-y-3">
         {/* Preamble text (e.g., "The plan is complete. Let me exit plan mode...") */}
         {planPreamble && (
-          <div
-            className="overflow-hidden rounded-lg"
-            style={{
-              backgroundColor: 'var(--code-bg)',
-              border: '1px solid var(--code-border)',
-            }}
-          >
+          <div className="overflow-hidden rounded-lg bg-[var(--code-bg)] border border-[var(--code-border)]">
             <div className="px-4 py-3">
               <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
                 {planPreamble}
@@ -209,24 +175,12 @@ export const LastOutputDisplay = ({
         )}
 
         {/* Plan content block */}
-        <div
-          className="overflow-hidden rounded-lg"
-          style={{
-            backgroundColor: 'var(--plan-exit-bg)',
-            border: '1px solid var(--plan-exit-border)',
-          }}
-        >
+        <div className="overflow-hidden rounded-lg bg-[var(--plan-exit-bg)] border border-[var(--plan-exit-border)]">
           {/* Header */}
-          <div
-            className="flex items-center justify-between px-4 py-2"
-            style={{
-              borderBottom: '1px solid var(--plan-exit-border)',
-              backgroundColor: 'var(--plan-exit-header-bg)',
-            }}
-          >
+          <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--plan-exit-border)] bg-[var(--plan-exit-header-bg)]">
             <div className="flex items-center gap-2">
-              <FileCheck className="size-4" style={{ color: 'var(--plan-exit-text)' }} />
-              <span className="text-sm font-medium" style={{ color: 'var(--plan-exit-text)' }}>
+              <FileCheck className="size-4 text-[var(--plan-exit-text)]" />
+              <span className="text-sm font-medium text-[var(--plan-exit-text)]">
                 Plan Ready for Approval
               </span>
             </div>

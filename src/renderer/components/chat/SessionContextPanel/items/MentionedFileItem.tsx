@@ -31,12 +31,11 @@ export const MentionedFileItem = ({
   return (
     <div className="rounded-sm px-2 py-1.5">
       <div className="flex items-center gap-1.5">
-        <File size={12} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+        <File size={12} className="shrink-0 text-text-muted" />
         <CopyablePath
           displayText={displayPath}
           copyText={absolutePath}
-          className="text-xs"
-          style={{ color: 'var(--color-text-secondary)' }}
+          className="text-xs text-text-secondary"
         />
         {!injection.exists && (
           <span
@@ -51,20 +50,14 @@ export const MentionedFileItem = ({
         )}
       </div>
       <div className="mt-0.5 ml-4 flex items-center gap-2">
-        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+        <span className="text-xs text-text-muted">
           ~{formatTokens(injection.estimatedTokens)} tokens
         </span>
         {isClickable ? (
           <span
             role="link"
             tabIndex={0}
-            className="cursor-pointer text-xs transition-opacity hover:opacity-80"
-            style={{
-              color: '#93c5fd',
-              textDecoration: 'underline',
-              textDecorationStyle: 'dotted' as const,
-              textUnderlineOffset: '2px',
-            }}
+            className="cursor-pointer text-xs text-[#93c5fd] underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
             onClick={() => onNavigateToTurn(turnIndex)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -76,11 +69,7 @@ export const MentionedFileItem = ({
           </span>
         ) : (
           <span
-            className="text-xs"
-            style={{
-              color: 'var(--color-text-muted)',
-              opacity: 0.7,
-            }}
+            className="text-xs text-text-muted opacity-70"
           >
             @Turn {turnIndex + 1}
           </span>

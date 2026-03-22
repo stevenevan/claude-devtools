@@ -4,14 +4,7 @@
 
 import React from 'react';
 
-import {
-  COLOR_BORDER,
-  COLOR_BORDER_SUBTLE,
-  COLOR_SURFACE_OVERLAY,
-  COLOR_TEXT,
-  COLOR_TEXT_MUTED,
-  COLOR_TEXT_SECONDARY,
-} from '@renderer/constants/cssVariables';
+import { cn } from '@renderer/lib/utils';
 import { ArrowDownWideNarrow, FileText, LayoutList, X } from 'lucide-react';
 
 import { formatTokens } from '../utils/formatting';
@@ -45,20 +38,16 @@ export const SessionContextHeader = ({
   onViewModeChange,
 }: Readonly<SessionContextHeaderProps>): React.ReactElement => {
   return (
-    <div className="shrink-0 px-4 py-3" style={{ borderBottom: `1px solid ${COLOR_BORDER}` }}>
+    <div className="shrink-0 border-b border-border px-4 py-3">
       {/* Title row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <FileText size={16} style={{ color: COLOR_TEXT_SECONDARY }} />
-          <h2 className="text-sm font-semibold" style={{ color: COLOR_TEXT }}>
+          <FileText size={16} className="text-text-secondary" />
+          <h2 className="text-sm font-semibold text-text">
             Visible Context
           </h2>
           <span
-            className="rounded-sm px-1.5 py-0.5 text-xs"
-            style={{
-              backgroundColor: COLOR_SURFACE_OVERLAY,
-              color: COLOR_TEXT_SECONDARY,
-            }}
+            className="rounded-sm bg-surface-overlay px-1.5 py-0.5 text-xs text-text-secondary"
           >
             {injectionCount}
           </span>
@@ -68,8 +57,7 @@ export const SessionContextHeader = ({
           {onClose && (
             <button
               onClick={onClose}
-              className="rounded-sm p-1 transition-colors hover:bg-white/10"
-              style={{ color: COLOR_TEXT_SECONDARY }}
+              className="rounded-sm p-1 text-text-secondary transition-colors hover:bg-white/10"
               aria-label="Close panel"
             >
               <X size={16} />
@@ -80,22 +68,21 @@ export const SessionContextHeader = ({
 
       {/* Token comparison stats */}
       <div
-        className="mt-2 flex items-center justify-between pt-2 text-xs"
-        style={{ borderTop: `1px solid ${COLOR_BORDER_SUBTLE}` }}
+        className="mt-2 flex items-center justify-between border-t border-border-subtle pt-2 text-xs"
       >
         <div className="flex items-center gap-4">
           {/* Visible Context tokens */}
           <div>
-            <span style={{ color: COLOR_TEXT_MUTED }}>Visible: </span>
-            <span className="font-medium tabular-nums" style={{ color: COLOR_TEXT_SECONDARY }}>
+            <span className="text-text-muted">Visible: </span>
+            <span className="font-medium tabular-nums text-text-secondary">
               ~{formatTokens(totalTokens)}
             </span>
           </div>
           {/* Total Session tokens (if provided) */}
           {totalSessionTokens !== undefined && totalSessionTokens > 0 && (
             <div>
-              <span style={{ color: COLOR_TEXT_MUTED }}>Total: </span>
-              <span className="font-medium tabular-nums" style={{ color: COLOR_TEXT_SECONDARY }}>
+              <span className="text-text-muted">Total: </span>
+              <span className="font-medium tabular-nums text-text-secondary">
                 {formatTokens(totalSessionTokens)}
               </span>
             </div>
@@ -104,11 +91,7 @@ export const SessionContextHeader = ({
         {/* Percentage of total */}
         {totalSessionTokens !== undefined && totalSessionTokens > 0 && (
           <span
-            className="rounded-sm px-1.5 py-0.5 tabular-nums"
-            style={{
-              backgroundColor: COLOR_SURFACE_OVERLAY,
-              color: COLOR_TEXT_MUTED,
-            }}
+            className="rounded-sm bg-surface-overlay px-1.5 py-0.5 tabular-nums text-text-muted"
           >
             {Math.min((totalTokens / totalSessionTokens) * 100, 100).toFixed(1)}% of total
           </span>
@@ -118,10 +101,9 @@ export const SessionContextHeader = ({
       {/* Phase selector - only shown when compactions exist */}
       {phaseInfo && phaseInfo.phases.length > 1 && (
         <div
-          className="mt-2 flex flex-wrap items-center gap-1 pt-2"
-          style={{ borderTop: `1px solid ${COLOR_BORDER_SUBTLE}` }}
+          className="mt-2 flex flex-wrap items-center gap-1 border-t border-border-subtle pt-2"
         >
-          <span className="mr-1 text-[10px]" style={{ color: COLOR_TEXT_MUTED }}>
+          <span className="mr-1 text-[10px] text-text-muted">
             Phase:
           </span>
           {phaseInfo.phases.map((phase) => (
@@ -130,26 +112,24 @@ export const SessionContextHeader = ({
               onClick={() =>
                 onPhaseChange(phase.phaseNumber === selectedPhase ? null : phase.phaseNumber)
               }
-              className="rounded-sm px-1.5 py-0.5 text-[10px] transition-colors"
-              style={{
-                backgroundColor:
-                  selectedPhase === phase.phaseNumber
-                    ? 'rgba(99, 102, 241, 0.2)'
-                    : COLOR_SURFACE_OVERLAY,
-                color: selectedPhase === phase.phaseNumber ? '#818cf8' : COLOR_TEXT_MUTED,
-              }}
+              className={cn(
+                'rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
+                selectedPhase === phase.phaseNumber
+                  ? 'bg-[rgba(99,102,241,0.2)] text-[#818cf8]'
+                  : 'bg-surface-overlay text-text-muted'
+              )}
             >
               {phase.phaseNumber}
             </button>
           ))}
           <button
             onClick={() => onPhaseChange(null)}
-            className="rounded-sm px-1.5 py-0.5 text-[10px] transition-colors"
-            style={{
-              backgroundColor:
-                selectedPhase === null ? 'rgba(99, 102, 241, 0.2)' : COLOR_SURFACE_OVERLAY,
-              color: selectedPhase === null ? '#818cf8' : COLOR_TEXT_MUTED,
-            }}
+            className={cn(
+              'rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
+              selectedPhase === null
+                ? 'bg-[rgba(99,102,241,0.2)] text-[#818cf8]'
+                : 'bg-surface-overlay text-text-muted'
+            )}
           >
             Current
           </button>
@@ -158,32 +138,31 @@ export const SessionContextHeader = ({
 
       {/* View mode toggle */}
       <div
-        className="mt-2 flex items-center gap-1 pt-2"
-        style={{ borderTop: `1px solid ${COLOR_BORDER_SUBTLE}` }}
+        className="mt-2 flex items-center gap-1 border-t border-border-subtle pt-2"
       >
-        <span className="mr-1 text-[10px]" style={{ color: COLOR_TEXT_MUTED }}>
+        <span className="mr-1 text-[10px] text-text-muted">
           View:
         </span>
         <button
           onClick={() => onViewModeChange('category')}
-          className="flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] transition-colors"
-          style={{
-            backgroundColor:
-              viewMode === 'category' ? 'rgba(99, 102, 241, 0.2)' : COLOR_SURFACE_OVERLAY,
-            color: viewMode === 'category' ? '#818cf8' : COLOR_TEXT_MUTED,
-          }}
+          className={cn(
+            'flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
+            viewMode === 'category'
+              ? 'bg-[rgba(99,102,241,0.2)] text-[#818cf8]'
+              : 'bg-surface-overlay text-text-muted'
+          )}
         >
           <LayoutList size={10} />
           Category
         </button>
         <button
           onClick={() => onViewModeChange('ranked')}
-          className="flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] transition-colors"
-          style={{
-            backgroundColor:
-              viewMode === 'ranked' ? 'rgba(99, 102, 241, 0.2)' : COLOR_SURFACE_OVERLAY,
-            color: viewMode === 'ranked' ? '#818cf8' : COLOR_TEXT_MUTED,
-          }}
+          className={cn(
+            'flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
+            viewMode === 'ranked'
+              ? 'bg-[rgba(99,102,241,0.2)] text-[#818cf8]'
+              : 'bg-surface-overlay text-text-muted'
+          )}
         >
           <ArrowDownWideNarrow size={10} />
           By Size

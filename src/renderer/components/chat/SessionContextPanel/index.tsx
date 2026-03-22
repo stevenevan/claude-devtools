@@ -5,12 +5,7 @@
 
 import React, { useMemo, useState } from 'react';
 
-import {
-  COLOR_BORDER,
-  COLOR_SURFACE,
-  COLOR_SURFACE_OVERLAY,
-  COLOR_TEXT_MUTED,
-} from '@renderer/constants/cssVariables';
+import { cn } from '@renderer/lib/utils';
 
 import { ClaudeMdFilesSection } from './components/ClaudeMdFilesSection';
 import { FlatInjectionList } from './components/FlatInjectionList';
@@ -180,11 +175,7 @@ export const SessionContextPanel = ({
 
   return (
     <div
-      className="flex h-full flex-col"
-      style={{
-        backgroundColor: COLOR_SURFACE,
-        borderLeft: `1px solid ${COLOR_BORDER}`,
-      }}
+      className="flex h-full flex-col border-l border-border bg-surface"
     >
       <SessionContextHeader
         injectionCount={injections.length}
@@ -202,8 +193,7 @@ export const SessionContextPanel = ({
       <div className="flex-1 space-y-2 overflow-y-auto p-3">
         {injections.length === 0 ? (
           <div
-            className="flex h-full items-center justify-center text-sm"
-            style={{ color: COLOR_TEXT_MUTED }}
+            className="flex h-full items-center justify-center text-sm text-text-muted"
           >
             No context injections detected in this session
           </div>
@@ -265,21 +255,23 @@ export const SessionContextPanel = ({
             <div className="flex items-center gap-1 pb-1">
               <button
                 onClick={() => setFlatMode(false)}
-                className="rounded-sm px-1.5 py-0.5 text-[10px] transition-colors"
-                style={{
-                  backgroundColor: !flatMode ? 'rgba(99, 102, 241, 0.2)' : COLOR_SURFACE_OVERLAY,
-                  color: !flatMode ? '#818cf8' : COLOR_TEXT_MUTED,
-                }}
+                className={cn(
+                  'rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
+                  !flatMode
+                    ? 'bg-[rgba(99,102,241,0.2)] text-[#818cf8]'
+                    : 'bg-surface-overlay text-text-muted'
+                )}
               >
                 Grouped
               </button>
               <button
                 onClick={() => setFlatMode(true)}
-                className="rounded-sm px-1.5 py-0.5 text-[10px] transition-colors"
-                style={{
-                  backgroundColor: flatMode ? 'rgba(99, 102, 241, 0.2)' : COLOR_SURFACE_OVERLAY,
-                  color: flatMode ? '#818cf8' : COLOR_TEXT_MUTED,
-                }}
+                className={cn(
+                  'rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
+                  flatMode
+                    ? 'bg-[rgba(99,102,241,0.2)] text-[#818cf8]'
+                    : 'bg-surface-overlay text-text-muted'
+                )}
               >
                 Flat
               </button>

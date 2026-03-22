@@ -4,6 +4,7 @@ import { isNearBottom, useAutoScrollBottom } from '@renderer/hooks/useAutoScroll
 import { useTabNavigationController } from '@renderer/hooks/useTabNavigationController';
 import { useTabUI } from '@renderer/hooks/useTabUI';
 import { useVisibleAIGroup } from '@renderer/hooks/useVisibleAIGroup';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChevronsDown } from 'lucide-react';
@@ -745,16 +746,12 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
   if (!conversation || conversation.items.length === 0) return <ChatHistoryEmptyState />;
 
   return (
-    <div
-      className="flex flex-1 flex-col overflow-hidden"
-      style={{ backgroundColor: 'var(--color-surface)' }}
-    >
+    <div className="flex flex-1 flex-col overflow-hidden bg-surface">
       <div className="relative flex flex-1 overflow-hidden">
         {/* Chat content */}
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto"
-          style={{ backgroundColor: 'var(--color-surface)' }}
+          className="flex-1 overflow-y-auto bg-surface"
           onScroll={checkScrollButton}
         >
           {/* Sticky Context button */}
@@ -764,37 +761,33 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
                 onClick={() => setContextPanelVisible(!isContextPanelVisible)}
                 onMouseEnter={() => setIsContextButtonHovered(true)}
                 onMouseLeave={() => setIsContextButtonHovered(false)}
-                className="pointer-events-auto flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs shadow-lg backdrop-blur-md transition-colors"
-                style={{
-                  backgroundColor: isContextPanelVisible
-                    ? 'var(--context-btn-active-bg)'
-                    : isContextButtonHovered
-                      ? 'var(--context-btn-bg-hover)'
-                      : 'var(--context-btn-bg)',
-                  color: isContextPanelVisible
-                    ? 'var(--context-btn-active-text)'
-                    : 'var(--color-text-secondary)',
-                }}
+                className={cn(
+                'pointer-events-auto flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs shadow-lg backdrop-blur-md transition-colors',
+                isContextPanelVisible
+                  ? 'bg-[var(--context-btn-active-bg)] text-[var(--context-btn-active-text)]'
+                  : isContextButtonHovered
+                    ? 'bg-[var(--context-btn-bg-hover)] text-text-secondary'
+                    : 'bg-[var(--context-btn-bg)] text-text-secondary'
+              )}
               >
                 Context ({allContextInjections.length})
               </button>
             </div>
           )}
           <div
-            className="mx-auto max-w-5xl px-6 py-8"
-            style={{ marginTop: allContextInjections.length > 0 ? '-2rem' : 0 }}
+            className={cn('mx-auto max-w-5xl px-6 py-8', allContextInjections.length > 0 && '-mt-8')}
           >
             {/* Session metadata header (custom title / agent name) */}
             {(sessionDetail?.session?.customTitle || sessionDetail?.session?.agentName) && (
               <div className="mb-6">
                 {sessionDetail.session.customTitle && (
-                  <h1 className="text-lg font-semibold" style={{ color: 'var(--color-text)' }}>
+                  <h1 className="text-lg font-semibold text-text">
                     {sessionDetail.session.customTitle}
                   </h1>
                 )}
                 {sessionDetail.session.agentName &&
                   sessionDetail.session.agentName !== sessionDetail.session.customTitle && (
-                    <p className="mt-1 text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                    <p className="mt-1 text-sm text-text-muted">
                       Agent: {sessionDetail.session.agentName}
                     </p>
                   )}
@@ -868,15 +861,12 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
               scrollToBottom('smooth');
               setShowScrollButton(false);
             }}
-            className="absolute bottom-5 z-20 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs shadow-lg backdrop-blur-md transition-all"
+            className="absolute bottom-5 z-20 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs shadow-lg backdrop-blur-md transition-all bg-[var(--context-btn-bg)] text-text-secondary border border-border-emphasis"
             style={{
               right:
                 isContextPanelVisible && allContextInjections.length > 0
                   ? `calc(${CONTEXT_PANEL_WIDTH_PX}px + 1rem)`
                   : '1rem',
-              backgroundColor: 'var(--context-btn-bg)',
-              color: 'var(--color-text-secondary)',
-              border: '1px solid var(--color-border-emphasis)',
             }}
             title="Scroll to bottom"
           >

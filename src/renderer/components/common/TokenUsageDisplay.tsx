@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
 import { Separator } from '@renderer/components/ui/separator';
-import { COLOR_TEXT_MUTED, COLOR_TEXT_SECONDARY } from '@renderer/constants/cssVariables';
+import { cn } from '@renderer/lib/utils';
 import { getModelColorClass } from '@shared/utils/modelParser';
 import {
   formatTokensCompact as formatTokens,
@@ -84,15 +84,14 @@ const SessionContextSection = ({
           }
         }}
       >
-        <div className="flex items-center gap-1" style={{ color: COLOR_TEXT_MUTED }}>
+        <div className="flex items-center gap-1 text-text-muted">
           <ChevronRight
             className={`size-3 shrink-0 transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`}
           />
           <span className="text-[10px] whitespace-nowrap">Visible Context</span>
         </div>
         <span
-          className="text-[10px] whitespace-nowrap tabular-nums"
-          style={{ color: COLOR_TEXT_MUTED }}
+          className="whitespace-nowrap text-[10px] tabular-nums text-text-muted"
         >
           {formatTokens(adjustedContextTotal)} ({contextPercent}%)
         </span>
@@ -102,10 +101,10 @@ const SessionContextSection = ({
         <div className="mt-1 space-y-1.5 pl-4">
           {tokensByCategory.claudeMd > 0 && (
             <div className="flex items-center justify-between text-[10px]">
-              <span style={{ color: COLOR_TEXT_MUTED }}>
+              <span className="text-text-muted">
                 CLAUDE.md <span className="opacity-60">×{claudeMdCount}</span>
               </span>
-              <span className="tabular-nums" style={{ color: COLOR_TEXT_SECONDARY }}>
+              <span className="tabular-nums text-text-secondary">
                 {formatTokens(tokensByCategory.claudeMd)}{' '}
                 <span className="opacity-60">({pct(tokensByCategory.claudeMd)}%)</span>
               </span>
@@ -114,10 +113,10 @@ const SessionContextSection = ({
 
           {tokensByCategory.mentionedFiles > 0 && (
             <div className="flex items-center justify-between text-[10px]">
-              <span style={{ color: COLOR_TEXT_MUTED }}>
+              <span className="text-text-muted">
                 @files <span className="opacity-60">×{mentionedFilesCount}</span>
               </span>
-              <span className="tabular-nums" style={{ color: COLOR_TEXT_SECONDARY }}>
+              <span className="tabular-nums text-text-secondary">
                 {formatTokens(tokensByCategory.mentionedFiles)}{' '}
                 <span className="opacity-60">({pct(tokensByCategory.mentionedFiles)}%)</span>
               </span>
@@ -126,10 +125,10 @@ const SessionContextSection = ({
 
           {tokensByCategory.toolOutputs > 0 && (
             <div className="flex items-center justify-between text-[10px]">
-              <span style={{ color: COLOR_TEXT_MUTED }}>
+              <span className="text-text-muted">
                 Tool Outputs <span className="opacity-60">×{toolOutputsCount}</span>
               </span>
-              <span className="tabular-nums" style={{ color: COLOR_TEXT_SECONDARY }}>
+              <span className="tabular-nums text-text-secondary">
                 {formatTokens(tokensByCategory.toolOutputs)}{' '}
                 <span className="opacity-60">({pct(tokensByCategory.toolOutputs)}%)</span>
               </span>
@@ -138,10 +137,10 @@ const SessionContextSection = ({
 
           {tokensByCategory.taskCoordination > 0 && (
             <div className="flex items-center justify-between text-[10px]">
-              <span style={{ color: COLOR_TEXT_MUTED }}>
+              <span className="text-text-muted">
                 Task Coordination <span className="opacity-60">×{taskCoordinationCount}</span>
               </span>
-              <span className="tabular-nums" style={{ color: COLOR_TEXT_SECONDARY }}>
+              <span className="tabular-nums text-text-secondary">
                 {formatTokens(tokensByCategory.taskCoordination)}{' '}
                 <span className="opacity-60">({pct(tokensByCategory.taskCoordination)}%)</span>
               </span>
@@ -150,10 +149,10 @@ const SessionContextSection = ({
 
           {tokensByCategory.userMessages > 0 && (
             <div className="flex items-center justify-between text-[10px]">
-              <span style={{ color: COLOR_TEXT_MUTED }}>
+              <span className="text-text-muted">
                 User Messages <span className="opacity-60">×{userMessagesCount}</span>
               </span>
-              <span className="tabular-nums" style={{ color: COLOR_TEXT_SECONDARY }}>
+              <span className="tabular-nums text-text-secondary">
                 {formatTokens(tokensByCategory.userMessages)}{' '}
                 <span className="opacity-60">({pct(tokensByCategory.userMessages)}%)</span>
               </span>
@@ -162,8 +161,8 @@ const SessionContextSection = ({
 
           {thinkingTextTokens > 0 && (
             <div className="flex items-center justify-between text-[10px]">
-              <span style={{ color: COLOR_TEXT_MUTED }}>Thinking + Text</span>
-              <span className="tabular-nums" style={{ color: COLOR_TEXT_SECONDARY }}>
+              <span className="text-text-muted">Thinking + Text</span>
+              <span className="tabular-nums text-text-secondary">
                 {formatTokens(thinkingTextTokens)}{' '}
                 <span className="opacity-60">({pct(thinkingTextTokens)}%)</span>
               </span>
@@ -171,8 +170,7 @@ const SessionContextSection = ({
           )}
 
           <div
-            className="pt-0.5 text-[9px] italic"
-            style={{ color: COLOR_TEXT_MUTED, opacity: 0.7 }}
+            className="pt-0.5 text-[9px] italic text-text-muted opacity-70"
           >
             Accumulated across entire session without duplication
           </div>
@@ -206,14 +204,12 @@ export const TokenUsageDisplay = ({
 
   return (
     <div
-      className={`inline-flex items-center gap-1 ${textSize}`}
-      style={{ color: COLOR_TEXT_MUTED }}
+      className={cn(`inline-flex items-center gap-1 text-text-muted`, textSize)}
     >
       <span className="font-medium">{formattedTotal}</span>
       {totalPhases && totalPhases > 1 && phaseNumber && (
         <span
-          className="rounded-sm px-1 py-0.5 text-[10px]"
-          style={{ backgroundColor: 'rgba(99, 102, 241, 0.15)', color: '#818cf8' }}
+          className="rounded-sm bg-[rgba(99,102,241,0.15)] px-1 py-0.5 text-[10px] text-[#818cf8]"
         >
           Phase {phaseNumber}/{totalPhases}
         </span>
@@ -223,34 +219,34 @@ export const TokenUsageDisplay = ({
           className="relative"
           aria-label="Token usage details"
         >
-          <Info className={`${iconSize} cursor-help transition-colors`} style={{ color: COLOR_TEXT_MUTED }} />
+          <Info className={cn(iconSize, 'cursor-help text-text-muted transition-colors')} />
         </PopoverTrigger>
         <PopoverContent className="w-56 p-3" align="start">
           <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between">
-              <span style={{ color: COLOR_TEXT_MUTED }}>Input Tokens</span>
-              <span className="font-medium tabular-nums" style={{ color: COLOR_TEXT_SECONDARY }}>
+              <span className="text-text-muted">Input Tokens</span>
+              <span className="font-medium tabular-nums text-text-secondary">
                 {formatTokensDetailed(inputTokens)}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
-              <span style={{ color: COLOR_TEXT_MUTED }}>Cache Read</span>
-              <span className="font-medium tabular-nums" style={{ color: COLOR_TEXT_SECONDARY }}>
+              <span className="text-text-muted">Cache Read</span>
+              <span className="font-medium tabular-nums text-text-secondary">
                 {formatTokensDetailed(cacheReadTokens)}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
-              <span style={{ color: COLOR_TEXT_MUTED }}>Cache Write</span>
-              <span className="font-medium tabular-nums" style={{ color: COLOR_TEXT_SECONDARY }}>
+              <span className="text-text-muted">Cache Write</span>
+              <span className="font-medium tabular-nums text-text-secondary">
                 {formatTokensDetailed(cacheCreationTokens)}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
-              <span style={{ color: COLOR_TEXT_MUTED }}>Output Tokens</span>
-              <span className="font-medium tabular-nums" style={{ color: COLOR_TEXT_SECONDARY }}>
+              <span className="text-text-muted">Output Tokens</span>
+              <span className="font-medium tabular-nums text-text-secondary">
                 {formatTokensDetailed(outputTokens)}
               </span>
             </div>
@@ -258,10 +254,9 @@ export const TokenUsageDisplay = ({
             <Separator className="my-1" />
 
             <div className="flex items-center justify-between">
-              <span className="font-medium" style={{ color: COLOR_TEXT_SECONDARY }}>Total</span>
+              <span className="font-medium text-text-secondary">Total</span>
               <span
-                className="font-medium tabular-nums"
-                style={{ color: 'var(--color-text-primary, var(--color-text))' }}
+                className="font-medium tabular-nums text-text"
               >
                 {formatTokensDetailed(totalTokens)}
               </span>
@@ -281,8 +276,7 @@ export const TokenUsageDisplay = ({
 
             {!contextStats && claudeMdStats && (
               <div
-                className="mt-1 flex items-center justify-between text-[10px]"
-                style={{ color: COLOR_TEXT_MUTED }}
+                className="mt-1 flex items-center justify-between text-[10px] text-text-muted"
               >
                 <span className="whitespace-nowrap italic">
                   incl. CLAUDE.md ×{claudeMdStats.accumulatedCount}
@@ -300,10 +294,9 @@ export const TokenUsageDisplay = ({
               <>
                 <Separator className="my-1" />
                 <div className="flex items-center justify-between">
-                  <span style={{ color: COLOR_TEXT_MUTED }}>Model</span>
+                  <span className="text-text-muted">Model</span>
                   <span
-                    className={`font-medium ${modelColorClass}`}
-                    style={!modelColorClass ? { color: COLOR_TEXT_SECONDARY } : {}}
+                    className={cn('font-medium', modelColorClass || 'text-text-secondary')}
                   >
                     {modelName}
                   </span>

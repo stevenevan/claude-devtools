@@ -5,6 +5,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@renderer/components/ui/collapsible';
+import { cn } from '@renderer/lib/utils';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 import { formatTokens } from '../utils/formatting';
@@ -29,46 +30,37 @@ export const CollapsibleSection = ({
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <div
-        className="overflow-hidden rounded-lg"
-        style={{
-          backgroundColor: 'var(--color-surface-raised)',
-          border: '1px solid var(--color-border-subtle)',
-        }}
+        className="overflow-hidden rounded-lg border border-border-subtle bg-surface-raised"
       >
         <CollapsibleTrigger
-          className="flex w-full items-center justify-between px-3 py-2 transition-colors"
-          style={{
-            backgroundColor: isExpanded ? 'var(--color-surface-overlay)' : 'transparent',
-          }}
+          className={cn(
+            'flex w-full items-center justify-between px-3 py-2 transition-colors',
+            isExpanded ? 'bg-surface-overlay' : 'bg-transparent'
+          )}
         >
           <div className="flex items-center gap-2">
             {isExpanded ? (
-              <ChevronDown size={14} style={{ color: 'var(--color-text-secondary)' }} />
+              <ChevronDown size={14} className="text-text-secondary" />
             ) : (
-              <ChevronRight size={14} style={{ color: 'var(--color-text-secondary)' }} />
+              <ChevronRight size={14} className="text-text-secondary" />
             )}
-            <span className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>
+            <span className="text-sm font-medium text-text">
               {title}
             </span>
             <span
-              className="rounded-sm px-1.5 py-0.5 text-xs"
-              style={{
-                backgroundColor: 'var(--color-surface-overlay)',
-                color: 'var(--color-text-secondary)',
-              }}
+              className="rounded-sm bg-surface-overlay px-1.5 py-0.5 text-xs text-text-secondary"
             >
               {count}
             </span>
           </div>
-          <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+          <span className="text-xs text-text-muted">
             ~{formatTokens(tokenCount)} tokens
           </span>
         </CollapsibleTrigger>
 
         <CollapsibleContent>
           <div
-            className="space-y-2 px-3 py-2"
-            style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+            className="space-y-2 border-t border-border-subtle px-3 py-2"
           >
             {children}
           </div>

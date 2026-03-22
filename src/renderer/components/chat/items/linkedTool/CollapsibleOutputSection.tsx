@@ -5,6 +5,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@renderer/components/ui/collapsible';
+import { cn } from '@renderer/lib/utils';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 import { type ItemStatus, StatusDot } from '../BaseItem';
@@ -25,11 +26,7 @@ export const CollapsibleOutputSection: React.FC<CollapsibleOutputSectionProps> =
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
       <CollapsibleTrigger
-        className="mb-1 flex items-center gap-2 border-none bg-none p-0 text-xs"
-        style={{
-          color: 'var(--tool-item-muted)',
-          cursor: 'pointer',
-        }}
+        className="mb-1 flex cursor-pointer items-center gap-2 border-none bg-none p-0 text-xs text-[var(--tool-item-muted)]"
       >
         {isExpanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
         {label}
@@ -37,13 +34,10 @@ export const CollapsibleOutputSection: React.FC<CollapsibleOutputSectionProps> =
       </CollapsibleTrigger>
       <CollapsibleContent>
         <div
-          className="max-h-96 overflow-auto rounded p-3 font-mono text-xs"
-          style={{
-            backgroundColor: 'var(--code-bg)',
-            border: '1px solid var(--code-border)',
-            color:
-              status === 'error' ? 'var(--tool-result-error-text)' : 'var(--color-text-secondary)',
-          }}
+          className={cn(
+            'max-h-96 overflow-auto rounded border border-[var(--code-border)] bg-[var(--code-bg)] p-3 font-mono text-xs',
+            status === 'error' ? 'text-[var(--tool-result-error-text)]' : 'text-text-secondary'
+          )}
         >
           {children}
         </div>

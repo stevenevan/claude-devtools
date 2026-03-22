@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import { api } from '@renderer/api';
 import { useTabUI } from '@renderer/hooks/useTabUI';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { createLogger } from '@shared/utils/logger';
 import { format } from 'date-fns';
@@ -54,15 +55,7 @@ function highlightTextNode(text: string, validatedPaths: Record<string, boolean>
       parts.push(
         <span
           key={match.index}
-          style={{
-            backgroundColor: 'var(--chat-user-tag-bg)',
-            color: 'var(--chat-user-tag-text)',
-            padding: '0.125rem 0.375rem',
-            borderRadius: '0.25rem',
-            border: '1px solid var(--chat-user-tag-border)',
-            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-            fontSize: '0.8125em',
-          }}
+          className="rounded px-1.5 py-0.5 font-mono text-[0.8125em] bg-[var(--chat-user-tag-bg)] text-[var(--chat-user-tag-text)] border border-[var(--chat-user-tag-border)]"
         >
           {fullMatch}
         </span>
@@ -116,8 +109,6 @@ function createUserMarkdownComponents(
   validatedPaths: Record<string, boolean>,
   searchCtx: SearchContext | null
 ): Components {
-  const userTextColor = 'var(--chat-user-text)';
-
   // Compose path highlighting with optional search highlighting
   // eslint-disable-next-line sonarjs/function-return-type -- React child manipulation inherently returns mixed node types
   const hl = (children: React.ReactNode): React.ReactNode => {
@@ -127,41 +118,38 @@ function createUserMarkdownComponents(
 
   return {
     h1: ({ children }) => (
-      <h1 className="mt-6 mb-3 text-lg font-semibold first:mt-0" style={{ color: userTextColor }}>
+      <h1 className="mt-6 mb-3 text-lg font-semibold first:mt-0 text-[var(--chat-user-text)]">
         {hl(children)}
       </h1>
     ),
     h2: ({ children }) => (
-      <h2 className="mt-5 mb-2 text-base font-semibold first:mt-0" style={{ color: userTextColor }}>
+      <h2 className="mt-5 mb-2 text-base font-semibold first:mt-0 text-[var(--chat-user-text)]">
         {hl(children)}
       </h2>
     ),
     h3: ({ children }) => (
-      <h3 className="mt-4 mb-2 text-sm font-semibold first:mt-0" style={{ color: userTextColor }}>
+      <h3 className="mt-4 mb-2 text-sm font-semibold first:mt-0 text-[var(--chat-user-text)]">
         {hl(children)}
       </h3>
     ),
     h4: ({ children }) => (
-      <h4 className="mt-3 mb-1.5 text-sm font-semibold first:mt-0" style={{ color: userTextColor }}>
+      <h4 className="mt-3 mb-1.5 text-sm font-semibold first:mt-0 text-[var(--chat-user-text)]">
         {hl(children)}
       </h4>
     ),
     h5: ({ children }) => (
-      <h5 className="mt-2 mb-1 text-sm font-medium first:mt-0" style={{ color: userTextColor }}>
+      <h5 className="mt-2 mb-1 text-sm font-medium first:mt-0 text-[var(--chat-user-text)]">
         {hl(children)}
       </h5>
     ),
     h6: ({ children }) => (
-      <h6 className="mt-2 mb-1 text-xs font-medium first:mt-0" style={{ color: userTextColor }}>
+      <h6 className="mt-2 mb-1 text-xs font-medium first:mt-0 text-[var(--chat-user-text)]">
         {hl(children)}
       </h6>
     ),
 
     p: ({ children }) => (
-      <p
-        className="my-2 text-sm leading-relaxed first:mt-0 last:mb-0"
-        style={{ color: userTextColor }}
-      >
+      <p className="my-2 text-sm leading-relaxed first:mt-0 last:mb-0 text-[var(--chat-user-text)]">
         {hl(children)}
       </p>
     ),
@@ -170,8 +158,7 @@ function createUserMarkdownComponents(
     a: ({ href, children }) => (
       <a
         href={href}
-        className="no-underline hover:underline"
-        style={{ color: 'var(--chat-user-tag-text)' }}
+        className="no-underline hover:underline text-[var(--chat-user-tag-text)]"
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -180,19 +167,19 @@ function createUserMarkdownComponents(
     ),
 
     strong: ({ children }) => (
-      <strong className="font-semibold" style={{ color: userTextColor }}>
+      <strong className="font-semibold text-[var(--chat-user-text)]">
         {children}
       </strong>
     ),
 
     em: ({ children }) => (
-      <em className="italic" style={{ color: userTextColor }}>
+      <em className="italic text-[var(--chat-user-text)]">
         {children}
       </em>
     ),
 
     del: ({ children }) => (
-      <del className="line-through" style={{ color: userTextColor }}>
+      <del className="line-through text-[var(--chat-user-text)]">
         {children}
       </del>
     ),
@@ -205,104 +192,69 @@ function createUserMarkdownComponents(
 
       if (isBlock) {
         return (
-          <code className="block font-mono text-xs" style={{ color: userTextColor }}>
+          <code className="block font-mono text-xs text-[var(--chat-user-text)]">
             {hl(children)}
           </code>
         );
       }
       // Inline code — no hl()
       return (
-        <code
-          className="rounded-sm px-1.5 py-0.5 font-mono text-xs"
-          style={{
-            backgroundColor: 'var(--chat-user-tag-bg)',
-            color: 'var(--chat-user-tag-text)',
-            border: '1px solid var(--chat-user-tag-border)',
-          }}
-        >
+        <code className="rounded-sm px-1.5 py-0.5 font-mono text-xs bg-[var(--chat-user-tag-bg)] text-[var(--chat-user-tag-text)] border border-[var(--chat-user-tag-border)]">
           {children}
         </code>
       );
     },
 
     pre: ({ children }) => (
-      <pre
-        className="my-3 overflow-x-auto rounded-lg p-3 font-mono text-xs leading-relaxed"
-        style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.15)',
-          border: '1px solid var(--chat-user-tag-border)',
-          color: userTextColor,
-        }}
-      >
+      <pre className="my-3 overflow-x-auto rounded-lg p-3 font-mono text-xs leading-relaxed bg-[rgba(0,0,0,0.15)] border border-[var(--chat-user-tag-border)] text-[var(--chat-user-text)]">
         {children}
       </pre>
     ),
 
     blockquote: ({ children }) => (
-      <blockquote
-        className="my-3 border-l-4 pl-4 italic"
-        style={{
-          borderColor: 'var(--chat-user-tag-border)',
-          color: userTextColor,
-        }}
-      >
+      <blockquote className="my-3 border-l-4 pl-4 italic border-[var(--chat-user-tag-border)] text-[var(--chat-user-text)]">
         {hl(children)}
       </blockquote>
     ),
 
     ul: ({ children }) => (
-      <ul className="my-2 list-disc space-y-1 pl-5" style={{ color: userTextColor }}>
+      <ul className="my-2 list-disc space-y-1 pl-5 text-[var(--chat-user-text)]">
         {children}
       </ul>
     ),
     ol: ({ children }) => (
-      <ol className="my-2 list-decimal space-y-1 pl-5" style={{ color: userTextColor }}>
+      <ol className="my-2 list-decimal space-y-1 pl-5 text-[var(--chat-user-text)]">
         {children}
       </ol>
     ),
     li: ({ children }) => (
-      <li className="text-sm" style={{ color: userTextColor }}>
+      <li className="text-sm text-[var(--chat-user-text)]">
         {hl(children)}
       </li>
     ),
 
     table: ({ children }) => (
       <div className="my-3 overflow-x-auto">
-        <table
-          className="min-w-full border-collapse text-sm"
-          style={{ borderColor: 'var(--chat-user-tag-border)' }}
-        >
+        <table className="min-w-full border-collapse text-sm border-[var(--chat-user-tag-border)]">
           {children}
         </table>
       </div>
     ),
     thead: ({ children }) => (
-      <thead style={{ backgroundColor: 'rgba(0, 0, 0, 0.1)' }}>{children}</thead>
+      <thead className="bg-[rgba(0,0,0,0.1)]">{children}</thead>
     ),
     th: ({ children }) => (
-      <th
-        className="px-3 py-2 text-left font-semibold"
-        style={{
-          border: '1px solid var(--chat-user-tag-border)',
-          color: userTextColor,
-        }}
-      >
+      <th className="px-3 py-2 text-left font-semibold border border-[var(--chat-user-tag-border)] text-[var(--chat-user-text)]">
         {hl(children)}
       </th>
     ),
     td: ({ children }) => (
-      <td
-        className="px-3 py-2"
-        style={{
-          border: '1px solid var(--chat-user-tag-border)',
-          color: userTextColor,
-        }}
-      >
+      <td className="px-3 py-2 border border-[var(--chat-user-tag-border)] text-[var(--chat-user-text)]">
         {hl(children)}
       </td>
     ),
 
-    hr: () => <hr className="my-4" style={{ borderColor: 'var(--chat-user-tag-border)' }} />,
+    hr: () => <hr className="my-4 border-[var(--chat-user-tag-border)]" />,
   };
 }
 
@@ -424,28 +376,24 @@ const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): React.
       <div className="max-w-[85%] space-y-2">
         {/* Header - right aligned with improved hierarchy */}
         <div className="flex items-center justify-end gap-1.5">
-          <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+          <span className="text-[10px] text-text-muted">
             {format(timestamp, 'h:mm:ss a')}
           </span>
-          <span className="text-xs font-semibold" style={{ color: 'var(--color-text-secondary)' }}>
+          <span className="text-xs font-semibold text-text-secondary">
             You
           </span>
-          <User className="size-3.5" style={{ color: 'var(--color-text-secondary)' }} />
+          <User className="size-3.5 text-text-secondary" />
         </div>
 
         {/* Content - polished bubble with subtle depth */}
         {textContent && (
           <div
-            className="group relative overflow-hidden rounded-2xl rounded-br-sm px-4 py-3"
-            style={{
-              backgroundColor: 'var(--chat-user-bg)',
-              border: '1px solid var(--chat-user-border)',
-              boxShadow: 'var(--chat-user-shadow)',
-            }}
+            className="group relative overflow-hidden rounded-2xl rounded-br-sm px-4 py-3 bg-[var(--chat-user-bg)] border border-[var(--chat-user-border)]"
+            style={{ boxShadow: 'var(--chat-user-shadow)' }}
           >
             <CopyButton text={textContent} bgColor="var(--chat-user-bg)" />
 
-            <div className="text-sm" style={{ color: 'var(--chat-user-text)' }} data-search-content>
+            <div className="text-sm text-[var(--chat-user-text)]" data-search-content>
               <ReactMarkdown remarkPlugins={[remarkGfm]} components={userMarkdownComponents}>
                 {displayText}
               </ReactMarkdown>
@@ -453,8 +401,7 @@ const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): React.
             {isLongContent && (
               <button
                 onClick={() => setIsManuallyExpanded(!isManuallyExpanded)}
-                className="mt-2 text-xs underline hover:opacity-80"
-                style={{ color: 'var(--color-text-muted)' }}
+                className="mt-2 text-xs underline hover:opacity-80 text-text-muted"
               >
                 {isExpanded ? 'Show less' : 'Show more'}
               </button>
@@ -464,7 +411,7 @@ const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): React.
 
         {/* Images indicator */}
         {hasImages && (
-          <div className="text-right text-xs" style={{ color: 'var(--color-text-muted)' }}>
+          <div className="text-right text-xs text-text-muted">
             {content.images.length} image{content.images.length > 1 ? 's' : ''} attached
           </div>
         )}

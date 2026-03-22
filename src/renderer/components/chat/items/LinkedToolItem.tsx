@@ -8,7 +8,6 @@
 
 import React, { useRef } from 'react';
 
-import { CARD_ICON_MUTED } from '@renderer/constants/cssVariables';
 import { getTeamColorSet } from '@renderer/constants/teamColors';
 import {
   getToolContextTokens,
@@ -92,7 +91,7 @@ export const LinkedToolItem: React.FC<LinkedToolItemProps> = React.memo(function
         >
           {name}
         </span>
-        <span className="text-xs" style={{ color: CARD_ICON_MUTED }}>
+        <span className="text-xs text-[var(--card-icon-muted)]">
           Teammate spawned
         </span>
       </div>
@@ -107,7 +106,7 @@ export const LinkedToolItem: React.FC<LinkedToolItemProps> = React.memo(function
     return (
       <div ref={handleRef} className="flex items-center gap-2 px-3 py-1.5">
         <span className="size-2 rounded-full bg-zinc-500" />
-        <span className="text-xs" style={{ color: CARD_ICON_MUTED }}>
+        <span className="text-xs text-[var(--card-icon-muted)]">
           Shutdown requested &rarr;{' '}
           <span className="text-text-secondary font-medium">{target}</span>
         </span>
@@ -188,17 +187,14 @@ export const LinkedToolItem: React.FC<LinkedToolItemProps> = React.memo(function
 
         {/* Orphaned indicator */}
         {linkedTool.isOrphaned && (
-          <div
-            className="flex items-center gap-2 text-xs italic"
-            style={{ color: 'var(--tool-item-muted)' }}
-          >
+          <div className="flex items-center gap-2 text-xs italic text-[var(--tool-item-muted)]">
             <StatusDot status="orphaned" />
             No result received
           </div>
         )}
 
         {/* Timing */}
-        <div className="text-xs" style={{ color: 'var(--tool-item-muted)' }}>
+        <div className="text-xs text-[var(--tool-item-muted)]">
           Duration: {formatDuration(linkedTool.durationMs)}
         </div>
       </BaseItem>

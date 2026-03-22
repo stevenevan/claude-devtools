@@ -1,18 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 
-import {
-  CARD_BG,
-  CARD_BORDER_STYLE,
-  CARD_HEADER_BG,
-  CARD_HEADER_HOVER,
-  CARD_ICON_MUTED,
-  CARD_SEPARATOR,
-  CARD_TEXT_LIGHT,
-  CARD_TEXT_LIGHTER,
-  COLOR_TEXT_MUTED,
-  COLOR_TEXT_SECONDARY,
-} from '@renderer/constants/cssVariables';
 import { getSubagentTypeColorSet, getTeamColorSet } from '@renderer/constants/teamColors';
+import { cn } from '@renderer/lib/utils';
 import { useTabUI } from '@renderer/hooks/useTabUI';
 import { useStore } from '@renderer/store';
 import { buildDisplayItemsFromMessages, buildSummary } from '@renderer/utils/aiGroupEnhancer';
@@ -218,14 +207,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
   // Shutdown-only team activations: minimal inline row (no metrics, no expand)
   if (isShutdownOnly && teamColors && subagent.team) {
     return (
-      <div
-        className="flex items-center gap-2 rounded-md px-3 py-1.5"
-        style={{
-          backgroundColor: CARD_BG,
-          border: CARD_BORDER_STYLE,
-          opacity: 0.6,
-        }}
-      >
+      <div className="flex items-center gap-2 rounded-md border border-[var(--card-border)] bg-[var(--card-bg)] px-3 py-1.5 opacity-60">
         <span
           className="size-2.5 shrink-0 rounded-full"
           style={{ backgroundColor: teamColors.border }}
@@ -240,14 +222,11 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
         >
           {subagent.team.memberName}
         </span>
-        <span className="text-xs" style={{ color: CARD_ICON_MUTED }}>
+        <span className="text-xs text-[var(--card-icon-muted)]">
           Shutdown confirmed
         </span>
         <span className="flex-1" />
-        <span
-          className="shrink-0 font-mono text-[11px] tabular-nums"
-          style={{ color: CARD_ICON_MUTED }}
-        >
+        <span className="shrink-0 font-mono text-[11px] tabular-nums text-[var(--card-icon-muted)]">
           {formatDuration(subagent.durationMs)}
         </span>
       </div>
@@ -257,12 +236,8 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
   return (
     <div
       ref={outerCardRef}
-      className={`overflow-hidden rounded-md transition-all duration-300 ${outerHighlight.className}`}
-      style={{
-        backgroundColor: CARD_BG,
-        border: CARD_BORDER_STYLE,
-        ...outerHighlight.style,
-      }}
+      className={cn('overflow-hidden rounded-md border border-[var(--card-border)] bg-[var(--card-bg)] transition-all duration-300', outerHighlight.className)}
+      style={outerHighlight.style}
     >
       {/* ========== Level 1: Clickable Header ========== */}
       <div
@@ -275,16 +250,14 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
             onClick();
           }
         }}
-        className="flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors"
-        style={{
-          backgroundColor: isExpanded ? CARD_HEADER_BG : 'transparent',
-          borderBottom: isExpanded ? CARD_BORDER_STYLE : 'none',
-        }}
+        className={cn(
+          'flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors',
+          isExpanded ? 'border-b border-[var(--card-border)] bg-[var(--card-header-bg)]' : 'bg-transparent'
+        )}
       >
         {/* Expand chevron */}
         <ChevronRight
-          className={`size-3.5 shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-          style={{ color: CARD_ICON_MUTED }}
+          className={cn('size-3.5 shrink-0 transition-transform text-[var(--card-icon-muted)]', isExpanded && 'rotate-90')}
         />
 
         {/* Icon - colored dot for team members/typed subagents, Bot icon for generic */}
@@ -295,8 +268,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
           />
         ) : (
           <Bot
-            className="size-4 shrink-0"
-            style={{ color: subagent.isOngoing ? '#3b82f6' : COLOR_TEXT_MUTED }}
+            className={cn('size-4 shrink-0', subagent.isOngoing ? 'text-blue-500' : 'text-text-muted')}
           />
         )}
 
@@ -333,15 +305,15 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
         )}
 
         {/* Description */}
-        <span className="flex-1 truncate text-xs" style={{ color: CARD_TEXT_LIGHT }}>
+        <span className="flex-1 truncate text-xs text-[var(--card-text-light)]">
           {truncatedDesc}
         </span>
 
         {/* Status indicator */}
         {subagent.isOngoing ? (
-          <Loader2 className="size-3.5 shrink-0 animate-spin" style={{ color: '#3b82f6' }} />
+          <Loader2 className="size-3.5 shrink-0 animate-spin text-blue-500" />
         ) : (
-          <CheckCircle2 className="size-3.5 shrink-0" style={{ color: '#22c55e' }} />
+          <CheckCircle2 className="size-3.5 shrink-0 text-green-500" />
         )}
 
         {/* Unified Metrics Pill — team members don't show mainSessionImpact
@@ -357,10 +329,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
         />
 
         {/* Duration */}
-        <span
-          className="shrink-0 font-mono text-[11px] tabular-nums"
-          style={{ color: CARD_ICON_MUTED }}
-        >
+        <span className="shrink-0 font-mono text-[11px] tabular-nums text-[var(--card-icon-muted)]">
           {formatDuration(subagent.durationMs)}
         </span>
       </div>
@@ -369,40 +338,36 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
       {isExpanded && (
         <div className="space-y-3 p-3">
           {/* ========== Row 1: Meta Info (Horizontal Flow) ========== */}
-          <div
-            className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]"
-            style={{ color: COLOR_TEXT_MUTED }}
-          >
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-text-muted">
             <span>
-              <span style={{ color: CARD_ICON_MUTED }}>Type</span>{' '}
-              <span className="font-mono" style={{ color: CARD_TEXT_LIGHT }}>
+              <span className="text-[var(--card-icon-muted)]">Type</span>{' '}
+              <span className="font-mono text-[var(--card-text-light)]">
                 {subagentType}
               </span>
             </span>
-            <span style={{ color: CARD_SEPARATOR }}>•</span>
+            <span className="text-[var(--card-separator)]">•</span>
             <span>
-              <span style={{ color: CARD_ICON_MUTED }}>Duration</span>{' '}
-              <span className="font-mono tabular-nums" style={{ color: CARD_TEXT_LIGHT }}>
+              <span className="text-[var(--card-icon-muted)]">Duration</span>{' '}
+              <span className="font-mono tabular-nums text-[var(--card-text-light)]">
                 {formatDuration(subagent.durationMs)}
               </span>
             </span>
             {modelInfo && (
               <>
-                <span style={{ color: CARD_SEPARATOR }}>•</span>
+                <span className="text-[var(--card-separator)]">•</span>
                 <span>
-                  <span style={{ color: CARD_ICON_MUTED }}>Model</span>{' '}
+                  <span className="text-[var(--card-icon-muted)]">Model</span>{' '}
                   <span className={`font-mono ${getModelColorClass(modelInfo.family)}`}>
                     {modelInfo.name}
                   </span>
                 </span>
               </>
             )}
-            <span style={{ color: CARD_SEPARATOR }}>•</span>
+            <span className="text-[var(--card-separator)]">•</span>
             <span>
-              <span style={{ color: CARD_ICON_MUTED }}>ID</span>{' '}
+              <span className="text-[var(--card-icon-muted)]">ID</span>{' '}
               <span
-                className="inline-block max-w-[120px] truncate align-bottom font-mono"
-                style={{ color: CARD_ICON_MUTED }}
+                className="inline-block max-w-[120px] truncate align-bottom font-mono text-[var(--card-icon-muted)]"
                 title={subagent.id}
               >
                 {subagent.id.slice(0, 8)}
@@ -414,10 +379,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
           {(hasMainImpact ?? hasIsolated) && (
             <div className="pt-2">
               {/* Overline title */}
-              <div
-                className="mb-2 text-[10px] font-semibold tracking-wider uppercase"
-                style={{ color: CARD_ICON_MUTED }}
-              >
+              <div className="mb-2 text-[10px] font-semibold tracking-wider uppercase text-[var(--card-icon-muted)]">
                 Context Usage
               </div>
 
@@ -430,14 +392,11 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                         className="size-3"
                         style={{ color: 'rgba(251, 191, 36, 0.7)' }}
                       />
-                      <span className="text-xs" style={{ color: COLOR_TEXT_SECONDARY }}>
+                      <span className="text-xs text-text-secondary">
                         Main Context
                       </span>
                     </div>
-                    <span
-                      className="font-mono text-xs font-medium tabular-nums"
-                      style={{ color: CARD_TEXT_LIGHTER }}
-                    >
+                    <span className="font-mono text-xs font-medium tabular-nums text-[var(--card-text-lighter)]">
                       {subagent.mainSessionImpact!.totalTokens.toLocaleString()}
                     </span>
                   </div>
@@ -447,16 +406,13 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Sigma className="size-3" style={{ color: 'rgba(168, 85, 247, 0.7)' }} />
-                      <span className="text-xs" style={{ color: COLOR_TEXT_SECONDARY }}>
+                      <span className="text-xs text-text-secondary">
                         Total Output
                       </span>
                     </div>
-                    <span
-                      className="font-mono text-xs font-medium tabular-nums"
-                      style={{ color: CARD_TEXT_LIGHTER }}
-                    >
+                    <span className="font-mono text-xs font-medium tabular-nums text-[var(--card-text-lighter)]">
                       {cumulativeMetrics.outputTokens.toLocaleString()}
-                      <span style={{ color: CARD_ICON_MUTED }}>
+                      <span className="text-[var(--card-icon-muted)]">
                         {' '}
                         ({cumulativeMetrics.turnCount} turns)
                       </span>
@@ -468,14 +424,11 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CircleDot className="size-3" style={{ color: 'rgba(56, 189, 248, 0.7)' }} />
-                      <span className="text-xs" style={{ color: COLOR_TEXT_SECONDARY }}>
+                      <span className="text-xs text-text-secondary">
                         {subagent.team ? 'Context Window' : 'Subagent Context'}
                       </span>
                     </div>
-                    <span
-                      className="font-mono text-xs font-medium tabular-nums"
-                      style={{ color: CARD_TEXT_LIGHTER }}
-                    >
+                    <span className="font-mono text-xs font-medium tabular-nums text-[var(--card-text-lighter)]">
                       {isolatedTotal.toLocaleString()}
                     </span>
                   </div>
@@ -485,13 +438,10 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                 {isMultiPhase &&
                   phaseData.phases.map((phase) => (
                     <div key={phase.phaseNumber} className="flex items-center justify-between pl-5">
-                      <span className="text-[11px]" style={{ color: CARD_ICON_MUTED }}>
+                      <span className="text-[11px] text-[var(--card-icon-muted)]">
                         Phase {phase.phaseNumber}
                       </span>
-                      <span
-                        className="font-mono text-[11px] tabular-nums"
-                        style={{ color: CARD_ICON_MUTED }}
-                      >
+                      <span className="font-mono text-[11px] tabular-nums text-[var(--card-icon-muted)]">
                         {formatTokensCompact(phase.peakTokens)}
                         {phase.postCompaction != null && (
                           <span style={{ color: '#4ade80' }}>
@@ -508,13 +458,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
 
           {/* ========== Level 2: Execution Trace Toggle ========== */}
           {displayItems.length > 0 && (
-            <div
-              className="overflow-hidden rounded-md"
-              style={{
-                border: CARD_BORDER_STYLE,
-                backgroundColor: CARD_HEADER_BG,
-              }}
-            >
+            <div className="overflow-hidden rounded-md border border-[var(--card-border)] bg-[var(--card-header-bg)]">
               {/* Trace Header (clickable) */}
               <div
                 role="button"
@@ -530,23 +474,22 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                     toggleSubagentTraceExpansion(subagent.id);
                   }
                 }}
-                className="flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors"
-                style={{
-                  borderBottom: isTraceExpanded ? CARD_BORDER_STYLE : 'none',
-                  backgroundColor: isTraceHeaderHovered ? CARD_HEADER_HOVER : 'transparent',
-                }}
+                className={cn(
+                  'flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors',
+                  isTraceExpanded && 'border-b border-[var(--card-border)]',
+                  isTraceHeaderHovered ? 'bg-[var(--card-header-hover)]' : 'bg-transparent'
+                )}
                 onMouseEnter={() => setIsTraceHeaderHovered(true)}
                 onMouseLeave={() => setIsTraceHeaderHovered(false)}
               >
                 <ChevronRight
-                  className={`size-3 shrink-0 transition-transform ${isTraceExpanded ? 'rotate-90' : ''}`}
-                  style={{ color: CARD_ICON_MUTED }}
+                  className={cn('size-3 shrink-0 transition-transform text-[var(--card-icon-muted)]', isTraceExpanded && 'rotate-90')}
                 />
-                <Terminal className="size-3.5" style={{ color: CARD_ICON_MUTED }} />
-                <span className="text-xs" style={{ color: COLOR_TEXT_SECONDARY }}>
+                <Terminal className="size-3.5 text-[var(--card-icon-muted)]" />
+                <span className="text-xs text-text-secondary">
                   Execution Trace
                 </span>
-                <span className="text-[11px]" style={{ color: CARD_ICON_MUTED }}>
+                <span className="text-[11px] text-[var(--card-icon-muted)]">
                   · {itemsSummary}
                 </span>
               </div>

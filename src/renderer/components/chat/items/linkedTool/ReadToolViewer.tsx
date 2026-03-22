@@ -7,6 +7,7 @@
 import React from 'react';
 
 import { CodeBlockViewer, MarkdownViewer } from '@renderer/components/chat/viewers';
+import { cn } from '@renderer/lib/utils';
 
 import type { LinkedToolItem } from '@renderer/types/groups';
 
@@ -66,24 +67,20 @@ export const ReadToolViewer: React.FC<ReadToolViewerProps> = ({ linkedTool }) =>
           <button
             type="button"
             onClick={() => setViewMode('code')}
-            className="rounded px-2 py-1 text-xs transition-colors"
-            style={{
-              backgroundColor: viewMode === 'code' ? 'var(--tag-bg)' : 'transparent',
-              color: viewMode === 'code' ? 'var(--tag-text)' : 'var(--color-text-muted)',
-              border: '1px solid var(--tag-border)',
-            }}
+            className={cn(
+              'rounded border border-[var(--tag-border)] px-2 py-1 text-xs transition-colors',
+              viewMode === 'code' ? 'bg-[var(--tag-bg)] text-[var(--tag-text)]' : 'bg-transparent text-text-muted'
+            )}
           >
             Code
           </button>
           <button
             type="button"
             onClick={() => setViewMode('preview')}
-            className="rounded px-2 py-1 text-xs transition-colors"
-            style={{
-              backgroundColor: viewMode === 'preview' ? 'var(--tag-bg)' : 'transparent',
-              color: viewMode === 'preview' ? 'var(--tag-text)' : 'var(--color-text-muted)',
-              border: '1px solid var(--tag-border)',
-            }}
+            className={cn(
+              'rounded border border-[var(--tag-border)] px-2 py-1 text-xs transition-colors',
+              viewMode === 'preview' ? 'bg-[var(--tag-bg)] text-[var(--tag-text)]' : 'bg-transparent text-text-muted'
+            )}
           >
             Preview
           </button>

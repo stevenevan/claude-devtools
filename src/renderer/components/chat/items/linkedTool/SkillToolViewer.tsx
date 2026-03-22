@@ -33,17 +33,10 @@ export const SkillToolViewer: React.FC<SkillToolViewerProps> = ({ linkedTool }) 
       {/* Initial result */}
       {resultText && (
         <div>
-          <div className="mb-1 text-xs" style={{ color: 'var(--tool-item-muted)' }}>
+          <div className="mb-1 text-xs text-[var(--tool-item-muted)]">
             Result
           </div>
-          <div
-            className="overflow-x-auto rounded-sm p-3 font-mono text-xs"
-            style={{
-              backgroundColor: 'var(--code-bg)',
-              border: '1px solid var(--code-border)',
-              color: 'var(--color-text-secondary)',
-            }}
-          >
+          <div className="overflow-x-auto rounded-sm border border-[var(--code-border)] bg-[var(--code-bg)] p-3 font-mono text-xs text-text-secondary">
             {resultText}
           </div>
         </div>
@@ -52,7 +45,7 @@ export const SkillToolViewer: React.FC<SkillToolViewerProps> = ({ linkedTool }) 
       {/* Skill instructions */}
       {skillInstructions && (
         <div>
-          <div className="mb-1 text-xs" style={{ color: 'var(--tool-item-muted)' }}>
+          <div className="mb-1 text-xs text-[var(--tool-item-muted)]">
             Skill Instructions
           </div>
           <CodeBlockViewer

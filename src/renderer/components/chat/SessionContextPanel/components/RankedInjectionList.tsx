@@ -9,7 +9,6 @@
 import React, { useMemo, useState } from 'react';
 
 import { CopyButton } from '@renderer/components/common/CopyButton';
-import { COLOR_TEXT_MUTED, COLOR_TEXT_SECONDARY } from '@renderer/constants/cssVariables';
 import { ChevronRight } from 'lucide-react';
 
 import { formatTokens } from '../utils/formatting';
@@ -122,8 +121,7 @@ const ToolOutputRankedItem = ({
         {/* Expand chevron */}
         {hasBreakdown && (
           <ChevronRight
-            className={`size-3 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`}
-            style={{ color: COLOR_TEXT_MUTED }}
+            className={`size-3 shrink-0 text-text-muted transition-transform ${expanded ? 'rotate-90' : ''}`}
           />
         )}
         {/* Category pill */}
@@ -134,13 +132,12 @@ const ToolOutputRankedItem = ({
           {categoryInfo.label}
         </span>
         {/* Description */}
-        <span className="min-w-0 flex-1 truncate text-xs" style={{ color: COLOR_TEXT_SECONDARY }}>
+        <span className="min-w-0 flex-1 truncate text-xs text-text-secondary">
           {getInjectionDescription(injection)}
         </span>
         {/* Token count */}
         <span
-          className="shrink-0 text-xs font-medium tabular-nums"
-          style={{ color: COLOR_TEXT_MUTED }}
+          className="shrink-0 text-xs font-medium tabular-nums text-text-muted"
         >
           {formatTokens(injection.estimatedTokens)}
         </span>
@@ -169,19 +166,13 @@ const ToolOutputRankedItem = ({
               </span>
               <span className="flex-1" />
               <span
-                className="shrink-0 tabular-nums"
-                style={{ color: COLOR_TEXT_MUTED, opacity: 0.8 }}
+                className="shrink-0 tabular-nums text-text-muted opacity-80"
               >
                 {formatTokens(tool.tokenCount)}
               </span>
               {tool.isError && (
                 <span
-                  className="shrink-0 rounded-sm px-1 py-0.5"
-                  style={{
-                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                    color: '#ef4444',
-                    fontSize: '10px',
-                  }}
+                  className="shrink-0 rounded-sm bg-[rgba(239,68,68,0.15)] px-1 py-0.5 text-[10px] text-[#ef4444]"
                 >
                   error
                 </span>
@@ -257,15 +248,13 @@ export const RankedInjectionList = ({
               </span>
               {/* Description */}
               <span
-                className="min-w-0 flex-1 truncate text-xs"
-                style={{ color: COLOR_TEXT_SECONDARY }}
+                className="min-w-0 flex-1 truncate text-xs text-text-secondary"
               >
                 {getInjectionDescription(inj)}
               </span>
               {/* Token count */}
               <span
-                className="shrink-0 text-xs font-medium tabular-nums"
-                style={{ color: COLOR_TEXT_MUTED }}
+                className="shrink-0 text-xs font-medium tabular-nums text-text-muted"
               >
                 {formatTokens(inj.estimatedTokens)}
               </span>

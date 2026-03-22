@@ -5,7 +5,6 @@
 import React, { useState } from 'react';
 
 import { CopyablePath } from '@renderer/components/common/CopyablePath';
-import { COLOR_TEXT_MUTED, COLOR_TEXT_SECONDARY } from '@renderer/constants/cssVariables';
 import { ChevronRight } from 'lucide-react';
 
 import { formatTokens } from '../utils/formatting';
@@ -45,37 +44,21 @@ export const DirectoryTreeNode = ({
         <CopyablePath
           displayText={node.name}
           copyText={node.path}
-          className="text-xs"
-          style={{ color: COLOR_TEXT_SECONDARY }}
+          className="text-xs text-text-secondary"
         />
-        <span style={{ color: COLOR_TEXT_MUTED }}>(~{formatTokens(node.tokens ?? 0)})</span>
+        <span className="text-text-muted">(~{formatTokens(node.tokens ?? 0)})</span>
         {node.firstSeenInGroup &&
           (isClickable ? (
             <button
               type="button"
-              className="cursor-pointer text-xs transition-opacity hover:opacity-80"
-              style={{
-                color: '#93c5fd',
-                textDecoration: 'underline',
-                textDecorationStyle: 'dotted' as const,
-                textUnderlineOffset: '2px',
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                font: 'inherit',
-                fontSize: '12px',
-              }}
+              className="cursor-pointer text-xs text-[#93c5fd] underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
               onClick={() => onNavigateToTurn(turnIndex)}
             >
               @{formatFirstSeen(node.firstSeenInGroup)}
             </button>
           ) : (
             <span
-              className="text-xs"
-              style={{
-                color: COLOR_TEXT_MUTED,
-                opacity: 0.7,
-              }}
+              className="text-xs text-text-muted opacity-70"
             >
               @{formatFirstSeen(node.firstSeenInGroup)}
             </span>
@@ -105,10 +88,9 @@ export const DirectoryTreeNode = ({
           }}
         >
           <ChevronRight
-            className={`size-3 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`}
-            style={{ color: COLOR_TEXT_MUTED }}
+            className={`size-3 shrink-0 text-text-muted transition-transform ${expanded ? 'rotate-90' : ''}`}
           />
-          <span style={{ color: COLOR_TEXT_MUTED }}>{node.name}/</span>
+          <span className="text-text-muted">{node.name}/</span>
         </div>
       )}
       {expanded &&

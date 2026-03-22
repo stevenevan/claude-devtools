@@ -4,7 +4,6 @@
 
 import React, { useState } from 'react';
 
-import { COLOR_TEXT_MUTED, COLOR_TEXT_SECONDARY } from '@renderer/constants/cssVariables';
 import { Brain, ChevronRight } from 'lucide-react';
 
 import { formatTokens } from '../utils/formatting';
@@ -28,32 +27,18 @@ export const ThinkingTextItem = ({
     <div className="rounded-sm px-2 py-1.5">
       <button
         type="button"
-        className="flex w-full cursor-pointer items-center gap-1.5 hover:opacity-80"
-        style={{
-          background: 'none',
-          border: 'none',
-          padding: 0,
-          font: 'inherit',
-          textAlign: 'left',
-        }}
+        className="flex w-full cursor-pointer items-center gap-1.5 bg-transparent p-0 text-left font-[inherit] hover:opacity-80"
         onClick={() => setExpanded(!expanded)}
       >
         <ChevronRight
-          className={`size-3 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`}
-          style={{ color: COLOR_TEXT_MUTED }}
+          className={`size-3 shrink-0 text-text-muted transition-transform ${expanded ? 'rotate-90' : ''}`}
         />
-        <Brain size={12} style={{ color: COLOR_TEXT_MUTED, flexShrink: 0 }} />
+        <Brain size={12} className="shrink-0 text-text-muted" />
         {isClickable ? (
           <span
             role="link"
             tabIndex={0}
-            className="cursor-pointer text-xs transition-opacity hover:opacity-80"
-            style={{
-              color: '#93c5fd',
-              textDecoration: 'underline',
-              textDecorationStyle: 'dotted' as const,
-              textUnderlineOffset: '2px',
-            }}
+            className="cursor-pointer text-xs text-[#93c5fd] underline decoration-dotted underline-offset-2 transition-opacity hover:opacity-80"
             onClick={(e) => {
               e.stopPropagation();
               onNavigateToTurn(turnIndex);
@@ -68,11 +53,11 @@ export const ThinkingTextItem = ({
             @Turn {turnIndex + 1}
           </span>
         ) : (
-          <span className="text-xs" style={{ color: COLOR_TEXT_SECONDARY }}>
+          <span className="text-xs text-text-secondary">
             @Turn {turnIndex + 1}
           </span>
         )}
-        <span className="text-xs" style={{ color: COLOR_TEXT_MUTED }}>
+        <span className="text-xs text-text-muted">
           ~{formatTokens(injection.estimatedTokens)} tokens
         </span>
       </button>
@@ -81,10 +66,10 @@ export const ThinkingTextItem = ({
         <div className="mt-1 ml-6 space-y-0.5">
           {injection.breakdown.map((item, idx) => (
             <div key={`${item.type}-${idx}`} className="flex items-center gap-2 py-0.5 text-xs">
-              <span style={{ color: COLOR_TEXT_MUTED }}>
+              <span className="text-text-muted">
                 {item.type === 'thinking' ? 'Thinking' : 'Text'}
               </span>
-              <span style={{ color: COLOR_TEXT_MUTED, opacity: 0.7 }}>
+              <span className="text-text-muted opacity-70">
                 ~{formatTokens(item.tokenCount)}
               </span>
             </div>

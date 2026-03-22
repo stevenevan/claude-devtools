@@ -2,25 +2,7 @@ import React from 'react';
 
 import { api } from '@renderer/api';
 import { CopyButton } from '@renderer/components/common/CopyButton';
-import {
-  CODE_BG,
-  CODE_BORDER,
-  CODE_HEADER_BG,
-  COLOR_TEXT,
-  COLOR_TEXT_MUTED,
-  COLOR_TEXT_SECONDARY,
-  PROSE_BLOCKQUOTE_BORDER,
-  PROSE_BODY,
-  PROSE_CODE_BG,
-  PROSE_CODE_TEXT,
-  PROSE_HEADING,
-  PROSE_LINK,
-  PROSE_MUTED,
-  PROSE_PRE_BG,
-  PROSE_PRE_BORDER,
-  PROSE_TABLE_BORDER,
-  PROSE_TABLE_HEADER_BG,
-} from '@renderer/constants/cssVariables';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { FileText } from 'lucide-react';
 import ReactMarkdown, { type Components } from 'react-markdown';
@@ -62,42 +44,39 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
   return {
     // Headings
     h1: ({ children }) => (
-      <h1 className="mt-4 mb-2 text-xl font-semibold first:mt-0" style={{ color: PROSE_HEADING }}>
+      <h1 className="mt-4 mb-2 text-xl font-semibold first:mt-0 text-[var(--prose-heading)]">
         {hl(children)}
       </h1>
     ),
     h2: ({ children }) => (
-      <h2 className="mt-4 mb-2 text-lg font-semibold first:mt-0" style={{ color: PROSE_HEADING }}>
+      <h2 className="mt-4 mb-2 text-lg font-semibold first:mt-0 text-[var(--prose-heading)]">
         {hl(children)}
       </h2>
     ),
     h3: ({ children }) => (
-      <h3 className="mt-3 mb-2 text-base font-semibold first:mt-0" style={{ color: PROSE_HEADING }}>
+      <h3 className="mt-3 mb-2 text-base font-semibold first:mt-0 text-[var(--prose-heading)]">
         {hl(children)}
       </h3>
     ),
     h4: ({ children }) => (
-      <h4 className="mt-3 mb-1 text-sm font-semibold first:mt-0" style={{ color: PROSE_HEADING }}>
+      <h4 className="mt-3 mb-1 text-sm font-semibold first:mt-0 text-[var(--prose-heading)]">
         {hl(children)}
       </h4>
     ),
     h5: ({ children }) => (
-      <h5 className="mt-2 mb-1 text-sm font-medium first:mt-0" style={{ color: PROSE_HEADING }}>
+      <h5 className="mt-2 mb-1 text-sm font-medium first:mt-0 text-[var(--prose-heading)]">
         {hl(children)}
       </h5>
     ),
     h6: ({ children }) => (
-      <h6 className="mt-2 mb-1 text-xs font-medium first:mt-0" style={{ color: PROSE_HEADING }}>
+      <h6 className="mt-2 mb-1 text-xs font-medium first:mt-0 text-[var(--prose-heading)]">
         {hl(children)}
       </h6>
     ),
 
     // Paragraphs
     p: ({ children }) => (
-      <p
-        className="my-2 text-sm leading-relaxed first:mt-0 last:mb-0"
-        style={{ color: PROSE_BODY }}
-      >
+      <p className="my-2 text-sm leading-relaxed first:mt-0 last:mb-0 text-[var(--prose-body)]">
         {hl(children)}
       </p>
     ),
@@ -106,8 +85,7 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
     a: ({ href, children }) => (
       <a
         href={href}
-        className="cursor-pointer no-underline hover:underline"
-        style={{ color: PROSE_LINK }}
+        className="cursor-pointer no-underline hover:underline text-[var(--prose-link)]"
         onClick={(e) => {
           e.preventDefault();
           if (href) {
@@ -121,21 +99,21 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
 
     // Strong/Bold — inline element, no hl()
     strong: ({ children }) => (
-      <strong className="font-semibold" style={{ color: PROSE_HEADING }}>
+      <strong className="font-semibold text-[var(--prose-heading)]">
         {children}
       </strong>
     ),
 
     // Emphasis/Italic — inline element, no hl()
     em: ({ children }) => (
-      <em className="italic" style={{ color: PROSE_BODY }}>
+      <em className="italic text-[var(--prose-body)]">
         {children}
       </em>
     ),
 
     // Strikethrough — inline element, no hl()
     del: ({ children }) => (
-      <del className="line-through" style={{ color: PROSE_BODY }}>
+      <del className="line-through text-[var(--prose-body)]">
         {children}
       </del>
     ),
@@ -164,7 +142,7 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
         const text = raw.replace(/\n$/, '');
         const lines = text.split('\n');
         return (
-          <code className="font-mono text-xs" style={{ color: COLOR_TEXT }}>
+          <code className="font-mono text-xs text-text">
             {lines.map((line, i) => (
               <React.Fragment key={i}>
                 {hl(highlightLine(line, lang))}
@@ -176,13 +154,7 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
       }
       // Inline code — no hl(); parent block element's hl() descends here
       return (
-        <code
-          className="rounded-sm px-1.5 py-0.5 font-mono text-xs"
-          style={{
-            backgroundColor: PROSE_CODE_BG,
-            color: PROSE_CODE_TEXT,
-          }}
-        >
+        <code className="rounded-sm px-1.5 py-0.5 font-mono text-xs bg-[var(--prose-code-bg)] text-[var(--prose-code-text)]">
           {children}
         </code>
       );
@@ -190,43 +162,31 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
 
     // Code blocks
     pre: ({ children }) => (
-      <pre
-        className="my-3 overflow-x-auto rounded-lg p-3 text-xs leading-relaxed"
-        style={{
-          backgroundColor: PROSE_PRE_BG,
-          border: `1px solid ${PROSE_PRE_BORDER}`,
-        }}
-      >
+      <pre className="my-3 overflow-x-auto rounded-lg p-3 text-xs leading-relaxed bg-[var(--prose-pre-bg)] border border-[var(--prose-pre-border)]">
         {children}
       </pre>
     ),
 
     // Blockquotes
     blockquote: ({ children }) => (
-      <blockquote
-        className="my-3 border-l-4 pl-4 italic"
-        style={{
-          borderColor: PROSE_BLOCKQUOTE_BORDER,
-          color: PROSE_MUTED,
-        }}
-      >
+      <blockquote className="my-3 border-l-4 pl-4 italic border-[var(--prose-blockquote-border)] text-[var(--prose-muted)]">
         {hl(children)}
       </blockquote>
     ),
 
     // Lists
     ul: ({ children }) => (
-      <ul className="my-2 list-disc space-y-1 pl-5" style={{ color: PROSE_BODY }}>
+      <ul className="my-2 list-disc space-y-1 pl-5 text-[var(--prose-body)]">
         {children}
       </ul>
     ),
     ol: ({ children }) => (
-      <ol className="my-2 list-decimal space-y-1 pl-5" style={{ color: PROSE_BODY }}>
+      <ol className="my-2 list-decimal space-y-1 pl-5 text-[var(--prose-body)]">
         {children}
       </ol>
     ),
     li: ({ children }) => (
-      <li className="text-sm" style={{ color: PROSE_BODY }}>
+      <li className="text-sm text-[var(--prose-body)]">
         {hl(children)}
       </li>
     ),
@@ -234,42 +194,27 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
     // Tables
     table: ({ children }) => (
       <div className="my-3 overflow-x-auto">
-        <table
-          className="min-w-full border-collapse text-sm"
-          style={{ borderColor: PROSE_TABLE_BORDER }}
-        >
+        <table className="min-w-full border-collapse text-sm border-[var(--prose-table-border)]">
           {children}
         </table>
       </div>
     ),
     thead: ({ children }) => (
-      <thead style={{ backgroundColor: PROSE_TABLE_HEADER_BG }}>{children}</thead>
+      <thead className="bg-[var(--prose-table-header-bg)]">{children}</thead>
     ),
     th: ({ children }) => (
-      <th
-        className="px-3 py-2 text-left font-semibold"
-        style={{
-          border: `1px solid ${PROSE_TABLE_BORDER}`,
-          color: PROSE_HEADING,
-        }}
-      >
+      <th className="px-3 py-2 text-left font-semibold border border-[var(--prose-table-border)] text-[var(--prose-heading)]">
         {hl(children)}
       </th>
     ),
     td: ({ children }) => (
-      <td
-        className="px-3 py-2"
-        style={{
-          border: `1px solid ${PROSE_TABLE_BORDER}`,
-          color: PROSE_BODY,
-        }}
-      >
+      <td className="px-3 py-2 border border-[var(--prose-table-border)] text-[var(--prose-body)]">
         {hl(children)}
       </td>
     ),
 
     // Horizontal rule
-    hr: () => <hr className="my-4" style={{ borderColor: PROSE_TABLE_BORDER }} />,
+    hr: () => <hr className="my-4 border-[var(--prose-table-border)]" />,
   };
 }
 
@@ -321,26 +266,20 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
 
   return (
     <div
-      className={`overflow-hidden rounded-lg shadow-xs ${copyable && !label ? 'group relative' : ''} ${className}`}
-      style={{
-        backgroundColor: CODE_BG,
-        border: `1px solid ${CODE_BORDER}`,
-      }}
+      className={cn(
+        'overflow-hidden rounded-lg shadow-xs bg-[var(--code-bg)] border border-[var(--code-border)]',
+        copyable && !label && 'group relative',
+        className
+      )}
     >
       {/* Copy button overlay (when no label header) */}
       {copyable && !label && <CopyButton text={content} />}
 
       {/* Optional header - matches CodeBlockViewer style */}
       {label && (
-        <div
-          className="flex items-center gap-2 px-3 py-2"
-          style={{
-            backgroundColor: CODE_HEADER_BG,
-            borderBottom: `1px solid ${CODE_BORDER}`,
-          }}
-        >
-          <FileText className="size-4 shrink-0" style={{ color: COLOR_TEXT_MUTED }} />
-          <span className="text-sm font-medium" style={{ color: COLOR_TEXT_SECONDARY }}>
+        <div className="flex items-center gap-2 px-3 py-2 bg-[var(--code-header-bg)] border-b border-[var(--code-border)]">
+          <FileText className="size-4 shrink-0 text-text-muted" />
+          <span className="text-sm font-medium text-text-secondary">
             {label}
           </span>
           {copyable && (

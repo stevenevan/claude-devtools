@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 
 import { ChevronRight } from 'lucide-react';
 
+
 import { buildDirectoryTree } from '../DirectoryTree/buildDirectoryTree';
 import { DirectoryTreeNode } from '../DirectoryTree/DirectoryTreeNode';
 import { ClaudeMdItem } from '../items/ClaudeMdItem';
@@ -46,20 +47,15 @@ export const ClaudeMdSubSection = ({
         }}
       >
         <ChevronRight
-          className={`size-3 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`}
-          style={{ color: 'var(--color-text-muted)' }}
+          className={`size-3 shrink-0 text-text-muted transition-transform ${expanded ? 'rotate-90' : ''}`}
         />
-        <span style={{ color: 'var(--color-text-secondary)' }}>{label}</span>
+        <span className="text-text-secondary">{label}</span>
         <span
-          className="rounded-sm px-1 py-0.5 text-xs"
-          style={{
-            backgroundColor: 'var(--color-surface-overlay)',
-            color: 'var(--color-text-muted)',
-          }}
+          className="rounded-sm bg-surface-overlay px-1 py-0.5 text-xs text-text-muted"
         >
           {injections.length}
         </span>
-        <span style={{ color: 'var(--color-text-muted)' }}>(~{formatTokens(sectionTokens)})</span>
+        <span className="text-text-muted">(~{formatTokens(sectionTokens)})</span>
       </div>
 
       {expanded && (

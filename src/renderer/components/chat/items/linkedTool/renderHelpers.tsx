@@ -6,13 +6,6 @@
 
 import React from 'react';
 
-import {
-  COLOR_TEXT,
-  COLOR_TEXT_MUTED,
-  DIFF_ADDED_TEXT,
-  DIFF_REMOVED_TEXT,
-} from '@renderer/constants/cssVariables';
-
 /**
  * Renders the input section based on tool type with theme-aware styling.
  */
@@ -27,24 +20,24 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
     return (
       <div className="space-y-2">
         {filePath && (
-          <div className="mb-2 text-xs" style={{ color: COLOR_TEXT_MUTED }}>
+          <div className="mb-2 text-xs text-text-muted">
             {filePath}
             {replaceAll && (
-              <span className="ml-2" style={{ color: COLOR_TEXT_MUTED }}>
+              <span className="ml-2 text-text-muted">
                 (replace all)
               </span>
             )}
           </div>
         )}
         {oldString && (
-          <div className="break-all whitespace-pre-wrap" style={{ color: DIFF_REMOVED_TEXT }}>
+          <div className="break-all whitespace-pre-wrap text-[var(--diff-removed-text)]">
             {oldString.split('\n').map((line, i) => (
               <div key={i}>- {line}</div>
             ))}
           </div>
         )}
         {newString && (
-          <div className="break-all whitespace-pre-wrap" style={{ color: DIFF_ADDED_TEXT }}>
+          <div className="break-all whitespace-pre-wrap text-[var(--diff-added-text)]">
             {newString.split('\n').map((line, i) => (
               <div key={i}>+ {line}</div>
             ))}
@@ -62,12 +55,12 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
     return (
       <div className="space-y-2">
         {description && (
-          <div className="mb-1 text-xs" style={{ color: COLOR_TEXT_MUTED }}>
+          <div className="mb-1 text-xs text-text-muted">
             {description}
           </div>
         )}
         {command && (
-          <code className="break-all whitespace-pre-wrap" style={{ color: COLOR_TEXT }}>
+          <code className="break-all whitespace-pre-wrap text-text">
             {command}
           </code>
         )}
@@ -82,10 +75,10 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
     const limit = input.limit as number | undefined;
 
     return (
-      <div style={{ color: COLOR_TEXT }}>
+      <div className="text-text">
         <div>{filePath}</div>
         {(offset !== undefined || limit !== undefined) && (
-          <div className="mt-1 text-xs" style={{ color: COLOR_TEXT_MUTED }}>
+          <div className="mt-1 text-xs text-text-muted">
             {offset !== undefined && `offset: ${offset}`}
             {offset !== undefined && limit !== undefined && ', '}
             {limit !== undefined && `limit: ${limit}`}
@@ -97,10 +90,10 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
 
   // Default: key-value format with readable string values
   return (
-    <div className="space-y-2" style={{ color: COLOR_TEXT }}>
+    <div className="space-y-2 text-text">
       {Object.entries(input).map(([key, value]) => (
         <div key={key}>
-          <div className="text-xs" style={{ color: COLOR_TEXT_MUTED }}>
+          <div className="text-xs text-text-muted">
             {key}
           </div>
           <pre className="break-all whitespace-pre-wrap">{formatInputValue(value)}</pre>
@@ -182,7 +175,7 @@ function isContentBlock(value: unknown): boolean {
 export function renderOutput(content: string | unknown[]): React.ReactElement {
   const displayText = extractOutputText(content);
   return (
-    <pre className="break-all whitespace-pre-wrap" style={{ color: COLOR_TEXT }}>
+    <pre className="break-all whitespace-pre-wrap text-text">
       {displayText}
     </pre>
   );
