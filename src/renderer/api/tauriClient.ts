@@ -7,6 +7,7 @@
  */
 
 import { invoke } from '@tauri-apps/api/core';
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { getVersion } from '@tauri-apps/api/app';
 import { open } from '@tauri-apps/plugin-dialog';
@@ -244,14 +245,32 @@ export class TauriAPIClient implements ElectronAPI {
   };
 
   // ---------------------------------------------------------------------------
-  // File/todo change events — SSE from sidecar
+  // File/todo change events — native Tauri events from Rust watcher
   // ---------------------------------------------------------------------------
 
-  onFileChange = (callback: (event: FileChangeEvent) => void): (() => void) =>
-    this.http.onFileChange(callback);
+  onFileChange = (callback: (event: FileChangeEvent) => void): (() => void) => {
+    let unlisten: UnlistenFn | null = null;
+    listen<FileChangeEvent>('file-change', (tauriEvent) => {
+      callback(tauriEvent.payload);
+    }).then((fn) => {
+      unlisten = fn;
+    });
+    return () => {
+      unlisten?.();
+    };
+  };
 
-  onTodoChange = (callback: (event: FileChangeEvent) => void): (() => void) =>
-    this.http.onTodoChange(callback);
+  onTodoChange = (callback: (event: FileChangeEvent) => void): (() => void) => {
+    let unlisten: UnlistenFn | null = null;
+    listen<FileChangeEvent>('todo-change', (tauriEvent) => {
+      callback(tauriEvent.payload);
+    }).then((fn) => {
+      unlisten = fn;
+    });
+    return () => {
+      unlisten?.();
+    };
+  };
 
   // Session refresh handled by frontend keydown listener
   onSessionRefresh = (_callback: () => void): (() => void) => {
