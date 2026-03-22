@@ -7,7 +7,6 @@ import {
   CommandDialog,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
   CommandSeparator,
@@ -16,6 +15,7 @@ import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatModifierShortcut } from '@renderer/utils/keyboardUtils';
 import { createLogger } from '@shared/utils/logger';
+import { Command as CommandPrimitive } from 'cmdk';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Bot,
@@ -24,7 +24,9 @@ import {
   Globe,
   Loader2,
   MessageSquare,
+  Search,
   User,
+  X,
 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -240,14 +242,15 @@ export const CommandPalette = (): React.JSX.Element | null => {
           </Button>
         </div>
 
-        <div className="border-border relative flex items-center border-b">
-          <CommandInput
+        <div className="border-border flex items-center gap-3 border-b px-4 py-3">
+          <Search className="text-muted-foreground size-5 shrink-0" />
+          <CommandPrimitive.Input
             value={query}
             onValueChange={setQuery}
             placeholder={
               searchMode === 'projects' ? 'Search projects...' : 'Search conversations...'
             }
-            className="text-base"
+            className="placeholder:text-muted-foreground/50 text-foreground flex-1 bg-transparent text-base outline-hidden"
             onKeyDown={(e) => {
               if (e.key === 'g' && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
@@ -255,9 +258,10 @@ export const CommandPalette = (): React.JSX.Element | null => {
               }
             }}
           />
-          {loading && (
-            <Loader2 className="text-muted-foreground absolute right-3 size-4 animate-spin" />
-          )}
+          {loading && <Loader2 className="text-muted-foreground size-4 shrink-0 animate-spin" />}
+          <Button variant="ghost" size="icon-xs" onClick={closeCommandPalette}>
+            <X className="size-4" />
+          </Button>
         </div>
 
         <CommandList className="max-h-[50vh]">
