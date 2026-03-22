@@ -47,7 +47,7 @@ export const createRepositorySlice: StateCreator<AppState, [], [], RepositorySli
   selectedWorktreeId: null,
   repositoryGroupsLoading: false,
   repositoryGroupsError: null,
-  viewMode: 'grouped', // Default to grouped view
+  viewMode: 'flat', // Default to flat view (grouped requires git identity resolution)
 
   // Fetch all repository groups (projects grouped by git repo)
   fetchRepositoryGroups: async () => {

@@ -389,8 +389,6 @@ fn is_valid_ssh_profile(profile: &Value) -> bool {
 // Validation helper for trigger add/update in manager
 // =============================================================================
 
-/// Validate regex pattern (re-exported from triggers for convenience).
-pub use triggers::validate_regex_pattern;
 
 #[cfg(test)]
 mod tests {

@@ -4,7 +4,6 @@ use std::sync::{Arc, Mutex};
 
 use tauri::Emitter;
 
-use crate::cache::SessionCache;
 use crate::config::manager::ConfigState;
 use crate::config::types::NotificationTrigger;
 

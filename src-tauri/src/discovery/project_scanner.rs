@@ -7,7 +7,6 @@ use std::path::Path;
 use crate::types::domain::Project;
 use crate::types::jsonl::RawJsonlEntry;
 
-use super::content_filter::has_non_noise_messages;
 use super::path_decoder::{decode_path, extract_project_name, is_valid_encoded_path};
 use super::subproject_registry::SubprojectRegistry;
 

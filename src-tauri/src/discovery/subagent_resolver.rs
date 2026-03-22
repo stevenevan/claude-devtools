@@ -6,7 +6,6 @@ use std::path::Path;
 
 use crate::parsing::{metrics::calculate_metrics, session_parser};
 use crate::types::chunks::Process;
-use crate::types::domain::SessionMetrics;
 use crate::types::messages::{ParsedMessage, ToolCall};
 
 const PARALLEL_WINDOW_MS: f64 = 100.0;
