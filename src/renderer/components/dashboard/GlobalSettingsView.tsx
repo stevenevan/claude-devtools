@@ -19,7 +19,7 @@ const BadgeList = ({ items, color }: Readonly<BadgeListProps>): React.JSX.Elemen
     {items.map((item) => (
       <span
         key={item}
-        className="rounded-sm border border-border bg-surface-overlay px-2 py-0.5 font-mono text-[10px]"
+        className="border-border bg-surface-overlay rounded-sm border px-2 py-0.5 font-mono text-[10px]"
         style={{ color }}
       >
         {item}
@@ -39,12 +39,10 @@ const SettingsSection = ({
   title,
   children,
 }: Readonly<SettingsSectionProps>): React.JSX.Element => (
-  <div className="rounded-xs border border-border bg-surface p-4">
+  <div className="border-border bg-surface rounded-xs border p-4">
     <div className="mb-3 flex items-center gap-2">
       <Icon className="text-text-secondary size-4" />
-      <h3 className="text-sm font-medium text-text">
-        {title}
-      </h3>
+      <h3 className="text-text text-sm font-medium">{title}</h3>
     </div>
     {children}
   </div>
@@ -74,7 +72,7 @@ export const GlobalSettingsView = (): React.JSX.Element | null => {
   if (globalSettingsLoading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="flex items-center gap-3 text-text-muted">
+        <div className="text-text-muted flex items-center gap-3">
           <Loader2 className="size-5 animate-spin" />
           <span className="text-sm">Loading settings...</span>
         </div>
@@ -128,23 +126,23 @@ export const GlobalSettingsView = (): React.JSX.Element | null => {
         <div className="space-y-3">
           {defaultMode && (
             <div>
-              <p className="text-text-muted mb-1 text-[10px] uppercase tracking-wider">
+              <p className="text-text-muted mb-1 text-[10px] tracking-wider uppercase">
                 Default Mode
               </p>
-              <span className="rounded-sm border border-border px-2 py-0.5 text-xs text-text-secondary">
+              <span className="border-border text-text-secondary rounded-sm border px-2 py-0.5 text-xs">
                 {defaultMode}
               </span>
             </div>
           )}
           {allowList.length > 0 && (
             <div>
-              <p className="text-text-muted mb-1.5 text-[10px] uppercase tracking-wider">Allow</p>
+              <p className="text-text-muted mb-1.5 text-[10px] tracking-wider uppercase">Allow</p>
               <BadgeList items={allowList} color="var(--color-text-secondary)" />
             </div>
           )}
           {denyList.length > 0 && (
             <div>
-              <p className="text-text-muted mb-1.5 text-[10px] uppercase tracking-wider">Deny</p>
+              <p className="text-text-muted mb-1.5 text-[10px] tracking-wider uppercase">Deny</p>
               <BadgeList items={denyList} color="rgb(248,113,113)" />
             </div>
           )}

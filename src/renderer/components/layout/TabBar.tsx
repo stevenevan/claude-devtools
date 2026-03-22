@@ -232,7 +232,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
       {sidebarCollapsed && isLeftmostPane && (
         <button
           onClick={toggleSidebar}
-          className="mr-2 shrink-0 rounded-md p-1.5 text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+          className="text-text-muted hover:bg-surface-raised hover:text-text mr-2 shrink-0 rounded-md p-1.5 transition-colors"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           title="Expand sidebar"
         >
@@ -287,7 +287,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         {/* Refresh button - show only for session tabs */}
         {activeTab?.type === 'session' && (
           <button
-            className="flex size-8 shrink-0 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+            className="text-text-muted hover:bg-surface-raised hover:text-text flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
             onClick={handleRefresh}
             title={`Refresh Session (${formatShortcut('R')})`}
           >
@@ -316,7 +316,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         {/* New tab button */}
         <button
           onClick={openDashboard}
-          className="rounded-md p-2 text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+          className="text-text-muted hover:bg-surface-raised hover:text-text rounded-md p-2 transition-colors"
           title="New tab (Dashboard)"
         >
           <Plus className="size-4" />
@@ -325,7 +325,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         {/* Notifications bell icon */}
         <button
           onClick={openNotificationsTab}
-          className="relative rounded-md p-2 text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+          className="text-text-muted hover:bg-surface-raised hover:text-text relative rounded-md p-2 transition-colors"
           title="Notifications"
         >
           <Bell className="size-4" />
@@ -339,7 +339,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         {/* More menu (Search, Export, Settings) */}
         <MoreMenu activeTab={activeTab} activeTabSessionDetail={activeTabSessionDetail} />
       </div>
-
     </div>
   );
 };

@@ -388,7 +388,7 @@ const AIChatGroupInner = ({
   };
 
   return (
-    <div className="space-y-3 border-l-2 pl-3 border-[var(--chat-ai-border)]">
+    <div className="space-y-3 border-l-2 border-[var(--chat-ai-border)] pl-3">
       {/* Header Row */}
       {hasToggleContent && (
         <div className="flex items-center gap-2">
@@ -405,10 +405,8 @@ const AIChatGroupInner = ({
               }
             }}
           >
-            <Bot className="size-4 shrink-0 text-text-secondary" />
-            <span className="shrink-0 text-xs font-semibold text-text-secondary">
-              Claude
-            </span>
+            <Bot className="text-text-secondary size-4 shrink-0" />
+            <span className="text-text-secondary shrink-0 text-xs font-semibold">Claude</span>
 
             {/* Main agent model */}
             {enhanced.mainModel && (
@@ -420,10 +418,8 @@ const AIChatGroupInner = ({
             {/* Subagent models if different */}
             {enhanced.subagentModels.length > 0 && (
               <>
-                <span className="shrink-0 text-text-muted">
-                  →
-                </span>
-                <span className="shrink-0 text-xs text-text-muted">
+                <span className="text-text-muted shrink-0">→</span>
+                <span className="text-text-muted shrink-0 text-xs">
                   {enhanced.subagentModels.map((m, i) => (
                     <span key={m.name}>
                       {i > 0 && ', '}
@@ -434,15 +430,11 @@ const AIChatGroupInner = ({
               </>
             )}
 
-            <span className="shrink-0 text-xs text-text-muted">
-              ·
-            </span>
-            <span className="truncate text-xs text-text-muted">
+            <span className="text-text-muted shrink-0 text-xs">·</span>
+            <span className="text-text-muted truncate text-xs">
               {enhanced.itemsSummary}
               {aiGroup.progressCount != null && aiGroup.progressCount > 0 && (
-                <span className="ml-1 opacity-60">
-                  ({aiGroup.progressCount} progress)
-                </span>
+                <span className="ml-1 opacity-60">({aiGroup.progressCount} progress)</span>
               )}
             </span>
             <ChevronDown
@@ -479,7 +471,7 @@ const AIChatGroupInner = ({
 
             {/* Duration */}
             {aiGroup.durationMs > 0 && (
-              <span className="inline-flex shrink-0 items-center gap-1 text-xs whitespace-nowrap text-text-muted">
+              <span className="text-text-muted inline-flex shrink-0 items-center gap-1 text-xs whitespace-nowrap">
                 <Clock className="size-3" />
                 {formatDuration(aiGroup.durationMs)}
               </span>
@@ -487,7 +479,7 @@ const AIChatGroupInner = ({
 
             {/* Timestamp - receded for visual hierarchy */}
             {enhanced.lastOutput?.timestamp && (
-              <span className="shrink-0 text-[10px] whitespace-nowrap text-text-muted">
+              <span className="text-text-muted shrink-0 text-[10px] whitespace-nowrap">
                 {format(enhanced.lastOutput.timestamp, 'h:mm:ss a')}
               </span>
             )}

@@ -121,7 +121,7 @@ const ToolOutputRankedItem = ({
         {/* Expand chevron */}
         {hasBreakdown && (
           <ChevronRight
-            className={`size-3 shrink-0 text-text-muted transition-transform ${expanded ? 'rotate-90' : ''}`}
+            className={`text-text-muted size-3 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`}
           />
         )}
         {/* Category pill */}
@@ -132,13 +132,11 @@ const ToolOutputRankedItem = ({
           {categoryInfo.label}
         </span>
         {/* Description */}
-        <span className="min-w-0 flex-1 truncate text-xs text-text-secondary">
+        <span className="text-text-secondary min-w-0 flex-1 truncate text-xs">
           {getInjectionDescription(injection)}
         </span>
         {/* Token count */}
-        <span
-          className="shrink-0 text-xs font-medium tabular-nums text-text-muted"
-        >
+        <span className="text-text-muted shrink-0 text-xs font-medium tabular-nums">
           {formatTokens(injection.estimatedTokens)}
         </span>
       </button>
@@ -165,15 +163,11 @@ const ToolOutputRankedItem = ({
                 {tool.toolName}
               </span>
               <span className="flex-1" />
-              <span
-                className="shrink-0 tabular-nums text-text-muted opacity-80"
-              >
+              <span className="text-text-muted shrink-0 tabular-nums opacity-80">
                 {formatTokens(tool.tokenCount)}
               </span>
               {tool.isError && (
-                <span
-                  className="shrink-0 rounded-sm bg-[rgba(239,68,68,0.15)] px-1 py-0.5 text-[10px] text-[#ef4444]"
-                >
+                <span className="shrink-0 rounded-sm bg-[rgba(239,68,68,0.15)] px-1 py-0.5 text-[10px] text-[#ef4444]">
                   error
                 </span>
               )}
@@ -247,15 +241,11 @@ export const RankedInjectionList = ({
                 {categoryInfo.label}
               </span>
               {/* Description */}
-              <span
-                className="min-w-0 flex-1 truncate text-xs text-text-secondary"
-              >
+              <span className="text-text-secondary min-w-0 flex-1 truncate text-xs">
                 {getInjectionDescription(inj)}
               </span>
               {/* Token count */}
-              <span
-                className="shrink-0 text-xs font-medium tabular-nums text-text-muted"
-              >
+              <span className="text-text-muted shrink-0 text-xs font-medium tabular-nums">
                 {formatTokens(inj.estimatedTokens)}
               </span>
             </button>

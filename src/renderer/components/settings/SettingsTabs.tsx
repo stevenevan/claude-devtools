@@ -41,7 +41,12 @@ export const SettingsTabs = ({
   );
 
   return (
-    <Tabs value={activeSection} onValueChange={(v) => { if (v) onSectionChange(v as SettingsSection); }}>
+    <Tabs
+      value={activeSection}
+      onValueChange={(v) => {
+        if (v) onSectionChange(v as SettingsSection);
+      }}
+    >
       <TabsList variant="line">
         {visibleTabs.map((tab) => {
           const Icon = tab.icon;

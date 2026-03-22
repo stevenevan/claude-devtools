@@ -30,7 +30,10 @@ export const PaneSplitDropZone = ({
   return (
     <div
       ref={setNodeRef}
-      className={cn('absolute top-0 z-30 w-1/2 h-full', isActive ? 'pointer-events-auto' : 'pointer-events-none')}
+      className={cn(
+        'absolute top-0 z-30 w-1/2 h-full',
+        isActive ? 'pointer-events-auto' : 'pointer-events-none'
+      )}
       style={{ [side]: 0 }}
     >
       {/* Semi-transparent overlay highlight when hovering */}
@@ -38,7 +41,9 @@ export const PaneSplitDropZone = ({
         <div
           className={cn(
             'absolute inset-0 opacity-[0.12] bg-[var(--color-accent,#6366f1)]',
-            side === 'right' ? 'border-l-2 border-[var(--color-accent,#6366f1)]' : 'border-r-2 border-[var(--color-accent,#6366f1)]'
+            side === 'right'
+              ? 'border-l-2 border-[var(--color-accent,#6366f1)]'
+              : 'border-r-2 border-[var(--color-accent,#6366f1)]'
           )}
         />
       )}

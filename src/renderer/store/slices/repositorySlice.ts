@@ -58,7 +58,9 @@ export const createRepositorySlice: StateCreator<AppState, [], [], RepositorySli
         repositoryGroups: groups,
         repositoryGroupsLoading: false,
         // Fall back to flat view when grouped has no data
-        ...(groups.length === 0 && get().viewMode === 'grouped' ? { viewMode: 'flat' as const } : {}),
+        ...(groups.length === 0 && get().viewMode === 'grouped'
+          ? { viewMode: 'flat' as const }
+          : {}),
       });
     } catch (error) {
       set({

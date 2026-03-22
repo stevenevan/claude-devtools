@@ -59,12 +59,12 @@ export const CompactBoundary = ({
       {/* Collapsible Header - Amber/orange accent for distinction */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="group flex w-full cursor-pointer items-center gap-3 overflow-hidden rounded-lg px-4 py-2.5 transition-all duration-200 bg-[var(--tool-call-bg)] border border-[var(--tool-call-border)]"
+        className="group flex w-full cursor-pointer items-center gap-3 overflow-hidden rounded-lg border border-[var(--tool-call-border)] bg-[var(--tool-call-bg)] px-4 py-2.5 transition-all duration-200"
         aria-expanded={isExpanded}
         aria-label="Toggle compacted content"
       >
         {/* Icon Stack */}
-        <div className="flex shrink-0 items-center gap-2 transition-colors text-[var(--tool-call-text)]">
+        <div className="flex shrink-0 items-center gap-2 text-[var(--tool-call-text)] transition-colors">
           <ChevronRight
             size={16}
             className={cn('transition-transform duration-200', isExpanded && 'rotate-90')}
@@ -73,13 +73,13 @@ export const CompactBoundary = ({
         </div>
 
         {/* Label */}
-        <span className="shrink-0 text-sm font-medium whitespace-nowrap transition-colors text-[var(--tool-call-text)]">
+        <span className="shrink-0 text-sm font-medium whitespace-nowrap text-[var(--tool-call-text)] transition-colors">
           Compacted
         </span>
 
         {/* Token delta info */}
         {compactGroup.tokenDelta && (
-          <span className="ml-2 min-w-0 truncate text-xs tabular-nums text-text-muted">
+          <span className="text-text-muted ml-2 min-w-0 truncate text-xs tabular-nums">
             {formatTokens(compactGroup.tokenDelta.preCompactionTokens)} →{' '}
             {formatTokens(compactGroup.tokenDelta.postCompactionTokens)}
             <span className="text-[#4ade80]">
@@ -91,35 +91,33 @@ export const CompactBoundary = ({
 
         {/* Phase badge */}
         {compactGroup.startingPhaseNumber && (
-          <span className="shrink-0 rounded-sm px-1.5 py-0.5 text-[10px] whitespace-nowrap bg-[rgba(99,102,241,0.15)] text-[#818cf8]">
+          <span className="shrink-0 rounded-sm bg-[rgba(99,102,241,0.15)] px-1.5 py-0.5 text-[10px] whitespace-nowrap text-[#818cf8]">
             Phase {compactGroup.startingPhaseNumber}
           </span>
         )}
 
         {/* Timestamp */}
-        <span className="ml-auto shrink-0 text-xs whitespace-nowrap transition-colors text-text-muted">
+        <span className="text-text-muted ml-auto shrink-0 text-xs whitespace-nowrap transition-colors">
           {format(timestamp, 'h:mm:ss a')}
         </span>
       </button>
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div className="group relative mt-2 overflow-hidden rounded-lg bg-[var(--code-bg)] border border-[var(--code-border)]">
+        <div className="group relative mt-2 overflow-hidden rounded-lg border border-[var(--code-border)] bg-[var(--code-bg)]">
           {compactContent && <CopyButton text={compactContent} />}
 
           {/* Content - scrollable with left accent bar */}
-          <div className="max-h-96 overflow-y-auto border-l-2 px-4 py-3 border-[var(--chat-ai-border)]">
+          <div className="max-h-96 overflow-y-auto border-l-2 border-[var(--chat-ai-border)] px-4 py-3">
             {compactContent ? (
               <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
                 {compactContent}
               </ReactMarkdown>
             ) : (
               <div className="flex items-start gap-2">
-                <Layers size={14} className="mt-0.5 shrink-0 text-text-muted" />
-                <div className="text-xs leading-relaxed text-text-muted">
-                  <p className="mb-1 font-medium text-text-secondary">
-                    Conversation Compacted
-                  </p>
+                <Layers size={14} className="text-text-muted mt-0.5 shrink-0" />
+                <div className="text-text-muted text-xs leading-relaxed">
+                  <p className="text-text-secondary mb-1 font-medium">Conversation Compacted</p>
                   <p>
                     Previous messages were summarized to save context. The full conversation history
                     is preserved in the session file.

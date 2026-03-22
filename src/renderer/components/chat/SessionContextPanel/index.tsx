@@ -174,9 +174,7 @@ export const SessionContextPanel = ({
   };
 
   return (
-    <div
-      className="flex h-full flex-col border-l border-border bg-surface"
-    >
+    <div className="border-border bg-surface flex h-full flex-col border-l">
       <SessionContextHeader
         injectionCount={injections.length}
         totalTokens={totalTokens}
@@ -192,9 +190,7 @@ export const SessionContextPanel = ({
       {/* Content */}
       <div className="flex-1 space-y-2 overflow-y-auto p-3">
         {injections.length === 0 ? (
-          <div
-            className="flex h-full items-center justify-center text-sm text-text-muted"
-          >
+          <div className="text-text-muted flex h-full items-center justify-center text-sm">
             No context injections detected in this session
           </div>
         ) : viewMode === 'category' ? (

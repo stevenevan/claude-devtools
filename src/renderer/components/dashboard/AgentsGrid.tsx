@@ -65,9 +65,7 @@ const AgentCard = ({ agent, isHighlighted }: Readonly<AgentCardProps>): React.JS
             {tool}
           </span>
         ))}
-        {extraCount > 0 && (
-          <span className="text-text-muted text-[10px]">+{extraCount} more</span>
-        )}
+        {extraCount > 0 && <span className="text-text-muted text-[10px]">+{extraCount} more</span>}
       </div>
     </button>
   );
@@ -134,8 +132,7 @@ export const AgentsGrid = ({ searchQuery }: Readonly<AgentsGridProps>): React.JS
     if (!searchQuery.trim()) return globalAgents;
     const query = searchQuery.toLowerCase().trim();
     return globalAgents.filter(
-      (a) =>
-        a.name.toLowerCase().includes(query) || a.description.toLowerCase().includes(query)
+      (a) => a.name.toLowerCase().includes(query) || a.description.toLowerCase().includes(query)
     );
   }, [globalAgents, searchQuery]);
 

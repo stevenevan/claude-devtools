@@ -299,7 +299,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
   if (!selectedProjectId) {
     return (
       <div className="p-4">
-        <div className="py-8 text-center text-sm text-text-muted">
+        <div className="text-text-muted py-8 text-center text-sm">
           <p>Select a project to view sessions</p>
         </div>
       </div>
@@ -340,10 +340,8 @@ export const DateGroupedSessions = (): React.JSX.Element => {
   if (sessionsError) {
     return (
       <div className="p-4">
-        <div className="rounded-lg border border-border bg-surface-raised p-3 text-sm text-text-muted">
-          <p className="mb-1 font-semibold text-text">
-            Error loading sessions
-          </p>
+        <div className="border-border bg-surface-raised text-text-muted rounded-lg border p-3 text-sm">
+          <p className="text-text mb-1 font-semibold">Error loading sessions</p>
           <p>{sessionsError}</p>
         </div>
       </div>
@@ -353,7 +351,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
   if (sessions.length === 0) {
     return (
       <div className="p-4">
-        <div className="py-8 text-center text-sm text-text-muted">
+        <div className="text-text-muted py-8 text-center text-sm">
           <MessageSquareOff className="mx-auto mb-2 size-8 opacity-50" />
           <p className="mb-2">No sessions found</p>
           <p className="text-xs opacity-70">This project has no sessions yet</p>
@@ -365,14 +363,14 @@ export const DateGroupedSessions = (): React.JSX.Element => {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="mt-2 flex items-center gap-2 px-4 py-3">
-        <Calendar className="size-4 text-text-muted" />
-        <h2 className="text-xs tracking-wider uppercase text-text-muted">
+        <Calendar className="text-text-muted size-4" />
+        <h2 className="text-text-muted text-xs tracking-wider uppercase">
           {sessionSortMode === 'most-context' ? 'By Context' : 'Sessions'}
         </h2>
         {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- tooltip trigger via hover, not interactive */}
         <span
           ref={countRef}
-          className="text-xs text-text-muted opacity-60"
+          className="text-text-muted text-xs opacity-60"
           onMouseEnter={() => setShowCountTooltip(true)}
           onMouseLeave={() => setShowCountTooltip(false)}
         >
@@ -384,7 +382,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
           countRef.current &&
           createPortal(
             <div
-              className="pointer-events-none fixed z-50 w-48 rounded-md border border-border-emphasis bg-surface-overlay px-2.5 py-1.5 text-[11px] leading-snug text-text-secondary shadow-lg"
+              className="border-border-emphasis bg-surface-overlay text-text-secondary pointer-events-none fixed z-50 w-48 rounded-md border px-2.5 py-1.5 text-[11px] leading-snug shadow-lg"
               style={{
                 top: countRef.current.getBoundingClientRect().bottom + 6,
                 left:
@@ -441,21 +439,21 @@ export const DateGroupedSessions = (): React.JSX.Element => {
 
       {/* Bulk action bar - shown when sessions are selected */}
       {sidebarMultiSelectActive && sidebarSelectedSessionIds.length > 0 && (
-        <div className="flex items-center gap-1.5 border-b border-border bg-surface-raised px-3 py-1.5">
-          <span className="text-[11px] font-medium text-text-secondary">
+        <div className="border-border bg-surface-raised flex items-center gap-1.5 border-b px-3 py-1.5">
+          <span className="text-text-secondary text-[11px] font-medium">
             {sidebarSelectedSessionIds.length} selected
           </span>
           <div className="ml-auto flex items-center gap-1">
             <button
               onClick={handleBulkPin}
-              className="rounded-sm px-1.5 py-0.5 text-[10px] font-medium text-text-secondary transition-colors hover:bg-white/5"
+              className="text-text-secondary rounded-sm px-1.5 py-0.5 text-[10px] font-medium transition-colors hover:bg-white/5"
               title="Pin selected sessions"
             >
               <Pin className="inline-block size-3" /> Pin
             </button>
             <button
               onClick={handleBulkHide}
-              className="rounded-sm px-1.5 py-0.5 text-[10px] font-medium text-text-secondary transition-colors hover:bg-white/5"
+              className="text-text-secondary rounded-sm px-1.5 py-0.5 text-[10px] font-medium transition-colors hover:bg-white/5"
               title="Hide selected sessions"
             >
               <EyeOff className="inline-block size-3" /> Hide
@@ -463,7 +461,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
             {showHiddenSessions && someSelectedAreHidden && (
               <button
                 onClick={handleBulkUnhide}
-                className="rounded-sm px-1.5 py-0.5 text-[10px] font-medium text-text-secondary transition-colors hover:bg-white/5"
+                className="text-text-secondary rounded-sm px-1.5 py-0.5 text-[10px] font-medium transition-colors hover:bg-white/5"
                 title="Unhide selected sessions"
               >
                 <Eye className="inline-block size-3" /> Unhide
@@ -471,7 +469,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
             )}
             <button
               onClick={clearSidebarSelection}
-              className="rounded-sm p-0.5 text-text-muted transition-colors hover:bg-white/5"
+              className="text-text-muted rounded-sm p-0.5 transition-colors hover:bg-white/5"
               title="Cancel selection"
             >
               <X className="size-3.5" />
@@ -481,10 +479,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
       )}
 
       <div ref={parentRef} className="flex-1 overflow-y-auto">
-        <div
-          className="relative w-full"
-          style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
-        >
+        <div className="relative w-full" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
             const item = virtualItems[virtualRow.index];
             if (!item) return null;
@@ -499,20 +494,16 @@ export const DateGroupedSessions = (): React.JSX.Element => {
                 }}
               >
                 {item.type === 'pinned-header' ? (
-                  <div
-                    className="sticky top-0 flex h-full items-center gap-1.5 border-t border-border-emphasis bg-[color-mix(in_srgb,var(--color-surface-sidebar)_95%,transparent)] px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase text-text-muted backdrop-blur-xs"
-                  >
+                  <div className="border-border-emphasis text-text-muted sticky top-0 flex h-full items-center gap-1.5 border-t bg-[color-mix(in_srgb,var(--color-surface-sidebar)_95%,transparent)] px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase backdrop-blur-xs">
                     <Pin className="size-3" />
                     Pinned
                   </div>
                 ) : item.type === 'header' ? (
-                  <div
-                    className="sticky top-0 flex h-full items-center border-t border-border-emphasis bg-[color-mix(in_srgb,var(--color-surface-sidebar)_95%,transparent)] px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase text-text-muted backdrop-blur-xs"
-                  >
+                  <div className="border-border-emphasis text-text-muted sticky top-0 flex h-full items-center border-t bg-[color-mix(in_srgb,var(--color-surface-sidebar)_95%,transparent)] px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase backdrop-blur-xs">
                     {item.category}
                   </div>
                 ) : item.type === 'loader' ? (
-                  <div className="flex h-full items-center justify-center text-text-muted">
+                  <div className="text-text-muted flex h-full items-center justify-center">
                     {sessionsLoadingMore ? (
                       <>
                         <Loader2 className="mr-2 size-4 animate-spin" />

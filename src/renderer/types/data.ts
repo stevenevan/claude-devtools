@@ -115,9 +115,7 @@ export function isEnhancedSystemChunk(chunk: Chunk | EnhancedChunk): chunk is En
 /**
  * Type guard to check if a chunk is an EnhancedEventChunk.
  */
-export function isEnhancedEventChunk(
-  chunk: Chunk | EnhancedChunk
-): chunk is EnhancedEventChunk {
+export function isEnhancedEventChunk(chunk: Chunk | EnhancedChunk): chunk is EnhancedEventChunk {
   return 'chunkType' in chunk && chunk.chunkType === 'event' && 'rawMessages' in chunk;
 }
 

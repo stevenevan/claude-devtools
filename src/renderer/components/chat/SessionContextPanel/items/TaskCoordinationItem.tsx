@@ -28,10 +28,10 @@ export const TaskCoordinationItem = ({
     <>
       {hasBreakdown && (
         <ChevronRight
-          className={`size-3 shrink-0 text-text-muted transition-transform ${expanded ? 'rotate-90' : ''}`}
+          className={`text-text-muted size-3 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`}
         />
       )}
-      <Users size={12} className="shrink-0 text-text-muted" />
+      <Users size={12} className="text-text-muted shrink-0" />
       {isClickable ? (
         <span
           role="link"
@@ -51,16 +51,12 @@ export const TaskCoordinationItem = ({
           @Turn {turnIndex + 1}
         </span>
       ) : (
-        <span className="text-xs text-text-secondary">
-          @Turn {turnIndex + 1}
-        </span>
+        <span className="text-text-secondary text-xs">@Turn {turnIndex + 1}</span>
       )}
-      <span className="text-xs text-text-muted">
+      <span className="text-text-muted text-xs">
         ~{formatTokens(injection.estimatedTokens)} tokens
       </span>
-      <span
-        className="rounded-sm bg-surface-overlay px-1 py-0.5 text-xs text-text-muted"
-      >
+      <span className="bg-surface-overlay text-text-muted rounded-sm px-1 py-0.5 text-xs">
         {injection.breakdown.length} item{injection.breakdown.length !== 1 ? 's' : ''}
       </span>
     </>
@@ -85,9 +81,7 @@ export const TaskCoordinationItem = ({
           {injection.breakdown.map((item, idx) => (
             <div key={`${item.label}-${idx}`} className="flex items-center justify-between text-xs">
               <span className="text-text-secondary">{item.label}</span>
-              <span className="tabular-nums text-text-muted">
-                ~{formatTokens(item.tokenCount)}
-              </span>
+              <span className="text-text-muted tabular-nums">~{formatTokens(item.tokenCount)}</span>
             </div>
           ))}
         </div>

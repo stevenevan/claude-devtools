@@ -6,10 +6,14 @@ import {
   RepositoryDropdown,
   SelectedRepositoryItem,
 } from '@renderer/components/common/RepositoryDropdown';
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@renderer/components/ui/select';
 import { Switch } from '@renderer/components/ui/switch';
-
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
 
 import { SettingRow, SettingsSectionHeader } from '../components';
 import { NotificationTriggerSettings } from '../NotificationTriggerSettings';
@@ -124,7 +128,10 @@ export const NotificationsSection = ({
           ) : (
             <Select
               value="0"
-              onValueChange={(v) => { const n = Number(v); if (n !== 0) void onSnooze(n); }}
+              onValueChange={(v) => {
+                const n = Number(v);
+                if (n !== 0) void onSnooze(n);
+              }}
               disabled={saving || !safeConfig.notifications.enabled}
             >
               <SelectTrigger>
@@ -133,7 +140,9 @@ export const NotificationsSection = ({
               <SelectContent side="top">
                 <SelectItem value="0">Select duration...</SelectItem>
                 {SNOOZE_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
+                  <SelectItem key={opt.value} value={String(opt.value)}>
+                    {opt.label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -142,7 +151,7 @@ export const NotificationsSection = ({
       </SettingRow>
 
       <SettingsSectionHeader title="Ignored Repositories" />
-      <p className="mb-3 text-xs text-text-muted">
+      <p className="text-text-muted mb-3 text-xs">
         Notifications from these repositories will be ignored
       </p>
       {ignoredRepositoryItems.length > 0 ? (
@@ -157,12 +166,8 @@ export const NotificationsSection = ({
           ))}
         </div>
       ) : (
-        <div
-          className="mb-3 rounded-md border border-dashed border-border py-3 text-center"
-        >
-          <p className="text-sm text-text-muted">
-            No repositories ignored
-          </p>
+        <div className="border-border mb-3 rounded-md border border-dashed py-3 text-center">
+          <p className="text-text-muted text-sm">No repositories ignored</p>
         </div>
       )}
       <RepositoryDropdown

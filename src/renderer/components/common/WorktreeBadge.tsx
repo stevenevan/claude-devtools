@@ -24,12 +24,10 @@ const SOURCE_LABELS: Partial<Record<WorktreeSource, string>> = {
 };
 
 /** Shared Tailwind classes for all source badges (zinc-400 tone) */
-const BADGE_CLASSES =
-  'bg-[rgba(161,161,170,0.15)] text-zinc-400';
+const BADGE_CLASSES = 'bg-[rgba(161,161,170,0.15)] text-zinc-400';
 
 /** Classes for the default/main worktree badge (zinc-600/30 bg, zinc-500 text) */
-const DEFAULT_BADGE_CLASSES =
-  'bg-[rgba(82,82,91,0.3)] text-zinc-500';
+const DEFAULT_BADGE_CLASSES = 'bg-[rgba(82,82,91,0.3)] text-zinc-500';
 
 export const WorktreeBadge = ({
   source,
@@ -40,11 +38,7 @@ export const WorktreeBadge = ({
 
   // Show Default badge if isMain is true (the default/primary worktree)
   if (isMain) {
-    return (
-      <span className={`${baseClasses} ${DEFAULT_BADGE_CLASSES}`}>
-        Default
-      </span>
-    );
+    return <span className={`${baseClasses} ${DEFAULT_BADGE_CLASSES}`}>Default</span>;
   }
 
   const label = SOURCE_LABELS[source];
@@ -55,10 +49,7 @@ export const WorktreeBadge = ({
   }
 
   return (
-    <span
-      className={`${baseClasses} ${BADGE_CLASSES}`}
-      title={`Created by ${label}`}
-    >
+    <span className={`${baseClasses} ${BADGE_CLASSES}`} title={`Created by ${label}`}>
       {label}
     </span>
   );

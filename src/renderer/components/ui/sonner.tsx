@@ -1,16 +1,16 @@
-import { Toaster as Sonner, type ToasterProps } from "sonner";
 import {
   RiCheckboxCircleLine,
   RiInformationLine,
   RiErrorWarningLine,
   RiCloseCircleLine,
   RiLoaderLine,
-} from "@remixicon/react";
+} from '@remixicon/react';
+import { Toaster as Sonner, type ToasterProps } from 'sonner';
 
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
-      theme={"system"}
+      theme={'system'}
       className="toaster group"
       icons={{
         success: <RiCheckboxCircleLine className="size-4" />,
@@ -21,15 +21,15 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       style={
         {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
+          '--normal-bg': 'var(--popover)',
+          '--normal-text': 'var(--popover-foreground)',
+          '--normal-border': 'var(--border)',
+          '--border-radius': 'var(--radius)',
         } as React.CSSProperties
       }
       toastOptions={{
         classNames: {
-          toast: "cn-toast",
+          toast: 'cn-toast',
         },
       }}
       {...props}

@@ -4,8 +4,8 @@ import { api } from './api';
 import { ConfirmDialog } from './components/common/ConfirmDialog';
 import { ContextSwitchOverlay } from './components/common/ContextSwitchOverlay';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
-import { TooltipProvider } from './components/ui/tooltip';
 import { TabbedLayout } from './components/layout/TabbedLayout';
+import { TooltipProvider } from './components/ui/tooltip';
 import { useTheme } from './hooks/useTheme';
 import { initializeNotificationListeners, useStore } from './store';
 

@@ -3,8 +3,8 @@
  * Uses CSS display-toggle to keep all tabs mounted (preserving state).
  */
 
-import { cn } from '@renderer/lib/utils';
 import { TabUIProvider } from '@renderer/contexts/TabUIContext';
+import { cn } from '@renderer/lib/utils';
 
 import { DashboardView } from '../dashboard/DashboardView';
 import { NotificationsView } from '../notifications/NotificationsView';
@@ -35,10 +35,7 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
       {pane.tabs.map((tab) => {
         const isActive = tab.id === activeTabId;
         return (
-          <div
-            key={tab.id}
-            className={cn('absolute inset-0', isActive ? 'flex' : 'hidden')}
-          >
+          <div key={tab.id} className={cn('absolute inset-0', isActive ? 'flex' : 'hidden')}>
             {tab.type === 'dashboard' && <DashboardView />}
             {tab.type === 'notifications' && <NotificationsView />}
             {tab.type === 'settings' && <SettingsView />}

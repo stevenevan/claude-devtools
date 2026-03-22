@@ -123,14 +123,15 @@ function getDetail(eventGroup: EventGroup): string {
  */
 export const EventMarker = ({ eventGroup }: Readonly<EventMarkerProps>): React.JSX.Element => {
   const { timestamp, eventData } = eventGroup;
-  const style = EVENT_STYLES[eventData.subtype as keyof typeof EVENT_STYLES] ?? EVENT_STYLES.api_error;
+  const style =
+    EVENT_STYLES[eventData.subtype as keyof typeof EVENT_STYLES] ?? EVENT_STYLES.api_error;
   const { Icon } = style;
   const detail = getDetail(eventGroup);
 
   return (
     <div className="my-3">
       <div
-        className="flex items-center gap-3 rounded-lg px-4 py-2 border"
+        className="flex items-center gap-3 rounded-lg border px-4 py-2"
         style={{
           backgroundColor: style.bg,
           borderColor: style.border,
@@ -143,10 +144,8 @@ export const EventMarker = ({ eventGroup }: Readonly<EventMarkerProps>): React.J
         >
           {style.label}
         </span>
-        <span className="min-w-0 truncate text-xs text-text-muted">
-          {detail}
-        </span>
-        <span className="ml-auto shrink-0 text-xs whitespace-nowrap text-text-muted">
+        <span className="text-text-muted min-w-0 truncate text-xs">{detail}</span>
+        <span className="text-text-muted ml-auto shrink-0 text-xs whitespace-nowrap">
           {format(timestamp, 'h:mm:ss a')}
         </span>
       </div>

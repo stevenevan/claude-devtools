@@ -89,24 +89,25 @@ export const NotificationRow = ({
       <div className="min-w-0 flex-1 py-2">
         {/* Title Row */}
         <div className="flex items-center gap-1.5">
-          <span className={cn('truncate text-sm font-medium', isUnread ? 'text-text' : 'text-text-secondary')}>
+          <span
+            className={cn(
+              'truncate text-sm font-medium',
+              isUnread ? 'text-text' : 'text-text-secondary'
+            )}
+          >
             {displayName}
           </span>
           <span className="text-text-muted">&middot;</span>
-          <span className="truncate text-sm text-text-muted">
-            {projectName}
-          </span>
+          <span className="text-text-muted truncate text-sm">{projectName}</span>
           {error.subagentId && (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-sm border border-[var(--tag-border)] bg-[var(--tag-bg)] px-1.5 py-0.5 text-[10px] font-medium text-text-muted">
+            <span className="text-text-muted inline-flex shrink-0 items-center gap-1 rounded-sm border border-[var(--tag-border)] bg-[var(--tag-bg)] px-1.5 py-0.5 text-[10px] font-medium">
               <Bot className="size-3" />
               subagent
             </span>
           )}
         </div>
         {/* Description */}
-        <p className="mt-0.5 truncate text-xs text-text-muted">
-          {truncatedMessage}
-        </p>
+        <p className="text-text-muted mt-0.5 truncate text-xs">{truncatedMessage}</p>
       </div>
 
       {/* Right Side: Time or Hover Actions */}
@@ -119,9 +120,7 @@ export const NotificationRow = ({
             onNavigateClick={handleNavigateClick}
           />
         ) : (
-          <span className="text-[11px] whitespace-nowrap text-text-muted">
-            {relativeTime}
-          </span>
+          <span className="text-text-muted text-[11px] whitespace-nowrap">{relativeTime}</span>
         )}
       </div>
     </div>
@@ -150,7 +149,7 @@ const HoverActions = ({
       {isUnread && (
         <button
           onClick={onArchiveClick}
-          className="rounded-sm p-1.5 text-text-muted transition-colors hover:bg-border-emphasis hover:text-text"
+          className="text-text-muted hover:bg-border-emphasis hover:text-text rounded-sm p-1.5 transition-colors"
           title="Mark as read"
         >
           <Check className="size-4" />
@@ -159,7 +158,7 @@ const HoverActions = ({
       {/* Delete Button */}
       <button
         onClick={onDeleteClick}
-        className="rounded-sm p-1.5 text-text-muted transition-colors hover:bg-border-emphasis hover:text-[var(--tool-result-error-text)]"
+        className="text-text-muted hover:bg-border-emphasis rounded-sm p-1.5 transition-colors hover:text-[var(--tool-result-error-text)]"
         title="Delete"
       >
         <Trash2 className="size-4" />
@@ -167,7 +166,7 @@ const HoverActions = ({
       {/* Navigate Button */}
       <button
         onClick={onNavigateClick}
-        className="rounded-sm p-1.5 text-text-muted transition-colors hover:bg-border-emphasis hover:text-text"
+        className="text-text-muted hover:bg-border-emphasis hover:text-text rounded-sm p-1.5 transition-colors"
         title="View in session"
       >
         <ArrowRight className="size-4" />

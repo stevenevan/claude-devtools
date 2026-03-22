@@ -31,9 +31,9 @@ export const ThinkingTextItem = ({
         onClick={() => setExpanded(!expanded)}
       >
         <ChevronRight
-          className={`size-3 shrink-0 text-text-muted transition-transform ${expanded ? 'rotate-90' : ''}`}
+          className={`text-text-muted size-3 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`}
         />
-        <Brain size={12} className="shrink-0 text-text-muted" />
+        <Brain size={12} className="text-text-muted shrink-0" />
         {isClickable ? (
           <span
             role="link"
@@ -53,11 +53,9 @@ export const ThinkingTextItem = ({
             @Turn {turnIndex + 1}
           </span>
         ) : (
-          <span className="text-xs text-text-secondary">
-            @Turn {turnIndex + 1}
-          </span>
+          <span className="text-text-secondary text-xs">@Turn {turnIndex + 1}</span>
         )}
-        <span className="text-xs text-text-muted">
+        <span className="text-text-muted text-xs">
           ~{formatTokens(injection.estimatedTokens)} tokens
         </span>
       </button>
@@ -69,9 +67,7 @@ export const ThinkingTextItem = ({
               <span className="text-text-muted">
                 {item.type === 'thinking' ? 'Thinking' : 'Text'}
               </span>
-              <span className="text-text-muted opacity-70">
-                ~{formatTokens(item.tokenCount)}
-              </span>
+              <span className="text-text-muted opacity-70">~{formatTokens(item.tokenCount)}</span>
             </div>
           ))}
         </div>

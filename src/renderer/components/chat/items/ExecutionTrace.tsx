@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
-import { truncateText } from '@renderer/utils/aiGroupEnhancer';
 import { cn } from '@renderer/lib/utils';
+import { truncateText } from '@renderer/utils/aiGroupEnhancer';
 import { formatTokensCompact } from '@renderer/utils/formatters';
 import { format } from 'date-fns';
 import { ChevronRight, Layers, MailOpen } from 'lucide-react';
@@ -58,9 +58,7 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
 
   if (!items || items.length === 0) {
     return (
-      <div className="px-3 py-2 text-xs text-[var(--card-icon-muted)]">
-        No execution items
-      </div>
+      <div className="px-3 py-2 text-xs text-[var(--card-icon-muted)]">No execution items</div>
     );
   }
 
@@ -201,7 +199,7 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
                     Compacted
                   </span>
                   {item.tokenDelta && (
-                    <span className="min-w-0 truncate text-[11px] tabular-nums text-text-muted">
+                    <span className="text-text-muted min-w-0 truncate text-[11px] tabular-nums">
                       {formatTokensCompact(item.tokenDelta.preCompactionTokens)} →{' '}
                       {formatTokensCompact(item.tokenDelta.postCompactionTokens)}
                       <span style={{ color: '#4ade80' }}>
@@ -213,7 +211,7 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
                   <span className="shrink-0 rounded-sm bg-[rgba(99,102,241,0.15)] px-1.5 py-0.5 text-[10px] text-[#818cf8]">
                     Phase {item.phaseNumber}
                   </span>
-                  <span className="ml-auto shrink-0 text-[11px] text-text-muted">
+                  <span className="text-text-muted ml-auto shrink-0 text-[11px]">
                     {format(new Date(item.timestamp), 'h:mm:ss a')}
                   </span>
                 </button>

@@ -91,7 +91,7 @@ export const Sidebar = (): React.JSX.Element | null => {
   return (
     <div
       ref={sidebarRef}
-      className="relative flex shrink-0 flex-col border-r border-border bg-surface-sidebar"
+      className="border-border bg-surface-sidebar relative flex shrink-0 flex-col border-r"
       style={{ width: `${width}px` }}
     >
       {/* Sidebar header with project dropdown */}

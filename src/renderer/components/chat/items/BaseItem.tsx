@@ -107,21 +107,15 @@ export const BaseItem: React.FC<BaseItemProps> = ({
         className="group flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-[var(--tool-item-hover-bg)]"
       >
         {/* Icon */}
-        <span className="size-4 shrink-0 text-[var(--tool-item-muted)]">
-          {icon}
-        </span>
+        <span className="size-4 shrink-0 text-[var(--tool-item-muted)]">{icon}</span>
 
         {/* Label */}
-        <span className="text-sm font-medium text-[var(--tool-item-name)]">
-          {label}
-        </span>
+        <span className="text-sm font-medium text-[var(--tool-item-name)]">{label}</span>
 
         {/* Separator and Summary */}
         {summary && (
           <>
-            <span className="text-sm text-[var(--tool-item-muted)]">
-              -
-            </span>
+            <span className="text-sm text-[var(--tool-item-muted)]">-</span>
             <span className="flex-1 truncate text-sm text-[var(--tool-item-summary)]">
               {summary}
             </span>
@@ -159,16 +153,17 @@ export const BaseItem: React.FC<BaseItemProps> = ({
         {/* Expand/collapse chevron */}
         {hasExpandableContent && (
           <ChevronRight
-            className={cn('size-3 shrink-0 transition-transform text-[var(--tool-item-muted)]', isExpanded && 'rotate-90')}
+            className={cn(
+              'size-3 shrink-0 transition-transform text-[var(--tool-item-muted)]',
+              isExpanded && 'rotate-90'
+            )}
           />
         )}
       </div>
 
       {/* Expanded Content */}
       {isExpanded && children && (
-        <div className="mt-2 ml-2 space-y-3 border-l-2 border-border pl-6">
-          {children}
-        </div>
+        <div className="border-border mt-2 ml-2 space-y-3 border-l-2 pl-6">{children}</div>
       )}
     </div>
   );

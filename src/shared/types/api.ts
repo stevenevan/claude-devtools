@@ -4,19 +4,7 @@
  * Implemented by TauriAPIClient in src/renderer/api/tauriClient.ts.
  */
 
-import type {
-  AppConfig,
-  DetectedError,
-  NotificationTrigger,
-  TriggerTestResult,
-} from './notifications';
-import type { WaterfallData } from './visualization';
-import type {
-  ConversationGroup,
-  FileChangeEvent,
-  SessionDetail,
-  SubagentDetail,
-} from './chunks';
+import type { ConversationGroup, FileChangeEvent, SessionDetail, SubagentDetail } from './chunks';
 import type {
   PaginatedSessionsResult,
   Project,
@@ -27,6 +15,13 @@ import type {
   SessionsByIdsOptions,
   SessionsPaginationOptions,
 } from './domain';
+import type {
+  AppConfig,
+  DetectedError,
+  NotificationTrigger,
+  TriggerTestResult,
+} from './notifications';
+import type { WaterfallData } from './visualization';
 
 // =============================================================================
 // Agent Config

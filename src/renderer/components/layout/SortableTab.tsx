@@ -176,9 +176,7 @@ export const SortableTab = ({
             <ContextMenuShortcut>{formatShortcut('W')}</ContextMenuShortcut>
           </ContextMenuItem>
         )}
-        <ContextMenuItem onClick={() => onCloseOtherTabs(tab.id)}>
-          Close Other Tabs
-        </ContextMenuItem>
+        <ContextMenuItem onClick={() => onCloseOtherTabs(tab.id)}>Close Other Tabs</ContextMenuItem>
 
         <ContextMenuSeparator />
         <ContextMenuItem onClick={() => onSplitRight(tab.id)} disabled={disableSplit}>
@@ -218,7 +216,7 @@ export const DragOverlayTab = ({ tab }: { tab: Tab }): React.JSX.Element => {
   const Icon = TAB_ICONS[tab.type];
 
   return (
-    <div className="flex max-w-[200px] min-w-0 cursor-grabbing items-center gap-2 rounded-md border-2 border-[var(--color-accent,#6366f1)] bg-surface-raised px-3 py-1.5 text-text opacity-90">
+    <div className="bg-surface-raised text-text flex max-w-[200px] min-w-0 cursor-grabbing items-center gap-2 rounded-md border-2 border-[var(--color-accent,#6366f1)] px-3 py-1.5 opacity-90">
       <Icon className="size-4 shrink-0" />
       <span className="truncate text-sm">{tab.label}</span>
     </div>

@@ -47,7 +47,7 @@ export const CustomTitleBar = (): React.JSX.Element | null => {
 
   return (
     <div
-      className="flex shrink-0 items-stretch select-none bg-surface-sidebar border-b border-border"
+      className="bg-surface-sidebar border-border flex shrink-0 items-stretch border-b select-none"
       style={
         {
           height: `${TITLE_BAR_HEIGHT}px`,
@@ -56,7 +56,7 @@ export const CustomTitleBar = (): React.JSX.Element | null => {
       }
     >
       {/* Draggable area — app icon */}
-      <div className="flex flex-1 min-w-0 items-center pl-3">
+      <div className="flex min-w-0 flex-1 items-center pl-3">
         <img src={faviconUrl} alt="" className="size-5 shrink-0 rounded-sm" draggable={false} />
       </div>
 

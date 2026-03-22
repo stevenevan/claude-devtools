@@ -33,10 +33,10 @@ export const ClaudeMdItem = ({
       <CopyablePath
         displayText={displayPath}
         copyText={absolutePath}
-        className="text-xs text-text-secondary"
+        className="text-text-secondary text-xs"
       />
       <div className="mt-0.5 flex items-center gap-2">
-        <span className="text-xs text-text-muted">
+        <span className="text-text-muted text-xs">
           ~{formatTokens(injection.estimatedTokens)} tokens
         </span>
         {isClickable ? (
@@ -48,9 +48,7 @@ export const ClaudeMdItem = ({
             @{formatFirstSeen(injection.firstSeenInGroup)}
           </button>
         ) : (
-          <span
-            className="text-xs text-text-muted opacity-70"
-          >
+          <span className="text-text-muted text-xs opacity-70">
             @{formatFirstSeen(injection.firstSeenInGroup)}
           </span>
         )}

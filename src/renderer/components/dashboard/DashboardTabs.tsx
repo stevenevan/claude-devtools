@@ -31,7 +31,12 @@ export const DashboardTabs = ({
   children,
 }: Readonly<DashboardTabsProps>): React.JSX.Element => {
   return (
-    <Tabs value={activeTab} onValueChange={(v) => { if (v) onTabChange(v as DashboardTab); }}>
+    <Tabs
+      value={activeTab}
+      onValueChange={(v) => {
+        if (v) onTabChange(v as DashboardTab);
+      }}
+    >
       <TabsList variant="line">
         {tabs.map((tab) => {
           const Icon = tab.icon;

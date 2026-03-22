@@ -5,8 +5,8 @@
  * Release notes may be HTML from the updater; we normalize to text and render as markdown.
  */
 
-import { Button } from '@renderer/components/ui/button';
 import { markdownComponents } from '@renderer/components/chat/markdownComponents';
+import { Button } from '@renderer/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -50,20 +50,18 @@ export const UpdateDialog = (): React.JSX.Element => {
   return (
     <Dialog
       open={showUpdateDialog}
-      onOpenChange={(open) => { if (!open) dismissUpdateDialog(); }}
+      onOpenChange={(open) => {
+        if (!open) dismissUpdateDialog();
+      }}
     >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Update Available</DialogTitle>
-          {availableVersion && (
-            <DialogDescription>v{availableVersion}</DialogDescription>
-          )}
+          {availableVersion && <DialogDescription>v{availableVersion}</DialogDescription>}
         </DialogHeader>
 
         {releaseNotes && (
-          <div
-            className="prose prose-sm max-h-48 overflow-y-auto rounded-sm border border-border bg-surface p-2 text-xs text-text-muted"
-          >
+          <div className="prose prose-sm border-border bg-surface text-text-muted max-h-48 overflow-y-auto rounded-sm border p-2 text-xs">
             <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
               {normalizeReleaseNotes(releaseNotes)}
             </ReactMarkdown>
@@ -74,9 +72,7 @@ export const UpdateDialog = (): React.JSX.Element => {
           <Button variant="outline" onClick={dismissUpdateDialog}>
             Later
           </Button>
-          <Button onClick={downloadUpdate}>
-            Download
-          </Button>
+          <Button onClick={downloadUpdate}>Download</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

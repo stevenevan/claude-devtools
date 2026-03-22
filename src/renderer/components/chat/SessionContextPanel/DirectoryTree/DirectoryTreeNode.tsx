@@ -44,7 +44,7 @@ export const DirectoryTreeNode = ({
         <CopyablePath
           displayText={node.name}
           copyText={node.path}
-          className="text-xs text-text-secondary"
+          className="text-text-secondary text-xs"
         />
         <span className="text-text-muted">(~{formatTokens(node.tokens ?? 0)})</span>
         {node.firstSeenInGroup &&
@@ -57,9 +57,7 @@ export const DirectoryTreeNode = ({
               @{formatFirstSeen(node.firstSeenInGroup)}
             </button>
           ) : (
-            <span
-              className="text-xs text-text-muted opacity-70"
-            >
+            <span className="text-text-muted text-xs opacity-70">
               @{formatFirstSeen(node.firstSeenInGroup)}
             </span>
           ))}
@@ -88,7 +86,7 @@ export const DirectoryTreeNode = ({
           }}
         >
           <ChevronRight
-            className={`size-3 shrink-0 text-text-muted transition-transform ${expanded ? 'rotate-90' : ''}`}
+            className={`text-text-muted size-3 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`}
           />
           <span className="text-text-muted">{node.name}/</span>
         </div>

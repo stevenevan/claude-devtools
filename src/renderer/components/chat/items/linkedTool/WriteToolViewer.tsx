@@ -38,7 +38,9 @@ export const WriteToolViewer: React.FC<WriteToolViewerProps> = ({ linkedTool }) 
             onClick={() => setViewMode('code')}
             className={cn(
               'rounded-sm border border-[var(--tag-border)] px-2 py-1 text-xs transition-colors',
-              viewMode === 'code' ? 'bg-[var(--tag-bg)] text-[var(--tag-text)]' : 'bg-transparent text-text-muted'
+              viewMode === 'code'
+                ? 'bg-[var(--tag-bg)] text-[var(--tag-text)]'
+                : 'bg-transparent text-text-muted'
             )}
           >
             Code
@@ -48,7 +50,9 @@ export const WriteToolViewer: React.FC<WriteToolViewerProps> = ({ linkedTool }) 
             onClick={() => setViewMode('preview')}
             className={cn(
               'rounded-sm border border-[var(--tag-border)] px-2 py-1 text-xs transition-colors',
-              viewMode === 'preview' ? 'bg-[var(--tag-bg)] text-[var(--tag-text)]' : 'bg-transparent text-text-muted'
+              viewMode === 'preview'
+                ? 'bg-[var(--tag-bg)] text-[var(--tag-text)]'
+                : 'bg-transparent text-text-muted'
             )}
           >
             Preview

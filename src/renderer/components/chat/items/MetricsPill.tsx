@@ -143,7 +143,7 @@ export const MetricsPill = ({
               {hasMainImpact && (
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-text-muted">Main Context</span>
-                  <span className="font-mono tabular-nums text-[var(--card-text-light)]">
+                  <span className="font-mono text-[var(--card-text-light)] tabular-nums">
                     {mainSessionImpact.totalTokens.toLocaleString()}
                   </span>
                 </div>
@@ -151,7 +151,7 @@ export const MetricsPill = ({
               {hasIsolated && (
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-text-muted">{rightLabel}</span>
-                  <span className="font-mono tabular-nums text-[var(--card-text-light)]">
+                  <span className="font-mono text-[var(--card-text-light)] tabular-nums">
                     {isolatedTotal.toLocaleString()}
                   </span>
                 </div>
@@ -165,7 +165,7 @@ export const MetricsPill = ({
                     <span className="text-[10px] text-[var(--card-icon-muted)]">
                       Phase {phase.phaseNumber}
                     </span>
-                    <span className="font-mono text-[10px] tabular-nums text-[var(--card-icon-muted)]">
+                    <span className="font-mono text-[10px] text-[var(--card-icon-muted)] tabular-nums">
                       {formatTokensCompact(phase.peakTokens)}
                       {phase.postCompaction != null && (
                         <span style={{ color: '#4ade80' }}>

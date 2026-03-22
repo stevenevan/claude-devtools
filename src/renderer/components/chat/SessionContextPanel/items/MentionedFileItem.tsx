@@ -31,11 +31,11 @@ export const MentionedFileItem = ({
   return (
     <div className="rounded-sm px-2 py-1.5">
       <div className="flex items-center gap-1.5">
-        <File size={12} className="shrink-0 text-text-muted" />
+        <File size={12} className="text-text-muted shrink-0" />
         <CopyablePath
           displayText={displayPath}
           copyText={absolutePath}
-          className="text-xs text-text-secondary"
+          className="text-text-secondary text-xs"
         />
         {!injection.exists && (
           <span
@@ -50,7 +50,7 @@ export const MentionedFileItem = ({
         )}
       </div>
       <div className="mt-0.5 ml-4 flex items-center gap-2">
-        <span className="text-xs text-text-muted">
+        <span className="text-text-muted text-xs">
           ~{formatTokens(injection.estimatedTokens)} tokens
         </span>
         {isClickable ? (
@@ -68,11 +68,7 @@ export const MentionedFileItem = ({
             @Turn {turnIndex + 1}
           </span>
         ) : (
-          <span
-            className="text-xs text-text-muted opacity-70"
-          >
-            @Turn {turnIndex + 1}
-          </span>
+          <span className="text-text-muted text-xs opacity-70">@Turn {turnIndex + 1}</span>
         )}
       </div>
     </div>

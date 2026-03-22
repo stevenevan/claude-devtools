@@ -11,13 +11,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { api } from '@renderer/api';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@renderer/components/ui/select';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Loader2, Monitor, Server, Wifi, WifiOff } from 'lucide-react';
 
 import { SettingRow } from '../components/SettingRow';
 import { SettingsSectionHeader } from '../components/SettingsSectionHeader';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
 
 import type {
   ClaudeRootInfo,
@@ -195,7 +201,7 @@ export const ConnectionSection = (): React.JSX.Element => {
   return (
     <div className="space-y-6">
       <SettingsSectionHeader title="Remote Connection" />
-      <p className="text-sm text-text-muted">
+      <p className="text-text-muted text-sm">
         Connect to a remote machine to view Claude Code sessions running there
       </p>
 
@@ -204,16 +210,12 @@ export const ConnectionSection = (): React.JSX.Element => {
         <div className="flex items-center gap-3 rounded-md border border-green-500/30 bg-green-500/5 px-4 py-3">
           <Wifi className="size-4 text-green-400" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-text">
-              Connected to {connectedHost}
-            </p>
-            <p className="text-xs text-text-muted">
-              Viewing remote sessions via SSH
-            </p>
+            <p className="text-text text-sm font-medium">Connected to {connectedHost}</p>
+            <p className="text-text-muted text-xs">Viewing remote sessions via SSH</p>
           </div>
           <button
             onClick={() => void handleDisconnect()}
-            className="rounded-md bg-surface-raised px-3 py-1.5 text-sm text-text-secondary transition-colors"
+            className="bg-surface-raised text-text-secondary rounded-md px-3 py-1.5 text-sm transition-colors"
           >
             Disconnect
           </button>
@@ -229,7 +231,7 @@ export const ConnectionSection = (): React.JSX.Element => {
       {/* Mode indicator */}
       {!isConnected && (
         <SettingRow label="Current Mode" description="Data source for session files">
-          <div className="flex items-center gap-2 text-sm text-text-secondary">
+          <div className="text-text-secondary flex items-center gap-2 text-sm">
             <Monitor className="size-4" />
             <span>Local ({resolvedClaudeRootPath})</span>
           </div>
@@ -239,9 +241,7 @@ export const ConnectionSection = (): React.JSX.Element => {
       {/* Saved Profiles */}
       {!isConnected && savedProfiles.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-sm font-medium text-text-secondary">
-            Saved Profiles
-          </h3>
+          <h3 className="text-text-secondary text-sm font-medium">Saved Profiles</h3>
           <div className="flex flex-wrap gap-2">
             {savedProfiles.map((profile) => {
               const isSelected = selectedProfileId === profile.id;
@@ -261,7 +261,7 @@ export const ConnectionSection = (): React.JSX.Element => {
                     className={cn('size-3.5', isSelected ? 'text-indigo-400' : 'text-text-muted')}
                   />
                   <span>{profile.name}</span>
-                  <span className="text-xs text-text-muted">
+                  <span className="text-text-muted text-xs">
                     {profile.username}@{profile.host}
                   </span>
                 </button>
@@ -274,17 +274,12 @@ export const ConnectionSection = (): React.JSX.Element => {
       {/* SSH Connection Form */}
       {!isConnected && (
         <div className="space-y-4">
-          <h3 className="text-sm font-medium text-text-secondary">
-            SSH Connection
-          </h3>
+          <h3 className="text-text-secondary text-sm font-medium">SSH Connection</h3>
 
           <div className="grid grid-cols-2 gap-3">
             {/* Host input with combobox */}
             <div className="relative">
-              <label
-                htmlFor="ssh-host"
-                className="mb-1 block text-xs text-text-muted"
-              >
+              <label htmlFor="ssh-host" className="text-text-muted mb-1 block text-xs">
                 Host
               </label>
               <input
@@ -305,25 +300,19 @@ export const ConnectionSection = (): React.JSX.Element => {
               {showDropdown && filteredHosts.length > 0 && (
                 <div
                   ref={dropdownRef}
-                  className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-border-emphasis bg-surface-overlay shadow-lg"
+                  className="border-border-emphasis bg-surface-overlay absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border shadow-lg"
                 >
                   {filteredHosts.map((entry) => (
                     <button
                       key={entry.alias}
                       type="button"
-                      className="hover:bg-surface-raised flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-text transition-colors"
+                      className="hover:bg-surface-raised text-text flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors"
                       onClick={() => handleSelectConfigHost(entry)}
                     >
                       <span className="font-medium">{entry.alias}</span>
-                      {entry.hostName && (
-                        <span className="text-text-muted">{entry.hostName}</span>
-                      )}
+                      {entry.hostName && <span className="text-text-muted">{entry.hostName}</span>}
                       {entry.user && (
-                        <span
-                          className="ml-auto text-xs text-text-muted"
-                        >
-                          {entry.user}
-                        </span>
+                        <span className="text-text-muted ml-auto text-xs">{entry.user}</span>
                       )}
                     </button>
                   ))}
@@ -331,10 +320,7 @@ export const ConnectionSection = (): React.JSX.Element => {
               )}
             </div>
             <div>
-              <label
-                htmlFor="ssh-port"
-                className="mb-1 block text-xs text-text-muted"
-              >
+              <label htmlFor="ssh-port" className="text-text-muted mb-1 block text-xs">
                 Port
               </label>
               <input
@@ -349,10 +335,7 @@ export const ConnectionSection = (): React.JSX.Element => {
           </div>
 
           <div>
-            <label
-              htmlFor="ssh-username"
-              className="mb-1 block text-xs text-text-muted"
-            >
+            <label htmlFor="ssh-username" className="text-text-muted mb-1 block text-xs">
               Username
             </label>
             <input
@@ -369,16 +352,16 @@ export const ConnectionSection = (): React.JSX.Element => {
           </div>
 
           <div>
-            <label className="mb-1 block text-xs text-text-muted">
-              Authentication
-            </label>
+            <label className="text-text-muted mb-1 block text-xs">Authentication</label>
             <Select value={authMethod} onValueChange={(v) => setAuthMethod(v!)}>
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {authMethodOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -386,10 +369,7 @@ export const ConnectionSection = (): React.JSX.Element => {
 
           {authMethod === 'privateKey' && (
             <div>
-              <label
-                htmlFor="ssh-private-key-path"
-                className="mb-1 block text-xs text-text-muted"
-              >
+              <label htmlFor="ssh-private-key-path" className="text-text-muted mb-1 block text-xs">
                 Private Key Path
               </label>
               <input
@@ -405,10 +385,7 @@ export const ConnectionSection = (): React.JSX.Element => {
 
           {authMethod === 'password' && (
             <div>
-              <label
-                htmlFor="ssh-password"
-                className="mb-1 block text-xs text-text-muted"
-              >
+              <label htmlFor="ssh-password" className="text-text-muted mb-1 block text-xs">
                 Password
               </label>
               <input
@@ -441,7 +418,7 @@ export const ConnectionSection = (): React.JSX.Element => {
             <button
               onClick={() => void handleTest()}
               disabled={!host || testing || isConnecting}
-              className="rounded-md bg-surface-raised px-4 py-1.5 text-sm text-text-secondary transition-colors disabled:opacity-50"
+              className="bg-surface-raised text-text-secondary rounded-md px-4 py-1.5 text-sm transition-colors disabled:opacity-50"
             >
               {testing ? (
                 <span className="flex items-center gap-2">
@@ -456,7 +433,7 @@ export const ConnectionSection = (): React.JSX.Element => {
             <button
               onClick={() => void handleConnect()}
               disabled={!host || isConnecting}
-              className="rounded-md bg-surface-raised px-4 py-1.5 text-sm text-text transition-colors disabled:opacity-50"
+              className="bg-surface-raised text-text rounded-md px-4 py-1.5 text-sm transition-colors disabled:opacity-50"
             >
               {isConnecting ? (
                 <span className="flex items-center gap-2">

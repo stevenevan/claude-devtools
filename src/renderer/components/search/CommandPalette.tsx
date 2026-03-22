@@ -9,9 +9,9 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import { Dialog, DialogContent, DialogOverlay, DialogPortal } from '@renderer/components/ui/dialog';
-import { api } from '@renderer/api';
 import { useStore } from '@renderer/store';
 import { formatModifierShortcut } from '@renderer/utils/keyboardUtils';
 import { createLogger } from '@shared/utils/logger';
@@ -390,9 +390,7 @@ export const CommandPalette = (): React.JSX.Element | null => {
     return (
       <>
         <span>{before}</span>
-        <mark
-          className="rounded bg-[var(--highlight-bg)] px-0.5 text-[var(--highlight-text)]"
-        >
+        <mark className="rounded bg-[var(--highlight-bg)] px-0.5 text-[var(--highlight-text)]">
           {match}
         </mark>
         <span>{after}</span>
@@ -403,7 +401,9 @@ export const CommandPalette = (): React.JSX.Element | null => {
   return (
     <Dialog
       open={commandPaletteOpen}
-      onOpenChange={(open) => { if (!open) closeCommandPalette(); }}
+      onOpenChange={(open) => {
+        if (!open) closeCommandPalette();
+      }}
     >
       <DialogPortal>
         <DialogOverlay />
@@ -440,7 +440,9 @@ export const CommandPalette = (): React.JSX.Element | null => {
                   variant={globalSearchEnabled ? 'secondary' : 'ghost'}
                   size="xs"
                   onClick={() => setGlobalSearchEnabled(!globalSearchEnabled)}
-                  className={globalSearchEnabled ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30' : ''}
+                  className={
+                    globalSearchEnabled ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30' : ''
+                  }
                   title={
                     !globalSearchEnabled
                       ? `Search across all projects (${formatModifierShortcut('G')})`

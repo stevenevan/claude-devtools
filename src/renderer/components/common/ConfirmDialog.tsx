@@ -96,7 +96,9 @@ export const ConfirmDialog = (): React.JSX.Element => {
   return (
     <AlertDialog
       open={state.isOpen}
-      onOpenChange={(open) => { if (!open) close(false); }}
+      onOpenChange={(open) => {
+        if (!open) close(false);
+      }}
     >
       <AlertDialogContent>
         <AlertDialogHeader>

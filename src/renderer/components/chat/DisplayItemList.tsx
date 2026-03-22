@@ -242,13 +242,16 @@ export const DisplayItemList = React.memo(function DisplayItemList({
               <div>
                 <button
                   onClick={() => onItemClick(itemKey)}
-                  className="group flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 transition-all duration-200 bg-[var(--tool-call-bg)] border border-[var(--tool-call-border)]"
+                  className="group flex w-full cursor-pointer items-center gap-2 rounded-lg border border-[var(--tool-call-border)] bg-[var(--tool-call-bg)] px-3 py-2 transition-all duration-200"
                   aria-expanded={compactExpanded}
                 >
                   <div className="flex shrink-0 items-center gap-1.5 text-[var(--tool-call-text)]">
                     <ChevronRight
                       size={14}
-                      className={cn('transition-transform duration-200', compactExpanded && 'rotate-90')}
+                      className={cn(
+                        'transition-transform duration-200',
+                        compactExpanded && 'rotate-90'
+                      )}
                     />
                     <Layers size={14} />
                   </div>
@@ -256,7 +259,7 @@ export const DisplayItemList = React.memo(function DisplayItemList({
                     Compacted
                   </span>
                   {item.tokenDelta && (
-                    <span className="min-w-0 truncate text-[11px] tabular-nums text-text-muted">
+                    <span className="text-text-muted min-w-0 truncate text-[11px] tabular-nums">
                       {formatTokensCompact(item.tokenDelta.preCompactionTokens)} →{' '}
                       {formatTokensCompact(item.tokenDelta.postCompactionTokens)}
                       <span className="text-[#4ade80]">
@@ -265,16 +268,16 @@ export const DisplayItemList = React.memo(function DisplayItemList({
                       </span>
                     </span>
                   )}
-                  <span className="shrink-0 rounded-sm px-1.5 py-0.5 text-[10px] bg-[rgba(99,102,241,0.15)] text-[#818cf8]">
+                  <span className="shrink-0 rounded-sm bg-[rgba(99,102,241,0.15)] px-1.5 py-0.5 text-[10px] text-[#818cf8]">
                     Phase {item.phaseNumber}
                   </span>
-                  <span className="ml-auto shrink-0 text-[11px] text-text-muted">
+                  <span className="text-text-muted ml-auto shrink-0 text-[11px]">
                     {format(new Date(item.timestamp), 'h:mm:ss a')}
                   </span>
                 </button>
                 {compactExpanded && compactContent && (
-                  <div className="mt-1 overflow-hidden rounded-lg bg-[var(--code-bg)] border border-[var(--code-border)]">
-                    <div className="max-h-64 overflow-y-auto border-l-2 px-3 py-2 border-[var(--chat-ai-border)]">
+                  <div className="mt-1 overflow-hidden rounded-lg border border-[var(--code-border)] bg-[var(--code-bg)]">
+                    <div className="max-h-64 overflow-y-auto border-l-2 border-[var(--chat-ai-border)] px-3 py-2">
                       <MarkdownViewer content={compactContent} copyable />
                     </div>
                   </div>

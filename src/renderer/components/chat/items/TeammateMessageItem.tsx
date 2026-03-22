@@ -137,9 +137,7 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
         <span className="text-[11px] text-[var(--card-icon-muted)]">
           {teammateMessage.teammateId}
         </span>
-        <span className="text-[11px] text-[var(--card-icon-muted)]">
-          {noiseLabel}
-        </span>
+        <span className="text-[11px] text-[var(--card-icon-muted)]">{noiseLabel}</span>
       </div>
     );
   }
@@ -152,7 +150,11 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
 
   return (
     <div
-      className={cn('overflow-hidden rounded-md border border-[var(--card-border)] bg-[var(--card-bg)] transition-all duration-300', isResend && 'opacity-60', highlightClasses)}
+      className={cn(
+        'overflow-hidden rounded-md border border-[var(--card-border)] bg-[var(--card-bg)] transition-all duration-300',
+        isResend && 'opacity-60',
+        highlightClasses
+      )}
       style={{ borderLeft: `3px solid ${colors.border}`, ...highlightStyle }}
     >
       {/* Header */}
@@ -168,11 +170,16 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
         }}
         className={cn(
           'flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors',
-          isExpanded ? 'border-b border-[var(--card-border)] bg-[var(--card-header-bg)]' : 'bg-transparent'
+          isExpanded
+            ? 'border-b border-[var(--card-border)] bg-[var(--card-header-bg)]'
+            : 'bg-transparent'
         )}
       >
         <ChevronRight
-          className={cn('size-3.5 shrink-0 transition-transform text-[var(--card-icon-muted)]', isExpanded && 'rotate-90')}
+          className={cn(
+            'size-3.5 shrink-0 transition-transform text-[var(--card-icon-muted)]',
+            isExpanded && 'rotate-90'
+          )}
         />
 
         {/* Message icon — distinguishes from SubagentItem's Bot/dot icon */}
@@ -191,7 +198,7 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
         </span>
 
         {/* "Message" type label — parallels SubagentItem's model info */}
-        <span className="text-[10px] tracking-wide uppercase text-[var(--card-icon-muted)]">
+        <span className="text-[10px] tracking-wide text-[var(--card-icon-muted)] uppercase">
           Message
         </span>
 
@@ -204,9 +211,7 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
             onMouseLeave={() => onReplyHover?.(null)}
           >
             <CornerDownLeft className="size-2.5" />
-            <span className="max-w-[180px] truncate">
-              {teammateMessage.replyToSummary}
-            </span>
+            <span className="max-w-[180px] truncate">{teammateMessage.replyToSummary}</span>
           </span>
         )}
 
@@ -225,7 +230,7 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
 
         {/* Context impact — tokens injected into main session */}
         {teammateMessage.tokenCount != null && teammateMessage.tokenCount > 0 && (
-          <span className="shrink-0 font-mono text-[11px] tabular-nums text-[var(--card-icon-muted)]">
+          <span className="shrink-0 font-mono text-[11px] text-[var(--card-icon-muted)] tabular-nums">
             ~{formatTokensCompact(teammateMessage.tokenCount)} tokens
           </span>
         )}

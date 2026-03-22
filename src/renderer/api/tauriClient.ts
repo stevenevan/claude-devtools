@@ -5,10 +5,10 @@
  * Native operations (dialogs, shell, window controls) use Tauri plugin APIs.
  */
 
+import { getVersion } from '@tauri-apps/api/app';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { getVersion } from '@tauri-apps/api/app';
 import { open } from '@tauri-apps/plugin-dialog';
 import { openPath, openUrl } from '@tauri-apps/plugin-opener';
 import { relaunch } from '@tauri-apps/plugin-process';
@@ -126,10 +126,7 @@ export class TauriAPIClient implements ElectronAPI {
     return reviveDates(raw);
   };
 
-  getSessionMetrics = (
-    projectId: string,
-    sessionId: string
-  ): Promise<SessionMetrics | null> =>
+  getSessionMetrics = (projectId: string, sessionId: string): Promise<SessionMetrics | null> =>
     invoke<SessionMetrics>('parse_session_metrics', { projectId, sessionId });
 
   getWaterfallData = async (
@@ -163,8 +160,7 @@ export class TauriAPIClient implements ElectronAPI {
     projectId: string,
     sessionIds: string[],
     _options?: SessionsByIdsOptions
-  ): Promise<Session[]> =>
-    invoke<Session[]>('get_sessions_by_ids', { projectId, sessionIds });
+  ): Promise<Session[]> => invoke<Session[]>('get_sessions_by_ids', { projectId, sessionIds });
 
   getRepositoryGroups = (): Promise<RepositoryGroup[]> =>
     invoke<RepositoryGroup[]>('get_repository_groups');
@@ -211,14 +207,11 @@ export class TauriAPIClient implements ElectronAPI {
   // Global ~/.claude/ config reading
   // ---------------------------------------------------------------------------
 
-  readGlobalAgents = (): Promise<GlobalAgent[]> =>
-    invoke<GlobalAgent[]>('read_global_agents');
+  readGlobalAgents = (): Promise<GlobalAgent[]> => invoke<GlobalAgent[]>('read_global_agents');
 
-  readGlobalSkills = (): Promise<GlobalSkill[]> =>
-    invoke<GlobalSkill[]>('read_global_skills');
+  readGlobalSkills = (): Promise<GlobalSkill[]> => invoke<GlobalSkill[]>('read_global_skills');
 
-  readGlobalPlugins = (): Promise<GlobalPlugin[]> =>
-    invoke<GlobalPlugin[]>('read_global_plugins');
+  readGlobalPlugins = (): Promise<GlobalPlugin[]> => invoke<GlobalPlugin[]>('read_global_plugins');
 
   readGlobalSettings = (): Promise<Record<string, unknown>> =>
     invoke<Record<string, unknown>>('read_global_settings');
@@ -291,12 +284,10 @@ export class TauriAPIClient implements ElectronAPI {
     getTriggers: () => invoke<NotificationTrigger[]>('config_get_triggers'),
     testTrigger: (trigger: NotificationTrigger): Promise<TriggerTestResult> =>
       invoke<TriggerTestResult>('notifications_test_trigger', { trigger }),
-    pinSession: (projectId, sessionId) =>
-      invoke('config_pin_session', { projectId, sessionId }),
+    pinSession: (projectId, sessionId) => invoke('config_pin_session', { projectId, sessionId }),
     unpinSession: (projectId, sessionId) =>
       invoke('config_unpin_session', { projectId, sessionId }),
-    hideSession: (projectId, sessionId) =>
-      invoke('config_hide_session', { projectId, sessionId }),
+    hideSession: (projectId, sessionId) => invoke('config_hide_session', { projectId, sessionId }),
     unhideSession: (projectId, sessionId) =>
       invoke('config_unhide_session', { projectId, sessionId }),
     hideSessions: (projectId, sessionIds) =>

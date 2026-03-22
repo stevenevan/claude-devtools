@@ -246,7 +246,7 @@ export const SessionItem = React.memo(function SessionItem({
         </div>
 
         {/* Second line: message count + time + context consumption */}
-        <div className="mt-0.5 flex items-center gap-2 text-[10px] leading-tight text-text-muted">
+        <div className="text-text-muted mt-0.5 flex items-center gap-2 text-[10px] leading-tight">
           <span className="flex items-center gap-0.5">
             <MessageSquare className="size-2.5" />
             {session.messageCount}

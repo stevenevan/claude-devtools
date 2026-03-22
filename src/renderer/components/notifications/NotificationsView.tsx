@@ -179,30 +179,26 @@ export const NotificationsView = (): React.JSX.Element => {
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex flex-1 flex-col overflow-hidden bg-surface">
+      <div className="bg-surface flex flex-1 flex-col overflow-hidden">
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="mr-2 size-5 animate-spin text-text-muted" />
-          <span className="text-sm text-text-muted">
-            Loading notifications...
-          </span>
+          <Loader2 className="text-text-muted mr-2 size-5 animate-spin" />
+          <span className="text-text-muted text-sm">Loading notifications...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden bg-surface">
+    <div className="bg-surface flex flex-1 flex-col overflow-hidden">
       {/* Header */}
-      <div className="shrink-0 border-b border-border-subtle">
+      <div className="border-border-subtle shrink-0 border-b">
         <div className="flex items-center justify-between px-4 py-3">
           {/* Title */}
           <div className="flex items-center gap-2">
-            <Inbox className="size-4 text-text-secondary" />
-            <span className="text-sm font-medium text-text">
-              Notifications
-            </span>
+            <Inbox className="text-text-secondary size-4" />
+            <span className="text-text text-sm font-medium">Notifications</span>
             {notifications.length > 0 && (
-              <span className="text-xs text-text-muted">
+              <span className="text-text-muted text-xs">
                 {activeFilter !== null
                   ? filteredUnreadCount > 0
                     ? `${filteredUnreadCount} unread in filter`
@@ -221,7 +217,7 @@ export const NotificationsView = (): React.JSX.Element => {
               {filteredUnreadCount > 0 && (
                 <button
                   onClick={handleMarkAllRead}
-                  className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs text-text-muted transition-colors hover:opacity-80"
+                  className="text-text-muted flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition-colors hover:opacity-80"
                   title={activeFilter !== null ? 'Mark filtered as read' : 'Mark all as read'}
                 >
                   <CheckCheck className="size-4" />
@@ -259,7 +255,7 @@ export const NotificationsView = (): React.JSX.Element => {
 
       {/* Filter Chip Bar */}
       {filterChips.length > 1 && (
-        <div className="scrollbar-none shrink-0 overflow-x-auto border-b border-border-subtle">
+        <div className="scrollbar-none border-border-subtle shrink-0 overflow-x-auto border-b">
           <div className="flex items-center gap-1.5 px-4 py-2">
             {/* All chip */}
             <button
@@ -298,7 +294,7 @@ export const NotificationsView = (): React.JSX.Element => {
       {/* Notifications List */}
       <div ref={parentRef} className="flex-1 overflow-y-auto">
         {filteredNotifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-text-muted">
+          <div className="text-text-muted flex flex-col items-center justify-center py-16">
             <Inbox className="mb-3 size-10 opacity-30" />
             <p className="mb-1 text-sm font-medium">
               {activeFilter !== null ? 'No matching notifications' : 'No notifications'}

@@ -223,7 +223,7 @@ const DiffLineRow: React.FC<DiffLineRowProps> = ({ line }): React.JSX.Element =>
       )}
     >
       {/* Line number */}
-      <span className="w-10 shrink-0 px-2 text-right select-none text-[var(--code-line-number)]">
+      <span className="w-10 shrink-0 px-2 text-right text-[var(--code-line-number)] select-none">
         {line.lineNumber}
       </span>
       {/* Prefix */}
@@ -276,30 +276,30 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
   const displayName = getBaseName(fileName);
 
   return (
-    <div className="overflow-hidden rounded-lg shadow-xs bg-[var(--code-bg)] border border-[var(--code-border)]">
+    <div className="overflow-hidden rounded-lg border border-[var(--code-border)] bg-[var(--code-bg)] shadow-xs">
       {/* Header - matches CodeBlockViewer style */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-[var(--code-header-bg)] border-b border-[var(--code-border)]">
-        <Pencil className="size-4 shrink-0 text-text-muted" />
+      <div className="flex items-center gap-2 border-b border-[var(--code-border)] bg-[var(--code-header-bg)] px-3 py-2">
+        <Pencil className="text-text-muted size-4 shrink-0" />
         <span className="truncate font-mono text-sm text-[var(--code-filename)]">
           {displayName}
         </span>
-        <span className="shrink-0 rounded-sm px-1.5 py-0.5 text-xs bg-[var(--tag-bg)] text-[var(--tag-text)] border border-[var(--tag-border)]">
+        <span className="shrink-0 rounded-sm border border-[var(--tag-border)] bg-[var(--tag-bg)] px-1.5 py-0.5 text-xs text-[var(--tag-text)]">
           {detectedLanguage}
         </span>
         <span className="text-text-muted">-</span>
         <span className="shrink-0 text-sm">
           {stats.added > 0 && (
-            <span className="mr-1 text-[var(--diff-added-text)]">
-              +{stats.added}
-            </span>
+            <span className="mr-1 text-[var(--diff-added-text)]">+{stats.added}</span>
           )}
-          {stats.removed > 0 && <span className="text-[var(--diff-removed-text)]">-{stats.removed}</span>}
+          {stats.removed > 0 && (
+            <span className="text-[var(--diff-removed-text)]">-{stats.removed}</span>
+          )}
           {stats.added === 0 && stats.removed === 0 && (
             <span className="text-text-muted">Changed</span>
           )}
         </span>
         {tokenCount !== undefined && tokenCount > 0 && (
-          <span className="ml-auto text-xs text-text-muted">
+          <span className="text-text-muted ml-auto text-xs">
             ~{formatTokens(tokenCount)} tokens
           </span>
         )}
@@ -312,9 +312,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
             <DiffLineRow key={index} line={line} />
           ))}
           {diffLines.length === 0 && (
-            <div className="px-3 py-2 italic text-text-muted">
-              No changes detected
-            </div>
+            <div className="text-text-muted px-3 py-2 italic">No changes detected</div>
           )}
         </div>
       </div>

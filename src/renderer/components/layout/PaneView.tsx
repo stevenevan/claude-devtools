@@ -70,9 +70,7 @@ export const PaneView = ({ paneId }: PaneViewProps): React.JSX.Element => {
       {/* Max pane indicator - shown during drag when at limit */}
       {isDragging && !canSplit && (
         <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex justify-center">
-          <div
-            className="rounded-md border border-border-emphasis bg-surface-overlay px-3 py-1.5 text-xs font-medium text-text-muted"
-          >
+          <div className="border-border-emphasis bg-surface-overlay text-text-muted rounded-md border px-3 py-1.5 text-xs font-medium">
             Maximum {MAX_PANES} panes reached
           </div>
         </div>

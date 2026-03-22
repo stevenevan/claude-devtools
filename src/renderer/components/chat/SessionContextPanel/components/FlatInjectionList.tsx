@@ -206,23 +206,17 @@ export const FlatInjectionList = ({
                 {categoryInfo.label}
               </span>
               {/* Description */}
-              <span
-                className="min-w-0 flex-1 truncate text-xs text-text-secondary"
-              >
+              <span className="text-text-secondary min-w-0 flex-1 truncate text-xs">
                 {displayText}
               </span>
               {/* Error badge */}
               {row.isError && (
-                <span
-                  className="shrink-0 rounded-sm bg-[rgba(239,68,68,0.15)] px-1 py-0.5 text-[10px] text-[#ef4444]"
-                >
+                <span className="shrink-0 rounded-sm bg-[rgba(239,68,68,0.15)] px-1 py-0.5 text-[10px] text-[#ef4444]">
                   error
                 </span>
               )}
               {/* Token count */}
-              <span
-                className="shrink-0 text-xs font-medium tabular-nums text-text-muted"
-              >
+              <span className="text-text-muted shrink-0 text-xs font-medium tabular-nums">
                 {formatTokens(row.tokens)}
               </span>
             </button>

@@ -5,8 +5,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { api, isDesktopMode } from '@renderer/api';
-import { cn } from '@renderer/lib/utils';
 import appIcon from '@renderer/favicon.png';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { CheckCircle, Code2, Download, Loader2, RefreshCw, Upload } from 'lucide-react';
 
@@ -97,7 +97,7 @@ export const AdvancedSection = ({
         <button
           onClick={onResetToDefaults}
           disabled={saving}
-          className={`flex w-full items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-medium text-text-secondary transition-all duration-150 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
+          className={`border-border text-text-secondary flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
         >
           <RefreshCw className="size-4" />
           Reset to Defaults
@@ -105,7 +105,7 @@ export const AdvancedSection = ({
         <button
           onClick={onExportConfig}
           disabled={saving}
-          className={`flex w-full items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-medium text-text-secondary transition-all duration-150 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
+          className={`border-border text-text-secondary flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
         >
           <Download className="size-4" />
           Export Config
@@ -113,7 +113,7 @@ export const AdvancedSection = ({
         <button
           onClick={onImportConfig}
           disabled={saving}
-          className={`flex w-full items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-medium text-text-secondary transition-all duration-150 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
+          className={`border-border text-text-secondary flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150 ${saving ? 'cursor-not-allowed opacity-50' : ''} `}
         >
           <Upload className="size-4" />
           Import Config
@@ -121,7 +121,7 @@ export const AdvancedSection = ({
         {isElectron && (
           <button
             onClick={onOpenInEditor}
-            className="flex w-full items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm font-medium text-text-secondary transition-all duration-150"
+            className="border-border text-text-secondary flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150"
           >
             <Code2 className="size-4" />
             Open in Editor
@@ -134,9 +134,7 @@ export const AdvancedSection = ({
         <img src={appIcon} alt="App Icon" className="size-10 rounded-lg" />
         <div>
           <div className="flex items-center gap-3">
-            <p className="text-sm font-medium text-text">
-              claude-devtools
-            </p>
+            <p className="text-text text-sm font-medium">claude-devtools</p>
             {isElectron && (
               <button
                 onClick={handleCheckForUpdates}
@@ -154,15 +152,13 @@ export const AdvancedSection = ({
               </button>
             )}
             {!isElectron && (
-              <span className="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-text-muted">
+              <span className="border-border text-text-muted rounded-md border px-2.5 py-1 text-xs font-medium">
                 Standalone
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-xs text-text-muted">
-            Version {version || '...'}
-          </p>
-          <p className="mt-2 text-xs leading-relaxed text-text-muted">
+          <p className="text-text-muted mt-0.5 text-xs">Version {version || '...'}</p>
+          <p className="text-text-muted mt-2 text-xs leading-relaxed">
             Visualize and analyze Claude Code session executions with interactive waterfall charts
             and detailed insights.
           </p>

@@ -20,13 +20,9 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
     return (
       <div className="space-y-2">
         {filePath && (
-          <div className="mb-2 text-xs text-text-muted">
+          <div className="text-text-muted mb-2 text-xs">
             {filePath}
-            {replaceAll && (
-              <span className="ml-2 text-text-muted">
-                (replace all)
-              </span>
-            )}
+            {replaceAll && <span className="text-text-muted ml-2">(replace all)</span>}
           </div>
         )}
         {oldString && (
@@ -54,16 +50,8 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
 
     return (
       <div className="space-y-2">
-        {description && (
-          <div className="mb-1 text-xs text-text-muted">
-            {description}
-          </div>
-        )}
-        {command && (
-          <code className="break-all whitespace-pre-wrap text-text">
-            {command}
-          </code>
-        )}
+        {description && <div className="text-text-muted mb-1 text-xs">{description}</div>}
+        {command && <code className="text-text break-all whitespace-pre-wrap">{command}</code>}
       </div>
     );
   }
@@ -78,7 +66,7 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
       <div className="text-text">
         <div>{filePath}</div>
         {(offset !== undefined || limit !== undefined) && (
-          <div className="mt-1 text-xs text-text-muted">
+          <div className="text-text-muted mt-1 text-xs">
             {offset !== undefined && `offset: ${offset}`}
             {offset !== undefined && limit !== undefined && ', '}
             {limit !== undefined && `limit: ${limit}`}
@@ -90,12 +78,10 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
 
   // Default: key-value format with readable string values
   return (
-    <div className="space-y-2 text-text">
+    <div className="text-text space-y-2">
       {Object.entries(input).map(([key, value]) => (
         <div key={key}>
-          <div className="text-xs text-text-muted">
-            {key}
-          </div>
+          <div className="text-text-muted text-xs">{key}</div>
           <pre className="break-all whitespace-pre-wrap">{formatInputValue(value)}</pre>
         </div>
       ))}
@@ -174,9 +160,5 @@ function isContentBlock(value: unknown): boolean {
 
 export function renderOutput(content: string | unknown[]): React.ReactElement {
   const displayText = extractOutputText(content);
-  return (
-    <pre className="break-all whitespace-pre-wrap text-text">
-      {displayText}
-    </pre>
-  );
+  return <pre className="text-text break-all whitespace-pre-wrap">{displayText}</pre>;
 }

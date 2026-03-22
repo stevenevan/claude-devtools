@@ -64,9 +64,7 @@ const PluginCard = ({ plugin, isHighlighted }: Readonly<PluginCardProps>): React
         </div>
         <span
           className={`rounded-sm px-1.5 py-0.5 text-[10px] font-medium ${
-            plugin.enabled
-              ? 'bg-emerald-500/10 text-emerald-400'
-              : 'bg-zinc-500/10 text-zinc-500'
+            plugin.enabled ? 'bg-emerald-500/10 text-emerald-400' : 'bg-zinc-500/10 text-zinc-500'
           }`}
         >
           {plugin.enabled ? 'Enabled' : 'Disabled'}
@@ -155,8 +153,7 @@ export const PluginsGrid = ({ searchQuery }: Readonly<PluginsGridProps>): React.
     if (!searchQuery.trim()) return globalPlugins;
     const query = searchQuery.toLowerCase().trim();
     return globalPlugins.filter(
-      (p) =>
-        p.name.toLowerCase().includes(query) || p.marketplace.toLowerCase().includes(query)
+      (p) => p.name.toLowerCase().includes(query) || p.marketplace.toLowerCase().includes(query)
     );
   }, [globalPlugins, searchQuery]);
 

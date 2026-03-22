@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@renderer/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
-import { useStore } from '@renderer/store';
 import { cn } from '@renderer/lib/utils';
+import { useStore } from '@renderer/store';
 import { ChevronDown, FolderOpen, GitBranch, X } from 'lucide-react';
 
 import type { RepositoryDropdownItem } from '@renderer/components/settings/hooks/useSettingsConfig';

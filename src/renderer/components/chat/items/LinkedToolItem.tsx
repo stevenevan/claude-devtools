@@ -91,9 +91,7 @@ export const LinkedToolItem: React.FC<LinkedToolItemProps> = React.memo(function
         >
           {name}
         </span>
-        <span className="text-xs text-[var(--card-icon-muted)]">
-          Teammate spawned
-        </span>
+        <span className="text-xs text-[var(--card-icon-muted)]">Teammate spawned</span>
       </div>
     );
   }
@@ -187,7 +185,7 @@ export const LinkedToolItem: React.FC<LinkedToolItemProps> = React.memo(function
 
         {/* Orphaned indicator */}
         {linkedTool.isOrphaned && (
-          <div className="flex items-center gap-2 text-xs italic text-[var(--tool-item-muted)]">
+          <div className="flex items-center gap-2 text-xs text-[var(--tool-item-muted)] italic">
             <StatusDot status="orphaned" />
             No result received
           </div>

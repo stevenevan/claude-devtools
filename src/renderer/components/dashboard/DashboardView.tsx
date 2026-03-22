@@ -19,14 +19,14 @@ const logger = createLogger('Component:DashboardView');
 import { formatDistanceToNow } from 'date-fns';
 import { Command, FolderGit2, FolderOpen, GitBranch, Search, Settings } from 'lucide-react';
 
-import type { DashboardTab } from '@renderer/store/slices/claudeConfigSlice';
-import type { RepositoryGroup } from '@renderer/types/data';
-
 import { AgentsGrid } from './AgentsGrid';
 import { DashboardTabContent, DashboardTabs } from './DashboardTabs';
 import { GlobalSettingsView } from './GlobalSettingsView';
 import { PluginsGrid } from './PluginsGrid';
 import { SkillsGrid } from './SkillsGrid';
+
+import type { DashboardTab } from '@renderer/store/slices/claudeConfigSlice';
+import type { RepositoryGroup } from '@renderer/types/data';
 
 // =============================================================================
 // Command Search Input
@@ -38,7 +38,11 @@ interface CommandSearchProps {
   placeholder?: string;
 }
 
-const CommandSearch = ({ value, onChange, placeholder = 'Search projects...' }: Readonly<CommandSearchProps>): React.JSX.Element => {
+const CommandSearch = ({
+  value,
+  onChange,
+  placeholder = 'Search projects...',
+}: Readonly<CommandSearchProps>): React.JSX.Element => {
   const [isFocused, setIsFocused] = useState(false);
   const { openCommandPalette, selectedProjectId } = useStore(
     useShallow((s) => ({
@@ -306,7 +310,14 @@ const ProjectsGrid = ({
     } else if (repositoryGroups.length === 0) {
       void fetchRepositoryGroups();
     }
-  }, [useFlat, repositoryGroups.length, projects.length, projectsLoading, fetchRepositoryGroups, fetchProjects]);
+  }, [
+    useFlat,
+    repositoryGroups.length,
+    projects.length,
+    projectsLoading,
+    fetchRepositoryGroups,
+    fetchProjects,
+  ]);
 
   // Build unified items for rendering
   const filteredRepos = useMemo(() => {
@@ -416,9 +427,7 @@ const ProjectsGrid = ({
         <RepositoryCard
           key={repo.id}
           repo={repo}
-          onClick={() =>
-            useFlat ? setActiveProject(repo.id) : selectRepository(repo.id)
-          }
+          onClick={() => (useFlat ? setActiveProject(repo.id) : selectRepository(repo.id))}
           isHighlighted={!!searchQuery.trim()}
         />
       ))}
@@ -485,7 +494,7 @@ export const DashboardView = (): React.JSX.Element => {
         {/* Dashboard Tabs + Content */}
         <DashboardTabs activeTab={dashboardActiveTab} onTabChange={handleTabChange}>
           {/* Section header */}
-          <div className="mb-4 mt-6 flex items-center justify-between">
+          <div className="mt-6 mb-4 flex items-center justify-between">
             <h2 className="text-text-muted text-xs font-medium tracking-wider uppercase">
               {searchQuery.trim() ? 'Search Results' : SECTION_LABELS[dashboardActiveTab]}
             </h2>

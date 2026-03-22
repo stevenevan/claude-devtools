@@ -120,13 +120,14 @@ const WorktreeItem = ({
       {/* Only show badge for main worktree - others are grouped by header */}
       {worktree.isMainWorktree && <WorktreeBadge source={worktree.source} isMain />}
       <span
-        className={cn('flex-1 truncate font-mono text-xs', isSelected ? 'text-text' : 'text-text-muted')}
+        className={cn(
+          'flex-1 truncate font-mono text-xs',
+          isSelected ? 'text-text' : 'text-text-muted'
+        )}
       >
         {truncateMiddle(worktree.name, 28)}
       </span>
-      <span className="shrink-0 text-[10px] text-text-muted">
-        {worktree.sessions.length}
-      </span>
+      <span className="text-text-muted shrink-0 text-[10px]">{worktree.sessions.length}</span>
       {isSelected && <Check className="size-3.5 shrink-0 text-indigo-400" />}
     </button>
   );
@@ -171,23 +172,16 @@ const ProjectDropdownItem = ({
         >
           {name}
         </span>
-        {path && (
-          <span className="block truncate text-[10px] text-text-muted">
-            {path}
-          </span>
-        )}
+        {path && <span className="text-text-muted block truncate text-[10px]">{path}</span>}
       </div>
-      <span className="shrink-0 text-[10px] text-text-muted">
-        {sessionCount}
-      </span>
+      <span className="text-text-muted shrink-0 text-[10px]">{sessionCount}</span>
       {isSelected && <Check className="size-3.5 shrink-0 text-indigo-400" />}
     </button>
   );
 };
 
 export const SidebarHeader = (): React.JSX.Element => {
-  const isMacElectron =
-    isDesktopMode() && window.navigator.userAgent.toLowerCase().includes('mac');
+  const isMacElectron = isDesktopMode() && window.navigator.userAgent.toLowerCase().includes('mac');
 
   const {
     repositoryGroups,
@@ -313,7 +307,7 @@ export const SidebarHeader = (): React.JSX.Element => {
   const [isCollapseHovered, setIsCollapseHovered] = useState(false);
 
   return (
-    <div className="flex w-full flex-col bg-surface-sidebar">
+    <div className="bg-surface-sidebar flex w-full flex-col">
       {/* ROW 1: Project Identity (Title Bar / Drag Region) */}
       <div
         ref={projectDropdownRef}
@@ -371,15 +365,13 @@ export const SidebarHeader = (): React.JSX.Element => {
               className="fixed inset-0 z-10"
               onClick={() => setIsProjectDropdownOpen(false)}
             />
-            <div
-              className="absolute inset-x-4 top-full z-20 mt-1 max-h-[350px] overflow-y-auto rounded-lg border border-border bg-surface-sidebar py-1 shadow-xl"
-            >
-              <div className="px-3 py-2 text-[10px] font-semibold tracking-wider uppercase text-text-muted">
+            <div className="border-border bg-surface-sidebar absolute inset-x-4 top-full z-20 mt-1 max-h-[350px] overflow-y-auto rounded-lg border py-1 shadow-xl">
+              <div className="text-text-muted px-3 py-2 text-[10px] font-semibold tracking-wider uppercase">
                 Switch {viewMode === 'grouped' ? 'Repository' : 'Project'}
               </div>
 
               {projectItems.length === 0 ? (
-                <div className="p-3 text-sm text-text-muted">
+                <div className="text-text-muted p-3 text-sm">
                   No {viewMode === 'grouped' ? 'repositories' : 'projects'} found
                 </div>
               ) : (
@@ -466,10 +458,8 @@ export const SidebarHeader = (): React.JSX.Element => {
                 className="fixed inset-0 z-10"
                 onClick={() => setIsWorktreeDropdownOpen(false)}
               />
-              <div
-                className="absolute inset-x-0 top-full z-20 mt-0 max-h-[400px] overflow-y-auto border border-t-0 border-border bg-surface-sidebar py-1 shadow-xl"
-              >
-                <div className="px-4 py-2 text-[10px] font-semibold tracking-wider uppercase text-text-muted">
+              <div className="border-border bg-surface-sidebar absolute inset-x-0 top-full z-20 mt-0 max-h-[400px] overflow-y-auto border border-t-0 py-1 shadow-xl">
+                <div className="text-text-muted px-4 py-2 text-[10px] font-semibold tracking-wider uppercase">
                   Switch Worktree
                 </div>
 
@@ -486,9 +476,7 @@ export const SidebarHeader = (): React.JSX.Element => {
                 {worktreeGroups.map((group) => (
                   <div key={group.source}>
                     {/* Group header */}
-                    <div
-                      className="mt-1 border-t border-border px-4 py-1.5 text-[9px] font-medium tracking-wider uppercase text-text-muted"
-                    >
+                    <div className="border-border text-text-muted mt-1 border-t px-4 py-1.5 text-[9px] font-medium tracking-wider uppercase">
                       {group.label}
                     </div>
                     {/* Worktrees in group */}
