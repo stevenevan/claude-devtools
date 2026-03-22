@@ -127,10 +127,15 @@ export class HttpServer {
       const tryPort = preferredPort + attempt;
       try {
         await this.app.listen({ host, port: tryPort });
-        this.port = tryPort;
+        // When port 0 is requested, the OS assigns an ephemeral port.
+        // Read the actual port from the server address instead of using tryPort.
+        const address = this.app.server.address();
+        const actualPort =
+          address && typeof address !== 'string' ? address.port : tryPort;
+        this.port = actualPort;
         this.running = true;
-        logger.info(`HTTP server started on http://${host}:${tryPort}`);
-        return tryPort;
+        logger.info(`HTTP server started on http://${host}:${actualPort}`);
+        return actualPort;
       } catch (err: unknown) {
         const error = err as NodeJS.ErrnoException;
         if (error.code === 'EADDRINUSE') {

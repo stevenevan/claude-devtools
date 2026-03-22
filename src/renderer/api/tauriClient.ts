@@ -58,14 +58,25 @@ export class TauriAPIClient implements ElectronAPI {
   // Static factory — resolves sidecar port from Tauri command
   // ---------------------------------------------------------------------------
 
-  static async create(): Promise<TauriAPIClient> {
+  static async create(): Promise<TauriAPIClient | null> {
     // Try window global first (injected by Rust setup)
     if (window.__SIDECAR_PORT__) {
       return new TauriAPIClient(window.__SIDECAR_PORT__);
     }
-    // Fall back to invoke
-    const port = await invoke<number>('get_sidecar_port');
-    return new TauriAPIClient(port);
+    // Poll invoke until the sidecar reports its port.
+    // The webview JS may run before the Rust setup() finishes starting the sidecar.
+    const MAX_ATTEMPTS = 50;
+    const POLL_INTERVAL_MS = 100;
+    for (let i = 0; i < MAX_ATTEMPTS; i++) {
+      try {
+        const port = await invoke<number>('get_sidecar_port');
+        return new TauriAPIClient(port);
+      } catch {
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+      }
+    }
+    console.error('[TauriAPIClient] Sidecar did not start within 5 seconds');
+    return null;
   }
 
   // ---------------------------------------------------------------------------
@@ -160,7 +171,9 @@ export class TauriAPIClient implements ElectronAPI {
   // Notifications — delegate to HTTP sidecar (CRUD + SSE events)
   // ---------------------------------------------------------------------------
 
-  notifications: NotificationsAPI = this.http.notifications;
+  get notifications(): NotificationsAPI {
+    return this.http.notifications;
+  }
 
   // ---------------------------------------------------------------------------
   // Config — mostly HTTP sidecar, with native dialog overrides
@@ -216,7 +229,9 @@ export class TauriAPIClient implements ElectronAPI {
   // Session navigation — sidecar
   // ---------------------------------------------------------------------------
 
-  session: SessionAPI = this.http.session;
+  get session(): SessionAPI {
+    return this.http.session;
+  }
 
   // ---------------------------------------------------------------------------
   // Zoom — Tauri doesn't have Electron's zoom sync mechanism
@@ -312,7 +327,9 @@ export class TauriAPIClient implements ElectronAPI {
   // SSH — delegate to HTTP sidecar
   // ---------------------------------------------------------------------------
 
-  ssh: SshAPI = this.http.ssh;
+  get ssh(): SshAPI {
+    return this.http.ssh;
+  }
 
   // ---------------------------------------------------------------------------
   // Context — delegate to HTTP sidecar

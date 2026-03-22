@@ -439,7 +439,7 @@ export interface ElectronAPI {
 declare global {
   interface Window {
     electronAPI: ElectronAPI;
-    __TAURI__: unknown;
+    __TAURI_INTERNALS__: unknown;
     __SIDECAR_PORT__: number;
   }
 }

@@ -8,6 +8,7 @@
 import { createLogger } from '@shared/utils/logger';
 
 import { registerConfigRoutes } from './config';
+import { registerContextRoutes } from './contexts';
 import { registerEventRoutes } from './events';
 import { registerNotificationRoutes } from './notifications';
 import { registerProjectRoutes } from './projects';
@@ -57,6 +58,7 @@ export function registerHttpRoutes(
   registerUtilityRoutes(app);
   registerSshRoutes(app, services.sshConnectionManager, sshModeSwitchCallback);
   registerUpdaterRoutes(app, services);
+  registerContextRoutes(app);
   registerEventRoutes(app);
 
   logger.info('All HTTP routes registered');

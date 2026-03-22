@@ -23,11 +23,14 @@ pub fn start_sidecar(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> 
 
     // In development, run from dist-standalone; in production, from bundled resources
     let (bun_path, server_path) = if cfg!(debug_assertions) {
-        // Dev mode: use system bun and dist-standalone output
+        // Dev mode: use system bun and dist-standalone output.
+        // CWD is src-tauri/ during `tauri dev`, so resolve relative to the project root.
         let bun = which_bun();
-        let server = std::env::current_dir()
-            .unwrap_or_default()
-            .join("dist-standalone/index.cjs");
+        let project_root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("src-tauri should have a parent directory")
+            .to_path_buf();
+        let server = project_root.join("dist-standalone/index.cjs");
         eprintln!("[sidecar] Dev mode — bun: {}, server: {}", bun.display(), server.display());
         (bun, server)
     } else {
@@ -51,12 +54,20 @@ pub fn start_sidecar(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> 
         return Err(format!("Server bundle not found at: {}", server_path.display()).into());
     }
 
+    // In dev mode, allow both Tauri and Vite dev server origins for CORS.
+    // In production, only the Tauri origin is needed.
+    let cors_origin = if cfg!(debug_assertions) {
+        "*"
+    } else {
+        "tauri://localhost"
+    };
+
     let mut child = Command::new(&bun_path)
         .arg(server_path.to_str().unwrap())
         .arg("--port")
-        .arg("0")
+        .arg("3456")
         .env("HOST", "127.0.0.1")
-        .env("CORS_ORIGIN", "tauri://localhost")
+        .env("CORS_ORIGIN", cors_origin)
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
         .spawn()

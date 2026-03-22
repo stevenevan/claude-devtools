@@ -18,22 +18,22 @@ pub fn run() {
         .manage(std::sync::Mutex::new(sidecar::SidecarState::default()))
         .setup(|app| {
             let handle = app.handle().clone();
-            // Start sidecar — log errors but don't crash the app
-            match sidecar::start_sidecar(&handle) {
-                Ok(()) => {
-                    // Inject port into the main webview
-                    let state = handle.state::<std::sync::Mutex<sidecar::SidecarState>>();
-                    let port = state.lock().unwrap().port;
-                    if let Some(window) = app.get_webview_window("main") {
-                        let js = format!("window.__SIDECAR_PORT__ = {port};");
-                        let _ = window.eval(&js);
+            // Start sidecar in a background thread so setup() returns immediately.
+            // The webview polls get_sidecar_port via invoke(), which needs the main
+            // thread — blocking here would deadlock those calls.
+            std::thread::spawn(move || {
+                match sidecar::start_sidecar(&handle) {
+                    Ok(()) => {
+                        let state = handle.state::<std::sync::Mutex<sidecar::SidecarState>>();
+                        let port = state.lock().unwrap().port;
+                        eprintln!("[tauri] Sidecar ready on port {port}");
+                    }
+                    Err(e) => {
+                        eprintln!("[tauri] WARNING: Sidecar failed to start: {e}");
+                        eprintln!("[tauri] The app will open but backend services won't be available.");
                     }
                 }
-                Err(e) => {
-                    eprintln!("[tauri] WARNING: Sidecar failed to start: {e}");
-                    eprintln!("[tauri] The app will open but backend services won't be available.");
-                }
-            }
+            });
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
