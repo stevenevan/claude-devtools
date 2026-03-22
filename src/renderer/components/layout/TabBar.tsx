@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { isDesktopMode } from '@renderer/api';
+import { Button } from '@renderer/components/ui/button';
 import { HEADER_ROW1_HEIGHT } from '@renderer/constants/layout';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -19,7 +20,6 @@ import { formatShortcut } from '@renderer/utils/stringUtils';
 import { PanelLeft, Plus, RefreshCw } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
-import { MoreMenu } from './MoreMenu';
 import { SortableTab } from './SortableTab';
 
 interface TabBarProps {
@@ -44,7 +44,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
     sidebarCollapsed,
     toggleSidebar,
     splitPane,
-    tabSessionData,
   } = useStore(
     useShallow((s) => ({
       pane: s.paneLayout.panes.find((p) => p.id === paneId),
@@ -63,7 +62,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
       sidebarCollapsed: s.sidebarCollapsed,
       toggleSidebar: s.toggleSidebar,
       splitPane: s.splitPane,
-      tabSessionData: s.tabSessionData,
     }))
   );
 
@@ -76,11 +74,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
 
   // Derive stable tab IDs array for SortableContext
   const tabIds = useMemo(() => openTabs.map((t) => t.id), [openTabs]);
-
-  // Derive session detail for the active tab (used by export dropdown)
-  const activeTabSessionDetail = activeTabId
-    ? (tabSessionData[activeTabId]?.sessionDetail ?? null)
-    : null;
 
   // Track last clicked tab for Shift range selection
   const lastClickedTabIdRef = useRef<string | null>(null);
@@ -310,16 +303,14 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         className="ml-2 flex shrink-0 items-center gap-1"
         style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
       >
-        {/* New tab button */}
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={openDashboard}
-          className="text-muted-foreground hover:bg-card hover:text-foreground flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
-          title="New tab (Dashboard)"
+          title="New tab"
         >
           <Plus className="size-4" />
-        </button>
-
-        <MoreMenu activeTab={activeTab} activeTabSessionDetail={activeTabSessionDetail} />
+        </Button>
       </div>
     </div>
   );

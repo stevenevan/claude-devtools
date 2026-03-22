@@ -411,8 +411,14 @@ export const CommandPalette = (): React.JSX.Element | null => {
     >
       <DialogPortal>
         <DialogOverlay />
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
-          <div className="border-border bg-background w-full max-w-2xl overflow-hidden rounded-xl border shadow-2xl">
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
+          onClick={closeCommandPalette}
+        >
+          <div
+            className="border-border bg-background w-full max-w-2xl overflow-hidden rounded-xl border shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="bg-card/50 border-border border-b px-4 py-2">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
