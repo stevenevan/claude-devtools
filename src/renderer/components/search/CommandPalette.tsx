@@ -1,24 +1,21 @@
-/**
- * CommandPalette - Spotlight/Alfred-like search modal.
- * Triggered by Cmd+K.
- *
- * Behavior:
- * - When NO project is selected: Searches projects by name/path
- * - When a project IS selected: Searches conversations within that project
- */
-
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
-import { Dialog, DialogPortal } from '@renderer/components/ui/dialog';
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from '@renderer/components/ui/command';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatModifierShortcut } from '@renderer/utils/keyboardUtils';
 import { createLogger } from '@shared/utils/logger';
-import { useShallow } from 'zustand/react/shallow';
-
-const logger = createLogger('Component:CommandPalette');
 import { formatDistanceToNow } from 'date-fns';
 import {
   Bot,
@@ -27,138 +24,15 @@ import {
   Globe,
   Loader2,
   MessageSquare,
-  Search,
   User,
-  X,
 } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 
 import type { RepositoryGroup, SearchResult } from '@renderer/types/data';
 
-// =============================================================================
-// Search Mode Type
-// =============================================================================
+const logger = createLogger('Component:CommandPalette');
 
 type SearchMode = 'projects' | 'sessions';
-
-// =============================================================================
-// Project Search Result Item
-// =============================================================================
-
-interface ProjectResultItemProps {
-  repo: RepositoryGroup;
-  isSelected: boolean;
-  onClick: () => void;
-}
-
-const ProjectResultItemInner = ({
-  repo,
-  isSelected,
-  onClick,
-}: Readonly<ProjectResultItemProps>): React.JSX.Element => {
-  const lastActivity = repo.mostRecentSession
-    ? formatDistanceToNow(new Date(repo.mostRecentSession), { addSuffix: true })
-    : 'No recent activity';
-
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'w-full px-4 py-3 text-left transition-colors',
-        isSelected ? 'bg-card' : 'hover:bg-card/50'
-      )}
-    >
-      <div className="flex items-start gap-3">
-        <div className="text-muted-foreground mt-0.5 shrink-0">
-          <FolderGit2 className="size-4" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="text-foreground truncate text-sm font-medium">{repo.name}</div>
-          <div className="text-muted-foreground mt-0.5 truncate font-mono text-xs">
-            {repo.worktrees[0]?.path || ''}
-          </div>
-          <div className="text-muted-foreground mt-1 flex items-center gap-3 text-xs">
-            <span>{repo.totalSessions} sessions</span>
-            <span>·</span>
-            <span>{lastActivity}</span>
-          </div>
-        </div>
-      </div>
-    </button>
-  );
-};
-
-const ProjectResultItem = React.memo(ProjectResultItemInner);
-
-// =============================================================================
-// Session Search Result Item
-// =============================================================================
-
-interface SessionResultItemProps {
-  result: SearchResult;
-  isSelected: boolean;
-  onClick: () => void;
-  highlightMatch: (context: string, matchedText: string) => React.ReactNode;
-  showProjectName?: boolean;
-  projectName?: string;
-}
-
-const SessionResultItemInner = ({
-  result,
-  isSelected,
-  onClick,
-  highlightMatch,
-  showProjectName = false,
-  projectName,
-}: Readonly<SessionResultItemProps>): React.JSX.Element => {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'w-full px-4 py-3 text-left transition-colors',
-        isSelected ? 'bg-card' : 'hover:bg-card/50'
-      )}
-    >
-      <div className="flex items-start gap-3">
-        <div
-          className={cn(
-            'mt-0.5 shrink-0',
-            result.messageType === 'user' ? 'text-blue-400' : 'text-green-400'
-          )}
-        >
-          {result.messageType === 'user' ? <User className="size-4" /> : <Bot className="size-4" />}
-        </div>
-        <div className="min-w-0 flex-1">
-          {showProjectName && projectName && (
-            <div className="mb-1 flex items-center gap-2">
-              <FolderGit2 className="size-3 text-blue-400" />
-              <span className="truncate text-xs font-medium text-blue-400">{projectName}</span>
-            </div>
-          )}
-          <div className="mb-1 flex items-center gap-2">
-            <FileText className="text-muted-foreground size-3" />
-            <span className="text-muted-foreground truncate text-xs">
-              {result.sessionTitle.slice(0, 60)}
-              {result.sessionTitle.length > 60 ? '...' : ''}
-            </span>
-          </div>
-          <div className="text-foreground text-sm leading-relaxed">
-            {highlightMatch(result.context, result.matchedText)}
-          </div>
-          <div className="text-muted-foreground/60 mt-1 text-xs">
-            {new Date(result.timestamp).toLocaleDateString()}{' '}
-            {new Date(result.timestamp).toLocaleTimeString()}
-          </div>
-        </div>
-      </div>
-    </button>
-  );
-};
-
-const SessionResultItem = React.memo(SessionResultItemInner);
-
-// =============================================================================
-// Main Component
-// =============================================================================
 
 export const CommandPalette = (): React.JSX.Element | null => {
   const {
@@ -181,40 +55,30 @@ export const CommandPalette = (): React.JSX.Element | null => {
     }))
   );
 
-  const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const [sessionResults, setSessionResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(0);
   const [totalMatches, setTotalMatches] = useState(0);
   const [searchIsPartial, setSearchIsPartial] = useState(false);
   const [globalSearchEnabled, setGlobalSearchEnabled] = useState(false);
   const latestSearchRequestRef = useRef(0);
 
-  // Determine search mode based on whether a project is selected OR global search is enabled
   const searchMode: SearchMode = selectedProjectId || globalSearchEnabled ? 'sessions' : 'projects';
 
-  // Filter projects for project search mode
   const filteredProjects = useMemo(() => {
     if (searchMode !== 'projects' || query.trim().length < 1) {
       return repositoryGroups.slice(0, 10);
     }
-
     const q = query.toLowerCase().trim();
     return repositoryGroups
       .filter((repo) => {
         if (repo.name.toLowerCase().includes(q)) return true;
         const path = repo.worktrees[0]?.path || '';
-        if (path.toLowerCase().includes(q)) return true;
-        return false;
+        return path.toLowerCase().includes(q);
       })
       .slice(0, 10);
   }, [repositoryGroups, query, searchMode]);
 
-  // Results count for current mode
-  const resultsCount = searchMode === 'projects' ? filteredProjects.length : sessionResults.length;
-
-  // Fetch repository groups if needed
   useEffect(() => {
     if (
       commandPaletteOpen &&
@@ -223,38 +87,25 @@ export const CommandPalette = (): React.JSX.Element | null => {
     ) {
       void fetchRepositoryGroups();
     }
-  }, [
-    commandPaletteOpen,
-    searchMode,
-    globalSearchEnabled,
-    repositoryGroups.length,
-    fetchRepositoryGroups,
-  ]);
+  }, [commandPaletteOpen, searchMode, globalSearchEnabled, repositoryGroups.length, fetchRepositoryGroups]);
 
-  // Focus input when palette opens
   useEffect(() => {
-    if (commandPaletteOpen && inputRef.current) {
-      inputRef.current.focus();
+    if (commandPaletteOpen) {
       setQuery('');
       setSessionResults([]);
-      setSelectedIndex(0);
       setTotalMatches(0);
       setSearchIsPartial(false);
       setGlobalSearchEnabled(false);
     }
   }, [commandPaletteOpen]);
 
-  // Search sessions with debounce (only in session mode)
   useEffect(() => {
-    // Only clear results when query is too short or palette is closed
     if (!commandPaletteOpen || query.trim().length < 2) {
       setSessionResults([]);
       setTotalMatches(0);
       setSearchIsPartial(false);
       return;
     }
-
-    // Early return without clearing if we're not in the right mode
     if (searchMode !== 'sessions' || (!globalSearchEnabled && !selectedProjectId)) {
       return;
     }
@@ -267,47 +118,33 @@ export const CommandPalette = (): React.JSX.Element | null => {
         const searchResult = globalSearchEnabled
           ? await api.searchAllProjects(query.trim(), 50)
           : await api.searchSessions(selectedProjectId!, query.trim(), 50);
-        if (latestSearchRequestRef.current !== requestId) {
-          return;
-        }
+        if (latestSearchRequestRef.current !== requestId) return;
         setSessionResults(searchResult.results);
         setTotalMatches(searchResult.totalMatches);
         setSearchIsPartial(!!searchResult.isPartial);
-        setSelectedIndex(0);
       } catch (error) {
-        if (latestSearchRequestRef.current !== requestId) {
-          return;
-        }
+        if (latestSearchRequestRef.current !== requestId) return;
         logger.error('Search error:', error);
         setSessionResults([]);
         setTotalMatches(0);
         setSearchIsPartial(false);
       } finally {
-        if (latestSearchRequestRef.current === requestId) {
-          setLoading(false);
-        }
+        if (latestSearchRequestRef.current === requestId) setLoading(false);
       }
     }, 400);
 
     return () => clearTimeout(timeoutId);
   }, [query, selectedProjectId, commandPaletteOpen, searchMode, globalSearchEnabled]);
 
-  // Reset selected index when results change
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [filteredProjects, sessionResults]);
-
-  // Handle project click
-  const handleProjectClick = useCallback(
-    (repo: RepositoryGroup) => {
+  const handleProjectSelect = useCallback(
+    (repoId: string) => {
       closeCommandPalette();
-      selectRepository(repo.id);
+      selectRepository(repoId);
     },
     [closeCommandPalette, selectRepository]
   );
 
-  // Handle session result click
-  const handleSessionResultClick = useCallback(
+  const handleSessionSelect = useCallback(
     (result: SearchResult) => {
       closeCommandPalette();
       navigateToSession(result.projectId, result.sessionId, true, {
@@ -323,256 +160,239 @@ export const CommandPalette = (): React.JSX.Element | null => {
     [closeCommandPalette, navigateToSession, query]
   );
 
-  // Handle keyboard navigation
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'g' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setGlobalSearchEnabled((prev) => !prev);
-        return;
-      }
-
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        closeCommandPalette();
-        return;
-      }
-
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedIndex((prev) => Math.min(prev + 1, resultsCount - 1));
-        return;
-      }
-
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedIndex((prev) => Math.max(prev - 1, 0));
-        return;
-      }
-
-      if (e.key === 'Enter' && resultsCount > 0) {
-        e.preventDefault();
-        if (searchMode === 'projects') {
-          const selected = filteredProjects[selectedIndex];
-          if (selected) {
-            handleProjectClick(selected);
-          }
-        } else {
-          const selected = sessionResults[selectedIndex];
-          if (selected) {
-            handleSessionResultClick(selected);
-          }
-        }
-      }
-    },
-    [
-      resultsCount,
-      selectedIndex,
-      closeCommandPalette,
-      searchMode,
-      filteredProjects,
-      sessionResults,
-      handleProjectClick,
-      handleSessionResultClick,
-    ]
-  );
-
-  // Highlight matched text in context
   const highlightMatch = useCallback((context: string, matchedText: string) => {
     const lowerContext = context.toLowerCase();
     const lowerMatch = matchedText.toLowerCase();
     const matchIndex = lowerContext.indexOf(lowerMatch);
-
-    if (matchIndex === -1) {
-      return <span>{context}</span>;
-    }
-
-    const before = context.slice(0, matchIndex);
-    const match = context.slice(matchIndex, matchIndex + matchedText.length);
-    const after = context.slice(matchIndex + matchedText.length);
+    if (matchIndex === -1) return <span>{context}</span>;
 
     return (
       <>
-        <span>{before}</span>
-        <mark className="rounded bg-yellow-400/20 px-0.5 text-foreground">
-          {match}
+        <span>{context.slice(0, matchIndex)}</span>
+        <mark className="text-foreground rounded bg-yellow-400/20 px-0.5">
+          {context.slice(matchIndex, matchIndex + matchedText.length)}
         </mark>
-        <span>{after}</span>
+        <span>{context.slice(matchIndex + matchedText.length)}</span>
       </>
     );
   }, []);
 
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) closeCommandPalette();
+    },
+    [closeCommandPalette]
+  );
+
+  const resultsCount = searchMode === 'projects' ? filteredProjects.length : sessionResults.length;
+
   return (
-    <Dialog
+    <CommandDialog
       open={commandPaletteOpen}
-      onOpenChange={(open) => {
-        if (!open) closeCommandPalette();
-      }}
+      onOpenChange={handleOpenChange}
+      title="Search"
+      description="Search projects and conversations"
+      showCloseButton={false}
+      className="top-[15vh] max-w-2xl translate-y-0 gap-0 p-0"
     >
-      <DialogPortal>
-        <div
-          className="fixed inset-0 z-50 bg-black/80 supports-backdrop-filter:backdrop-blur-xs"
-          onClick={closeCommandPalette}
-          aria-hidden="true"
-        />
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]"
-          onClick={closeCommandPalette}
-        >
-          <div
-            className="border-border bg-background w-full max-w-2xl overflow-hidden rounded-xl border shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
+      <Command shouldFilter={false} className="rounded-none p-0">
+        <div className="bg-card/50 border-border flex items-center justify-between gap-2 border-b px-4 py-2">
+          <div className="flex items-center gap-2">
+            {searchMode === 'projects' ? (
+              <>
+                <FolderGit2 className="text-muted-foreground size-3.5" />
+                <span className="text-muted-foreground text-xs">Search projects</span>
+              </>
+            ) : (
+              <>
+                <MessageSquare className="text-muted-foreground size-3.5" />
+                <span className="text-muted-foreground text-xs">
+                  {globalSearchEnabled ? 'Search across all projects' : 'Search in project'}
+                </span>
+                {!globalSearchEnabled && (
+                  <>
+                    <span className="text-muted-foreground/50 mx-1 text-xs">·</span>
+                    <span className="text-muted-foreground truncate text-xs">
+                      {repositoryGroups.find((r) =>
+                        r.worktrees.some((w) => w.id === selectedProjectId)
+                      )?.name ?? 'Current project'}
+                    </span>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+          <Button
+            variant={globalSearchEnabled ? 'secondary' : 'ghost'}
+            size="xs"
+            onClick={() => setGlobalSearchEnabled(!globalSearchEnabled)}
+            className={
+              globalSearchEnabled ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30' : ''
+            }
+            title={
+              !globalSearchEnabled
+                ? `Search across all projects (${formatModifierShortcut('G')})`
+                : undefined
+            }
           >
-            <div className="bg-card/50 border-border border-b px-4 py-2">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  {searchMode === 'projects' ? (
-                    <>
-                      <FolderGit2 className="text-muted-foreground size-3.5" />
-                      <span className="text-muted-foreground text-xs">Search projects</span>
-                    </>
-                  ) : (
-                    <>
-                      <MessageSquare className="text-muted-foreground size-3.5" />
-                      <span className="text-muted-foreground text-xs">
-                        {globalSearchEnabled ? 'Search across all projects' : 'Search in project'}
-                      </span>
-                      {!globalSearchEnabled && (
-                        <>
-                          <span className="text-muted-foreground/50 mx-1 text-xs">·</span>
-                          <span className="text-muted-foreground truncate text-xs">
-                            {repositoryGroups.find((r) =>
-                              r.worktrees.some((w) => w.id === selectedProjectId)
-                            )?.name ?? 'Current project'}
-                          </span>
-                        </>
-                      )}
-                    </>
-                  )}
-                </div>
-                <Button
-                  variant={globalSearchEnabled ? 'secondary' : 'ghost'}
-                  size="xs"
-                  onClick={() => setGlobalSearchEnabled(!globalSearchEnabled)}
-                  className={
-                    globalSearchEnabled ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30' : ''
-                  }
-                  title={
-                    !globalSearchEnabled
-                      ? `Search across all projects (${formatModifierShortcut('G')})`
-                      : undefined
-                  }
+            <Globe className="size-3" />
+            Global
+          </Button>
+        </div>
+
+        <div className="border-border relative flex items-center border-b">
+          <CommandInput
+            value={query}
+            onValueChange={setQuery}
+            placeholder={
+              searchMode === 'projects' ? 'Search projects...' : 'Search conversations...'
+            }
+            className="text-base"
+            onKeyDown={(e) => {
+              if (e.key === 'g' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                setGlobalSearchEnabled((prev) => !prev);
+              }
+            }}
+          />
+          {loading && (
+            <Loader2 className="text-muted-foreground absolute right-3 size-4 animate-spin" />
+          )}
+        </div>
+
+        <CommandList className="max-h-[50vh]">
+          {searchMode === 'projects' ? (
+            <CommandGroup heading="Projects">
+              {filteredProjects.map((repo) => (
+                <CommandItem
+                  key={repo.id}
+                  value={repo.id}
+                  onSelect={() => handleProjectSelect(repo.id)}
+                  className="gap-3 px-4 py-3"
                 >
-                  <Globe className="size-3" />
-                  Global
-                </Button>
-              </div>
-            </div>
-
-            <div className="border-border flex items-center gap-3 border-b px-4 py-3">
-              <Search className="text-muted-foreground size-5 shrink-0" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={
-                  searchMode === 'projects' ? 'Search projects...' : 'Search conversations...'
-                }
-                className="placeholder:text-muted-foreground/50 text-foreground flex-1 bg-transparent text-base focus:outline-hidden"
-              />
-              {loading && <Loader2 className="text-muted-foreground size-4 animate-spin" />}
-              <Button variant="ghost" size="icon-xs" onClick={closeCommandPalette}>
-                <X className="size-4" />
-              </Button>
-            </div>
-
-            <div className="max-h-[50vh] overflow-y-auto">
-              {searchMode === 'projects' ? (
-                filteredProjects.length === 0 ? (
-                  <div className="text-muted-foreground px-4 py-8 text-center text-sm">
-                    {query.trim() ? `No projects found for "${query}"` : 'No projects found'}
+                  <FolderGit2 className="text-muted-foreground size-4 shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-foreground truncate text-sm font-medium">{repo.name}</div>
+                    <div className="text-muted-foreground mt-0.5 truncate font-mono text-xs">
+                      {repo.worktrees[0]?.path || ''}
+                    </div>
+                    <div className="text-muted-foreground mt-1 flex items-center gap-3 text-xs">
+                      <span>{repo.totalSessions} sessions</span>
+                      <span>·</span>
+                      <span>
+                        {repo.mostRecentSession
+                          ? formatDistanceToNow(new Date(repo.mostRecentSession), {
+                              addSuffix: true,
+                            })
+                          : 'No recent activity'}
+                      </span>
+                    </div>
                   </div>
-                ) : (
-                  <div className="py-2">
-                    {filteredProjects.map((repo, index) => (
-                      <ProjectResultItem
-                        key={repo.id}
-                        repo={repo}
-                        isSelected={index === selectedIndex}
-                        onClick={() => handleProjectClick(repo)}
-                      />
-                    ))}
-                  </div>
-                )
-              ) : query.trim().length < 2 ? (
-                <div className="text-muted-foreground px-4 py-8 text-center text-sm">
-                  Type at least 2 characters to search
-                </div>
-              ) : sessionResults.length === 0 && !loading ? (
-                <div className="text-muted-foreground px-4 py-8 text-center text-sm">
-                  {searchIsPartial
-                    ? `No fast results in recent sessions for "${query}"`
-                    : `No results found for "${query}"`}
-                </div>
-              ) : (
-                <div className="py-2">
-                  {sessionResults.map((result, index) => {
-                    const projectName = globalSearchEnabled
-                      ? repositoryGroups.find((r) =>
-                          r.worktrees.some((w) => w.id === result.projectId)
-                        )?.name
-                      : undefined;
-
-                    return (
-                      <SessionResultItem
-                        key={`${result.sessionId}-${index}`}
-                        result={result}
-                        isSelected={index === selectedIndex}
-                        onClick={() => handleSessionResultClick(result)}
-                        highlightMatch={highlightMatch}
-                        showProjectName={globalSearchEnabled}
-                        projectName={projectName}
-                      />
-                    );
-                  })}
-                </div>
+                </CommandItem>
+              ))}
+              {filteredProjects.length === 0 && (
+                <CommandEmpty>
+                  {query.trim() ? `No projects found for "${query}"` : 'No projects found'}
+                </CommandEmpty>
               )}
-            </div>
+            </CommandGroup>
+          ) : query.trim().length < 2 ? (
+            <CommandEmpty>Type at least 2 characters to search</CommandEmpty>
+          ) : sessionResults.length === 0 && !loading ? (
+            <CommandEmpty>
+              {searchIsPartial
+                ? `No fast results in recent sessions for "${query}"`
+                : `No results found for "${query}"`}
+            </CommandEmpty>
+          ) : (
+            <CommandGroup heading="Results">
+              {sessionResults.map((result, index) => {
+                const projectName = globalSearchEnabled
+                  ? repositoryGroups.find((r) =>
+                      r.worktrees.some((w) => w.id === result.projectId)
+                    )?.name
+                  : undefined;
 
-            <div className="border-border text-muted-foreground flex items-center justify-between border-t px-4 py-2 text-xs">
-              <span>
-                {searchMode === 'projects'
-                  ? `${filteredProjects.length} project${filteredProjects.length !== 1 ? 's' : ''}`
-                  : totalMatches > 0
-                    ? `${totalMatches} ${searchIsPartial ? 'fast ' : ''}result${totalMatches !== 1 ? 's' : ''}${globalSearchEnabled ? ' across all projects' : ''}`
-                    : 'Type to search'}
-              </span>
-              <div className="flex items-center gap-4">
-                <span>
-                  <kbd className="bg-popover rounded px-1.5 py-0.5 text-[10px]">↑↓</kbd>{' '}
-                  navigate
-                </span>
-                <span>
-                  <kbd className="bg-popover rounded px-1.5 py-0.5 text-[10px]">↵</kbd>{' '}
-                  {searchMode === 'projects' ? 'select' : 'open'}
-                </span>
-                <span>
-                  <kbd className="bg-popover rounded px-1.5 py-0.5 text-[10px]">
-                    {formatModifierShortcut('G')}
-                  </kbd>{' '}
-                  global
-                </span>
-                <span>
-                  <kbd className="bg-popover rounded px-1.5 py-0.5 text-[10px]">esc</kbd>{' '}
-                  close
-                </span>
-              </div>
-            </div>
+                return (
+                  <CommandItem
+                    key={`${result.sessionId}-${index}`}
+                    value={`${result.sessionId}-${index}`}
+                    onSelect={() => handleSessionSelect(result)}
+                    className="gap-3 px-4 py-3"
+                  >
+                    <div
+                      className={cn(
+                        'shrink-0',
+                        result.messageType === 'user' ? 'text-blue-400' : 'text-green-400'
+                      )}
+                    >
+                      {result.messageType === 'user' ? (
+                        <User className="size-4" />
+                      ) : (
+                        <Bot className="size-4" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      {globalSearchEnabled && projectName && (
+                        <div className="mb-1 flex items-center gap-2">
+                          <FolderGit2 className="size-3 text-blue-400" />
+                          <span className="truncate text-xs font-medium text-blue-400">
+                            {projectName}
+                          </span>
+                        </div>
+                      )}
+                      <div className="mb-1 flex items-center gap-2">
+                        <FileText className="text-muted-foreground size-3" />
+                        <span className="text-muted-foreground truncate text-xs">
+                          {result.sessionTitle.slice(0, 60)}
+                          {result.sessionTitle.length > 60 ? '...' : ''}
+                        </span>
+                      </div>
+                      <div className="text-foreground text-sm leading-relaxed">
+                        {highlightMatch(result.context, result.matchedText)}
+                      </div>
+                      <div className="text-muted-foreground/60 mt-1 text-xs">
+                        {new Date(result.timestamp).toLocaleDateString()}{' '}
+                        {new Date(result.timestamp).toLocaleTimeString()}
+                      </div>
+                    </div>
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          )}
+        </CommandList>
+
+        <CommandSeparator />
+
+        <div className="text-muted-foreground flex items-center justify-between px-4 py-2 text-xs">
+          <span>
+            {searchMode === 'projects'
+              ? `${filteredProjects.length} project${filteredProjects.length !== 1 ? 's' : ''}`
+              : totalMatches > 0
+                ? `${totalMatches} ${searchIsPartial ? 'fast ' : ''}result${totalMatches !== 1 ? 's' : ''}${globalSearchEnabled ? ' across all projects' : ''}`
+                : 'Type to search'}
+          </span>
+          <div className="flex items-center gap-4">
+            <span>
+              <kbd className="bg-popover rounded px-1.5 py-0.5 text-[10px]">↑↓</kbd> navigate
+            </span>
+            <span>
+              <kbd className="bg-popover rounded px-1.5 py-0.5 text-[10px]">↵</kbd>{' '}
+              {searchMode === 'projects' ? 'select' : 'open'}
+            </span>
+            <span>
+              <kbd className="bg-popover rounded px-1.5 py-0.5 text-[10px]">
+                {formatModifierShortcut('G')}
+              </kbd>{' '}
+              global
+            </span>
+            <span>
+              <kbd className="bg-popover rounded px-1.5 py-0.5 text-[10px]">esc</kbd> close
+            </span>
           </div>
         </div>
-      </DialogPortal>
-    </Dialog>
+      </Command>
+    </CommandDialog>
   );
 };
