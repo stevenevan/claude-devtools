@@ -1,12 +1,10 @@
-/**
- * CollapsibleOutputSection
- *
- * Reusable component that wraps tool output in a collapsed-by-default section.
- * Shows a clickable header with label, StatusDot, and chevron toggle.
- */
+import React from 'react';
 
-import React, { useState } from 'react';
-
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@renderer/components/ui/collapsible';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 import { type ItemStatus, StatusDot } from '../BaseItem';
@@ -14,7 +12,6 @@ import { type ItemStatus, StatusDot } from '../BaseItem';
 interface CollapsibleOutputSectionProps {
   status: ItemStatus;
   children: React.ReactNode;
-  /** Label shown in the header (default: "Output") */
   label?: string;
 }
 
@@ -23,27 +20,22 @@ export const CollapsibleOutputSection: React.FC<CollapsibleOutputSectionProps> =
   children,
   label = 'Output',
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = React.useState(false);
 
   return (
-    <div>
-      <button
-        type="button"
-        className="mb-1 flex items-center gap-2 text-xs"
+    <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+      <CollapsibleTrigger
+        className="mb-1 flex items-center gap-2 border-none bg-none p-0 text-xs"
         style={{
           color: 'var(--tool-item-muted)',
-          background: 'none',
-          border: 'none',
-          padding: 0,
           cursor: 'pointer',
         }}
-        onClick={() => setIsExpanded((prev) => !prev)}
       >
         {isExpanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
         {label}
         <StatusDot status={status} />
-      </button>
-      {isExpanded && (
+      </CollapsibleTrigger>
+      <CollapsibleContent>
         <div
           className="max-h-96 overflow-auto rounded p-3 font-mono text-xs"
           style={{
@@ -55,7 +47,7 @@ export const CollapsibleOutputSection: React.FC<CollapsibleOutputSectionProps> =
         >
           {children}
         </div>
-      )}
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 };

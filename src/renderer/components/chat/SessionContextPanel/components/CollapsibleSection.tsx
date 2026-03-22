@@ -1,9 +1,10 @@
-/**
- * CollapsibleSection - Generic collapsible wrapper for content sections.
- */
-
 import React from 'react';
 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@renderer/components/ui/collapsible';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 import { formatTokens } from '../utils/formatting';
@@ -26,52 +27,53 @@ export const CollapsibleSection = ({
   children,
 }: Readonly<CollapsibleSectionProps>): React.ReactElement => {
   return (
-    <div
-      className="overflow-hidden rounded-lg"
-      style={{
-        backgroundColor: 'var(--color-surface-raised)',
-        border: '1px solid var(--color-border-subtle)',
-      }}
-    >
-      <button
-        onClick={onToggle}
-        className="flex w-full items-center justify-between px-3 py-2 transition-colors"
+    <Collapsible open={isExpanded} onOpenChange={onToggle}>
+      <div
+        className="overflow-hidden rounded-lg"
         style={{
-          backgroundColor: isExpanded ? 'var(--color-surface-overlay)' : 'transparent',
+          backgroundColor: 'var(--color-surface-raised)',
+          border: '1px solid var(--color-border-subtle)',
         }}
       >
-        <div className="flex items-center gap-2">
-          {isExpanded ? (
-            <ChevronDown size={14} style={{ color: 'var(--color-text-secondary)' }} />
-          ) : (
-            <ChevronRight size={14} style={{ color: 'var(--color-text-secondary)' }} />
-          )}
-          <span className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>
-            {title}
-          </span>
-          <span
-            className="rounded-sm px-1.5 py-0.5 text-xs"
-            style={{
-              backgroundColor: 'var(--color-surface-overlay)',
-              color: 'var(--color-text-secondary)',
-            }}
-          >
-            {count}
-          </span>
-        </div>
-        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-          ~{formatTokens(tokenCount)} tokens
-        </span>
-      </button>
-
-      {isExpanded && (
-        <div
-          className="space-y-2 px-3 py-2"
-          style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+        <CollapsibleTrigger
+          className="flex w-full items-center justify-between px-3 py-2 transition-colors"
+          style={{
+            backgroundColor: isExpanded ? 'var(--color-surface-overlay)' : 'transparent',
+          }}
         >
-          {children}
-        </div>
-      )}
-    </div>
+          <div className="flex items-center gap-2">
+            {isExpanded ? (
+              <ChevronDown size={14} style={{ color: 'var(--color-text-secondary)' }} />
+            ) : (
+              <ChevronRight size={14} style={{ color: 'var(--color-text-secondary)' }} />
+            )}
+            <span className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>
+              {title}
+            </span>
+            <span
+              className="rounded-sm px-1.5 py-0.5 text-xs"
+              style={{
+                backgroundColor: 'var(--color-surface-overlay)',
+                color: 'var(--color-text-secondary)',
+              }}
+            >
+              {count}
+            </span>
+          </div>
+          <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            ~{formatTokens(tokenCount)} tokens
+          </span>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <div
+            className="space-y-2 px-3 py-2"
+            style={{ borderTop: '1px solid var(--color-border-subtle)' }}
+          >
+            {children}
+          </div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
   );
 };
