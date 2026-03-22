@@ -93,8 +93,8 @@ const WorktreeItem = ({
     <button
       onClick={onSelect}
       className={cn(
-        'flex w-full items-center gap-1.5 px-4 py-1.5 text-left transition-colors',
-        isSelected ? 'bg-surface-raised text-text' : 'hover:bg-surface-raised hover:opacity-50'
+        'flex w-full items-center gap-1.5 px-3 py-2 text-left transition-colors',
+        isSelected ? 'bg-surface-raised text-text' : 'hover:bg-surface-raised'
       )}
     >
       <GitBranch
@@ -135,7 +135,7 @@ const ProjectDropdownItem = ({
       onClick={onSelect}
       className={cn(
         'flex w-full items-center gap-2 px-3 py-2 text-left transition-colors',
-        isSelected ? 'bg-surface-raised text-text' : 'hover:bg-surface-raised hover:opacity-50'
+        isSelected ? 'bg-surface-raised text-text' : 'hover:bg-surface-raised'
       )}
     >
       <div className="min-w-0 flex-1">
@@ -251,7 +251,7 @@ export const SidebarHeader = (): React.JSX.Element => {
       >
         <Popover open={isProjectDropdownOpen} onOpenChange={setIsProjectDropdownOpen}>
           <PopoverTrigger
-            className="flex min-w-0 items-center gap-2 transition-opacity hover:opacity-80"
+            className="flex min-w-0 items-center gap-2 rounded-md px-2 py-1 -ml-2 transition-colors hover:bg-white/[0.05]"
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           >
             <span

@@ -214,8 +214,10 @@ export const SessionItem = React.memo(function SessionItem({
           <button
             onClick={handleClick}
             className={cn(
-              'h-[48px] w-full overflow-hidden border-b border-border px-3 py-2 text-left transition-all duration-150',
-              isActive ? 'bg-surface-raised' : 'bg-transparent hover:opacity-80',
+              'h-[48px] w-full overflow-hidden border-b border-border py-2 text-left transition-all duration-150 border-l-2 focus-visible:ring-1 focus-visible:ring-[var(--color-accent)] focus-visible:ring-inset',
+              isActive
+                ? 'bg-surface-raised border-l-[var(--color-accent)] pl-[10px]'
+                : 'bg-transparent border-l-transparent pl-3 hover:bg-white/[0.03]',
               isHidden && 'opacity-50'
             )}
           />

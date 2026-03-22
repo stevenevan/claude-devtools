@@ -114,6 +114,7 @@ export const SortableTab = ({
             role="tab"
             tabIndex={0}
             aria-selected={isActive}
+            title={tab.label}
             className={cn(
               'group flex max-w-[200px] min-w-0 shrink-0 cursor-grab items-center gap-2 rounded-md px-3 py-1.5',
               isActive
@@ -153,7 +154,10 @@ export const SortableTab = ({
         )}
         <span className="truncate text-sm">{tab.label}</span>
         <button
-          className="flex size-4 shrink-0 items-center justify-center rounded-xs bg-transparent opacity-0 transition-opacity group-hover:opacity-100"
+          className={cn(
+            'flex size-4 shrink-0 items-center justify-center rounded-xs bg-transparent transition-opacity group-hover:opacity-100 focus-visible:opacity-100',
+            isActive ? 'opacity-50' : 'opacity-0'
+          )}
           onClick={(e) => {
             e.stopPropagation();
             onClose(tab.id);
