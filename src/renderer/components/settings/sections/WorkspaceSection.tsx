@@ -14,11 +14,18 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { api } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@renderer/components/ui/select';
+import { useDisclosure } from '@renderer/hooks/mantine';
 import { useStore } from '@renderer/store';
 import { Edit2, Loader2, Plus, Save, Server, Trash2, X } from 'lucide-react';
 
 import { SettingsSectionHeader } from '../components/SettingsSectionHeader';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
 
 import type { SshAuthMethod, SshConnectionProfile } from '@shared/types';
 
@@ -45,7 +52,7 @@ export const WorkspaceSection = (): React.JSX.Element => {
   const [profiles, setProfiles] = useState<SshConnectionProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [showAddForm, { open: openAddForm, close: closeAddForm }] = useDisclosure(false);
 
   // Form state
   const [formName, setFormName] = useState(defaultForm.name);
@@ -110,7 +117,7 @@ export const WorkspaceSection = (): React.JSX.Element => {
     await api.config.update('ssh', { profiles: [...profiles, newProfile] });
     await loadProfiles();
     resetForm();
-    setShowAddForm(false);
+    closeAddForm();
     void useStore.getState().fetchAvailableContexts();
   };
 
@@ -158,13 +165,10 @@ export const WorkspaceSection = (): React.JSX.Element => {
     formName.trim() !== '' && formHost.trim() !== '' && formUsername.trim() !== '';
 
   const renderForm = (onSave: () => Promise<void>, onCancel: () => void): React.JSX.Element => (
-    <div className="space-y-3 rounded-md border border-border bg-surface-raised p-4">
+    <div className="border-border bg-surface-raised space-y-3 rounded-md border p-4">
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label
-            htmlFor="ws-profile-name"
-            className="mb-1 block text-xs text-text-muted"
-          >
+          <label htmlFor="ws-profile-name" className="text-text-muted mb-1 block text-xs">
             Name
           </label>
           <input
@@ -177,10 +181,7 @@ export const WorkspaceSection = (): React.JSX.Element => {
           />
         </div>
         <div>
-          <label
-            htmlFor="ws-profile-host"
-            className="mb-1 block text-xs text-text-muted"
-          >
+          <label htmlFor="ws-profile-host" className="text-text-muted mb-1 block text-xs">
             Host
           </label>
           <input
@@ -196,10 +197,7 @@ export const WorkspaceSection = (): React.JSX.Element => {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label
-            htmlFor="ws-profile-port"
-            className="mb-1 block text-xs text-text-muted"
-          >
+          <label htmlFor="ws-profile-port" className="text-text-muted mb-1 block text-xs">
             Port
           </label>
           <input
@@ -212,10 +210,7 @@ export const WorkspaceSection = (): React.JSX.Element => {
           />
         </div>
         <div>
-          <label
-            htmlFor="ws-profile-username"
-            className="mb-1 block text-xs text-text-muted"
-          >
+          <label htmlFor="ws-profile-username" className="text-text-muted mb-1 block text-xs">
             Username
           </label>
           <input
@@ -230,16 +225,16 @@ export const WorkspaceSection = (): React.JSX.Element => {
       </div>
 
       <div>
-        <label className="mb-1 block text-xs text-text-muted">
-          Authentication
-        </label>
+        <label className="text-text-muted mb-1 block text-xs">Authentication</label>
         <Select value={formAuthMethod} onValueChange={(v) => setFormAuthMethod(v!)}>
           <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {authMethodOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -249,7 +244,7 @@ export const WorkspaceSection = (): React.JSX.Element => {
         <div>
           <label
             htmlFor="ws-profile-private-key-path"
-            className="mb-1 block text-xs text-text-muted"
+            className="text-text-muted mb-1 block text-xs"
           >
             Private Key Path
           </label>
@@ -265,7 +260,7 @@ export const WorkspaceSection = (): React.JSX.Element => {
       )}
 
       {formAuthMethod === 'password' && (
-        <p className="text-xs text-text-muted">
+        <p className="text-text-muted text-xs">
           You will be prompted for the password when connecting.
         </p>
       )}
@@ -274,14 +269,14 @@ export const WorkspaceSection = (): React.JSX.Element => {
         <button
           onClick={() => void onSave()}
           disabled={!isFormValid}
-          className="flex items-center gap-1.5 rounded-md bg-surface-raised px-3 py-1.5 text-sm text-text transition-colors disabled:opacity-50"
+          className="bg-surface-raised text-text flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors disabled:opacity-50"
         >
           <Save className="size-3.5" />
           Save
         </button>
         <button
           onClick={onCancel}
-          className="flex items-center gap-1.5 rounded-md bg-transparent px-3 py-1.5 text-sm text-text-muted transition-colors"
+          className="text-text-muted flex items-center gap-1.5 rounded-md bg-transparent px-3 py-1.5 text-sm transition-colors"
         >
           <X className="size-3.5" />
           Cancel
@@ -293,19 +288,17 @@ export const WorkspaceSection = (): React.JSX.Element => {
   return (
     <div className="space-y-6">
       <SettingsSectionHeader title="Workspace Profiles" />
-      <p className="text-sm text-text-muted">
-        Save SSH connection profiles for quick reconnection
-      </p>
+      <p className="text-text-muted text-sm">Save SSH connection profiles for quick reconnection</p>
 
       {loading && (
-        <div className="flex items-center gap-2 py-4 text-text-muted">
+        <div className="text-text-muted flex items-center gap-2 py-4">
           <Loader2 className="size-4 animate-spin" />
           <span className="text-sm">Loading profiles...</span>
         </div>
       )}
 
       {!loading && profiles.length === 0 && !showAddForm && (
-        <div className="rounded-md border border-border py-8 text-center text-text-muted">
+        <div className="border-border text-text-muted rounded-md border py-8 text-center">
           <Server className="mx-auto mb-2 size-8 opacity-40" />
           <p className="text-sm">No saved profiles</p>
           <p className="mt-1 text-xs">Add an SSH profile to connect quickly</p>
@@ -325,30 +318,28 @@ export const WorkspaceSection = (): React.JSX.Element => {
             ) : (
               <div
                 key={profile.id}
-                className="flex items-center gap-3 rounded-md border border-border bg-surface-raised p-4"
+                className="border-border bg-surface-raised flex items-center gap-3 rounded-md border p-4"
               >
-                <Server className="size-4 shrink-0 text-text-muted" />
+                <Server className="text-text-muted size-4 shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-text">
-                    {profile.name}
-                  </p>
-                  <p className="truncate text-xs text-text-muted">
+                  <p className="text-text truncate text-sm font-medium">{profile.name}</p>
+                  <p className="text-text-muted truncate text-xs">
                     {profile.username}@{profile.host}:{profile.port}
                   </p>
                 </div>
-                <span className="shrink-0 rounded-sm bg-surface px-1.5 py-0.5 text-xs text-text-muted">
+                <span className="bg-surface text-text-muted shrink-0 rounded-sm px-1.5 py-0.5 text-xs">
                   {profile.authMethod}
                 </span>
                 <button
                   onClick={() => setEditingId(profile.id)}
-                  className="hover:bg-surface-raised shrink-0 rounded-sm p-1 text-text-muted transition-colors"
+                  className="hover:bg-surface-raised text-text-muted shrink-0 rounded-sm p-1 transition-colors"
                   title="Edit profile"
                 >
                   <Edit2 className="size-3.5" />
                 </button>
                 <button
                   onClick={() => void handleDelete(profile.id)}
-                  className="hover:bg-surface-raised shrink-0 rounded-sm p-1 text-text-muted transition-colors"
+                  className="hover:bg-surface-raised text-text-muted shrink-0 rounded-sm p-1 transition-colors"
                   title="Delete profile"
                 >
                   <Trash2 className="size-3.5" />
@@ -363,16 +354,16 @@ export const WorkspaceSection = (): React.JSX.Element => {
         <div>
           {showAddForm ? (
             renderForm(handleAdd, () => {
-              setShowAddForm(false);
+              closeAddForm();
               resetForm();
             })
           ) : (
             <button
               onClick={() => {
                 resetForm();
-                setShowAddForm(true);
+                openAddForm();
               }}
-              className="flex items-center gap-1.5 rounded-md bg-surface-raised px-3 py-1.5 text-sm text-text-secondary transition-colors"
+              className="bg-surface-raised text-text-secondary flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors"
             >
               <Plus className="size-3.5" />
               Add Profile

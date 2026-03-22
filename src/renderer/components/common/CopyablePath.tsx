@@ -52,7 +52,7 @@ export const CopyablePath = ({
         {displayText}
       </span>
       <span
-        className="flex shrink-0 items-center opacity-0 transition-opacity group-hover/copypath:opacity-60 text-text-muted"
+        className="text-text-muted flex shrink-0 items-center opacity-0 transition-opacity group-hover/copypath:opacity-60"
         style={style?.color ? { color: style.color } : undefined}
         aria-hidden="true"
       >

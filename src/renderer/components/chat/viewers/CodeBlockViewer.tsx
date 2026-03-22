@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 
+import { useClipboard } from '@renderer/hooks/mantine';
 import { cn } from '@renderer/lib/utils';
 import { getBaseName } from '@renderer/utils/pathUtils';
 import { createLogger } from '@shared/utils/logger';
@@ -126,7 +127,7 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
   endLine,
   maxHeight = 'max-h-96',
 }): React.JSX.Element => {
-  const [isCopied, setIsCopied] = useState(false);
+  const { copy, copied } = useClipboard({ timeout: 2000 });
 
   // Infer language from file extension if not provided
   const detectedLanguage = language ?? inferLanguage(fileName);
@@ -138,52 +139,38 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
   // Calculate the actual line range for display
   const actualEndLine = endLine ?? startLine + totalLines - 1;
 
-  // Handle copy
-  const handleCopy = async (): Promise<void> => {
-    try {
-      await navigator.clipboard.writeText(content);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch {
-      logger.error('Failed to copy to clipboard');
-    }
-  };
-
   // Extract just the filename for display
   const displayFileName = getBaseName(fileName) || fileName;
 
   return (
-    <div className="overflow-hidden rounded-lg shadow-xs bg-[var(--code-bg)] border border-[var(--code-border)]">
+    <div className="overflow-hidden rounded-lg border border-[var(--code-border)] bg-[var(--code-bg)] shadow-xs">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 bg-[var(--code-header-bg)] border-b border-[var(--code-border)]">
+      <div className="flex items-center justify-between border-b border-[var(--code-border)] bg-[var(--code-header-bg)] px-3 py-2">
         <div className="flex min-w-0 items-center gap-2">
-          <FileCode className="size-4 shrink-0 text-text-muted" />
-          <span
-            className="truncate font-mono text-sm text-[var(--code-filename)]"
-            title={fileName}
-          >
+          <FileCode className="text-text-muted size-4 shrink-0" />
+          <span className="truncate font-mono text-sm text-[var(--code-filename)]" title={fileName}>
             {displayFileName}
           </span>
           {(startLine > 1 || endLine) && (
-            <span className="shrink-0 text-xs text-text-muted">
+            <span className="text-text-muted shrink-0 text-xs">
               (lines {startLine}-{actualEndLine})
             </span>
           )}
-          <span className="shrink-0 rounded-sm px-1.5 py-0.5 text-xs bg-[var(--tag-bg)] text-[var(--tag-text)] border border-[var(--tag-border)]">
+          <span className="shrink-0 rounded-sm border border-[var(--tag-border)] bg-[var(--tag-bg)] px-1.5 py-0.5 text-xs text-[var(--tag-text)]">
             {detectedLanguage}
           </span>
         </div>
 
         {/* Copy button */}
         <button
-          onClick={handleCopy}
-          className="rounded-sm p-1 transition-colors hover:opacity-80 bg-transparent"
+          onClick={() => copy(content)}
+          className="rounded-sm bg-transparent p-1 transition-colors hover:opacity-80"
           title="Copy to clipboard"
         >
-          {isCopied ? (
+          {copied ? (
             <Check className="size-4 text-[var(--badge-success-bg)]" />
           ) : (
-            <Copy className="size-4 text-text-muted" />
+            <Copy className="text-text-muted size-4" />
           )}
         </button>
       </div>
@@ -197,11 +184,11 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
               return (
                 <div key={index} className="flex hover:bg-[var(--color-surface-overlay)]">
                   {/* Line number */}
-                  <span className="w-12 shrink-0 px-3 py-0.5 text-right select-none text-[var(--code-line-number)] border-r border-[var(--code-border)]">
+                  <span className="w-12 shrink-0 border-r border-[var(--code-border)] px-3 py-0.5 text-right text-[var(--code-line-number)] select-none">
                     {lineNumber}
                   </span>
                   {/* Code line */}
-                  <span className="flex-1 px-4 py-0.5 whitespace-pre text-text">
+                  <span className="text-text flex-1 px-4 py-0.5 whitespace-pre">
                     {highlightLine(line, detectedLanguage)}
                   </span>
                 </div>

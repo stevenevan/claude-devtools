@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
+import { useDebouncedCallback } from '@renderer/hooks/mantine';
 import { useStore } from '@renderer/store';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -51,9 +52,6 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
 
   // Local input value for responsive typing — debounced before triggering search
   const [localQuery, setLocalQuery] = useState(searchQuery);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(
-    0 as unknown as ReturnType<typeof setTimeout>
-  );
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -62,29 +60,27 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
     setLocalQuery(searchQuery);
   }, [searchQuery]);
 
+  const debouncedSetSearch = useDebouncedCallback(
+    (value: string) => setSearchQuery(value, conversation),
+    SEARCH_DEBOUNCE_MS
+  );
+
   // Debounced search dispatch
   const handleChange = useCallback(
     (value: string) => {
       setLocalQuery(value);
-      clearTimeout(debounceRef.current);
 
       // Clear immediately when input is emptied
       if (!value.trim()) {
+        debouncedSetSearch.cancel();
         setSearchQuery('', conversation);
         return;
       }
 
-      debounceRef.current = setTimeout(() => {
-        setSearchQuery(value, conversation);
-      }, SEARCH_DEBOUNCE_MS);
+      debouncedSetSearch(value);
     },
-    [conversation, setSearchQuery]
+    [conversation, setSearchQuery, debouncedSetSearch]
   );
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => clearTimeout(debounceRef.current);
-  }, []);
 
   // Auto-focus input when search becomes visible
   useEffect(() => {
@@ -100,7 +96,7 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
       hideSearch();
     } else if (e.key === 'Enter') {
       // Flush any pending debounce immediately on Enter
-      clearTimeout(debounceRef.current);
+      debouncedSetSearch.flush();
       if (localQuery !== searchQuery) {
         setSearchQuery(localQuery, conversation);
       }
@@ -159,12 +155,7 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
         </Button>
       </div>
 
-      <Button
-        variant="ghost"
-        size="icon-xs"
-        onClick={hideSearch}
-        title="Close (Esc)"
-      >
+      <Button variant="ghost" size="icon-xs" onClick={hideSearch} title="Close (Esc)">
         <X className="size-4" />
       </Button>
     </div>

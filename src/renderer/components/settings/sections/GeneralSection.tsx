@@ -15,8 +15,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@renderer/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@renderer/components/ui/select';
 import { Switch } from '@renderer/components/ui/switch';
+import { useClipboard } from '@renderer/hooks/mantine';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { getFullResetState } from '@renderer/store/utils/stateResetHelpers';
@@ -54,7 +61,7 @@ export const GeneralSection = ({
     port: 3456,
   });
   const [serverLoading, setServerLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const { copy, copied } = useClipboard({ timeout: 2000 });
 
   // Claude Root state
   const connectionMode = useStore((s) => s.connectionMode);
@@ -102,11 +109,7 @@ export const GeneralSection = ({
 
   const serverUrl = `http://localhost:${serverStatus.port}`;
 
-  const handleCopyUrl = useCallback(() => {
-    void navigator.clipboard.writeText(serverUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [serverUrl]);
+  const handleCopyUrl = useCallback(() => copy(serverUrl), [copy, serverUrl]);
 
   // Claude Root handlers
   const resetWorkspaceForRootChange = useCallback((): void => {
@@ -292,13 +295,21 @@ export const GeneralSection = ({
 
       <SettingsSectionHeader title="Appearance" />
       <SettingRow label="Theme" description="Choose your preferred color theme">
-        <Select value={safeConfig.general.theme} onValueChange={(v) => { if (v) onThemeChange(v); }} disabled={saving}>
+        <Select
+          value={safeConfig.general.theme}
+          onValueChange={(v) => {
+            if (v) onThemeChange(v);
+          }}
+          disabled={saving}
+        >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {THEME_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -342,7 +353,7 @@ export const GeneralSection = ({
       {isElectron && (
         <>
           <SettingsSectionHeader title="Local Claude Root" />
-          <p className="mb-4 text-sm text-text-muted">
+          <p className="text-text-muted mb-4 text-sm">
             Choose which local folder is treated as your Claude data root
           </p>
 
@@ -351,10 +362,8 @@ export const GeneralSection = ({
             description={isCustomClaudeRoot ? 'Using custom path' : 'Using auto-detected path'}
           >
             <div className="max-w-96 text-right">
-              <div className="truncate font-mono text-xs text-text">
-                {resolvedClaudeRootPath}
-              </div>
-              <div className="text-[11px] text-text-muted">
+              <div className="text-text truncate font-mono text-xs">{resolvedClaudeRootPath}</div>
+              <div className="text-text-muted text-[11px]">
                 Auto-detected: {defaultClaudeRootPath}
               </div>
             </div>
@@ -421,17 +430,15 @@ export const GeneralSection = ({
                 {wslCandidates.map((candidate) => (
                   <div
                     key={`${candidate.distro}:${candidate.path}`}
-                    className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2"
+                    className="border-border flex items-center justify-between gap-3 rounded-md border px-3 py-2"
                   >
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-text">{candidate.distro}</p>
-                      <p className="truncate font-mono text-[11px] text-text-muted">
+                      <p className="text-text text-xs font-medium">{candidate.distro}</p>
+                      <p className="text-text-muted truncate font-mono text-[11px]">
                         {candidate.path}
                       </p>
                       {!candidate.hasProjectsDir && (
-                        <p className="text-[11px] text-amber-400">
-                          No projects directory detected
-                        </p>
+                        <p className="text-[11px] text-amber-400">No projects directory detected</p>
                       )}
                     </div>
                     <Button
@@ -473,7 +480,7 @@ export const GeneralSection = ({
             description="Start an HTTP server to access the UI from a browser or embed in iframes"
           >
             {serverLoading ? (
-              <Loader2 className="size-5 animate-spin text-text-muted" />
+              <Loader2 className="text-text-muted size-5 animate-spin" />
             ) : (
               <Switch
                 checked={serverStatus.running}
@@ -484,10 +491,10 @@ export const GeneralSection = ({
           </SettingRow>
 
           {serverStatus.running && (
-            <div className="mb-2 flex items-center gap-3 rounded-md bg-surface-raised px-3 py-2.5">
+            <div className="bg-surface-raised mb-2 flex items-center gap-3 rounded-md px-3 py-2.5">
               <div className="size-2 shrink-0 rounded-full bg-green-500" />
-              <span className="text-xs font-medium text-text-secondary">Running on</span>
-              <code className="rounded-sm border border-border bg-surface px-1.5 py-0.5 font-mono text-xs text-text">
+              <span className="text-text-secondary text-xs font-medium">Running on</span>
+              <code className="border-border bg-surface text-text rounded-sm border px-1.5 py-0.5 font-mono text-xs">
                 {serverUrl}
               </code>
               <button
@@ -506,18 +513,14 @@ export const GeneralSection = ({
       ) : (
         <>
           <SettingsSectionHeader title="Server" />
-          <div className="mb-2 flex items-center gap-3 rounded-md bg-surface-raised px-3 py-2.5">
+          <div className="bg-surface-raised mb-2 flex items-center gap-3 rounded-md px-3 py-2.5">
             <div className="size-2 shrink-0 rounded-full bg-green-500" />
-            <span className="text-xs font-medium text-text-secondary">Running on</span>
-            <code className="rounded-sm border border-border bg-surface px-1.5 py-0.5 font-mono text-xs text-text">
+            <span className="text-text-secondary text-xs font-medium">Running on</span>
+            <code className="border-border bg-surface text-text rounded-sm border px-1.5 py-0.5 font-mono text-xs">
               {window.location.origin}
             </code>
             <button
-              onClick={() => {
-                void navigator.clipboard.writeText(window.location.origin);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              }}
+              onClick={() => copy(window.location.origin)}
               className={cn(
                 'ml-auto flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-white/5',
                 copied ? 'text-green-500' : 'text-text-secondary'
@@ -527,7 +530,7 @@ export const GeneralSection = ({
               {copied ? 'Copied' : 'Copy URL'}
             </button>
           </div>
-          <p className="text-xs text-text-muted">
+          <p className="text-text-muted text-xs">
             Running in standalone mode. The HTTP server is always active. System notifications are
             not available — notification triggers are logged in-app only.
           </p>

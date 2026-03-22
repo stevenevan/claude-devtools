@@ -5,14 +5,13 @@
  * Shows keyboard shortcut hints for actions that have them.
  */
 
-import { useState } from 'react';
-
 import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuShortcut,
 } from '@renderer/components/ui/context-menu';
+import { useClipboard } from '@renderer/hooks/mantine';
 import { MAX_PANES } from '@renderer/types/panes';
 import { formatShortcut } from '@renderer/utils/stringUtils';
 import { Check, ClipboardCopy, Eye, EyeOff, Pin, PinOff, Terminal } from 'lucide-react';
@@ -40,25 +39,14 @@ export const SessionContextMenu = ({
   onTogglePin,
   onToggleHide,
 }: SessionContextMenuProps): React.JSX.Element => {
-  const [copiedField, setCopiedField] = useState<'id' | 'command' | null>(null);
+  const idClipboard = useClipboard({ timeout: 600 });
+  const cmdClipboard = useClipboard({ timeout: 600 });
 
   const atMaxPanes = paneCount >= MAX_PANES;
 
-  const handleCopy = (text: string, field: 'id' | 'command') => async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedField(field);
-      setTimeout(() => setCopiedField(null), 600);
-    } catch {
-      // Silently fail
-    }
-  };
-
   return (
     <ContextMenuContent>
-      <ContextMenuItem onClick={onOpenInCurrentPane}>
-        Open in Current Pane
-      </ContextMenuItem>
+      <ContextMenuItem onClick={onOpenInCurrentPane}>Open in Current Pane</ContextMenuItem>
       <ContextMenuItem onClick={onOpenInNewTab}>
         Open in New Tab
         <ContextMenuShortcut>{`${formatShortcut('')}Click`}</ContextMenuShortcut>
@@ -83,21 +71,21 @@ export const SessionContextMenu = ({
 
       <ContextMenuSeparator />
 
-      <ContextMenuItem onClick={handleCopy(sessionId, 'id')}>
-        {copiedField === 'id' ? (
+      <ContextMenuItem onClick={() => idClipboard.copy(sessionId)}>
+        {idClipboard.copied ? (
           <Check className="size-4 text-green-400" />
         ) : (
           <ClipboardCopy className="size-4" />
         )}
-        {copiedField === 'id' ? 'Copied!' : 'Copy Session ID'}
+        {idClipboard.copied ? 'Copied!' : 'Copy Session ID'}
       </ContextMenuItem>
-      <ContextMenuItem onClick={handleCopy(`claude --resume ${sessionId}`, 'command')}>
-        {copiedField === 'command' ? (
+      <ContextMenuItem onClick={() => cmdClipboard.copy(`claude --resume ${sessionId}`)}>
+        {cmdClipboard.copied ? (
           <Check className="size-4 text-green-400" />
         ) : (
           <Terminal className="size-4" />
         )}
-        {copiedField === 'command' ? 'Copied!' : 'Copy Resume Command'}
+        {cmdClipboard.copied ? 'Copied!' : 'Copy Resume Command'}
       </ContextMenuItem>
     </ContextMenuContent>
   );
