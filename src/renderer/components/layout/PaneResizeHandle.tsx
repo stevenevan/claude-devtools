@@ -71,13 +71,16 @@ export const PaneResizeHandle = ({ leftPaneId }: PaneResizeHandleProps): React.J
   };
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- resize handle requires mouse interaction
-    <div
+    <button
+      type="button"
+      aria-label="Resize pane"
       className={cn(
-        'flex w-1 shrink-0 cursor-col-resize items-center justify-center transition-colors hover:bg-blue-500/50',
-        isResizing ? 'bg-blue-500/50' : 'bg-border'
+        'flex w-2 shrink-0 cursor-col-resize items-center justify-center border-0 bg-transparent p-0 transition-colors hover:bg-blue-500/50',
+        isResizing && 'bg-blue-500/50'
       )}
       onMouseDown={handleMouseDown}
-    />
+    >
+      <div className={cn('h-full w-1', isResizing ? 'bg-blue-500/50' : 'bg-border')} />
+    </button>
   );
 };

@@ -36,7 +36,7 @@ const SystemChatGroupInner = ({
         </div>
 
         {/* Content - theme-aware neutral styling */}
-        <div className="rounded-2xl rounded-bl-sm bg-[var(--chat-system-bg)] px-4 py-3">
+        <div className="rounded-lg bg-[var(--chat-system-bg)] px-4 py-3">
           <pre className="font-mono text-sm whitespace-pre-wrap text-[var(--chat-system-text)]">
             {cleanOutput}
           </pre>

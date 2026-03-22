@@ -213,10 +213,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
 
   return (
     <div
-      className={cn(
-        'flex items-center justify-between border-b border-border bg-surface pr-2',
-        !(isFocused || paneCount === 1) && 'opacity-70'
-      )}
+      className={cn('flex items-center justify-between border-b border-border bg-surface pr-2')}
       {...(isDesktopMode() && isLeftmostPane ? { 'data-tauri-drag-region': true } : {})}
       style={
         {
@@ -248,6 +245,8 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
           scrollContainerRef.current = el;
           setDroppableRef(el);
         }}
+        role="tablist"
+        aria-label="Session tabs"
         className="scrollbar-none flex min-w-0 shrink items-center gap-1 overflow-x-auto"
         style={
           {
@@ -318,7 +317,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         {/* New tab button */}
         <button
           onClick={openDashboard}
-          className="text-text-muted hover:bg-surface-raised hover:text-text rounded-md p-2 transition-colors"
+          className="text-text-muted hover:bg-surface-raised hover:text-text flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
           title="New tab (Dashboard)"
         >
           <Plus className="size-4" />
@@ -327,7 +326,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         {/* Notifications bell icon */}
         <button
           onClick={openNotificationsTab}
-          className="text-text-muted hover:bg-surface-raised hover:text-text relative rounded-md p-2 transition-colors"
+          className="text-text-muted hover:bg-surface-raised hover:text-text relative flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
           title="Notifications"
         >
           <Bell className="size-4" />

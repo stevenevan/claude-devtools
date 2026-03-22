@@ -248,13 +248,15 @@ export const SessionItem = React.memo(function SessionItem({
         </div>
 
         {/* Second line: message count + time + context consumption */}
-        <div className="text-text-muted mt-0.5 flex items-center gap-2 text-[10px] leading-tight">
+        <div className="text-text-muted mt-0.5 flex items-center gap-2 text-[11px] leading-tight">
           <span className="flex items-center gap-0.5">
             <MessageSquare className="size-2.5" />
             {session.messageCount}
           </span>
           <span className="opacity-50">·</span>
-          <span className="tabular-nums">{formatShortTime(new Date(session.createdAt))}</span>
+          <span className="text-text-secondary tabular-nums">
+            {formatShortTime(new Date(session.createdAt))}
+          </span>
           {session.contextConsumption != null && session.contextConsumption > 0 && (
             <>
               <span className="opacity-50">·</span>

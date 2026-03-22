@@ -796,7 +796,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
                   )}
               </div>
             )}
-            <div className="space-y-8">
+            <div className="space-y-6">
               {shouldVirtualize ? (
                 <div
                   style={{
@@ -813,7 +813,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
                         key={virtualRow.key}
                         ref={rowVirtualizer.measureElement}
                         data-index={virtualRow.index}
-                        className="pb-8"
+                        className="pb-6"
                         style={{
                           position: 'absolute',
                           top: 0,
