@@ -1,5 +1,6 @@
 mod cache;
 mod commands;
+mod config;
 mod discovery;
 mod parsing;
 mod sidecar;
@@ -24,6 +25,7 @@ pub fn run() {
         .manage(std::sync::Mutex::new(watcher::WatcherState::default()))
         .manage(std::sync::Arc::new(std::sync::Mutex::new(cache::SessionCache::default())))
         .manage(std::sync::Arc::new(std::sync::Mutex::new(discovery::subproject_registry::SubprojectRegistry::new())))
+        .manage(std::sync::Arc::new(std::sync::Mutex::new(config::manager::ConfigState::new())))
         .setup(|app| {
             let handle = app.handle().clone();
 
@@ -59,6 +61,26 @@ pub fn run() {
             commands::parse_session_metrics,
             commands::get_projects,
             commands::get_sessions_paginated,
+            config::commands::config_get,
+            config::commands::config_update,
+            config::commands::config_add_ignore_regex,
+            config::commands::config_remove_ignore_regex,
+            config::commands::config_add_ignore_repository,
+            config::commands::config_remove_ignore_repository,
+            config::commands::config_snooze,
+            config::commands::config_clear_snooze,
+            config::commands::config_add_trigger,
+            config::commands::config_update_trigger,
+            config::commands::config_remove_trigger,
+            config::commands::config_get_triggers,
+            config::commands::config_pin_session,
+            config::commands::config_unpin_session,
+            config::commands::config_hide_session,
+            config::commands::config_unhide_session,
+            config::commands::config_hide_sessions,
+            config::commands::config_unhide_sessions,
+            config::commands::config_get_claude_root_info,
+            config::commands::config_open_in_editor,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

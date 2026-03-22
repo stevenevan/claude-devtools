@@ -17,6 +17,7 @@ import { relaunch } from '@tauri-apps/plugin-process';
 import { HttpAPIClient } from './httpClient';
 
 import type {
+  AppConfig,
   ClaudeMdFileInfo,
   ClaudeRootFolderSelection,
   ClaudeRootInfo,
@@ -209,31 +210,150 @@ export class TauriAPIClient implements ElectronAPI {
   // ---------------------------------------------------------------------------
 
   config: ConfigAPI = {
-    // Data operations via sidecar
-    get: () => this.http.config.get(),
-    update: (section, data) => this.http.config.update(section, data),
-    addIgnoreRegex: (pattern) => this.http.config.addIgnoreRegex(pattern),
-    removeIgnoreRegex: (pattern) => this.http.config.removeIgnoreRegex(pattern),
-    addIgnoreRepository: (repositoryId) => this.http.config.addIgnoreRepository(repositoryId),
-    removeIgnoreRepository: (repositoryId) =>
-      this.http.config.removeIgnoreRepository(repositoryId),
-    snooze: (minutes) => this.http.config.snooze(minutes),
-    clearSnooze: () => this.http.config.clearSnooze(),
-    addTrigger: (trigger) => this.http.config.addTrigger(trigger),
-    updateTrigger: (triggerId, updates) => this.http.config.updateTrigger(triggerId, updates),
-    removeTrigger: (triggerId) => this.http.config.removeTrigger(triggerId),
-    getTriggers: () => this.http.config.getTriggers(),
+    // Data operations via Rust commands with HTTP fallback
+    get: async () => {
+      try {
+        return await invoke<AppConfig>('config_get');
+      } catch {
+        return this.http.config.get();
+      }
+    },
+    update: async (section, data) => {
+      try {
+        return await invoke<AppConfig>('config_update', { section, data });
+      } catch {
+        return this.http.config.update(section, data);
+      }
+    },
+    addIgnoreRegex: async (pattern) => {
+      try {
+        return await invoke<AppConfig>('config_add_ignore_regex', { pattern });
+      } catch {
+        return this.http.config.addIgnoreRegex(pattern);
+      }
+    },
+    removeIgnoreRegex: async (pattern) => {
+      try {
+        return await invoke<AppConfig>('config_remove_ignore_regex', { pattern });
+      } catch {
+        return this.http.config.removeIgnoreRegex(pattern);
+      }
+    },
+    addIgnoreRepository: async (repositoryId) => {
+      try {
+        return await invoke<AppConfig>('config_add_ignore_repository', { repositoryId });
+      } catch {
+        return this.http.config.addIgnoreRepository(repositoryId);
+      }
+    },
+    removeIgnoreRepository: async (repositoryId) => {
+      try {
+        return await invoke<AppConfig>('config_remove_ignore_repository', { repositoryId });
+      } catch {
+        return this.http.config.removeIgnoreRepository(repositoryId);
+      }
+    },
+    snooze: async (minutes) => {
+      try {
+        return await invoke<AppConfig>('config_snooze', { minutes });
+      } catch {
+        return this.http.config.snooze(minutes);
+      }
+    },
+    clearSnooze: async () => {
+      try {
+        return await invoke<AppConfig>('config_clear_snooze');
+      } catch {
+        return this.http.config.clearSnooze();
+      }
+    },
+    addTrigger: async (trigger) => {
+      try {
+        return await invoke<AppConfig>('config_add_trigger', { trigger });
+      } catch {
+        return this.http.config.addTrigger(trigger);
+      }
+    },
+    updateTrigger: async (triggerId, updates) => {
+      try {
+        return await invoke<AppConfig>('config_update_trigger', { triggerId, updates });
+      } catch {
+        return this.http.config.updateTrigger(triggerId, updates);
+      }
+    },
+    removeTrigger: async (triggerId) => {
+      try {
+        return await invoke<AppConfig>('config_remove_trigger', { triggerId });
+      } catch {
+        return this.http.config.removeTrigger(triggerId);
+      }
+    },
+    getTriggers: async () => {
+      try {
+        return await invoke<NotificationTrigger[]>('config_get_triggers');
+      } catch {
+        return this.http.config.getTriggers();
+      }
+    },
+    // testTrigger stays on HTTP — depends on ErrorDetector (Sprint 6)
     testTrigger: (trigger: NotificationTrigger): Promise<TriggerTestResult> =>
       this.http.config.testTrigger(trigger),
-    pinSession: (projectId, sessionId) => this.http.config.pinSession(projectId, sessionId),
-    unpinSession: (projectId, sessionId) => this.http.config.unpinSession(projectId, sessionId),
-    hideSession: (projectId, sessionId) => this.http.config.hideSession(projectId, sessionId),
-    unhideSession: (projectId, sessionId) => this.http.config.unhideSession(projectId, sessionId),
-    hideSessions: (projectId, sessionIds) => this.http.config.hideSessions(projectId, sessionIds),
-    unhideSessions: (projectId, sessionIds) =>
-      this.http.config.unhideSessions(projectId, sessionIds),
-    getClaudeRootInfo: () => this.http.config.getClaudeRootInfo(),
-    openInEditor: () => this.http.config.openInEditor(),
+    pinSession: async (projectId, sessionId) => {
+      try {
+        await invoke('config_pin_session', { projectId, sessionId });
+      } catch {
+        await this.http.config.pinSession(projectId, sessionId);
+      }
+    },
+    unpinSession: async (projectId, sessionId) => {
+      try {
+        await invoke('config_unpin_session', { projectId, sessionId });
+      } catch {
+        await this.http.config.unpinSession(projectId, sessionId);
+      }
+    },
+    hideSession: async (projectId, sessionId) => {
+      try {
+        await invoke('config_hide_session', { projectId, sessionId });
+      } catch {
+        await this.http.config.hideSession(projectId, sessionId);
+      }
+    },
+    unhideSession: async (projectId, sessionId) => {
+      try {
+        await invoke('config_unhide_session', { projectId, sessionId });
+      } catch {
+        await this.http.config.unhideSession(projectId, sessionId);
+      }
+    },
+    hideSessions: async (projectId, sessionIds) => {
+      try {
+        await invoke('config_hide_sessions', { projectId, sessionIds });
+      } catch {
+        await this.http.config.hideSessions(projectId, sessionIds);
+      }
+    },
+    unhideSessions: async (projectId, sessionIds) => {
+      try {
+        await invoke('config_unhide_sessions', { projectId, sessionIds });
+      } catch {
+        await this.http.config.unhideSessions(projectId, sessionIds);
+      }
+    },
+    getClaudeRootInfo: async () => {
+      try {
+        return await invoke<ClaudeRootInfo>('config_get_claude_root_info');
+      } catch {
+        return this.http.config.getClaudeRootInfo();
+      }
+    },
+    openInEditor: async () => {
+      try {
+        await invoke('config_open_in_editor');
+      } catch {
+        await this.http.config.openInEditor();
+      }
+    },
 
     // Native: folder selection dialogs via Tauri plugin
     selectFolders: async (): Promise<string[]> => {
