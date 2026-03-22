@@ -6,7 +6,7 @@ import {
   RepositoryDropdown,
   SelectedRepositoryItem,
 } from '@renderer/components/common/RepositoryDropdown';
-import { cn } from '@renderer/lib/utils';
+import { Button } from '@renderer/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -119,13 +119,9 @@ export const NotificationsSection = ({
       >
         <div className="flex items-center gap-2">
           {isSnoozed ? (
-            <button
-              onClick={onClearSnooze}
-              disabled={saving}
-              className={cn('rounded-md bg-red-500/10 px-3 py-1.5 text-sm font-medium text-red-400 transition-all duration-150 hover:bg-red-500/20', saving && 'cursor-not-allowed opacity-50')}
-            >
+            <Button variant="destructive" size="sm" disabled={saving} onClick={onClearSnooze}>
               Clear Snooze
-            </button>
+            </Button>
           ) : (
             <Select
               value="0"

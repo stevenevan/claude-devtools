@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
+import { Alert, AlertDescription } from '@renderer/components/ui/alert';
 import { Button } from '@renderer/components/ui/button';
 import {
   Dialog,
@@ -412,9 +413,9 @@ export const GeneralSection = ({
           </div>
 
           {claudeRootError && (
-            <div className="rounded-md border border-red-500/20 bg-red-500/10 px-4 py-3">
-              <p className="text-sm text-red-400">{claudeRootError}</p>
-            </div>
+            <Alert variant="destructive">
+              <AlertDescription>{claudeRootError}</AlertDescription>
+            </Alert>
           )}
 
           <Dialog open={showWslModal} onOpenChange={setShowWslModal}>

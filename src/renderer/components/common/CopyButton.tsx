@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Button } from '@renderer/components/ui/button';
 import { useClipboard } from '@renderer/hooks/mantine';
 import { Check, Copy } from 'lucide-react';
 
@@ -37,13 +38,9 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
 
   if (inline) {
     return (
-      <button
-        onClick={() => copy(text)}
-        className="rounded-sm p-1 transition-colors hover:opacity-80"
-        title="Copy to clipboard"
-      >
+      <Button variant="ghost" size="icon-xs" onClick={() => copy(text)} title="Copy to clipboard">
         {icon}
-      </button>
+      </Button>
     );
   }
 

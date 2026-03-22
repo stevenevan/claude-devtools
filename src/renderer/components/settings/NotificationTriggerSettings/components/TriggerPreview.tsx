@@ -3,7 +3,7 @@
  * Used by both TriggerCard and AddTriggerForm.
  */
 
-import { cn } from '@renderer/lib/utils';
+import { Button } from '@renderer/components/ui/button';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 
 import type { PreviewResult } from '../types';
@@ -36,21 +36,22 @@ export const TriggerPreview = ({
     <div className="border-border mt-4 border-t pt-4">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-text-muted text-xs tracking-widest uppercase">Preview</span>
-        <button
+        <Button
           type={isFormContext ? 'button' : undefined}
-          onClick={onTest}
+          variant="ghost"
+          size="sm"
           disabled={isLoading}
-          className={cn('bg-surface-raised text-text-secondary hover:bg-surface-overlay rounded-sm px-2 py-1 text-xs transition-colors', isLoading && 'cursor-not-allowed opacity-50')}
+          onClick={onTest}
         >
           {isLoading ? (
-            <span className="flex items-center gap-1">
+            <>
               <Loader2 className="size-3 animate-spin" />
               Testing...
-            </span>
+            </>
           ) : (
             'Test Trigger'
           )}
-        </button>
+        </Button>
       </div>
 
       {previewResult && !previewResult.loading && (

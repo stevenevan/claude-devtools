@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { api, isDesktopMode } from '@renderer/api';
 import appIcon from '@renderer/favicon.png';
+import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { CheckCircle, Code2, Download, Loader2, RefreshCw, Upload } from 'lucide-react';
@@ -94,38 +95,23 @@ export const AdvancedSection = ({
     <div>
       <SettingsSectionHeader title="Configuration" />
       <div className="space-y-2 py-2">
-        <button
-          onClick={onResetToDefaults}
-          disabled={saving}
-          className={cn('border-border text-text-secondary flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150', saving && 'cursor-not-allowed opacity-50')}
-        >
+        <Button variant="outline" className="w-full" disabled={saving} onClick={onResetToDefaults}>
           <RefreshCw className="size-4" />
           Reset to Defaults
-        </button>
-        <button
-          onClick={onExportConfig}
-          disabled={saving}
-          className={cn('border-border text-text-secondary flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150', saving && 'cursor-not-allowed opacity-50')}
-        >
+        </Button>
+        <Button variant="outline" className="w-full" disabled={saving} onClick={onExportConfig}>
           <Download className="size-4" />
           Export Config
-        </button>
-        <button
-          onClick={onImportConfig}
-          disabled={saving}
-          className={cn('border-border text-text-secondary flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150', saving && 'cursor-not-allowed opacity-50')}
-        >
+        </Button>
+        <Button variant="outline" className="w-full" disabled={saving} onClick={onImportConfig}>
           <Upload className="size-4" />
           Import Config
-        </button>
+        </Button>
         {isElectron && (
-          <button
-            onClick={onOpenInEditor}
-            className="border-border text-text-secondary flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150"
-          >
+          <Button variant="outline" className="w-full" onClick={onOpenInEditor}>
             <Code2 className="size-4" />
             Open in Editor
-          </button>
+          </Button>
         )}
       </div>
 
@@ -136,11 +122,12 @@ export const AdvancedSection = ({
           <div className="flex items-center gap-3">
             <p className="text-text text-sm font-medium">claude-devtools</p>
             {isElectron && (
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleCheckForUpdates}
                 disabled={updateStatus === 'checking'}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-white/5 disabled:opacity-50',
                   updateStatus === 'not-available'
                     ? 'text-text-muted'
                     : updateStatus === 'available' || updateStatus === 'downloaded'
@@ -149,7 +136,7 @@ export const AdvancedSection = ({
                 )}
               >
                 {getUpdateButtonContent()}
-              </button>
+              </Button>
             )}
             {!isElectron && (
               <span className="border-border text-text-muted rounded-md border px-2.5 py-1 text-xs font-medium">

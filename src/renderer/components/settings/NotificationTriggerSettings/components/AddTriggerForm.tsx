@@ -4,7 +4,7 @@
 
 import { useCallback } from 'react';
 
-import { cn } from '@renderer/lib/utils';
+import { Button } from '@renderer/components/ui/button';
 import { ChevronDown, ChevronUp, Loader2, Plus } from 'lucide-react';
 
 import { useAddTriggerFormHandlers } from '../hooks/useAddTriggerFormHandlers';
@@ -210,22 +210,22 @@ export const AddTriggerForm = ({
 
           {/* Submit button */}
           <div className="flex justify-end gap-2 pt-4">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={handlers.handleCancel}
               disabled={saving}
-              className={cn('bg-surface-raised text-text-secondary hover:bg-surface-overlay rounded-sm px-3 py-1.5 text-sm transition-colors', saving && 'cursor-not-allowed opacity-50')}
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={saving || !name.trim() || !!patternError}
-              className={cn('flex items-center gap-2 rounded-sm bg-indigo-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-indigo-600 focus:ring-1 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-surface focus:outline-hidden', (saving || !name.trim() || !!patternError) && 'cursor-not-allowed opacity-50')}
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
+              <Plus className="size-4" />
               Add Trigger
-            </button>
+            </Button>
           </div>
         </form>
       )}
