@@ -12,13 +12,11 @@
     "isolatedModules": true,
     "noEmit": true,
     "paths": {
-      "@main/*": ["./src/main/*"],
       "@renderer/*": ["./src/renderer/*"],
-      "@preload/*": ["./src/preload/*"],
       "@shared/*": ["./src/shared/*"]
     },
     "types": ["node"]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "dist-electron"]
+  "include": ["src/renderer/**/*", "src/shared/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

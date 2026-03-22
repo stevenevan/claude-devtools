@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { findAIGroupBySubagentId } from '@renderer/hooks/navigation/utils';
 
 import type { ChatItem } from '@renderer/types/groups';
-import type { Process } from '@main/types';
+import type { Process } from '@shared/types';
 
 /** Minimal AI chat item factory for testing. */
 function makeAIChatItem(groupId: string, processes: Partial<Process>[] = []): ChatItem {

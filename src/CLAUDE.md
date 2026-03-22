@@ -1,25 +1,17 @@
 # src/ Structure
 
-Three-process Electron architecture:
+Tauri app with Rust backend:
 
-## Processes
+## Directories
 
-- `main/` - Node.js runtime (file system, IPC, lifecycle)
-- `preload/` - Secure bridge (contextBridge API)
-- `renderer/` - React/Chromium (UI, state, visualization)
-- `shared/` - Cross-process types and utilities
+- `renderer/` - React frontend (UI, state, visualization)
+- `shared/` - Shared types and utilities
 
-## Import Pattern
+Backend logic lives in `src-tauri/src/` (Rust).
 
-Use barrel exports from domain folders:
+## API Communication
 
-```typescript
-import { ChunkBuilder, ProjectScanner } from './services';
-```
-
-## IPC Communication
-
-Exposed API via `window.electronAPI`, organized by domain:
+Frontend calls Rust backend via Tauri `invoke()`. API defined in `src/shared/types/api.ts` (`ElectronAPI` interface), implemented by `src/renderer/api/tauriClient.ts`.
 
 | Domain        | Methods | Examples                                                                                                                                                                                    |
 | ------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -31,5 +23,3 @@ Exposed API via `window.electronAPI`, organized by domain:
 | Notifications | 9       | `notifications.get()`, `notifications.markRead()`, `notifications.onNew()`, etc.                                                                                                            |
 | Utilities     | 7       | `openPath()`, `openExternal()`, `onFileChange()`, `onTodoChange()`, `getZoomFactor()`, `onZoomFactorChanged()`                                                                              |
 | Session       | 1       | `session.scrollToLine()`                                                                                                                                                                    |
-
-Full API signatures in `src/preload/index.ts`, channel constants in `src/preload/constants/ipcChannels.ts`.

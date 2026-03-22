@@ -1,10 +1,7 @@
 /**
- * IPC API type definitions for Electron preload bridge.
+ * API type definitions — the contract between frontend and Tauri Rust backend.
  *
- * These types define the interface exposed to the renderer process
- * via contextBridge. The actual implementation lives in src/preload/index.ts.
- *
- * Shared between preload and renderer processes.
+ * Implemented by TauriAPIClient in src/renderer/api/tauriClient.ts.
  */
 
 import type {
@@ -17,17 +14,19 @@ import type { WaterfallData } from './visualization';
 import type {
   ConversationGroup,
   FileChangeEvent,
+  SessionDetail,
+  SubagentDetail,
+} from './chunks';
+import type {
   PaginatedSessionsResult,
   Project,
   RepositoryGroup,
   SearchSessionsResult,
   Session,
-  SessionDetail,
   SessionMetrics,
   SessionsByIdsOptions,
   SessionsPaginationOptions,
-  SubagentDetail,
-} from '@main/types';
+} from './domain';
 
 // =============================================================================
 // Agent Config
@@ -438,8 +437,6 @@ export interface ElectronAPI {
 
 declare global {
   interface Window {
-    electronAPI: ElectronAPI;
     __TAURI_INTERNALS__: unknown;
-    __SIDECAR_PORT__: number;
   }
 }

@@ -1,9 +1,9 @@
 # claude-devtools
 
-Electron app that visualizes Claude Code session execution
+Tauri desktop app that visualizes Claude Code session execution
 
 ## Tech Stack
-Electron 28.x, React 18.x, TypeScript 5.x, Tailwind CSS 4.x, Zustand 5.x
+Tauri 2.x, Rust (backend), React 18.x, TypeScript 5.x, Tailwind CSS 4.x, Zustand 5.x
 Linting: oxlint, Formatting: oxfmt
 
 ## Commands
@@ -26,10 +26,8 @@ Always use bun (not npm/yarn/pnpm) for this project.
 
 ## Path Aliases
 Use path aliases for imports:
-- `@main/*` → `src/main/*`
 - `@renderer/*` → `src/renderer/*`
 - `@shared/*` → `src/shared/*`
-- `@preload/*` → `src/preload/*`
 
 ## Data Sources
 ~/.claude/projects/{encoded-path}/*.jsonl - Session files

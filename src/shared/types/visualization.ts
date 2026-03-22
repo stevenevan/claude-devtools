@@ -5,7 +5,7 @@
  * and are shared between main and renderer processes.
  */
 
-import type { TokenUsage } from '@main/types';
+import type { TokenUsage } from './domain';
 
 // =============================================================================
 // Waterfall Chart Types

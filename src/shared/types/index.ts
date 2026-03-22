@@ -1,16 +1,21 @@
 /**
- * Shared type definitions - re-exports types from main process for use in renderer.
- *
- * This module provides a stable import path (@shared/types) for types that
- * are shared between main and renderer processes, allowing proper boundary
- * separation while maintaining type safety.
+ * Shared type definitions.
  *
  * Usage:
  *   import type { Session, Chunk, ParsedMessage } from '@shared/types';
  */
 
-// Re-export all types from main process types
-export * from '@main/types';
+// JSONL format types
+export * from './jsonl';
+
+// Domain/business entities
+export type * from './domain';
+
+// Parsed message types and guards
+export * from './messages';
+
+// Chunk and visualization types
+export * from './chunks';
 
 // Re-export notification and config types
 export * from './notifications';

@@ -314,7 +314,7 @@ export const GeneralSection = ({
                 onGeneralToggle('useNativeTitleBar', v);
                 // Small delay to let config persist before relaunch
                 setTimeout(() => {
-                  void window.electronAPI?.windowControls?.relaunch();
+                  void api.windowControls?.relaunch();
                 }, 200);
               }
             }}

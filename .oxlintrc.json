@@ -16,8 +16,6 @@
       "version": "18"
     },
     "boundaries/elements": [
-      { "type": "main", "pattern": "src/main/**", "mode": "folder" },
-      { "type": "preload", "pattern": "src/preload/**", "mode": "folder" },
       { "type": "renderer", "pattern": "src/renderer/**", "mode": "folder" },
       { "type": "shared", "pattern": "src/shared/**", "mode": "folder" }
     ],
@@ -402,8 +400,6 @@
     },
     {
       "files": [
-        "src/main/**/*.ts",
-        "src/preload/**/*.ts",
         "src/renderer/**/*.{ts,tsx}"
       ],
       "rules": {
@@ -435,24 +431,9 @@
                 ]
               },
               {
-                "from": { "type": "main" },
-                "allow": [
-                  { "to": { "type": "main" } },
-                  { "to": { "type": "shared" } }
-                ]
-              },
-              {
-                "from": { "type": "preload" },
-                "allow": [
-                  { "to": { "type": "preload" } },
-                  { "to": { "type": "shared" } }
-                ]
-              },
-              {
                 "from": { "type": "shared" },
                 "allow": [
-                  { "to": { "type": "shared" } },
-                  { "to": { "type": "main" } }
+                  { "to": { "type": "shared" } }
                 ]
               }
             ]
@@ -473,28 +454,6 @@
         "eslint-plugin-boundaries",
         "@eslint-community/eslint-plugin-eslint-comments"
       ]
-    },
-    {
-      "files": ["src/main/**/*.ts"],
-      "rules": {
-        "no-console": "off"
-      },
-      "env": {
-        "node": true
-      }
-    },
-    {
-      "files": ["src/preload/**/*.ts"],
-      "globals": {
-        "crashReport": "readonly",
-        "CrashReportContext": "readonly",
-        "Origin": "readonly",
-        "PerformanceTimingConfidence": "readonly"
-      },
-      "env": {
-        "browser": true,
-        "node": true
-      }
     },
     {
       "files": ["src/renderer/**/*.{ts,tsx}"],

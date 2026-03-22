@@ -11,13 +11,11 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       include: ['src/**/*.ts', 'src/**/*.tsx'],
-      exclude: ['src/**/*.d.ts', 'src/main/index.ts', 'src/preload/index.ts'],
     },
   },
   resolve: {
     alias: {
       '@shared': resolve(__dirname, 'src/shared'),
-      '@main': resolve(__dirname, 'src/main'),
       '@renderer': resolve(__dirname, 'src/renderer'),
     },
   },
