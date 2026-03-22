@@ -151,7 +151,7 @@ function validateSnapshot(
     repositoryGroups: freshRepoGroups,
     selectedRepositoryId,
     selectedWorktreeId,
-    viewMode: snapshot.viewMode,
+    viewMode: freshRepoGroups.length > 0 ? snapshot.viewMode : 'flat',
     sessions: snapshot.sessions,
     selectedSessionId: snapshot.selectedSessionId,
     sessionsCursor: snapshot.sessionsCursor,

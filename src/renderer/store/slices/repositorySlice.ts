@@ -54,13 +54,18 @@ export const createRepositorySlice: StateCreator<AppState, [], [], RepositorySli
     set({ repositoryGroupsLoading: true, repositoryGroupsError: null });
     try {
       const groups = await api.getRepositoryGroups();
-      // Already sorted by most recent session in the scanner
-      set({ repositoryGroups: groups, repositoryGroupsLoading: false });
+      set({
+        repositoryGroups: groups,
+        repositoryGroupsLoading: false,
+        // Fall back to flat view when grouped has no data
+        ...(groups.length === 0 && get().viewMode === 'grouped' ? { viewMode: 'flat' as const } : {}),
+      });
     } catch (error) {
       set({
         repositoryGroupsError:
           error instanceof Error ? error.message : 'Failed to fetch repository groups',
         repositoryGroupsLoading: false,
+        viewMode: 'flat',
       });
     }
   },
