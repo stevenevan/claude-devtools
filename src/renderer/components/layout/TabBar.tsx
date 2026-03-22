@@ -20,7 +20,6 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { MoreMenu } from './MoreMenu';
 import { SortableTab } from './SortableTab';
-import { TabContextMenu } from './TabContextMenu';
 
 interface TabBarProps {
   paneId: string;
@@ -46,10 +45,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
     sidebarCollapsed,
     toggleSidebar,
     splitPane,
-    togglePinSession,
-    pinnedSessionIds,
-    toggleHideSession,
-    hiddenSessionIds,
     tabSessionData,
   } = useStore(
     useShallow((s) => ({
@@ -71,10 +66,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
       sidebarCollapsed: s.sidebarCollapsed,
       toggleSidebar: s.toggleSidebar,
       splitPane: s.splitPane,
-      togglePinSession: s.togglePinSession,
-      pinnedSessionIds: s.pinnedSessionIds,
-      toggleHideSession: s.toggleHideSession,
-      hiddenSessionIds: s.hiddenSessionIds,
       tabSessionData: s.tabSessionData,
     }))
   );
@@ -99,11 +90,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
   const [refreshHover, setRefreshHover] = useState(false);
   const [newTabHover, setNewTabHover] = useState(false);
   const [notificationsHover, setNotificationsHover] = useState(false);
-
-  // Context menu state
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; tabId: string } | null>(
-    null
-  );
 
   // Track last clicked tab for Shift range selection
   const lastClickedTabIdRef = useRef<string | null>(null);
@@ -205,12 +191,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
     [closeTab]
   );
 
-  // Right-click context menu
-  const handleContextMenu = useCallback((tabId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY, tabId });
-  }, []);
-
   // Handle refresh for active session tab
   const handleRefresh = async (): Promise<void> => {
     if (activeTab?.type === 'session' && activeTab.projectId && activeTab.sessionId) {
@@ -230,23 +210,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
       tabRefsMap.current.delete(tabId);
     }
   }, []);
-
-  // Context menu helpers
-  const contextMenuTabId = contextMenu?.tabId ?? null;
-  const effectiveSelectedCount =
-    contextMenuTabId && selectedSet.has(contextMenuTabId) ? selectedTabIds.length : 0;
-
-  // Pin state for context menu tab
-  const contextMenuTab = contextMenuTabId ? openTabs.find((t) => t.id === contextMenuTabId) : null;
-  const isContextMenuTabSession = contextMenuTab?.type === 'session';
-  const isContextMenuTabPinned =
-    isContextMenuTabSession && contextMenuTab?.sessionId
-      ? pinnedSessionIds.includes(contextMenuTab.sessionId)
-      : false;
-  const isContextMenuTabHidden =
-    isContextMenuTabSession && contextMenuTab?.sessionId
-      ? hiddenSessionIds.includes(contextMenuTab.sessionId)
-      : false;
 
   // Show sidebar expand button only in the leftmost pane
   const isLeftmostPane = useStore(
@@ -315,10 +278,20 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
               paneId={paneId}
               isActive={tab.id === activeTabId}
               isSelected={selectedSet.has(tab.id)}
+              selectedCount={selectedSet.has(tab.id) ? selectedTabIds.length : 0}
               onTabClick={handleTabClick}
               onMouseDown={handleMouseDown}
-              onContextMenu={handleContextMenu}
               onClose={closeTab}
+              onCloseOtherTabs={closeOtherTabs}
+              onCloseAllTabs={closeAllTabs}
+              onCloseSelectedTabs={
+                selectedSet.has(tab.id) && selectedTabIds.length > 1
+                  ? () => closeTabs([...selectedTabIds])
+                  : undefined
+              }
+              onSplitRight={(tabId) => splitPane(paneId, tabId, 'right')}
+              onSplitLeft={(tabId) => splitPane(paneId, tabId, 'left')}
+              disableSplit={paneCount >= 4}
               setRef={setTabRef}
             />
           ))}
@@ -398,39 +371,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         <MoreMenu activeTab={activeTab} activeTabSessionDetail={activeTabSessionDetail} />
       </div>
 
-      {/* Context menu */}
-      {contextMenu && contextMenuTabId && (
-        <TabContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          tabId={contextMenuTabId}
-          paneId={paneId}
-          selectedCount={effectiveSelectedCount}
-          onClose={() => setContextMenu(null)}
-          onCloseTab={() => closeTab(contextMenuTabId)}
-          onCloseOtherTabs={() => closeOtherTabs(contextMenuTabId)}
-          onCloseAllTabs={() => closeAllTabs()}
-          onCloseSelectedTabs={
-            effectiveSelectedCount > 1 ? () => closeTabs([...selectedTabIds]) : undefined
-          }
-          onSplitRight={() => splitPane(paneId, contextMenuTabId, 'right')}
-          onSplitLeft={() => splitPane(paneId, contextMenuTabId, 'left')}
-          disableSplit={paneCount >= 4}
-          isSessionTab={isContextMenuTabSession}
-          isPinned={isContextMenuTabPinned}
-          onTogglePin={
-            isContextMenuTabSession && contextMenuTab?.sessionId
-              ? () => togglePinSession(contextMenuTab.sessionId!)
-              : undefined
-          }
-          isHidden={isContextMenuTabHidden}
-          onToggleHide={
-            isContextMenuTabSession && contextMenuTab?.sessionId
-              ? () => toggleHideSession(contextMenuTab.sessionId!)
-              : undefined
-          }
-        />
-      )}
     </div>
   );
 };
