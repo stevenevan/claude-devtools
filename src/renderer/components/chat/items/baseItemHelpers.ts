@@ -28,15 +28,14 @@ export function truncateText(text: string, maxLength: number): string {
 }
 
 /**
- * Get background color for status dot.
- * Returns CSS value (hex for semantic colors, CSS variable for neutral).
+ * Get Tailwind background class for status dot.
  */
-export function getStatusDotColor(status: ItemStatus): string {
-  const colors: Record<ItemStatus, string> = {
-    ok: '#22c55e', // green-500 - semantic success
-    error: '#ef4444', // red-500 - semantic error
-    pending: '#eab308', // yellow-500 - semantic pending
-    orphaned: 'var(--tool-item-muted)', // theme-aware neutral
+export function getStatusDotClass(status: ItemStatus): string {
+  const classes: Record<ItemStatus, string> = {
+    ok: 'bg-[var(--status-ok)]',
+    error: 'bg-[var(--status-error)]',
+    pending: 'bg-[var(--status-pending)]',
+    orphaned: 'bg-[var(--tool-item-muted)]',
   };
-  return colors[status];
+  return classes[status];
 }

@@ -202,7 +202,7 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
                     <span className="text-text-muted min-w-0 truncate text-[11px] tabular-nums">
                       {formatTokensCompact(item.tokenDelta.preCompactionTokens)} →{' '}
                       {formatTokensCompact(item.tokenDelta.postCompactionTokens)}
-                      <span style={{ color: '#4ade80' }}>
+                      <span className="text-[var(--metric-compaction-freed)]">
                         {' '}
                         ({formatTokensCompact(Math.abs(item.tokenDelta.delta))} freed)
                       </span>

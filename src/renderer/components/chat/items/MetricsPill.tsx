@@ -168,7 +168,7 @@ export const MetricsPill = ({
                     <span className="font-mono text-[10px] text-[var(--card-icon-muted)] tabular-nums">
                       {formatTokensCompact(phase.peakTokens)}
                       {phase.postCompaction != null && (
-                        <span style={{ color: '#4ade80' }}>
+                        <span className="text-[var(--metric-compaction-freed)]">
                           {' '}
                           → {formatTokensCompact(phase.postCompaction)}
                         </span>

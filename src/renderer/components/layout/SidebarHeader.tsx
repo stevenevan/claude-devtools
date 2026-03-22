@@ -14,7 +14,6 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { isDesktopMode } from '@renderer/api';
-import { HEADER_ROW1_HEIGHT, HEADER_ROW2_HEIGHT } from '@renderer/constants/layout';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatShortcut, truncateMiddle } from '@renderer/utils/stringUtils';
@@ -311,14 +310,11 @@ export const SidebarHeader = (): React.JSX.Element => {
       {/* ROW 1: Project Identity (Title Bar / Drag Region) */}
       <div
         ref={projectDropdownRef}
-        className="relative flex items-center gap-2 pr-2 select-none"
-        style={
-          {
-            height: `${HEADER_ROW1_HEIGHT}px`,
-            paddingLeft: isMacElectron ? 'var(--macos-traffic-light-padding-left, 72px)' : '16px',
-            WebkitAppRegion: isMacElectron ? 'drag' : undefined,
-          } as React.CSSProperties
-        }
+        className={cn(
+          'relative flex h-10 items-center gap-2 pr-2 select-none',
+          isMacElectron ? 'pl-[var(--macos-traffic-light-padding-left,72px)]' : 'pl-4'
+        )}
+        style={isMacElectron ? { WebkitAppRegion: 'drag' } as React.CSSProperties : undefined}
       >
         {/* Project name dropdown button */}
         <button
@@ -420,18 +416,19 @@ export const SidebarHeader = (): React.JSX.Element => {
             }
             disabled={!hasMultipleWorktrees}
             className={cn(
-              'flex w-full items-center justify-between px-4 text-left transition-colors',
+              'flex h-[30px] w-full items-center justify-between px-4 text-left transition-colors',
               hasMultipleWorktrees ? 'cursor-pointer' : 'cursor-default',
               isWorktreeDropdownOpen
                 ? 'bg-surface-raised text-text'
                 : 'bg-surface-sidebar text-text-muted'
             )}
-            style={{ height: `${HEADER_ROW2_HEIGHT}px` }}
           >
             <div className="flex flex-1 items-center gap-1.5 overflow-hidden">
               <GitBranch
-                className="size-4 shrink-0"
-                style={{ color: isWorktreeDropdownOpen ? '#34d399' : 'rgba(52, 211, 153, 0.7)' }}
+                className={cn(
+                  'size-4 shrink-0',
+                  isWorktreeDropdownOpen ? 'text-[var(--worktree-icon)]' : 'text-[var(--worktree-icon-muted)]'
+                )}
               />
               {activeWorktree?.isMainWorktree ? (
                 <WorktreeBadge source={activeWorktree.source} isMain />

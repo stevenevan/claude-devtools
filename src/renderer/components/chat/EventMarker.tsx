@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { cn } from '@renderer/lib/utils';
 import { format } from 'date-fns';
 import { AlertTriangle, BookMarked, Inbox, Radio, Timer } from 'lucide-react';
 
@@ -11,37 +12,32 @@ interface EventMarkerProps {
 
 const EVENT_STYLES = {
   api_error: {
-    bg: 'var(--warning-bg)',
-    border: 'var(--warning-border)',
-    text: 'var(--warning-text)',
+    containerClass: 'bg-[var(--warning-bg)] border-[var(--warning-border)]',
+    textClass: 'text-[var(--warning-text)]',
     Icon: AlertTriangle,
     label: 'API Error',
   },
   bridge_status: {
-    bg: 'var(--event-info-bg, rgba(59, 130, 246, 0.1))',
-    border: 'var(--event-info-border, rgba(59, 130, 246, 0.3))',
-    text: 'var(--event-info-text, #60a5fa)',
+    containerClass: 'bg-[var(--event-info-bg)] border-[var(--event-info-border)]',
+    textClass: 'text-[var(--event-info-text)]',
     Icon: Radio,
     label: 'Remote Control',
   },
   memory_saved: {
-    bg: 'var(--event-success-bg, rgba(34, 197, 94, 0.1))',
-    border: 'var(--event-success-border, rgba(34, 197, 94, 0.3))',
-    text: 'var(--event-success-text, #4ade80)',
+    containerClass: 'bg-[var(--event-success-bg)] border-[var(--event-success-border)]',
+    textClass: 'text-[var(--event-success-text)]',
     Icon: BookMarked,
     label: 'Memory Saved',
   },
   turn_duration: {
-    bg: 'var(--event-info-bg, rgba(59, 130, 246, 0.1))',
-    border: 'var(--event-info-border, rgba(59, 130, 246, 0.3))',
-    text: 'var(--event-info-text, #60a5fa)',
+    containerClass: 'bg-[var(--event-info-bg)] border-[var(--event-info-border)]',
+    textClass: 'text-[var(--event-info-text)]',
     Icon: Timer,
     label: 'Turn Duration',
   },
   queue_operation: {
-    bg: 'var(--event-queue-bg, rgba(139, 92, 246, 0.1))',
-    border: 'var(--event-queue-border, rgba(139, 92, 246, 0.3))',
-    text: 'var(--event-queue-text, #a78bfa)',
+    containerClass: 'bg-[var(--event-queue-bg)] border-[var(--event-queue-border)]',
+    textClass: 'text-[var(--event-queue-text)]',
     Icon: Inbox,
     label: 'Queue',
   },
@@ -131,16 +127,11 @@ export const EventMarker = ({ eventGroup }: Readonly<EventMarkerProps>): React.J
   return (
     <div className="my-3">
       <div
-        className="flex items-center gap-3 rounded-lg border px-4 py-2"
-        style={{
-          backgroundColor: style.bg,
-          borderColor: style.border,
-        }}
+        className={cn('flex items-center gap-3 rounded-lg border px-4 py-2', style.containerClass)}
       >
-        <Icon size={14} className="shrink-0" style={{ color: style.text }} />
+        <Icon size={14} className={cn('shrink-0', style.textClass)} />
         <span
-          className="shrink-0 text-xs font-medium whitespace-nowrap"
-          style={{ color: style.text }}
+          className={cn('shrink-0 text-xs font-medium whitespace-nowrap', style.textClass)}
         >
           {style.label}
         </span>

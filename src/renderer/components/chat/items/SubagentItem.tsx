@@ -396,8 +396,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <ArrowUpRight
-                        className="size-3"
-                        style={{ color: 'rgba(251, 191, 36, 0.7)' }}
+                        className="size-3 text-[var(--subagent-icon-main)]"
                       />
                       <span className="text-text-secondary text-xs">Main Context</span>
                     </div>
@@ -410,7 +409,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                 {cumulativeMetrics && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Sigma className="size-3" style={{ color: 'rgba(168, 85, 247, 0.7)' }} />
+                      <Sigma className="size-3 text-[var(--subagent-icon-output)]" />
                       <span className="text-text-secondary text-xs">Total Output</span>
                     </div>
                     <span className="font-mono text-xs font-medium text-[var(--card-text-lighter)] tabular-nums">
@@ -426,7 +425,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                 {hasIsolated && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <CircleDot className="size-3" style={{ color: 'rgba(56, 189, 248, 0.7)' }} />
+                      <CircleDot className="size-3 text-[var(--subagent-icon-context)]" />
                       <span className="text-text-secondary text-xs">
                         {subagent.team ? 'Context Window' : 'Subagent Context'}
                       </span>
@@ -447,7 +446,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                       <span className="font-mono text-[11px] text-[var(--card-icon-muted)] tabular-nums">
                         {formatTokensCompact(phase.peakTokens)}
                         {phase.postCompaction != null && (
-                          <span style={{ color: '#4ade80' }}>
+                          <span className="text-[var(--metric-compaction-freed)]">
                             {' '}
                             → {formatTokensCompact(phase.postCompaction)}
                           </span>

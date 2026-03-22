@@ -4,7 +4,7 @@ import { cn } from '@renderer/lib/utils';
 import { getTriggerColorDef, type TriggerColor } from '@shared/constants/triggerColors';
 import { ChevronRight } from 'lucide-react';
 
-import { formatDuration, formatTokens, getStatusDotColor } from './baseItemHelpers';
+import { formatDuration, formatTokens, getStatusDotClass } from './baseItemHelpers';
 
 // =============================================================================
 // Types
@@ -53,8 +53,7 @@ interface BaseItemProps {
 export const StatusDot: React.FC<{ status: ItemStatus }> = ({ status }) => {
   return (
     <span
-      className="inline-block size-1.5 shrink-0 rounded-full"
-      style={{ backgroundColor: getStatusDotColor(status) }}
+      className={cn('inline-block size-1.5 shrink-0 rounded-full', getStatusDotClass(status))}
     />
   );
 };
