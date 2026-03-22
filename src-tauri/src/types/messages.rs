@@ -87,6 +87,10 @@ pub struct ParsedMessage {
     pub is_compact_summary: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub request_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subtype: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub event_data: Option<SystemEventData>,
 }
 
 // =============================================================================
@@ -106,6 +110,39 @@ pub struct TokenUsage {
 }
 
 // =============================================================================
+// System Event Data
+// =============================================================================
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SystemEventData {
+    pub subtype: String,
+    // api_error
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_status: Option<u16>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_message: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub retry_attempt: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_retries: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub retry_in_ms: Option<f64>,
+    // bridge_status
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bridge_content: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bridge_url: Option<String>,
+    // memory_saved
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub written_paths: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub memory_verb: Option<String>,
+}
+
+// =============================================================================
 // Message Category
 // =============================================================================
 
@@ -117,4 +154,5 @@ pub enum MessageCategory {
     HardNoise,
     Ai,
     Compact,
+    Event,
 }

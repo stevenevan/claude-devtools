@@ -14,7 +14,12 @@
 
 import { type Session, type SessionMetrics } from './domain';
 import { type ToolUseResultData } from './jsonl';
-import { type ParsedMessage, type ToolCall, type ToolResult } from './messages';
+import {
+  type ParsedMessage,
+  type SystemEventData,
+  type ToolCall,
+  type ToolResult,
+} from './messages';
 
 // =============================================================================
 // Process Types (Subagent Execution)
@@ -137,10 +142,19 @@ export interface CompactChunk extends BaseChunk {
 }
 
 /**
- * A chunk can be either a user input, AI response, system output, or compact boundary.
+ * Event chunk - represents a system event (api_error, bridge_status, memory_saved).
+ */
+export interface EventChunk extends BaseChunk {
+  chunkType: 'event';
+  message: ParsedMessage;
+  eventData: SystemEventData;
+}
+
+/**
+ * A chunk can be user input, AI response, system output, compact boundary, or event.
  * This discriminated union enables separate visualization and processing.
  */
-export type Chunk = UserChunk | AIChunk | SystemChunk | CompactChunk;
+export type Chunk = UserChunk | AIChunk | SystemChunk | CompactChunk | EventChunk;
 
 /**
  * Tool execution with timing information.
@@ -375,13 +389,22 @@ export interface EnhancedCompactChunk extends CompactChunk {
 }
 
 /**
- * Enhanced chunk can be user, AI, system, or compact type.
+ * Enhanced event chunk with additional metadata.
+ */
+export interface EnhancedEventChunk extends EventChunk {
+  /** Raw messages for debug sidebar */
+  rawMessages: ParsedMessage[];
+}
+
+/**
+ * Enhanced chunk can be user, AI, system, compact, or event type.
  */
 export type EnhancedChunk =
   | EnhancedUserChunk
   | EnhancedAIChunk
   | EnhancedSystemChunk
-  | EnhancedCompactChunk;
+  | EnhancedCompactChunk
+  | EnhancedEventChunk;
 
 // =============================================================================
 // Session Detail (complete parsed session)
@@ -500,4 +523,11 @@ export function isSystemChunk(chunk: Chunk | EnhancedChunk): chunk is SystemChun
  */
 export function isCompactChunk(chunk: Chunk | EnhancedChunk): chunk is CompactChunk {
   return 'chunkType' in chunk && chunk.chunkType === 'compact';
+}
+
+/**
+ * Type guard to check if a chunk is an EventChunk.
+ */
+export function isEventChunk(chunk: Chunk | EnhancedChunk): chunk is EventChunk {
+  return 'chunkType' in chunk && chunk.chunkType === 'event';
 }

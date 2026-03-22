@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use super::domain::SessionMetrics;
-use super::messages::{ParsedMessage, ToolCall, ToolResult};
+use super::messages::{ParsedMessage, SystemEventData, ToolCall, ToolResult};
 
 // =============================================================================
 // Process (Subagent Execution)
@@ -84,6 +84,8 @@ pub enum EnhancedChunk {
     System(EnhancedSystemChunk),
     #[serde(rename = "compact")]
     Compact(EnhancedCompactChunk),
+    #[serde(rename = "event")]
+    Event(EnhancedEventChunk),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -138,6 +140,19 @@ pub struct EnhancedCompactChunk {
     pub duration_ms: f64,
     pub metrics: SessionMetrics,
     pub message: ParsedMessage,
+    pub raw_messages: Vec<ParsedMessage>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EnhancedEventChunk {
+    pub id: String,
+    pub start_time: String,
+    pub end_time: String,
+    pub duration_ms: f64,
+    pub metrics: SessionMetrics,
+    pub message: ParsedMessage,
+    pub event_data: SystemEventData,
     pub raw_messages: Vec<ParsedMessage>,
 }
 

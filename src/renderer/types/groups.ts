@@ -10,6 +10,7 @@ import type {
   SessionMetrics,
   ToolUseResultData,
 } from './data';
+import type { SystemEventData } from '@shared/types/messages';
 export type { SemanticStep };
 import type { ClaudeMdStats } from './claudeMd';
 import type { CompactionTokenDelta } from './contextInjection';
@@ -380,11 +381,22 @@ export interface CompactGroup {
  * Chat item - can be user, system, ai, or compact.
  * These are INDEPENDENT items in a flat list, not paired turns.
  */
+/**
+ * Event group — a system event displayed as an inline marker.
+ */
+export interface EventGroup {
+  id: string;
+  timestamp: Date;
+  message: ParsedMessage;
+  eventData: SystemEventData;
+}
+
 export type ChatItem =
   | { type: 'user'; group: UserGroup }
   | { type: 'system'; group: SystemGroup }
   | { type: 'ai'; group: AIGroup }
-  | { type: 'compact'; group: CompactGroup };
+  | { type: 'compact'; group: CompactGroup }
+  | { type: 'event'; group: EventGroup };
 
 /**
  * Session conversation as a flat list of independent chat items.
@@ -403,4 +415,6 @@ export interface SessionConversation {
   totalAIGroups: number;
   /** Total count of compact groups */
   totalCompactGroups: number;
+  /** Total count of event groups */
+  totalEventGroups: number;
 }

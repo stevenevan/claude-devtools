@@ -2,10 +2,10 @@
 
 use crate::parsing::metrics::calculate_metrics;
 use crate::types::chunks::{
-    EnhancedAIChunk, EnhancedChunk, EnhancedCompactChunk, EnhancedSystemChunk, EnhancedUserChunk,
-    Process,
+    EnhancedAIChunk, EnhancedChunk, EnhancedCompactChunk, EnhancedEventChunk,
+    EnhancedSystemChunk, EnhancedUserChunk, Process,
 };
-use crate::types::messages::{ParsedMessage, ParsedMessageContent};
+use crate::types::messages::{ParsedMessage, ParsedMessageContent, SystemEventData};
 
 use super::context_accumulator::calculate_step_context;
 use super::process_linker::link_processes_to_ai_chunk;
@@ -57,6 +57,26 @@ pub fn build_compact_chunk(message: &ParsedMessage) -> EnhancedChunk {
         duration_ms: 0.0,
         metrics,
         message: message.clone(),
+        raw_messages: vec![message.clone()],
+    })
+}
+
+pub fn build_event_chunk(message: &ParsedMessage) -> EnhancedChunk {
+    let id = format!("event-{}", message.uuid);
+    let metrics = calculate_metrics(std::slice::from_ref(message));
+    let event_data = message.event_data.clone().unwrap_or_else(|| SystemEventData {
+        subtype: message.subtype.clone().unwrap_or_default(),
+        ..Default::default()
+    });
+
+    EnhancedChunk::Event(EnhancedEventChunk {
+        id,
+        start_time: message.timestamp.clone(),
+        end_time: message.timestamp.clone(),
+        duration_ms: 0.0,
+        metrics,
+        message: message.clone(),
+        event_data,
         raw_messages: vec![message.clone()],
     })
 }

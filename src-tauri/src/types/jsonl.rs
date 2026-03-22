@@ -92,4 +92,25 @@ pub struct RawJsonlEntry {
     // Compact summary marker
     #[serde(default)]
     pub is_compact_summary: Option<bool>,
+
+    // System entry fields
+    pub subtype: Option<String>,
+    pub level: Option<String>,
+    pub url: Option<String>,
+    pub content: Option<String>,
+
+    // api_error fields
+    pub error: Option<Value>,
+    #[serde(rename = "retryInMs")]
+    pub retry_in_ms: Option<f64>,
+    #[serde(rename = "retryAttempt")]
+    pub retry_attempt: Option<u32>,
+    #[serde(rename = "maxRetries")]
+    pub max_retries: Option<u32>,
+    pub cause: Option<Value>,
+
+    // memory_saved fields
+    #[serde(rename = "writtenPaths")]
+    pub written_paths: Option<Vec<String>>,
+    pub verb: Option<String>,
 }

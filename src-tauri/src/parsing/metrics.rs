@@ -83,6 +83,8 @@ mod tests {
             tool_use_result: None,
             is_compact_summary: None,
             request_id: None,
+            subtype: None,
+            event_data: None,
         }
     }
 

@@ -105,6 +105,34 @@ export interface ParsedMessage {
   isCompactSummary?: boolean;
   /** API request ID for deduplicating streaming entries */
   requestId?: string;
+  /** System entry subtype (api_error, bridge_status, memory_saved, etc.) */
+  subtype?: string;
+  /** Structured event data for displayable system entries */
+  eventData?: SystemEventData;
+}
+
+// =============================================================================
+// System Event Data
+// =============================================================================
+
+/**
+ * Structured data for displayable system events (api_error, bridge_status, memory_saved).
+ */
+export interface SystemEventData {
+  subtype: string;
+  // api_error
+  errorStatus?: number;
+  errorType?: string;
+  errorMessage?: string;
+  retryAttempt?: number;
+  maxRetries?: number;
+  retryInMs?: number;
+  // bridge_status
+  bridgeContent?: string;
+  bridgeUrl?: string;
+  // memory_saved
+  writtenPaths?: string[];
+  memoryVerb?: string;
 }
 
 // =============================================================================
@@ -297,7 +325,12 @@ export function isParsedInternalUserMessage(msg: ParsedMessage): boolean {
  */
 export function isParsedHardNoiseMessage(msg: ParsedMessage): boolean {
   // Filter structural metadata types - these should never be displayed
-  if (msg.type === 'system') return true;
+  if (msg.type === 'system') {
+    // Allow displayable system event subtypes through; filter everything else
+    return !(
+      msg.subtype && ['api_error', 'bridge_status', 'memory_saved'].includes(msg.subtype)
+    );
+  }
   if (msg.type === 'summary') return true;
   if (msg.type === 'file-history-snapshot') return true;
   if (msg.type === 'queue-operation') return true;

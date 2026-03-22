@@ -72,6 +72,8 @@ mod tests {
             tool_use_result: None,
             is_compact_summary: None,
             request_id: request_id.map(|s| s.to_string()),
+            subtype: None,
+            event_data: None,
         }
     }
 

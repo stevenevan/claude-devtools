@@ -3,7 +3,7 @@
 use serde_json::Value;
 
 use crate::types::jsonl::{ContentBlock, RawJsonlEntry};
-use crate::types::messages::{ParsedMessage, ParsedMessageContent, TokenUsage};
+use crate::types::messages::{ParsedMessage, ParsedMessageContent, SystemEventData, TokenUsage};
 
 use super::tool_extraction::{extract_tool_calls, extract_tool_results};
 
@@ -41,6 +41,8 @@ pub fn parse_entry(entry: &RawJsonlEntry) -> Option<ParsedMessage> {
     let mut request_id = None;
     let mut is_meta = entry.is_meta.unwrap_or(false);
     let mut is_compact_summary = entry.is_compact_summary.unwrap_or(false);
+    let mut subtype: Option<String> = None;
+    let mut event_data: Option<SystemEventData> = None;
 
     if is_conversational {
         if let Some(ref msg_value) = entry.message {
@@ -93,6 +95,10 @@ pub fn parse_entry(entry: &RawJsonlEntry) -> Option<ParsedMessage> {
                 }
                 "system" => {
                     is_meta = entry.is_meta.unwrap_or(false);
+                    if let Some(ref sub) = entry.subtype {
+                        subtype = Some(sub.clone());
+                        event_data = build_system_event_data(entry);
+                    }
                 }
                 _ => {}
             }
@@ -140,7 +146,72 @@ pub fn parse_entry(entry: &RawJsonlEntry) -> Option<ParsedMessage> {
         tool_use_result: entry.tool_use_result.clone(),
         is_compact_summary: if is_compact_summary { Some(true) } else { None },
         request_id,
+        subtype,
+        event_data,
     })
+}
+
+/// Build SystemEventData from a RawJsonlEntry for displayable system subtypes.
+fn build_system_event_data(entry: &RawJsonlEntry) -> Option<SystemEventData> {
+    let subtype = entry.subtype.as_deref()?;
+    match subtype {
+        "api_error" => {
+            let mut error_status: Option<u16> = None;
+            let mut error_type: Option<String> = None;
+            let mut error_message: Option<String> = None;
+
+            if let Some(ref err) = entry.error {
+                error_status = err
+                    .get("status")
+                    .and_then(|v| v.as_u64())
+                    .map(|v| v as u16);
+                // Try nested error.error.type / error.error.message
+                if let Some(inner) = err.get("error") {
+                    error_type = inner
+                        .get("type")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string());
+                    error_message = inner
+                        .get("message")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string());
+                }
+            }
+            // Fallback: try cause for connection errors
+            if error_type.is_none() {
+                if let Some(ref cause) = entry.cause {
+                    error_type = cause
+                        .get("code")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string());
+                }
+            }
+
+            Some(SystemEventData {
+                subtype: subtype.to_string(),
+                error_status,
+                error_type,
+                error_message,
+                retry_attempt: entry.retry_attempt,
+                max_retries: entry.max_retries,
+                retry_in_ms: entry.retry_in_ms,
+                ..Default::default()
+            })
+        }
+        "bridge_status" => Some(SystemEventData {
+            subtype: subtype.to_string(),
+            bridge_content: entry.content.clone(),
+            bridge_url: entry.url.clone(),
+            ..Default::default()
+        }),
+        "memory_saved" => Some(SystemEventData {
+            subtype: subtype.to_string(),
+            written_paths: entry.written_paths.clone(),
+            memory_verb: entry.verb.clone(),
+            ..Default::default()
+        }),
+        _ => None,
+    }
 }
 
 /// Parse message content from a JSON value into ParsedMessageContent.

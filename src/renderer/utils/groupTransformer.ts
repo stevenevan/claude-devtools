@@ -10,6 +10,7 @@ import {
   isAssistantMessage,
   isEnhancedAIChunk,
   isEnhancedCompactChunk,
+  isEnhancedEventChunk,
   isEnhancedSystemChunk,
   isEnhancedUserChunk,
 } from '@renderer/types/data';
@@ -21,6 +22,7 @@ import type {
   EnhancedAIChunk,
   EnhancedChunk,
   EnhancedCompactChunk,
+  EnhancedEventChunk,
   EnhancedSystemChunk,
   EnhancedUserChunk,
   ParsedMessage,
@@ -35,6 +37,7 @@ import type {
   ChatItem,
   CommandInfo,
   CompactGroup,
+  EventGroup,
   FileReference,
   ImageData,
   SessionConversation,
@@ -90,6 +93,7 @@ export function transformChunksToConversation(
       totalSystemGroups: 0,
       totalAIGroups: 0,
       totalCompactGroups: 0,
+      totalEventGroups: 0,
     };
   }
 
@@ -98,6 +102,7 @@ export function transformChunksToConversation(
   let systemCount = 0;
   let aiCount = 0;
   let compactCount = 0;
+  let eventCount = 0;
 
   for (const chunk of chunks) {
     if (isEnhancedUserChunk(chunk)) {
@@ -123,6 +128,12 @@ export function transformChunksToConversation(
         group: createCompactGroup(chunk),
       });
       compactCount++;
+    } else if (isEnhancedEventChunk(chunk)) {
+      items.push({
+        type: 'event',
+        group: createEventGroup(chunk),
+      });
+      eventCount++;
     } else {
       const unhandledChunkType =
         'chunkType' in chunk ? (chunk as EnhancedChunk).chunkType : 'unknown';
@@ -181,6 +192,7 @@ export function transformChunksToConversation(
     totalSystemGroups: systemCount,
     totalAIGroups: aiCount,
     totalCompactGroups: compactCount,
+    totalEventGroups: eventCount,
   };
 }
 
@@ -441,6 +453,19 @@ function createCompactGroup(chunk: EnhancedCompactChunk): CompactGroup {
     id: chunk.id, // Use stable chunk ID instead of array index
     timestamp: chunk.startTime,
     message: chunk.message, // Pass through the compact summary message
+  };
+}
+
+// =============================================================================
+// EventGroup Creation
+// =============================================================================
+
+function createEventGroup(chunk: EnhancedEventChunk): EventGroup {
+  return {
+    id: chunk.id,
+    timestamp: new Date(chunk.startTime),
+    message: chunk.rawMessages[0],
+    eventData: chunk.eventData,
   };
 }
 

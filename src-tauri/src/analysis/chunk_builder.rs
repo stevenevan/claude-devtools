@@ -7,7 +7,8 @@ use crate::types::domain::Session;
 use crate::types::messages::{MessageCategory, ParsedMessage};
 
 use super::chunk_factory::{
-    build_ai_chunk_from_buffer, build_compact_chunk, build_system_chunk, build_user_chunk,
+    build_ai_chunk_from_buffer, build_compact_chunk, build_event_chunk, build_system_chunk,
+    build_user_chunk,
 };
 
 /// Build chunks from messages.
@@ -47,6 +48,13 @@ pub fn build_chunks(messages: &[ParsedMessage], subagents: &[Process]) -> Vec<En
                     ai_buffer.clear();
                 }
                 chunks.push(build_system_chunk(msg));
+            }
+            MessageCategory::Event => {
+                if !ai_buffer.is_empty() {
+                    chunks.push(build_ai_chunk_from_buffer(&ai_buffer, subagents, messages));
+                    ai_buffer.clear();
+                }
+                chunks.push(build_event_chunk(msg));
             }
             MessageCategory::Ai => {
                 ai_buffer.push((*msg).clone());

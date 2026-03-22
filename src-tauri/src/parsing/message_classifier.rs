@@ -101,11 +101,34 @@ pub fn is_parsed_system_chunk_message(msg: &ParsedMessage) -> bool {
     }
 }
 
+/// System event message — displayable system subtypes.
+pub fn is_parsed_event_message(msg: &ParsedMessage) -> bool {
+    if msg.message_type != "system" {
+        return false;
+    }
+    matches!(
+        msg.subtype.as_deref(),
+        Some("api_error" | "bridge_status" | "memory_saved")
+    )
+}
+
 /// Hard noise message — NEVER rendered.
 pub fn is_parsed_hard_noise_message(msg: &ParsedMessage) -> bool {
     // Filter structural metadata types
     match msg.message_type.as_str() {
-        "system" | "summary" | "file-history-snapshot" | "queue-operation" => return true,
+        "system" => {
+            // Allow displayable system event subtypes through
+            if let Some(ref subtype) = msg.subtype {
+                if matches!(
+                    subtype.as_str(),
+                    "api_error" | "bridge_status" | "memory_saved"
+                ) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        "summary" | "file-history-snapshot" | "queue-operation" => return true,
         _ => {}
     }
 
@@ -188,9 +211,12 @@ pub fn is_parsed_teammate_message(msg: &ParsedMessage) -> bool {
 // Message Categorization
 // =============================================================================
 
-/// Categorize a parsed message into one of the five categories.
-/// Order matters: hardNoise → compact → system → user → ai
+/// Categorize a parsed message into one of the six categories.
+/// Order matters: event → hardNoise → compact → system → user → ai
 pub fn categorize_message(msg: &ParsedMessage) -> MessageCategory {
+    if is_parsed_event_message(msg) {
+        return MessageCategory::Event;
+    }
     if is_parsed_hard_noise_message(msg) {
         return MessageCategory::HardNoise;
     }
@@ -233,6 +259,8 @@ mod tests {
             tool_use_result: None,
             is_compact_summary: None,
             request_id: None,
+            subtype: None,
+            event_data: None,
         }
     }
 

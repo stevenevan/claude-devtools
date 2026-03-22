@@ -9,6 +9,7 @@ import {
 
 import { AIChatGroup } from './AIChatGroup';
 import { CompactBoundary } from './CompactBoundary';
+import { EventMarker } from './EventMarker';
 import { SystemChatGroup } from './SystemChatGroup';
 import { UserChatGroup } from './UserChatGroup';
 
@@ -124,6 +125,8 @@ const ChatHistoryItemInner = ({
     }
     case 'compact':
       return <CompactBoundary compactGroup={item.group} />;
+    case 'event':
+      return <EventMarker eventGroup={item.group} />;
     default:
       return null;
   }
