@@ -1,5 +1,6 @@
 mod cache;
 mod commands;
+mod discovery;
 mod parsing;
 mod sidecar;
 mod types;
@@ -22,6 +23,7 @@ pub fn run() {
         .manage(std::sync::Mutex::new(sidecar::SidecarState::default()))
         .manage(std::sync::Mutex::new(watcher::WatcherState::default()))
         .manage(std::sync::Arc::new(std::sync::Mutex::new(cache::SessionCache::default())))
+        .manage(std::sync::Arc::new(std::sync::Mutex::new(discovery::subproject_registry::SubprojectRegistry::new())))
         .setup(|app| {
             let handle = app.handle().clone();
 
@@ -55,6 +57,8 @@ pub fn run() {
             commands::stop_watching,
             commands::parse_session,
             commands::parse_session_metrics,
+            commands::get_projects,
+            commands::get_sessions_paginated,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

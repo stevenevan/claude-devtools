@@ -2,9 +2,14 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use crate::cache::SessionCache;
+use crate::discovery::{
+    path_decoder, project_scanner, session_lister, subproject_registry::SubprojectRegistry,
+};
 use crate::parsing::session_parser;
 use crate::sidecar::SidecarState;
-use crate::types::domain::{ParsedSession, SessionMetrics};
+use crate::types::domain::{
+    PaginatedSessionsResult, ParsedSession, Project, SessionMetrics, SessionsPaginationOptions,
+};
 use crate::watcher;
 
 // ---------------------------------------------------------------------------
@@ -125,4 +130,48 @@ pub fn parse_session_metrics(
     }
 
     Ok(metrics)
+}
+
+// ---------------------------------------------------------------------------
+// Project Discovery
+// ---------------------------------------------------------------------------
+
+/// Scan ~/.claude/projects/ and return all projects.
+#[tauri::command]
+pub fn get_projects(
+    registry: tauri::State<'_, Arc<Mutex<SubprojectRegistry>>>,
+) -> Result<Vec<Project>, String> {
+    let claude_dir = watcher::resolve_claude_dir()
+        .ok_or("Cannot resolve home directory")?;
+    let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
+
+    let mut registry = registry.lock().map_err(|e| e.to_string())?;
+    project_scanner::scan_projects(&projects_dir, &mut registry)
+}
+
+/// List sessions for a project with cursor-based pagination.
+#[tauri::command]
+pub fn get_sessions_paginated(
+    project_id: String,
+    cursor: Option<String>,
+    limit: Option<usize>,
+    options: Option<SessionsPaginationOptions>,
+    registry: tauri::State<'_, Arc<Mutex<SubprojectRegistry>>>,
+) -> Result<PaginatedSessionsResult, String> {
+    let claude_dir = watcher::resolve_claude_dir()
+        .ok_or("Cannot resolve home directory")?;
+    let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
+    let opts = options.unwrap_or_default();
+    let page_limit = limit.unwrap_or(20).min(100);
+
+    let registry = registry.lock().map_err(|e| e.to_string())?;
+    session_lister::list_sessions_paginated(
+        &projects_dir,
+        &claude_dir,
+        &project_id,
+        cursor.as_deref(),
+        page_limit,
+        &opts,
+        &registry,
+    )
 }

@@ -90,17 +90,33 @@ export class TauriAPIClient implements ElectronAPI {
   // Data operations — delegate to HTTP sidecar
   // ---------------------------------------------------------------------------
 
-  getProjects = (): Promise<Project[]> => this.http.getProjects();
+  getProjects = async (): Promise<Project[]> => {
+    try {
+      return await invoke<Project[]>('get_projects');
+    } catch {
+      return this.http.getProjects();
+    }
+  };
 
   getSessions = (projectId: string): Promise<Session[]> => this.http.getSessions(projectId);
 
-  getSessionsPaginated = (
+  getSessionsPaginated = async (
     projectId: string,
     cursor: string | null,
     limit?: number,
     options?: SessionsPaginationOptions
-  ): Promise<PaginatedSessionsResult> =>
-    this.http.getSessionsPaginated(projectId, cursor, limit, options);
+  ): Promise<PaginatedSessionsResult> => {
+    try {
+      return await invoke<PaginatedSessionsResult>('get_sessions_paginated', {
+        projectId,
+        cursor,
+        limit,
+        options,
+      });
+    } catch {
+      return this.http.getSessionsPaginated(projectId, cursor, limit, options);
+    }
+  };
 
   searchSessions = (
     projectId: string,
