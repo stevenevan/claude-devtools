@@ -16,7 +16,7 @@ import { HEADER_ROW1_HEIGHT } from '@renderer/constants/layout';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatShortcut } from '@renderer/utils/stringUtils';
-import { Bell, PanelLeft, Plus, RefreshCw } from 'lucide-react';
+import { PanelLeft, Plus, RefreshCw } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { MoreMenu } from './MoreMenu';
@@ -41,8 +41,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
     openDashboard,
     refreshSessionInPlace,
     fetchSessions,
-    unreadCount,
-    openNotificationsTab,
     sidebarCollapsed,
     toggleSidebar,
     splitPane,
@@ -62,8 +60,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
       openDashboard: s.openDashboard,
       refreshSessionInPlace: s.refreshSessionInPlace,
       fetchSessions: s.fetchSessions,
-      unreadCount: s.unreadCount,
-      openNotificationsTab: s.openNotificationsTab,
       sidebarCollapsed: s.sidebarCollapsed,
       toggleSidebar: s.toggleSidebar,
       splitPane: s.splitPane,
@@ -323,21 +319,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
           <Plus className="size-4" />
         </button>
 
-        {/* Notifications bell icon */}
-        <button
-          onClick={openNotificationsTab}
-          className="text-muted-foreground hover:bg-card hover:text-foreground relative flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
-          title="Notifications"
-        >
-          <Bell className="size-4" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-medium text-white">
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
-          )}
-        </button>
-
-        {/* More menu (Search, Export, Settings) */}
         <MoreMenu activeTab={activeTab} activeTabSessionDetail={activeTabSessionDetail} />
       </div>
     </div>

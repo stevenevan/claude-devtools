@@ -1,11 +1,3 @@
-/**
- * TabbedLayout - Main layout with project-centric sidebar and multi-pane tabbed content.
- *
- * Layout structure:
- * - Sidebar (280px): Project dropdown + date-grouped sessions
- * - Main content: PaneContainer with one or more panes, each with TabBar + content
- */
-
 import { isDesktopMode } from '@renderer/api';
 import { getTrafficLightPaddingForZoom } from '@renderer/constants/layout';
 import { useKeyboardShortcuts } from '@renderer/hooks/useKeyboardShortcuts';
@@ -22,7 +14,6 @@ import { PaneContainer } from './PaneContainer';
 import { Sidebar } from './Sidebar';
 
 export const TabbedLayout = (): React.JSX.Element => {
-  // Enable keyboard shortcuts
   useKeyboardShortcuts();
   const zoomFactor = useZoomFactor();
   const trafficLightPadding = isDesktopMode() ? getTrafficLightPaddingForZoom(zoomFactor) : 0;
@@ -37,16 +28,9 @@ export const TabbedLayout = (): React.JSX.Element => {
       <CustomTitleBar />
       <UpdateBanner />
       <div className="flex flex-1 overflow-hidden">
-        {/* Command Palette (Cmd+K) */}
         <CommandPalette />
-
-        {/* Activity Bar - Top-level navigation rail (44px) */}
         <ActivityBar />
-
-        {/* Sidebar - Contextual content based on active activity */}
         <Sidebar />
-
-        {/* Multi-pane content area */}
         <PaneContainer />
       </div>
       <UpdateDialog />

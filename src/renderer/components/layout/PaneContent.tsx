@@ -1,15 +1,15 @@
-/**
- * PaneContent - Renders tab content for a single pane.
- * Uses CSS display-toggle to keep all tabs mounted (preserving state).
- */
-
 import { TabUIProvider } from '@renderer/contexts/TabUIContext';
 import { cn } from '@renderer/lib/utils';
+import { useStore } from '@renderer/store';
 
+import { AgentsGrid } from '../dashboard/AgentsGrid';
 import { DashboardView } from '../dashboard/DashboardView';
+import { PluginsGrid } from '../dashboard/PluginsGrid';
+import { SkillsGrid } from '../dashboard/SkillsGrid';
 import { NotificationsView } from '../notifications/NotificationsView';
 import { SettingsView } from '../settings/SettingsView';
 
+import { GlobalContentView } from './GlobalContentView';
 import { SessionTabContent } from './SessionTabContent';
 
 import type { Pane } from '@renderer/types/panes';
@@ -20,15 +20,32 @@ interface PaneContentProps {
 
 export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
   const activeTabId = pane.activeTabId;
+  const activeActivity = useStore((s) => s.activeActivity);
 
-  // Show default dashboard if no tabs are open in this pane
-  const showDefaultDashboard = !activeTabId && pane.tabs.length === 0;
+  const showDefaultContent = !activeTabId && pane.tabs.length === 0;
 
   return (
     <div className="relative flex flex-1 overflow-hidden">
-      {showDefaultDashboard && (
+      {showDefaultContent && (
         <div className="absolute inset-0 flex">
-          <DashboardView />
+          {activeActivity === 'projects' && <DashboardView />}
+          {activeActivity === 'agents' && (
+            <GlobalContentView title="Agents">
+              <AgentsGrid searchQuery="" />
+            </GlobalContentView>
+          )}
+          {activeActivity === 'skills' && (
+            <GlobalContentView title="Skills">
+              <SkillsGrid searchQuery="" />
+            </GlobalContentView>
+          )}
+          {activeActivity === 'plugins' && (
+            <GlobalContentView title="Plugins">
+              <PluginsGrid searchQuery="" />
+            </GlobalContentView>
+          )}
+          {activeActivity === 'notifications' && <NotificationsView />}
+          {activeActivity === 'settings' && <SettingsView />}
         </div>
       )}
 

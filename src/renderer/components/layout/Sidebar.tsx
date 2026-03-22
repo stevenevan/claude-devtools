@@ -1,55 +1,82 @@
-/**
- * Sidebar - Breadcrumb-style navigation with project/worktree hierarchy.
- *
- * Structure:
- * - Fixed Header: Project selector (Row 1) + Worktree selector (Row 2, conditional)
- * - Scrollable Body: Date-grouped session list
- * - Resizable: Drag right edge to resize
- * - Collapsible: Cmd+B to toggle (Notion-style)
- *
- * Provides clear hierarchy visibility: Project -> Worktree -> Session
- */
-
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
+import { Bell, Globe, Monitor, Settings, Wrench } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { DateGroupedSessions } from '../sidebar/DateGroupedSessions';
 
 import { SidebarHeader } from './SidebarHeader';
 
+import type { SettingsSection } from '../settings/SettingsTabs';
+
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 500;
 const DEFAULT_WIDTH = 280;
 
+const SETTINGS_SECTIONS: { id: SettingsSection; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { id: 'general', label: 'General', icon: Settings },
+  { id: 'connection', label: 'Connection', icon: Globe },
+  { id: 'workspace', label: 'Workspaces', icon: Monitor },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'advanced', label: 'Advanced', icon: Wrench },
+];
+
+const SettingsSidebar = (): React.JSX.Element => {
+  const openSettingsTab = useStore((s) => s.openSettingsTab);
+
+  return (
+    <div className="flex flex-col p-3">
+      <h2 className="text-muted-foreground mb-2 px-2 text-xs font-medium tracking-wider uppercase">
+        Settings
+      </h2>
+      <nav className="flex flex-col gap-0.5">
+        {SETTINGS_SECTIONS.map(({ id, label, icon: Icon }) => (
+          <Button
+            key={id}
+            variant="ghost"
+            size="default"
+            onClick={() => openSettingsTab(id)}
+            className="justify-start gap-2 px-2"
+          >
+            <Icon className="size-4" />
+            {label}
+          </Button>
+        ))}
+      </nav>
+    </div>
+  );
+};
+
 export const Sidebar = (): React.JSX.Element | null => {
-  const { projects, projectsLoading, fetchProjects, sidebarCollapsed } = useStore(
+  const { projects, projectsLoading, fetchProjects, sidebarCollapsed, activeActivity } = useStore(
     useShallow((s) => ({
       projects: s.projects,
       projectsLoading: s.projectsLoading,
       fetchProjects: s.fetchProjects,
       sidebarCollapsed: s.sidebarCollapsed,
+      activeActivity: s.activeActivity,
     }))
   );
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  // Fetch projects on mount if not loaded
+  const showSidebar = activeActivity === 'projects' || activeActivity === 'settings';
+
   useEffect(() => {
     if (projects.length === 0 && !projectsLoading) {
       void fetchProjects();
     }
   }, [projects.length, projectsLoading, fetchProjects]);
 
-  // Handle mouse move during resize
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!isResizing) return;
 
-      const newWidth = e.clientX;
+      const newWidth = e.clientX - 44;
       if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
         setWidth(newWidth);
       }
@@ -57,12 +84,10 @@ export const Sidebar = (): React.JSX.Element | null => {
     [isResizing]
   );
 
-  // Handle mouse up to stop resizing
   const handleMouseUp = useCallback(() => {
     setIsResizing(false);
   }, []);
 
-  // Add/remove event listeners for resize
   useEffect(() => {
     if (isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
@@ -84,8 +109,7 @@ export const Sidebar = (): React.JSX.Element | null => {
     setIsResizing(true);
   };
 
-  // Collapsed state - sidebar is completely hidden (expand button is in TabBar)
-  if (sidebarCollapsed) {
+  if (sidebarCollapsed || !showSidebar) {
     return null;
   }
 
@@ -95,15 +119,17 @@ export const Sidebar = (): React.JSX.Element | null => {
       className="border-border bg-sidebar relative flex shrink-0 flex-col border-r"
       style={{ width: `${width}px` }}
     >
-      {/* Sidebar header with project dropdown */}
-      <SidebarHeader />
+      {activeActivity === 'projects' && (
+        <>
+          <SidebarHeader />
+          <div className="flex-1 overflow-hidden">
+            <DateGroupedSessions />
+          </div>
+        </>
+      )}
 
-      {/* Date-grouped session list */}
-      <div className="flex-1 overflow-hidden">
-        <DateGroupedSessions />
-      </div>
+      {activeActivity === 'settings' && <SettingsSidebar />}
 
-      {/* Resize handle */}
       <button
         type="button"
         aria-label="Resize sidebar"
