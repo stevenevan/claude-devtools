@@ -498,6 +498,7 @@ dependencies = [
  "tauri-plugin-process",
  "tauri-plugin-shell",
  "tokio",
+ "uuid",
  "which",
 ]
 

@@ -191,6 +191,27 @@ pub fn start_watcher(app: &AppHandle) -> Result<(), String> {
                                     parse_project_file(&projects_clone, path, change_type)
                                 {
                                     let _ = app_handle.emit("file-change", &evt);
+
+                                    // Trigger error detection for changed JSONL files
+                                    if (change_type == "add" || change_type == "change")
+                                        && !evt.is_subagent
+                                    {
+                                        if let (Some(ref pid), Some(ref sid)) =
+                                            (&evt.project_id, &evt.session_id)
+                                        {
+                                            let handle = app_handle.clone();
+                                            let fp = evt.path.clone();
+                                            let pid = pid.clone();
+                                            let sid = sid.clone();
+                                            std::thread::spawn(move || {
+                                                if let Err(e) = crate::notifications::commands::detect_and_notify(
+                                                    &handle, &fp, &pid, &sid,
+                                                ) {
+                                                    eprintln!("[watcher] Error detection failed: {e}");
+                                                }
+                                            });
+                                        }
+                                    }
                                 }
                             } else if path.starts_with(&todos_clone) {
                                 if let Some(evt) =

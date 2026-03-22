@@ -3,6 +3,7 @@ mod cache;
 mod commands;
 mod config;
 mod discovery;
+mod notifications;
 mod parsing;
 mod sidecar;
 mod types;
@@ -27,6 +28,7 @@ pub fn run() {
         .manage(std::sync::Arc::new(std::sync::Mutex::new(cache::SessionCache::default())))
         .manage(std::sync::Arc::new(std::sync::Mutex::new(discovery::subproject_registry::SubprojectRegistry::new())))
         .manage(std::sync::Arc::new(std::sync::Mutex::new(config::manager::ConfigState::new())))
+        .manage(std::sync::Mutex::new(notifications::manager::NotificationState::new()))
         .setup(|app| {
             let handle = app.handle().clone();
 
@@ -83,6 +85,13 @@ pub fn run() {
             config::commands::config_unhide_sessions,
             config::commands::config_get_claude_root_info,
             config::commands::config_open_in_editor,
+            notifications::commands::notifications_get,
+            notifications::commands::notifications_mark_read,
+            notifications::commands::notifications_mark_all_read,
+            notifications::commands::notifications_delete,
+            notifications::commands::notifications_clear,
+            notifications::commands::notifications_get_unread_count,
+            notifications::commands::notifications_test_trigger,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

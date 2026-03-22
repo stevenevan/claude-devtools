@@ -236,12 +236,86 @@ export class TauriAPIClient implements ElectronAPI {
     this.http.readAgentConfigs(projectRoot);
 
   // ---------------------------------------------------------------------------
-  // Notifications — delegate to HTTP sidecar (CRUD + SSE events)
+  // Notifications — Rust commands with HTTP fallback, Tauri events for real-time
   // ---------------------------------------------------------------------------
 
-  get notifications(): NotificationsAPI {
-    return this.http.notifications;
-  }
+  notifications: NotificationsAPI = {
+    get: async (options) => {
+      try {
+        return await invoke('notifications_get', { options });
+      } catch {
+        return this.http.notifications.get(options);
+      }
+    },
+    markRead: async (id) => {
+      try {
+        return await invoke<boolean>('notifications_mark_read', { id });
+      } catch {
+        return this.http.notifications.markRead(id);
+      }
+    },
+    markAllRead: async () => {
+      try {
+        return await invoke<boolean>('notifications_mark_all_read');
+      } catch {
+        return this.http.notifications.markAllRead();
+      }
+    },
+    delete: async (id) => {
+      try {
+        return await invoke<boolean>('notifications_delete', { id });
+      } catch {
+        return this.http.notifications.delete(id);
+      }
+    },
+    clear: async () => {
+      try {
+        return await invoke<boolean>('notifications_clear');
+      } catch {
+        return this.http.notifications.clear();
+      }
+    },
+    getUnreadCount: async () => {
+      try {
+        return await invoke<number>('notifications_get_unread_count');
+      } catch {
+        return this.http.notifications.getUnreadCount();
+      }
+    },
+    onNew: (callback) => {
+      let unlisten: UnlistenFn | null = null;
+      listen('notification:new', (event) => {
+        callback(null, event.payload);
+      }).then((fn) => {
+        unlisten = fn;
+      });
+      return () => {
+        unlisten?.();
+      };
+    },
+    onUpdated: (callback) => {
+      let unlisten: UnlistenFn | null = null;
+      listen<{ total: number; unreadCount: number }>('notification:updated', (event) => {
+        callback(null, event.payload);
+      }).then((fn) => {
+        unlisten = fn;
+      });
+      return () => {
+        unlisten?.();
+      };
+    },
+    onClicked: (callback) => {
+      let unlisten: UnlistenFn | null = null;
+      listen('notification:clicked', (event) => {
+        callback(null, event.payload);
+      }).then((fn) => {
+        unlisten = fn;
+      });
+      return () => {
+        unlisten?.();
+      };
+    },
+  };
 
   // ---------------------------------------------------------------------------
   // Config — mostly HTTP sidecar, with native dialog overrides
@@ -333,9 +407,13 @@ export class TauriAPIClient implements ElectronAPI {
         return this.http.config.getTriggers();
       }
     },
-    // testTrigger stays on HTTP — depends on ErrorDetector (Sprint 6)
-    testTrigger: (trigger: NotificationTrigger): Promise<TriggerTestResult> =>
-      this.http.config.testTrigger(trigger),
+    testTrigger: async (trigger: NotificationTrigger): Promise<TriggerTestResult> => {
+      try {
+        return await invoke<TriggerTestResult>('notifications_test_trigger', { trigger });
+      } catch {
+        return this.http.config.testTrigger(trigger);
+      }
+    },
     pinSession: async (projectId, sessionId) => {
       try {
         await invoke('config_pin_session', { projectId, sessionId });
