@@ -387,6 +387,18 @@ impl ConfigState {
     }
 
     // =========================================================================
+    // SSH Last Connection
+    // =========================================================================
+
+    pub fn update_ssh_last_connection(
+        &mut self,
+        last_connection: Option<super::types::SshLastConnection>,
+    ) {
+        self.config.ssh.last_connection = last_connection;
+        self.save_config();
+    }
+
+    // =========================================================================
     // Internal
     // =========================================================================
 

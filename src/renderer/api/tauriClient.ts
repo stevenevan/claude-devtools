@@ -70,6 +70,10 @@ import type {
   SessionsByIdsOptions,
   SessionsPaginationOptions,
   SshAPI,
+  SshConfigHostEntry,
+  SshConnectionConfig,
+  SshConnectionStatus,
+  SshLastConnection,
   SubagentDetail,
   TriggerTestResult,
   UpdaterAPI,
@@ -607,12 +611,78 @@ export class TauriAPIClient implements ElectronAPI {
   };
 
   // ---------------------------------------------------------------------------
-  // SSH — delegate to HTTP sidecar
+  // SSH — Rust commands with HTTP fallback
   // ---------------------------------------------------------------------------
 
-  get ssh(): SshAPI {
-    return this.http.ssh;
-  }
+  ssh: SshAPI = {
+    connect: async (config) => {
+      try {
+        return await invoke<SshConnectionStatus>('ssh_connect', { config });
+      } catch {
+        return this.http.ssh.connect(config);
+      }
+    },
+    disconnect: async () => {
+      try {
+        return await invoke<SshConnectionStatus>('ssh_disconnect');
+      } catch {
+        return this.http.ssh.disconnect();
+      }
+    },
+    getState: async () => {
+      try {
+        return await invoke<SshConnectionStatus>('ssh_get_state');
+      } catch {
+        return this.http.ssh.getState();
+      }
+    },
+    test: async (config) => {
+      try {
+        return await invoke<{ success: boolean; error?: string }>('ssh_test', { config });
+      } catch {
+        return this.http.ssh.test(config);
+      }
+    },
+    getConfigHosts: async () => {
+      try {
+        return await invoke<SshConfigHostEntry[]>('ssh_get_config_hosts');
+      } catch {
+        return this.http.ssh.getConfigHosts();
+      }
+    },
+    resolveHost: async (alias) => {
+      try {
+        return await invoke<SshConfigHostEntry | null>('ssh_resolve_host', { alias });
+      } catch {
+        return this.http.ssh.resolveHost(alias);
+      }
+    },
+    saveLastConnection: async (config) => {
+      try {
+        await invoke('ssh_save_last_connection', { config });
+      } catch {
+        await this.http.ssh.saveLastConnection(config);
+      }
+    },
+    getLastConnection: async () => {
+      try {
+        return await invoke<SshLastConnection | null>('ssh_get_last_connection');
+      } catch {
+        return this.http.ssh.getLastConnection();
+      }
+    },
+    onStatus: (callback) => {
+      let unlisten: UnlistenFn | null = null;
+      listen<SshConnectionStatus>('ssh-status', (event) => {
+        callback(null, event.payload);
+      }).then((fn) => {
+        unlisten = fn;
+      });
+      return () => {
+        unlisten?.();
+      };
+    },
+  };
 
   // ---------------------------------------------------------------------------
   // Context — delegate to HTTP sidecar

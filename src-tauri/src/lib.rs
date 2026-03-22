@@ -6,6 +6,7 @@ mod discovery;
 mod notifications;
 mod parsing;
 mod sidecar;
+mod ssh;
 mod types;
 mod watcher;
 
@@ -29,6 +30,7 @@ pub fn run() {
         .manage(std::sync::Arc::new(std::sync::Mutex::new(discovery::subproject_registry::SubprojectRegistry::new())))
         .manage(std::sync::Arc::new(std::sync::Mutex::new(config::manager::ConfigState::new())))
         .manage(std::sync::Mutex::new(notifications::manager::NotificationState::new()))
+        .manage(std::sync::Arc::new(tokio::sync::Mutex::new(ssh::connection_manager::SshState::default())))
         .setup(|app| {
             let handle = app.handle().clone();
 
@@ -92,6 +94,14 @@ pub fn run() {
             notifications::commands::notifications_clear,
             notifications::commands::notifications_get_unread_count,
             notifications::commands::notifications_test_trigger,
+            ssh::commands::ssh_get_config_hosts,
+            ssh::commands::ssh_resolve_host,
+            ssh::commands::ssh_connect,
+            ssh::commands::ssh_disconnect,
+            ssh::commands::ssh_get_state,
+            ssh::commands::ssh_test,
+            ssh::commands::ssh_save_last_connection,
+            ssh::commands::ssh_get_last_connection,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
