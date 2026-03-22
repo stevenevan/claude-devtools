@@ -92,9 +92,9 @@
   --color-surface-raised: #27272a; /* Active/Selected items (Zinc-800) */
   --color-surface-overlay: #27272a; /* Overlay surfaces */
   --color-surface-sidebar: #0f0f11; /* Sidebar Background (slightly darker) */
-  --color-border: rgba(255, 255, 255, 0.05); /* Borders/Dividers (5% white) */
-  --color-border-subtle: rgba(255, 255, 255, 0.05); /* Subtle borders (5% white) */
-  --color-border-emphasis: rgba(255, 255, 255, 0.1); /* Emphasis borders (10% white) */
+  --color-border: rgba(255, 255, 255, 0.08); /* Borders/Dividers (8% white) */
+  --color-border-subtle: rgba(255, 255, 255, 0.03); /* Subtle borders (3% white) */
+  --color-border-emphasis: rgba(255, 255, 255, 0.14); /* Emphasis borders (14% white) */
   --color-text: #fafafa;
   --color-text-secondary: #a1a1aa;
   --color-text-muted: #71717a;
@@ -113,7 +113,7 @@
 
   /* User chat bubble - Soft Charcoal theme (softer text for visual hierarchy) */
   --chat-user-bg: #27272a;
-  --chat-user-text: #a1a1aa;
+  --chat-user-text: #d4d4d8;
   --chat-user-border: rgba(255, 255, 255, 0.08);
   --chat-user-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.03);
 
@@ -133,7 +133,7 @@
   --chat-system-text: #d4d4d8;
 
   /* AI message styling */
-  --chat-ai-border: rgba(255, 255, 255, 0.05);
+  --chat-ai-border: rgba(99, 102, 241, 0.20);
   --chat-ai-icon: #71717a;
 
   /* Code blocks - Soft Charcoal theme */
