@@ -8,6 +8,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { Button } from '@renderer/components/ui/button';
+import { Input } from '@renderer/components/ui/input';
 import { useStore } from '@renderer/store';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -120,52 +122,51 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
 
   return (
     <div className="border-border bg-surface absolute top-2 right-4 z-20 flex items-center gap-2 rounded-lg border px-3 py-2 shadow-lg">
-      {/* Search input */}
-      <input
+      <Input
         ref={inputRef}
         type="text"
         value={localQuery}
         onChange={(e) => handleChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Find in conversation..."
-        className="border-border bg-surface-raised text-text focus:border-text-secondary w-48 rounded-sm border px-3 py-1.5 text-sm focus:outline-hidden"
+        className="w-48"
       />
 
-      {/* Result count */}
       {searchQuery && (
         <span className="text-text-secondary text-xs whitespace-nowrap">
           {searchResultCount > 0 ? resultLabel : 'No results'}
         </span>
       )}
 
-      {/* Navigation buttons */}
       <div className="flex gap-0.5">
-        <button
+        <Button
+          variant="ghost"
+          size="icon-xs"
           onClick={previousSearchResult}
           disabled={searchResultCount === 0}
-          className="text-text-secondary hover:bg-surface-raised hover:text-text rounded-sm p-1 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
           title="Previous result (Shift+Enter)"
         >
           <ChevronUp className="size-4" />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-xs"
           onClick={nextSearchResult}
           disabled={searchResultCount === 0}
-          className="text-text-secondary hover:bg-surface-raised hover:text-text rounded-sm p-1 transition-colors disabled:cursor-not-allowed disabled:opacity-30"
           title="Next result (Enter)"
         >
           <ChevronDown className="size-4" />
-        </button>
+        </Button>
       </div>
 
-      {/* Close button */}
-      <button
+      <Button
+        variant="ghost"
+        size="icon-xs"
         onClick={hideSearch}
-        className="text-text-secondary hover:bg-surface-raised hover:text-text rounded-sm p-1 transition-colors"
         title="Close (Esc)"
       >
         <X className="size-4" />
-      </button>
+      </Button>
     </div>
   );
 };

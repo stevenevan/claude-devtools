@@ -9,6 +9,8 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { Button } from '@renderer/components/ui/button';
+import { Dialog, DialogContent, DialogOverlay, DialogPortal } from '@renderer/components/ui/dialog';
 import { api } from '@renderer/api';
 import { useStore } from '@renderer/store';
 import { formatModifierShortcut } from '@renderer/utils/keyboardUtils';
@@ -317,16 +319,6 @@ export const CommandPalette = (): React.JSX.Element | null => {
     [closeCommandPalette, navigateToSession, query]
   );
 
-  // Handle backdrop click
-  const handleBackdropClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) {
-        closeCommandPalette();
-      }
-    },
-    [closeCommandPalette]
-  );
-
   // Handle keyboard navigation
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -412,173 +404,163 @@ export const CommandPalette = (): React.JSX.Element | null => {
     );
   }, []);
 
-  if (!commandPaletteOpen) {
-    return null;
-  }
-
   return (
-    <div
-      role="presentation"
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 pt-[15vh] backdrop-blur-xs"
-      onClick={handleBackdropClick}
+    <Dialog
+      open={commandPaletteOpen}
+      onOpenChange={(open) => { if (!open) closeCommandPalette(); }}
     >
-      <div className="border-border bg-surface w-full max-w-2xl overflow-hidden rounded-xl border shadow-2xl">
-        {/* Mode indicator */}
-        <div className="bg-surface-raised/50 border-border border-b px-4 py-2">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              {searchMode === 'projects' ? (
-                <>
-                  <FolderGit2 className="text-text-muted size-3.5" />
-                  <span className="text-text-muted text-xs">Search projects</span>
-                </>
-              ) : (
-                <>
-                  <MessageSquare className="text-text-muted size-3.5" />
-                  <span className="text-text-muted text-xs">
-                    {globalSearchEnabled ? 'Search across all projects' : 'Search in project'}
-                  </span>
-                  {!globalSearchEnabled && (
+      <DialogPortal>
+        <DialogOverlay />
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
+          <div className="border-border bg-surface w-full max-w-2xl overflow-hidden rounded-xl border shadow-2xl">
+            <div className="bg-surface-raised/50 border-border border-b px-4 py-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  {searchMode === 'projects' ? (
                     <>
-                      <span className="text-text-muted/50 mx-1 text-xs">·</span>
-                      <span className="text-text-secondary truncate text-xs">
-                        {repositoryGroups.find((r) =>
-                          r.worktrees.some((w) => w.id === selectedProjectId)
-                        )?.name ?? 'Current project'}
+                      <FolderGit2 className="text-text-muted size-3.5" />
+                      <span className="text-text-muted text-xs">Search projects</span>
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquare className="text-text-muted size-3.5" />
+                      <span className="text-text-muted text-xs">
+                        {globalSearchEnabled ? 'Search across all projects' : 'Search in project'}
                       </span>
+                      {!globalSearchEnabled && (
+                        <>
+                          <span className="text-text-muted/50 mx-1 text-xs">·</span>
+                          <span className="text-text-secondary truncate text-xs">
+                            {repositoryGroups.find((r) =>
+                              r.worktrees.some((w) => w.id === selectedProjectId)
+                            )?.name ?? 'Current project'}
+                          </span>
+                        </>
+                      )}
                     </>
                   )}
-                </>
+                </div>
+                <Button
+                  variant={globalSearchEnabled ? 'secondary' : 'ghost'}
+                  size="xs"
+                  onClick={() => setGlobalSearchEnabled(!globalSearchEnabled)}
+                  className={globalSearchEnabled ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30' : ''}
+                  title={
+                    !globalSearchEnabled
+                      ? `Search across all projects (${formatModifierShortcut('G')})`
+                      : undefined
+                  }
+                >
+                  <Globe className="size-3" />
+                  Global
+                </Button>
+              </div>
+            </div>
+
+            <div className="border-border flex items-center gap-3 border-b px-4 py-3">
+              <Search className="text-text-muted size-5 shrink-0" />
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                  searchMode === 'projects' ? 'Search projects...' : 'Search conversations...'
+                }
+                className="placeholder:text-text-muted/50 text-text flex-1 bg-transparent text-base focus:outline-hidden"
+              />
+              {loading && <Loader2 className="text-text-muted size-4 animate-spin" />}
+              <Button variant="ghost" size="icon-xs" onClick={closeCommandPalette}>
+                <X className="size-4" />
+              </Button>
+            </div>
+
+            <div className="max-h-[50vh] overflow-y-auto">
+              {searchMode === 'projects' ? (
+                filteredProjects.length === 0 ? (
+                  <div className="text-text-muted px-4 py-8 text-center text-sm">
+                    {query.trim() ? `No projects found for "${query}"` : 'No projects found'}
+                  </div>
+                ) : (
+                  <div className="py-2">
+                    {filteredProjects.map((repo, index) => (
+                      <ProjectResultItem
+                        key={repo.id}
+                        repo={repo}
+                        isSelected={index === selectedIndex}
+                        onClick={() => handleProjectClick(repo)}
+                      />
+                    ))}
+                  </div>
+                )
+              ) : query.trim().length < 2 ? (
+                <div className="text-text-muted px-4 py-8 text-center text-sm">
+                  Type at least 2 characters to search
+                </div>
+              ) : sessionResults.length === 0 && !loading ? (
+                <div className="text-text-muted px-4 py-8 text-center text-sm">
+                  {searchIsPartial
+                    ? `No fast results in recent sessions for "${query}"`
+                    : `No results found for "${query}"`}
+                </div>
+              ) : (
+                <div className="py-2">
+                  {sessionResults.map((result, index) => {
+                    const projectName = globalSearchEnabled
+                      ? repositoryGroups.find((r) =>
+                          r.worktrees.some((w) => w.id === result.projectId)
+                        )?.name
+                      : undefined;
+
+                    return (
+                      <SessionResultItem
+                        key={`${result.sessionId}-${index}`}
+                        result={result}
+                        isSelected={index === selectedIndex}
+                        onClick={() => handleSessionResultClick(result)}
+                        highlightMatch={highlightMatch}
+                        showProjectName={globalSearchEnabled}
+                        projectName={projectName}
+                      />
+                    );
+                  })}
+                </div>
               )}
             </div>
-            <button
-              onClick={() => setGlobalSearchEnabled(!globalSearchEnabled)}
-              className={`flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors ${
-                globalSearchEnabled
-                  ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
-                  : 'text-text-muted hover:bg-surface-raised hover:text-text'
-              }`}
-              title={
-                !globalSearchEnabled
-                  ? `Search across all projects (${formatModifierShortcut('G')})`
-                  : undefined
-              }
-            >
-              <Globe className="size-3" />
-              <span>Global</span>
-            </button>
+
+            <div className="border-border text-text-muted flex items-center justify-between border-t px-4 py-2 text-xs">
+              <span>
+                {searchMode === 'projects'
+                  ? `${filteredProjects.length} project${filteredProjects.length !== 1 ? 's' : ''}`
+                  : totalMatches > 0
+                    ? `${totalMatches} ${searchIsPartial ? 'fast ' : ''}result${totalMatches !== 1 ? 's' : ''}${globalSearchEnabled ? ' across all projects' : ''}`
+                    : 'Type to search'}
+              </span>
+              <div className="flex items-center gap-4">
+                <span>
+                  <kbd className="bg-surface-overlay rounded px-1.5 py-0.5 text-[10px]">↑↓</kbd>{' '}
+                  navigate
+                </span>
+                <span>
+                  <kbd className="bg-surface-overlay rounded px-1.5 py-0.5 text-[10px]">↵</kbd>{' '}
+                  {searchMode === 'projects' ? 'select' : 'open'}
+                </span>
+                <span>
+                  <kbd className="bg-surface-overlay rounded px-1.5 py-0.5 text-[10px]">
+                    {formatModifierShortcut('G')}
+                  </kbd>{' '}
+                  global
+                </span>
+                <span>
+                  <kbd className="bg-surface-overlay rounded px-1.5 py-0.5 text-[10px]">esc</kbd>{' '}
+                  close
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Search input */}
-        <div className="border-border flex items-center gap-3 border-b px-4 py-3">
-          <Search className="text-text-muted size-5 shrink-0" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={
-              searchMode === 'projects' ? 'Search projects...' : 'Search conversations...'
-            }
-            className="placeholder:text-text-muted/50 text-text flex-1 bg-transparent text-base focus:outline-hidden"
-          />
-          {loading && <Loader2 className="text-text-muted size-4 animate-spin" />}
-          <button
-            onClick={closeCommandPalette}
-            className="text-text-muted hover:text-text rounded p-1 transition-colors"
-          >
-            <X className="size-4" />
-          </button>
-        </div>
-
-        {/* Results */}
-        <div className="max-h-[50vh] overflow-y-auto">
-          {searchMode === 'projects' ? (
-            // Project search results
-            filteredProjects.length === 0 ? (
-              <div className="text-text-muted px-4 py-8 text-center text-sm">
-                {query.trim() ? `No projects found for "${query}"` : 'No projects found'}
-              </div>
-            ) : (
-              <div className="py-2">
-                {filteredProjects.map((repo, index) => (
-                  <ProjectResultItem
-                    key={repo.id}
-                    repo={repo}
-                    isSelected={index === selectedIndex}
-                    onClick={() => handleProjectClick(repo)}
-                  />
-                ))}
-              </div>
-            )
-          ) : // Session search results
-          query.trim().length < 2 ? (
-            <div className="text-text-muted px-4 py-8 text-center text-sm">
-              Type at least 2 characters to search
-            </div>
-          ) : sessionResults.length === 0 && !loading ? (
-            <div className="text-text-muted px-4 py-8 text-center text-sm">
-              {searchIsPartial
-                ? `No fast results in recent sessions for "${query}"`
-                : `No results found for "${query}"`}
-            </div>
-          ) : (
-            <div className="py-2">
-              {sessionResults.map((result, index) => {
-                // Find project name for this result when in global search mode
-                const projectName = globalSearchEnabled
-                  ? repositoryGroups.find((r) => r.worktrees.some((w) => w.id === result.projectId))
-                      ?.name
-                  : undefined;
-
-                return (
-                  <SessionResultItem
-                    key={`${result.sessionId}-${index}`}
-                    result={result}
-                    isSelected={index === selectedIndex}
-                    onClick={() => handleSessionResultClick(result)}
-                    highlightMatch={highlightMatch}
-                    showProjectName={globalSearchEnabled}
-                    projectName={projectName}
-                  />
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="border-border text-text-muted flex items-center justify-between border-t px-4 py-2 text-xs">
-          <span>
-            {searchMode === 'projects'
-              ? `${filteredProjects.length} project${filteredProjects.length !== 1 ? 's' : ''}`
-              : totalMatches > 0
-                ? `${totalMatches} ${searchIsPartial ? 'fast ' : ''}result${totalMatches !== 1 ? 's' : ''}${globalSearchEnabled ? ' across all projects' : ''}`
-                : 'Type to search'}
-          </span>
-          <div className="flex items-center gap-4">
-            <span>
-              <kbd className="bg-surface-overlay rounded px-1.5 py-0.5 text-[10px]">↑↓</kbd>{' '}
-              navigate
-            </span>
-            <span>
-              <kbd className="bg-surface-overlay rounded px-1.5 py-0.5 text-[10px]">↵</kbd>{' '}
-              {searchMode === 'projects' ? 'select' : 'open'}
-            </span>
-            <span>
-              <kbd className="bg-surface-overlay rounded px-1.5 py-0.5 text-[10px]">
-                {formatModifierShortcut('G')}
-              </kbd>{' '}
-              global
-            </span>
-            <span>
-              <kbd className="bg-surface-overlay rounded px-1.5 py-0.5 text-[10px]">esc</kbd> close
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
+      </DialogPortal>
+    </Dialog>
   );
 };

@@ -1,33 +1,19 @@
-/**
- * RepositoryDropdown - Dropdown for selecting repository groups.
- *
- * Features:
- * - Shows repository groups (not individual worktrees)
- * - Displays worktree count and total sessions
- * - Click outside to close
- * - Keyboard navigation (Escape to close)
- * - Filter out already selected items
- */
+import React, { useEffect, useMemo, useState } from 'react';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-
+import { Button } from '@renderer/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
 import { useStore } from '@renderer/store';
-import { ChevronDown, FolderOpen, GitBranch } from 'lucide-react';
+import { cn } from '@renderer/lib/utils';
+import { ChevronDown, FolderOpen, GitBranch, X } from 'lucide-react';
 
 import type { RepositoryDropdownItem } from '@renderer/components/settings/hooks/useSettingsConfig';
 
 interface RepositoryDropdownProps {
-  /** Callback when a repository is selected */
   onSelect: (item: RepositoryDropdownItem) => void;
-  /** IDs of items to exclude from the list */
   excludeIds?: string[];
-  /** Placeholder text */
   placeholder?: string;
-  /** Whether the dropdown is disabled */
   disabled?: boolean;
-  /** Whether to drop up instead of down */
   dropUp?: boolean;
-  /** Custom class for the container */
   className?: string;
 }
 
@@ -39,21 +25,17 @@ export const RepositoryDropdown = ({
   dropUp = false,
   className = '',
 }: Readonly<RepositoryDropdownProps>): React.JSX.Element => {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
 
-  // Get repository groups from store
   const repositoryGroups = useStore((state) => state.repositoryGroups);
   const fetchRepositoryGroups = useStore((state) => state.fetchRepositoryGroups);
 
-  // Fetch data if not loaded
   useEffect(() => {
     if (repositoryGroups.length === 0) {
       void fetchRepositoryGroups();
     }
   }, [repositoryGroups.length, fetchRepositoryGroups]);
 
-  // Convert repository groups to dropdown items
   const allItems = useMemo((): RepositoryDropdownItem[] => {
     return repositoryGroups.map((group) => ({
       id: group.id,
@@ -64,85 +46,52 @@ export const RepositoryDropdown = ({
     }));
   }, [repositoryGroups]);
 
-  // Filter out excluded items
   const availableItems = useMemo(() => {
     return allItems.filter((item) => !excludeIds.includes(item.id));
   }, [allItems, excludeIds]);
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent): void => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isOpen]);
-
-  // Close on escape
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
-    }
-  }, [isOpen]);
-
   const handleSelect = (item: RepositoryDropdownItem): void => {
     onSelect(item);
-    setIsOpen(false);
+    setOpen(false);
   };
 
   const isEmpty = availableItems.length === 0;
 
   return (
-    <div ref={containerRef} className={`relative ${className}`}>
-      {/* Trigger Button */}
-      <button
-        type="button"
-        onClick={() => !disabled && !isEmpty && setIsOpen(!isOpen)}
-        disabled={disabled || isEmpty}
-        className={`border-border text-text-secondary hover:bg-surface-raised flex w-full items-center justify-between gap-2 rounded-sm border bg-transparent px-2 py-1.5 text-xs transition-colors ${disabled || isEmpty ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} `}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="outline"
+            disabled={disabled || isEmpty}
+            className={cn('w-full justify-between text-xs', className)}
+          />
+        }
       >
         <span className="flex items-center gap-2">
           <FolderOpen className="size-3" />
           {isEmpty ? 'No repositories available' : placeholder}
         </span>
         <ChevronDown
-          className={`size-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={cn('size-4 transition-transform duration-200', open && 'rotate-180')}
         />
-      </button>
-
-      {/* Dropdown Menu */}
-      {isOpen && !isEmpty && (
-        <div
-          className={`border-border bg-surface-overlay absolute inset-x-0 z-50 max-h-64 overflow-y-auto rounded-sm border py-1 shadow-lg ${dropUp ? 'bottom-full mb-1' : 'top-full mt-1'} `}
-        >
-          {availableItems.map((item) => (
-            <RepositoryDropdownItemComponent
-              key={item.id}
-              item={item}
-              onSelect={() => handleSelect(item)}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+      </PopoverTrigger>
+      <PopoverContent
+        side={dropUp ? 'top' : 'bottom'}
+        className="max-h-64 w-(--anchor-width) overflow-y-auto p-1"
+      >
+        {availableItems.map((item) => (
+          <RepositoryDropdownItemComponent
+            key={item.id}
+            item={item}
+            onSelect={() => handleSelect(item)}
+          />
+        ))}
+      </PopoverContent>
+    </Popover>
   );
 };
 
-/**
- * Individual item in the dropdown.
- */
 const RepositoryDropdownItemComponentInner = ({
   item,
   onSelect,
@@ -154,23 +103,23 @@ const RepositoryDropdownItemComponentInner = ({
     <button
       type="button"
       onClick={onSelect}
-      className="hover:bg-surface-raised flex w-full items-center gap-2 px-2 py-1.5 text-left transition-colors"
+      className="hover:bg-accent flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors"
     >
       <FolderOpen className="size-3 shrink-0 text-indigo-400" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <span className="text-text truncate text-xs">{item.name}</span>
+          <span className="text-foreground truncate text-xs">{item.name}</span>
           {item.worktreeCount > 1 && (
-            <span className="bg-surface-raised text-text-muted flex shrink-0 items-center gap-0.5 rounded-sm px-1 py-0.5 text-[10px]">
+            <span className="bg-muted text-muted-foreground flex shrink-0 items-center gap-0.5 rounded-sm px-1 py-0.5 text-[10px]">
               <GitBranch className="size-2.5" />
               {item.worktreeCount}
             </span>
           )}
-          <span className="text-text-muted shrink-0 text-[10px]">
+          <span className="text-muted-foreground shrink-0 text-[10px]">
             {item.totalSessions} session{item.totalSessions !== 1 ? 's' : ''}
           </span>
         </div>
-        <span className="text-text-muted block truncate text-[10px]">{item.path}</span>
+        <span className="text-muted-foreground block truncate text-[10px]">{item.path}</span>
       </div>
     </button>
   );
@@ -178,9 +127,6 @@ const RepositoryDropdownItemComponentInner = ({
 
 const RepositoryDropdownItemComponent = React.memo(RepositoryDropdownItemComponentInner);
 
-/**
- * Selected repository item with remove button.
- */
 const SelectedRepositoryItemInner = ({
   item,
   onRemove,
@@ -195,34 +141,28 @@ const SelectedRepositoryItemInner = ({
       <FolderOpen className="size-3 shrink-0 text-indigo-400" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <span className="text-text truncate text-xs">{item.name}</span>
+          <span className="text-foreground truncate text-xs">{item.name}</span>
           {item.worktreeCount > 1 && (
-            <span className="bg-surface-raised text-text-muted flex shrink-0 items-center gap-0.5 rounded-sm px-1 py-0.5 text-[10px]">
+            <span className="bg-muted text-muted-foreground flex shrink-0 items-center gap-0.5 rounded-sm px-1 py-0.5 text-[10px]">
               <GitBranch className="size-2.5" />
               {item.worktreeCount}
             </span>
           )}
         </div>
-        <span className="text-text-muted truncate text-[10px]" title={item.path}>
+        <span className="text-muted-foreground truncate text-[10px]" title={item.path}>
           {item.path}
         </span>
       </div>
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="icon-xs"
         onClick={onRemove}
         disabled={disabled}
-        className={`text-text-muted shrink-0 rounded-sm p-1 transition-colors hover:bg-red-500/10 hover:text-red-400 ${disabled ? 'cursor-not-allowed opacity-50' : ''} `}
+        className="shrink-0 hover:bg-red-500/10 hover:text-red-400"
         aria-label="Remove repository"
       >
-        <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
+        <X className="size-3" />
+      </Button>
     </div>
   );
 };
