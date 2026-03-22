@@ -113,4 +113,24 @@ pub struct RawJsonlEntry {
     #[serde(rename = "writtenPaths")]
     pub written_paths: Option<Vec<String>>,
     pub verb: Option<String>,
+
+    // turn_duration field
+    #[serde(rename = "durationMs")]
+    pub duration_ms: Option<f64>,
+
+    // queue-operation fields
+    pub operation: Option<String>,
+
+    // progress fields
+    pub data: Option<Value>,
+    #[serde(rename = "toolUseID")]
+    pub tool_use_id_ref: Option<String>,
+    #[serde(rename = "parentToolUseID")]
+    pub parent_tool_use_id: Option<String>,
+
+    // Session metadata fields (custom-title, agent-name)
+    #[serde(rename = "customTitle")]
+    pub custom_title: Option<String>,
+    #[serde(rename = "agentName")]
+    pub agent_name: Option<String>,
 }

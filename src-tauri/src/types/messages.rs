@@ -140,6 +140,14 @@ pub struct SystemEventData {
     pub written_paths: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub memory_verb: Option<String>,
+    // turn_duration
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub duration_ms: Option<f64>,
+    // queue_operation
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub operation: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub queued_content: Option<String>,
 }
 
 // =============================================================================

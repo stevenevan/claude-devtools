@@ -11,11 +11,18 @@ use super::entry_parser::parse_entry;
 use super::message_classifier::is_parsed_real_user_message;
 use super::metrics::calculate_metrics;
 
-/// Parse a JSONL session file into a Vec<ParsedMessage>.
+/// Session-level metadata extracted from non-message JSONL entries.
+#[derive(Debug, Clone, Default)]
+pub struct SessionFileMetadata {
+    pub custom_title: Option<String>,
+    pub agent_name: Option<String>,
+}
+
+/// Parse a JSONL session file into messages and session metadata.
 /// Streams line-by-line to avoid loading the entire file into memory.
-pub fn parse_jsonl_file(file_path: &Path) -> Result<Vec<ParsedMessage>, String> {
+pub fn parse_jsonl_file(file_path: &Path) -> Result<(Vec<ParsedMessage>, SessionFileMetadata), String> {
     if !file_path.exists() {
-        return Ok(vec![]);
+        return Ok((vec![], SessionFileMetadata::default()));
     }
 
     let file =
@@ -23,6 +30,7 @@ pub fn parse_jsonl_file(file_path: &Path) -> Result<Vec<ParsedMessage>, String> 
 
     let reader = BufReader::new(file);
     let mut messages = Vec::new();
+    let mut metadata = SessionFileMetadata::default();
 
     for line in reader.lines() {
         let line = match line {
@@ -42,6 +50,21 @@ pub fn parse_jsonl_file(file_path: &Path) -> Result<Vec<ParsedMessage>, String> 
 
         match serde_json::from_str::<RawJsonlEntry>(&line) {
             Ok(entry) => {
+                // Extract session-level metadata from non-message entries
+                match entry.entry_type.as_str() {
+                    "custom-title" => {
+                        if let Some(ref title) = entry.custom_title {
+                            metadata.custom_title = Some(title.clone());
+                        }
+                    }
+                    "agent-name" => {
+                        if let Some(ref name) = entry.agent_name {
+                            metadata.agent_name = Some(name.clone());
+                        }
+                    }
+                    _ => {}
+                }
+
                 if let Some(msg) = parse_entry(&entry) {
                     messages.push(msg);
                 }
@@ -55,11 +78,11 @@ pub fn parse_jsonl_file(file_path: &Path) -> Result<Vec<ParsedMessage>, String> 
         }
     }
 
-    Ok(messages)
+    Ok((messages, metadata))
 }
 
 /// Process parsed messages into a full ParsedSession with categorized fields.
-pub fn process_messages(messages: Vec<ParsedMessage>) -> ParsedSession {
+pub fn process_messages(messages: Vec<ParsedMessage>, metadata: SessionFileMetadata) -> ParsedSession {
     let metrics = calculate_metrics(&messages);
     let task_calls = get_task_calls(&messages);
 
@@ -113,6 +136,8 @@ pub fn process_messages(messages: Vec<ParsedMessage>) -> ParsedSession {
         by_type,
         sidechain_messages,
         main_messages,
+        custom_title: metadata.custom_title,
+        agent_name: metadata.agent_name,
     }
 }
 
@@ -126,8 +151,8 @@ fn get_task_calls(messages: &[ParsedMessage]) -> Vec<ToolCall> {
 
 /// Parse a session file and return a fully processed ParsedSession.
 pub fn parse_session_file(file_path: &Path) -> Result<ParsedSession, String> {
-    let messages = parse_jsonl_file(file_path)?;
-    Ok(process_messages(messages))
+    let (messages, metadata) = parse_jsonl_file(file_path)?;
+    Ok(process_messages(messages, metadata))
 }
 
 #[cfg(test)]
@@ -137,7 +162,7 @@ mod tests {
 
     #[test]
     fn test_parse_jsonl_file_nonexistent() {
-        let result = parse_jsonl_file(Path::new("/nonexistent/file.jsonl")).unwrap();
+        let (result, _) = parse_jsonl_file(Path::new("/nonexistent/file.jsonl")).unwrap();
         assert!(result.is_empty());
     }
 
@@ -159,7 +184,7 @@ mod tests {
         )
         .unwrap();
 
-        let messages = parse_jsonl_file(&file_path).unwrap();
+        let (messages, _) = parse_jsonl_file(&file_path).unwrap();
         assert_eq!(messages.len(), 2);
         assert_eq!(messages[0].message_type, "user");
         assert_eq!(messages[1].message_type, "assistant");
@@ -201,7 +226,7 @@ mod tests {
             },
         ];
 
-        let session = process_messages(msgs);
+        let session = process_messages(msgs, SessionFileMetadata::default());
         assert_eq!(session.by_type.user.len(), 1);
         assert_eq!(session.by_type.real_user.len(), 1);
         assert_eq!(session.main_messages.len(), 1);

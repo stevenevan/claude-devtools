@@ -784,6 +784,22 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
             className="mx-auto max-w-5xl px-6 py-8"
             style={{ marginTop: allContextInjections.length > 0 ? '-2rem' : 0 }}
           >
+            {/* Session metadata header (custom title / agent name) */}
+            {(sessionDetail?.session?.customTitle || sessionDetail?.session?.agentName) && (
+              <div className="mb-6">
+                {sessionDetail.session.customTitle && (
+                  <h1 className="text-lg font-semibold" style={{ color: 'var(--color-text)' }}>
+                    {sessionDetail.session.customTitle}
+                  </h1>
+                )}
+                {sessionDetail.session.agentName &&
+                  sessionDetail.session.agentName !== sessionDetail.session.customTitle && (
+                    <p className="mt-1 text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                      Agent: {sessionDetail.session.agentName}
+                    </p>
+                  )}
+              </div>
+            )}
             <div className="space-y-8">
               {shouldVirtualize ? (
                 <div

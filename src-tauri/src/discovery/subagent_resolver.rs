@@ -77,7 +77,7 @@ fn list_subagent_files(
 
 /// Parse a single subagent JSONL file into a Process.
 fn parse_subagent_file(file_path: &Path) -> Option<Process> {
-    let messages = session_parser::parse_jsonl_file(file_path).ok()?;
+    let (messages, _) = session_parser::parse_jsonl_file(file_path).ok()?;
     if messages.is_empty() {
         return None;
     }

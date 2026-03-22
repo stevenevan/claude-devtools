@@ -133,6 +133,11 @@ export interface SystemEventData {
   // memory_saved
   writtenPaths?: string[];
   memoryVerb?: string;
+  // turn_duration
+  durationMs?: number;
+  // queue_operation
+  operation?: string;
+  queuedContent?: string;
 }
 
 // =============================================================================
@@ -328,12 +333,12 @@ export function isParsedHardNoiseMessage(msg: ParsedMessage): boolean {
   if (msg.type === 'system') {
     // Allow displayable system event subtypes through; filter everything else
     return !(
-      msg.subtype && ['api_error', 'bridge_status', 'memory_saved'].includes(msg.subtype)
+      msg.subtype &&
+      ['api_error', 'bridge_status', 'memory_saved', 'turn_duration'].includes(msg.subtype)
     );
   }
   if (msg.type === 'summary') return true;
   if (msg.type === 'file-history-snapshot') return true;
-  if (msg.type === 'queue-operation') return true;
 
   // Filter synthetic assistant messages (system-generated placeholders)
   if (msg.type === 'assistant' && msg.model === '<synthetic>') {

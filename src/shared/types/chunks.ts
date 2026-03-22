@@ -362,6 +362,8 @@ export interface EnhancedAIChunk extends AIChunk {
   semanticStepGroups?: SemanticStepGroup[];
   /** Raw messages for debug sidebar */
   rawMessages: ParsedMessage[];
+  /** Number of progress updates during this AI chunk */
+  progressCount?: number;
 }
 
 /**

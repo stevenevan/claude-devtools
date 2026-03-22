@@ -20,41 +20,35 @@ pub fn build_chunks(messages: &[ParsedMessage], subagents: &[Process]) -> Vec<En
     let main_messages: Vec<&ParsedMessage> = messages.iter().filter(|m| !m.is_sidechain).collect();
 
     let mut ai_buffer: Vec<ParsedMessage> = Vec::new();
+    let mut progress_count: u32 = 0;
 
     for msg in &main_messages {
         let category = categorize_message(msg);
 
         match category {
             MessageCategory::HardNoise => {
-                // Skip
-            }
-            MessageCategory::Compact => {
-                if !ai_buffer.is_empty() {
-                    chunks.push(build_ai_chunk_from_buffer(&ai_buffer, subagents, messages));
-                    ai_buffer.clear();
+                // Count progress messages for AI chunk enrichment
+                if msg.message_type == "progress" {
+                    progress_count += 1;
                 }
-                chunks.push(build_compact_chunk(msg));
             }
-            MessageCategory::User => {
+            MessageCategory::Compact
+            | MessageCategory::User
+            | MessageCategory::System
+            | MessageCategory::Event => {
                 if !ai_buffer.is_empty() {
-                    chunks.push(build_ai_chunk_from_buffer(&ai_buffer, subagents, messages));
+                    let pc = if progress_count > 0 { Some(progress_count) } else { None };
+                    chunks.push(build_ai_chunk_from_buffer(&ai_buffer, subagents, messages, pc));
                     ai_buffer.clear();
+                    progress_count = 0;
                 }
-                chunks.push(build_user_chunk(msg));
-            }
-            MessageCategory::System => {
-                if !ai_buffer.is_empty() {
-                    chunks.push(build_ai_chunk_from_buffer(&ai_buffer, subagents, messages));
-                    ai_buffer.clear();
+                match category {
+                    MessageCategory::Compact => chunks.push(build_compact_chunk(msg)),
+                    MessageCategory::User => chunks.push(build_user_chunk(msg)),
+                    MessageCategory::System => chunks.push(build_system_chunk(msg)),
+                    MessageCategory::Event => chunks.push(build_event_chunk(msg)),
+                    _ => unreachable!(),
                 }
-                chunks.push(build_system_chunk(msg));
-            }
-            MessageCategory::Event => {
-                if !ai_buffer.is_empty() {
-                    chunks.push(build_ai_chunk_from_buffer(&ai_buffer, subagents, messages));
-                    ai_buffer.clear();
-                }
-                chunks.push(build_event_chunk(msg));
             }
             MessageCategory::Ai => {
                 ai_buffer.push((*msg).clone());
@@ -64,7 +58,8 @@ pub fn build_chunks(messages: &[ParsedMessage], subagents: &[Process]) -> Vec<En
 
     // Flush remaining
     if !ai_buffer.is_empty() {
-        chunks.push(build_ai_chunk_from_buffer(&ai_buffer, subagents, messages));
+        let pc = if progress_count > 0 { Some(progress_count) } else { None };
+        chunks.push(build_ai_chunk_from_buffer(&ai_buffer, subagents, messages, pc));
     }
 
     chunks

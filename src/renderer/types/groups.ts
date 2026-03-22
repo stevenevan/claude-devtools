@@ -359,6 +359,8 @@ export interface AIGroup {
   responses: ParsedMessage[];
   /** Whether this is the last AI group in an ongoing session */
   isOngoing?: boolean;
+  /** Number of progress updates during this response */
+  progressCount?: number;
 }
 
 // =============================================================================

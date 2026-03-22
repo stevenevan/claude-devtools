@@ -442,6 +442,11 @@ const AIChatGroupInner = ({
             </span>
             <span className="truncate text-xs" style={{ color: COLOR_TEXT_MUTED }}>
               {enhanced.itemsSummary}
+              {aiGroup.progressCount != null && aiGroup.progressCount > 0 && (
+                <span className="ml-1 opacity-60">
+                  ({aiGroup.progressCount} progress)
+                </span>
+              )}
             </span>
             <ChevronDown
               className={`size-3.5 shrink-0 transition-transform group-hover:opacity-80 ${isExpanded ? 'rotate-180' : ''}`}

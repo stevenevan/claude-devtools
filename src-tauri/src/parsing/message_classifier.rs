@@ -101,15 +101,18 @@ pub fn is_parsed_system_chunk_message(msg: &ParsedMessage) -> bool {
     }
 }
 
-/// System event message — displayable system subtypes.
+/// Event message — displayable system subtypes and queue operations.
 pub fn is_parsed_event_message(msg: &ParsedMessage) -> bool {
-    if msg.message_type != "system" {
-        return false;
+    if msg.message_type == "system" {
+        return matches!(
+            msg.subtype.as_deref(),
+            Some("api_error" | "bridge_status" | "memory_saved" | "turn_duration")
+        );
     }
-    matches!(
-        msg.subtype.as_deref(),
-        Some("api_error" | "bridge_status" | "memory_saved")
-    )
+    if msg.message_type == "queue-operation" {
+        return true;
+    }
+    false
 }
 
 /// Hard noise message — NEVER rendered.
@@ -121,14 +124,14 @@ pub fn is_parsed_hard_noise_message(msg: &ParsedMessage) -> bool {
             if let Some(ref subtype) = msg.subtype {
                 if matches!(
                     subtype.as_str(),
-                    "api_error" | "bridge_status" | "memory_saved"
+                    "api_error" | "bridge_status" | "memory_saved" | "turn_duration"
                 ) {
                     return false;
                 }
             }
             return true;
         }
-        "summary" | "file-history-snapshot" | "queue-operation" => return true,
+        "summary" | "file-history-snapshot" | "progress" => return true,
         _ => {}
     }
 

@@ -15,19 +15,30 @@ const KNOWN_TYPES: &[&str] = &[
     "summary",
     "file-history-snapshot",
     "queue-operation",
+    "progress",
 ];
 
 /// Parse a single raw JSONL entry into a ParsedMessage.
 /// Returns None for entries without uuid or unknown types.
 pub fn parse_entry(entry: &RawJsonlEntry) -> Option<ParsedMessage> {
-    let uuid = entry.uuid.as_ref()?;
-    if uuid.is_empty() {
-        return None;
-    }
-
     if !KNOWN_TYPES.contains(&entry.entry_type.as_str()) {
         return None;
     }
+
+    // Get uuid, or generate a synthetic one for progress entries
+    let uuid = match entry.uuid.as_ref() {
+        Some(u) if !u.is_empty() => u.clone(),
+        _ => {
+            if entry.entry_type == "progress" {
+                // Generate synthetic uuid from toolUseID + timestamp
+                let tool_id = entry.tool_use_id_ref.as_deref().unwrap_or("unknown");
+                let ts = entry.timestamp.as_deref().unwrap_or("0");
+                format!("progress-{}-{}", tool_id, ts)
+            } else {
+                return None;
+            }
+        }
+    };
 
     let is_conversational = matches!(
         entry.entry_type.as_str(),
@@ -110,6 +121,27 @@ pub fn parse_entry(entry: &RawJsonlEntry) -> Option<ParsedMessage> {
                 is_compact_summary = true;
             }
         }
+    }
+
+    // Handle non-conversational types
+    if entry.entry_type == "progress" {
+        subtype = Some("progress".to_string());
+        // Extract progress message from data.message
+        if let Some(ref data) = entry.data {
+            if let Some(msg) = data.get("message").and_then(|v| v.as_str()) {
+                content = ParsedMessageContent::Text(msg.to_string());
+            }
+        }
+    }
+
+    if entry.entry_type == "queue-operation" {
+        subtype = Some("queue_operation".to_string());
+        event_data = Some(SystemEventData {
+            subtype: "queue_operation".to_string(),
+            operation: entry.operation.clone(),
+            queued_content: entry.content.clone(),
+            ..Default::default()
+        });
     }
 
     let tool_calls = extract_tool_calls(&content);
@@ -208,6 +240,11 @@ fn build_system_event_data(entry: &RawJsonlEntry) -> Option<SystemEventData> {
             subtype: subtype.to_string(),
             written_paths: entry.written_paths.clone(),
             memory_verb: entry.verb.clone(),
+            ..Default::default()
+        }),
+        "turn_duration" => Some(SystemEventData {
+            subtype: subtype.to_string(),
+            duration_ms: entry.duration_ms,
             ..Default::default()
         }),
         _ => None,

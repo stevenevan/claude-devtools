@@ -58,6 +58,10 @@ pub struct Session {
     pub compaction_count: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub phase_breakdown: Option<Vec<PhaseTokenBreakdown>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub custom_title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub agent_name: Option<String>,
 }
 
 // =============================================================================
@@ -91,6 +95,8 @@ pub struct ParsedSession {
     pub by_type: MessagesByType,
     pub sidechain_messages: Vec<ParsedMessage>,
     pub main_messages: Vec<ParsedMessage>,
+    pub custom_title: Option<String>,
+    pub agent_name: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

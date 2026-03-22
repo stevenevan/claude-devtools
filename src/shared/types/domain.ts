@@ -109,6 +109,10 @@ export interface Session {
   compactionCount?: number;
   /** Per-phase token breakdown for tooltip display */
   phaseBreakdown?: PhaseTokenBreakdown[];
+  /** Custom title set by the user (from /title command) */
+  customTitle?: string;
+  /** Agent name when session uses a named agent */
+  agentName?: string;
 }
 
 /**

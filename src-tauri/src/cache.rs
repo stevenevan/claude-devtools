@@ -98,6 +98,8 @@ mod tests {
             },
             sidechain_messages: vec![],
             main_messages: vec![],
+            custom_title: None,
+            agent_name: None,
         }
     }
 

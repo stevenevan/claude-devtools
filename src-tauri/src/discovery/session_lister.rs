@@ -152,6 +152,8 @@ pub fn list_sessions_paginated(
                 context_consumption: None,
                 compaction_count: None,
                 phase_breakdown: None,
+                custom_title: None,
+                agent_name: None,
             }
         })
         .collect();

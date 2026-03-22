@@ -2,7 +2,7 @@ import React from 'react';
 
 import { COLOR_TEXT_MUTED } from '@renderer/constants/cssVariables';
 import { format } from 'date-fns';
-import { AlertTriangle, BookMarked, Radio } from 'lucide-react';
+import { AlertTriangle, BookMarked, Inbox, Radio, Timer } from 'lucide-react';
 
 import type { EventGroup } from '@renderer/types/groups';
 
@@ -31,6 +31,20 @@ const EVENT_STYLES = {
     text: 'var(--event-success-text, #4ade80)',
     Icon: BookMarked,
     label: 'Memory Saved',
+  },
+  turn_duration: {
+    bg: 'var(--event-info-bg, rgba(59, 130, 246, 0.1))',
+    border: 'var(--event-info-border, rgba(59, 130, 246, 0.3))',
+    text: 'var(--event-info-text, #60a5fa)',
+    Icon: Timer,
+    label: 'Turn Duration',
+  },
+  queue_operation: {
+    bg: 'var(--event-queue-bg, rgba(139, 92, 246, 0.1))',
+    border: 'var(--event-queue-border, rgba(139, 92, 246, 0.3))',
+    text: 'var(--event-queue-text, #a78bfa)',
+    Icon: Inbox,
+    label: 'Queue',
   },
 } as const;
 
@@ -68,6 +82,25 @@ function getMemorySavedDetail(eventGroup: EventGroup): string {
   return `${verb} \u2014 ${count} ${count === 1 ? 'file' : 'files'}`;
 }
 
+function getTurnDurationDetail(eventGroup: EventGroup): string {
+  const ms = eventGroup.eventData.durationMs;
+  if (ms == null) return 'Unknown duration';
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
+  return `${(ms / 60_000).toFixed(1)}m`;
+}
+
+function getQueueOperationDetail(eventGroup: EventGroup): string {
+  const op = eventGroup.eventData.operation ?? 'unknown';
+  const content = eventGroup.eventData.queuedContent;
+  const label = op === 'enqueue' ? 'Queued' : op === 'dequeue' ? 'Dequeued' : op;
+  if (content) {
+    const preview = content.length > 80 ? content.slice(0, 80) + '...' : content;
+    return `${label}: ${preview}`;
+  }
+  return label;
+}
+
 function getDetail(eventGroup: EventGroup): string {
   switch (eventGroup.eventData.subtype) {
     case 'api_error':
@@ -76,6 +109,10 @@ function getDetail(eventGroup: EventGroup): string {
       return getBridgeStatusDetail(eventGroup);
     case 'memory_saved':
       return getMemorySavedDetail(eventGroup);
+    case 'turn_duration':
+      return getTurnDurationDetail(eventGroup);
+    case 'queue_operation':
+      return getQueueOperationDetail(eventGroup);
     default:
       return eventGroup.eventData.subtype;
   }

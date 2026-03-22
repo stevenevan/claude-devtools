@@ -517,6 +517,7 @@ function createAIGroupFromChunk(chunk: EnhancedAIChunk, turnIndex: number): AIGr
     chunkId: chunk.id,
     metrics: chunk.metrics,
     responses: chunk.responses,
+    progressCount: chunk.progressCount,
   };
 }
 

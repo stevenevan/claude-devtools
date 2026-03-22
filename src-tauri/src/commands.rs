@@ -667,6 +667,8 @@ pub fn get_subagent_detail(
         context_consumption: None,
         compaction_count: None,
         phase_breakdown: None,
+        custom_title: None,
+        agent_name: None,
     };
 
     Ok(Some(chunk_builder::build_session_detail(
@@ -939,6 +941,8 @@ pub fn get_session_detail(
         context_consumption: None,
         compaction_count: None,
         phase_breakdown: None,
+        custom_title: parsed.custom_title.clone(),
+        agent_name: parsed.agent_name.clone(),
     };
 
     Ok(chunk_builder::build_session_detail(
