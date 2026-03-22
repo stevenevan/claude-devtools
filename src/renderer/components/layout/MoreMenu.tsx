@@ -35,6 +35,7 @@ export const MoreMenu = ({
 }: Readonly<MoreMenuProps>): React.JSX.Element => {
   const openCommandPalette = useStore((s) => s.openCommandPalette);
   const openSettingsTab = useStore((s) => s.openSettingsTab);
+  const setActiveActivity = useStore((s) => s.setActiveActivity);
 
   const handleExport = useCallback(
     (format: ExportFormat) => {
@@ -81,7 +82,7 @@ export const MoreMenu = ({
         )}
 
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => openSettingsTab()}>
+        <DropdownMenuItem onClick={() => { setActiveActivity('settings'); openSettingsTab(); }}>
           <Settings className="size-3.5" />
           Settings
           <DropdownMenuShortcut>{formatShortcut(',')}</DropdownMenuShortcut>
