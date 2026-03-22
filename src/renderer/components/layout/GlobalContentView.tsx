@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import { Button } from '@renderer/components/ui/button';
 import { useStore } from '@renderer/store';
 import { formatShortcut } from '@renderer/utils/stringUtils';
 import { Command, Search } from 'lucide-react';
@@ -43,10 +44,12 @@ export const GlobalContentView = ({
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
             />
-            <button
+            <Button
+              variant="ghost"
+              size="xs"
               onClick={() => openCommandPalette()}
-              className="flex shrink-0 items-center gap-1 transition-opacity hover:opacity-80"
               title={`Open command palette (${formatShortcut('K')})`}
+              className="shrink-0 gap-1"
             >
               <kbd className="border-border bg-popover text-muted-foreground flex h-5 items-center justify-center rounded-sm border px-1.5 text-[10px] font-medium">
                 <Command className="size-2.5" />
@@ -54,7 +57,7 @@ export const GlobalContentView = ({
               <kbd className="border-border bg-popover text-muted-foreground flex size-5 items-center justify-center rounded-sm border text-[10px] font-medium">
                 K
               </kbd>
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -63,12 +66,14 @@ export const GlobalContentView = ({
             {searchQuery.trim() ? 'Search Results' : title}
           </h2>
           {searchQuery.trim() && (
-            <button
+            <Button
+              variant="ghost"
+              size="xs"
               onClick={() => setSearchQuery('')}
-              className="text-muted-foreground hover:text-foreground text-xs transition-colors"
+              className="text-muted-foreground hover:text-foreground"
             >
               Clear search
-            </button>
+            </Button>
           )}
         </div>
 

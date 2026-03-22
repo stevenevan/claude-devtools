@@ -12,44 +12,26 @@ import type { StateCreator } from 'zustand';
 
 const logger = createLogger('Store:ClaudeConfig');
 
-// =============================================================================
-// Types
-// =============================================================================
-
-export type DashboardTab = 'projects' | 'agents' | 'skills' | 'plugins' | 'settings';
-
-// =============================================================================
-// Slice Interface
-// =============================================================================
-
 export interface ClaudeConfigSlice {
-  // Agents
   globalAgents: GlobalAgent[];
   globalAgentsLoading: boolean;
   globalAgentsError: string | null;
   fetchGlobalAgents: () => Promise<void>;
 
-  // Skills
   globalSkills: GlobalSkill[];
   globalSkillsLoading: boolean;
   globalSkillsError: string | null;
   fetchGlobalSkills: () => Promise<void>;
 
-  // Plugins
   globalPlugins: GlobalPlugin[];
   globalPluginsLoading: boolean;
   globalPluginsError: string | null;
   fetchGlobalPlugins: () => Promise<void>;
 
-  // Settings
   globalSettings: Record<string, unknown> | null;
   globalSettingsLoading: boolean;
   globalSettingsError: string | null;
   fetchGlobalSettings: () => Promise<void>;
-
-  // Dashboard tab state
-  dashboardActiveTab: DashboardTab;
-  setDashboardActiveTab: (tab: DashboardTab) => void;
 }
 
 // =============================================================================
@@ -128,7 +110,4 @@ export const createClaudeConfigSlice: StateCreator<AppState, [], [], ClaudeConfi
     }
   },
 
-  // Dashboard tab state
-  dashboardActiveTab: 'projects',
-  setDashboardActiveTab: (tab) => set({ dashboardActiveTab: tab }),
 });

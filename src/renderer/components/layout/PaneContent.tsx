@@ -53,7 +53,7 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
         const isActive = tab.id === activeTabId;
         return (
           <div key={tab.id} className={cn('absolute inset-0', isActive ? 'flex' : 'hidden')}>
-            {tab.type === 'dashboard' && <DashboardView />}
+            {(tab.type === 'dashboard' || tab.type === 'projects') && <DashboardView />}
             {tab.type === 'notifications' && <NotificationsView />}
             {tab.type === 'settings' && <SettingsView />}
             {tab.type === 'session' && (

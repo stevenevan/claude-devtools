@@ -357,17 +357,18 @@ export const createTabSlice: StateCreator<AppState, [], [], TabSlice> = (set, ge
     }
   },
 
-  // Open a new dashboard tab in the focused pane
   openDashboard: () => {
     const state = get();
     const { paneLayout } = state;
     const focusedPane = findPane(paneLayout, paneLayout.focusedPaneId);
     if (!focusedPane) return;
 
+    set({ activeActivity: 'projects' });
+
     const newTab: Tab = {
       id: crypto.randomUUID(),
-      type: 'dashboard',
-      label: 'Dashboard',
+      type: 'projects',
+      label: 'Projects',
       createdAt: Date.now(),
     };
 

@@ -20,15 +20,9 @@ const logger = createLogger('Component:DashboardView');
 import { formatDistanceToNow } from 'date-fns';
 import { Command, FolderGit2, FolderOpen, GitBranch, Search, Settings } from 'lucide-react';
 
+import { Button } from '@renderer/components/ui/button';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 
-import { AgentsGrid } from './AgentsGrid';
-import { DashboardTabContent, DashboardTabs } from './DashboardTabs';
-import { GlobalSettingsView } from './GlobalSettingsView';
-import { PluginsGrid } from './PluginsGrid';
-import { SkillsGrid } from './SkillsGrid';
-
-import type { DashboardTab } from '@renderer/store/slices/claudeConfigSlice';
 import type { RepositoryGroup } from '@renderer/types/data';
 
 // =============================================================================
@@ -441,106 +435,55 @@ const ProjectsGrid = ({
   );
 };
 
-// =============================================================================
-// Dashboard View
-// =============================================================================
-
-const SEARCH_PLACEHOLDERS: Record<DashboardTab, string> = {
-  projects: 'Search projects...',
-  agents: 'Search agents...',
-  skills: 'Search skills...',
-  plugins: 'Search plugins...',
-  settings: 'Search settings...',
-};
-
-const SECTION_LABELS: Record<DashboardTab, string> = {
-  projects: 'Recent Projects',
-  agents: 'Agents',
-  skills: 'Skills',
-  plugins: 'Plugins',
-  settings: 'Global Settings',
-};
-
 export const DashboardView = (): React.JSX.Element => {
   const [searchQuery, setSearchQuery] = useState('');
-  const { openSettingsTab, dashboardActiveTab, setDashboardActiveTab } = useStore(
-    useShallow((s) => ({
-      openSettingsTab: s.openSettingsTab,
-      dashboardActiveTab: s.dashboardActiveTab,
-      setDashboardActiveTab: s.setDashboardActiveTab,
-    }))
-  );
-
-  // Clear search when switching tabs
-  const handleTabChange = (tab: DashboardTab): void => {
-    setSearchQuery('');
-    setDashboardActiveTab(tab);
-  };
+  const openSettingsTab = useStore((s) => s.openSettingsTab);
 
   return (
     <div className="bg-background relative flex-1 overflow-auto">
-      {/* Spotlight gradient background */}
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-[600px] bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(99,102,241,0.08),transparent)]"
         aria-hidden="true"
       />
 
-      {/* Content */}
       <div className="relative mx-auto max-w-5xl px-8 py-12">
-        {/* Command Search */}
         <div className="mb-8">
           <CommandSearch
             value={searchQuery}
             onChange={setSearchQuery}
-            placeholder={SEARCH_PLACEHOLDERS[dashboardActiveTab]}
+            placeholder="Search projects..."
           />
         </div>
 
-        {/* Dashboard Tabs + Content */}
-        <DashboardTabs activeTab={dashboardActiveTab} onTabChange={handleTabChange}>
-          {/* Section header */}
-          <div className="mt-6 mb-4 flex items-center justify-between">
-            <h2 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
-              {searchQuery.trim() ? 'Search Results' : SECTION_LABELS[dashboardActiveTab]}
-            </h2>
-            <div className="flex items-center gap-3">
-              {searchQuery.trim() && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="text-muted-foreground hover:text-foreground text-xs transition-colors"
-                >
-                  Clear search
-                </button>
-              )}
-              {dashboardActiveTab === 'projects' && (
-                <button
-                  onClick={() => openSettingsTab('general')}
-                  className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-xs transition-colors"
-                  title="Change Claude data folder"
-                >
-                  <Settings className="size-3" />
-                  Change default folder
-                </button>
-              )}
-            </div>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+            {searchQuery.trim() ? 'Search Results' : 'Recent Projects'}
+          </h2>
+          <div className="flex items-center gap-3">
+            {searchQuery.trim() && (
+              <Button
+                variant="ghost"
+                size="xs"
+                onClick={() => setSearchQuery('')}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Clear search
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => openSettingsTab('general')}
+              title="Change Claude data folder"
+              className="text-muted-foreground hover:text-foreground gap-1.5"
+            >
+              <Settings className="size-3" />
+              Change default folder
+            </Button>
           </div>
+        </div>
 
-          <DashboardTabContent value="projects">
-            <ProjectsGrid searchQuery={searchQuery} />
-          </DashboardTabContent>
-          <DashboardTabContent value="agents">
-            <AgentsGrid searchQuery={searchQuery} />
-          </DashboardTabContent>
-          <DashboardTabContent value="skills">
-            <SkillsGrid searchQuery={searchQuery} />
-          </DashboardTabContent>
-          <DashboardTabContent value="plugins">
-            <PluginsGrid searchQuery={searchQuery} />
-          </DashboardTabContent>
-          <DashboardTabContent value="settings">
-            <GlobalSettingsView />
-          </DashboardTabContent>
-        </DashboardTabs>
+        <ProjectsGrid searchQuery={searchQuery} />
       </div>
     </div>
   );
