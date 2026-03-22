@@ -133,11 +133,8 @@ pub fn list_sessions_paginated(
             // Check for subagents
             let has_subs = has_subagents(projects_dir, project_id, session_id);
 
-            // Extract first user message preview
             let file_path = project_dir.join(format!("{session_id}.jsonl"));
-            let preview = extract_first_user_message(&file_path);
-
-            // Detect if session is currently active
+            let preview = extract_session_preview(&file_path);
             let is_ongoing = detect_ongoing(&file_path);
 
             Session {
@@ -146,8 +143,8 @@ pub fn list_sessions_paginated(
                 project_path: decoded_path.clone(),
                 todo_data,
                 created_at,
-                first_message: preview.as_ref().map(|p| p.text.clone()),
-                message_timestamp: preview.as_ref().map(|p| p.timestamp.clone()),
+                first_message: preview.first_message.as_ref().map(|p| p.text.clone()),
+                message_timestamp: preview.first_message.as_ref().map(|p| p.timestamp.clone()),
                 has_subagents: has_subs,
                 message_count: 0,
                 is_ongoing,
@@ -156,8 +153,8 @@ pub fn list_sessions_paginated(
                 context_consumption: None,
                 compaction_count: None,
                 phase_breakdown: None,
-                custom_title: None,
-                agent_name: None,
+                custom_title: preview.custom_title,
+                agent_name: preview.agent_name,
             }
         })
         .collect();
@@ -173,6 +170,12 @@ pub fn list_sessions_paginated(
 // =============================================================================
 // First user message extraction
 // =============================================================================
+
+struct SessionPreview {
+    first_message: Option<MessagePreview>,
+    custom_title: Option<String>,
+    agent_name: Option<String>,
+}
 
 struct MessagePreview {
     text: String,
@@ -213,13 +216,19 @@ fn sanitize_display_content(text: &str) -> String {
     STRIP_TAGS_REGEX.replace_all(&result, "").trim().to_string()
 }
 
-/// Extract first user message preview from a session file.
-/// Scans up to 200 lines to find the first non-noise user message.
-fn extract_first_user_message(file_path: &Path) -> Option<MessagePreview> {
-    let file = std::fs::File::open(file_path).ok()?;
+/// Extract session preview: first user message, custom title, and agent name.
+/// Scans up to 200 lines.
+fn extract_session_preview(file_path: &Path) -> SessionPreview {
+    let file = match std::fs::File::open(file_path) {
+        Ok(f) => f,
+        Err(_) => return SessionPreview { first_message: None, custom_title: None, agent_name: None },
+    };
     let reader = BufReader::new(file);
 
     let mut command_fallback: Option<MessagePreview> = None;
+    let mut first_message: Option<MessagePreview> = None;
+    let mut custom_title: Option<String> = None;
+    let mut agent_name: Option<String> = None;
     let mut lines_read = 0;
     const MAX_LINES: usize = 200;
 
@@ -243,25 +252,46 @@ fn extract_first_user_message(file_path: &Path) -> Option<MessagePreview> {
             Err(_) => continue,
         };
 
-        if entry.entry_type != "user" {
+        // Pick up metadata entries
+        match entry.entry_type.as_str() {
+            "custom-title" => {
+                if let Some(ref title) = entry.custom_title {
+                    custom_title = Some(title.clone());
+                }
+                continue;
+            }
+            "agent-name" => {
+                if let Some(ref name) = entry.agent_name {
+                    agent_name = Some(name.clone());
+                }
+                continue;
+            }
+            _ => {}
+        }
+
+        // Only look for first message if we haven't found one yet
+        if first_message.is_some() {
             continue;
         }
 
-        // Skip meta messages (tool results)
-        if entry.is_meta == Some(true) {
+        if entry.entry_type != "user" || entry.is_meta == Some(true) {
             continue;
         }
 
         let timestamp = entry.timestamp.unwrap_or_default();
 
-        // Extract content from message
-        let msg = entry.message.as_ref()?;
-        let content = msg.get("content")?;
+        let msg = match entry.message.as_ref() {
+            Some(m) => m,
+            None => continue,
+        };
+        let content = match msg.get("content") {
+            Some(c) => c,
+            None => continue,
+        };
 
         let text = match content {
             serde_json::Value::String(s) => s.clone(),
             serde_json::Value::Array(blocks) => {
-                // Join text blocks
                 blocks
                     .iter()
                     .filter(|b| b.get("type").and_then(|t| t.as_str()) == Some("text"))
@@ -277,13 +307,11 @@ fn extract_first_user_message(file_path: &Path) -> Option<MessagePreview> {
             continue;
         }
 
-        // Skip noise
         let is_noise = NOISE_PREFIXES.iter().any(|p| trimmed.starts_with(p));
         if is_noise {
             continue;
         }
 
-        // Command-style message: <command-name>/foo</command-name>
         if trimmed.starts_with("<command-name>") {
             let cmd_text = if let Some(caps) = COMMAND_NAME_REGEX.captures(trimmed) {
                 format!("/{}", &caps[1])
@@ -300,7 +328,6 @@ fn extract_first_user_message(file_path: &Path) -> Option<MessagePreview> {
             continue;
         }
 
-        // Real user message — sanitize and return
         let sanitized = sanitize_display_content(trimmed);
         if sanitized.is_empty() {
             continue;
@@ -312,13 +339,17 @@ fn extract_first_user_message(file_path: &Path) -> Option<MessagePreview> {
             sanitized
         };
 
-        return Some(MessagePreview {
+        first_message = Some(MessagePreview {
             text: preview_text,
             timestamp,
         });
     }
 
-    command_fallback
+    SessionPreview {
+        first_message: first_message.or(command_fallback),
+        custom_title,
+        agent_name,
+    }
 }
 
 // =============================================================================
