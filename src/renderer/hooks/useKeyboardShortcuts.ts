@@ -34,6 +34,7 @@ export function useKeyboardShortcuts(): void {
     openCommandPalette,
     openSettingsTab,
     toggleSidebar,
+    setActiveActivity,
     paneLayout,
     focusPane,
     splitPane,
@@ -61,6 +62,7 @@ export function useKeyboardShortcuts(): void {
       openCommandPalette: s.openCommandPalette,
       openSettingsTab: s.openSettingsTab,
       toggleSidebar: s.toggleSidebar,
+      setActiveActivity: s.setActiveActivity,
       paneLayout: s.paneLayout,
       focusPane: s.focusPane,
       splitPane: s.splitPane,
@@ -234,6 +236,7 @@ export function useKeyboardShortcuts(): void {
       // Cmd+,: Open settings (standard macOS shortcut)
       if (event.key === ',') {
         event.preventDefault();
+        setActiveActivity('settings');
         openSettingsTab();
         return;
       }
@@ -297,6 +300,7 @@ export function useKeyboardShortcuts(): void {
     openCommandPalette,
     openSettingsTab,
     toggleSidebar,
+    setActiveActivity,
     paneLayout,
     focusPane,
     splitPane,

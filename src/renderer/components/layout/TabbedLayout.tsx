@@ -16,6 +16,7 @@ import { UpdateDialog } from '../common/UpdateDialog';
 import { WorkspaceIndicator } from '../common/WorkspaceIndicator';
 import { CommandPalette } from '../search/CommandPalette';
 
+import { ActivityBar } from './ActivityBar';
 import { CustomTitleBar } from './CustomTitleBar';
 import { PaneContainer } from './PaneContainer';
 import { Sidebar } from './Sidebar';
@@ -39,7 +40,10 @@ export const TabbedLayout = (): React.JSX.Element => {
         {/* Command Palette (Cmd+K) */}
         <CommandPalette />
 
-        {/* Sidebar - Project dropdown + Sessions (280px) */}
+        {/* Activity Bar - Top-level navigation rail (44px) */}
+        <ActivityBar />
+
+        {/* Sidebar - Contextual content based on active activity */}
         <Sidebar />
 
         {/* Multi-pane content area */}
