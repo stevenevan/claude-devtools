@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { isDesktopMode } from '@renderer/api';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs';
 import { Bell, HardDrive, Server, Settings, Wrench } from 'lucide-react';
 
 export type SettingsSection = 'general' | 'connection' | 'workspace' | 'notifications' | 'advanced';
@@ -8,6 +9,7 @@ export type SettingsSection = 'general' | 'connection' | 'workspace' | 'notifica
 interface SettingsTabsProps {
   activeSection: SettingsSection;
   onSectionChange: (section: SettingsSection) => void;
+  children: React.ReactNode;
 }
 
 interface TabConfig {
@@ -25,11 +27,13 @@ const tabs: TabConfig[] = [
   { id: 'advanced', label: 'Advanced', icon: Wrench },
 ];
 
+export { TabsContent as SettingsTabContent };
+
 export const SettingsTabs = ({
   activeSection,
   onSectionChange,
+  children,
 }: Readonly<SettingsTabsProps>): React.JSX.Element => {
-  const [hoveredTab, setHoveredTab] = useState<SettingsSection | null>(null);
   const isElectron = useMemo(() => isDesktopMode(), []);
   const visibleTabs = useMemo(
     () => tabs.filter((tab) => !tab.electronOnly || isElectron),
@@ -37,37 +41,19 @@ export const SettingsTabs = ({
   );
 
   return (
-    <div className="inline-flex gap-1 border-b" style={{ borderColor: 'var(--color-border)' }}>
-      {visibleTabs.map((tab) => {
-        const Icon = tab.icon;
-        const isActive = activeSection === tab.id;
-        const isHovered = hoveredTab === tab.id;
-
-        const getTextColor = (): string => {
-          if (isActive) return 'var(--color-text)';
-          if (isHovered) return 'var(--color-text-secondary)';
-          return 'var(--color-text-muted)';
-        };
-
-        return (
-          <button
-            key={tab.id}
-            onClick={() => onSectionChange(tab.id)}
-            onMouseEnter={() => setHoveredTab(tab.id)}
-            onMouseLeave={() => setHoveredTab(null)}
-            className={`flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
-              isActive ? 'rounded-md font-medium' : ''
-            }`}
-            style={{
-              backgroundColor: isActive ? 'var(--color-surface-raised)' : 'transparent',
-              color: getTextColor(),
-            }}
-          >
-            <Icon className="size-4" />
-            <span>{tab.label}</span>
-          </button>
-        );
-      })}
-    </div>
+    <Tabs value={activeSection} onValueChange={(v) => { if (v) onSectionChange(v as SettingsSection); }}>
+      <TabsList variant="line">
+        {visibleTabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <TabsTrigger key={tab.id} value={tab.id}>
+              <Icon className="size-4" />
+              {tab.label}
+            </TabsTrigger>
+          );
+        })}
+      </TabsList>
+      {children}
+    </Tabs>
   );
 };

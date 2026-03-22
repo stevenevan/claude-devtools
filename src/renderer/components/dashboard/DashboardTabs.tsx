@@ -1,5 +1,4 @@
-import { useState } from 'react';
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs';
 import { Bot, FolderGit2, Puzzle, Settings, Sparkles } from 'lucide-react';
 
 import type { DashboardTab } from '@renderer/store/slices/claudeConfigSlice';
@@ -7,6 +6,7 @@ import type { DashboardTab } from '@renderer/store/slices/claudeConfigSlice';
 interface DashboardTabsProps {
   activeTab: DashboardTab;
   onTabChange: (tab: DashboardTab) => void;
+  children: React.ReactNode;
 }
 
 interface TabConfig {
@@ -23,44 +23,27 @@ const tabs: TabConfig[] = [
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
+export { TabsContent as DashboardTabContent };
+
 export const DashboardTabs = ({
   activeTab,
   onTabChange,
+  children,
 }: Readonly<DashboardTabsProps>): React.JSX.Element => {
-  const [hoveredTab, setHoveredTab] = useState<DashboardTab | null>(null);
-
   return (
-    <div className="inline-flex gap-1 border-b" style={{ borderColor: 'var(--color-border)' }}>
-      {tabs.map((tab) => {
-        const Icon = tab.icon;
-        const isActive = activeTab === tab.id;
-        const isHovered = hoveredTab === tab.id;
-
-        const getTextColor = (): string => {
-          if (isActive) return 'var(--color-text)';
-          if (isHovered) return 'var(--color-text-secondary)';
-          return 'var(--color-text-muted)';
-        };
-
-        return (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            onMouseEnter={() => setHoveredTab(tab.id)}
-            onMouseLeave={() => setHoveredTab(null)}
-            className={`flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
-              isActive ? 'rounded-md font-medium' : ''
-            }`}
-            style={{
-              backgroundColor: isActive ? 'var(--color-surface-raised)' : 'transparent',
-              color: getTextColor(),
-            }}
-          >
-            <Icon className="size-4" />
-            <span>{tab.label}</span>
-          </button>
-        );
-      })}
-    </div>
+    <Tabs value={activeTab} onValueChange={(v) => { if (v) onTabChange(v as DashboardTab); }}>
+      <TabsList variant="line">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <TabsTrigger key={tab.id} value={tab.id}>
+              <Icon className="size-4" />
+              {tab.label}
+            </TabsTrigger>
+          );
+        })}
+      </TabsList>
+      {children}
+    </Tabs>
   );
 };

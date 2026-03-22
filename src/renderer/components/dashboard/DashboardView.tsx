@@ -23,7 +23,7 @@ import type { DashboardTab } from '@renderer/store/slices/claudeConfigSlice';
 import type { RepositoryGroup } from '@renderer/types/data';
 
 import { AgentsGrid } from './AgentsGrid';
-import { DashboardTabs } from './DashboardTabs';
+import { DashboardTabContent, DashboardTabs } from './DashboardTabs';
 import { GlobalSettingsView } from './GlobalSettingsView';
 import { PluginsGrid } from './PluginsGrid';
 import { SkillsGrid } from './SkillsGrid';
@@ -500,44 +500,51 @@ export const DashboardView = (): React.JSX.Element => {
           />
         </div>
 
-        {/* Dashboard Tabs */}
-        <div className="mb-6">
-          <DashboardTabs activeTab={dashboardActiveTab} onTabChange={handleTabChange} />
-        </div>
-
-        {/* Section header */}
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-text-muted text-xs font-medium tracking-wider uppercase">
-            {searchQuery.trim() ? 'Search Results' : SECTION_LABELS[dashboardActiveTab]}
-          </h2>
-          <div className="flex items-center gap-3">
-            {searchQuery.trim() && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="text-text-muted hover:text-text-secondary text-xs transition-colors"
-              >
-                Clear search
-              </button>
-            )}
-            {dashboardActiveTab === 'projects' && (
-              <button
-                onClick={() => openSettingsTab('general')}
-                className="text-text-muted hover:text-text-secondary flex items-center gap-1.5 text-xs transition-colors"
-                title="Change Claude data folder"
-              >
-                <Settings className="size-3" />
-                Change default folder
-              </button>
-            )}
+        {/* Dashboard Tabs + Content */}
+        <DashboardTabs activeTab={dashboardActiveTab} onTabChange={handleTabChange}>
+          {/* Section header */}
+          <div className="mb-4 mt-6 flex items-center justify-between">
+            <h2 className="text-text-muted text-xs font-medium tracking-wider uppercase">
+              {searchQuery.trim() ? 'Search Results' : SECTION_LABELS[dashboardActiveTab]}
+            </h2>
+            <div className="flex items-center gap-3">
+              {searchQuery.trim() && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="text-text-muted hover:text-text-secondary text-xs transition-colors"
+                >
+                  Clear search
+                </button>
+              )}
+              {dashboardActiveTab === 'projects' && (
+                <button
+                  onClick={() => openSettingsTab('general')}
+                  className="text-text-muted hover:text-text-secondary flex items-center gap-1.5 text-xs transition-colors"
+                  title="Change Claude data folder"
+                >
+                  <Settings className="size-3" />
+                  Change default folder
+                </button>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Tab Content */}
-        {dashboardActiveTab === 'projects' && <ProjectsGrid searchQuery={searchQuery} />}
-        {dashboardActiveTab === 'agents' && <AgentsGrid searchQuery={searchQuery} />}
-        {dashboardActiveTab === 'skills' && <SkillsGrid searchQuery={searchQuery} />}
-        {dashboardActiveTab === 'plugins' && <PluginsGrid searchQuery={searchQuery} />}
-        {dashboardActiveTab === 'settings' && <GlobalSettingsView />}
+          <DashboardTabContent value="projects">
+            <ProjectsGrid searchQuery={searchQuery} />
+          </DashboardTabContent>
+          <DashboardTabContent value="agents">
+            <AgentsGrid searchQuery={searchQuery} />
+          </DashboardTabContent>
+          <DashboardTabContent value="skills">
+            <SkillsGrid searchQuery={searchQuery} />
+          </DashboardTabContent>
+          <DashboardTabContent value="plugins">
+            <PluginsGrid searchQuery={searchQuery} />
+          </DashboardTabContent>
+          <DashboardTabContent value="settings">
+            <GlobalSettingsView />
+          </DashboardTabContent>
+        </DashboardTabs>
       </div>
     </div>
   );

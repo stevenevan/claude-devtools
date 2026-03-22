@@ -16,7 +16,7 @@ import {
   NotificationsSection,
   WorkspaceSection,
 } from './sections';
-import { type SettingsSection, SettingsTabs } from './SettingsTabs';
+import { type SettingsSection, SettingsTabContent, SettingsTabs } from './SettingsTabs';
 
 export const SettingsView = (): React.JSX.Element | null => {
   const [activeSection, setActiveSection] = useState<SettingsSection>('general');
@@ -117,25 +117,26 @@ export const SettingsView = (): React.JSX.Element | null => {
           )}
         </div>
 
-        {/* Tabs */}
-        <SettingsTabs activeSection={activeSection} onSectionChange={setActiveSection} />
-
-        {/* Content */}
-        <div className="mt-4">
-          {activeSection === 'general' && (
+        {/* Tabs + Content */}
+        <SettingsTabs activeSection={activeSection} onSectionChange={setActiveSection}>
+          <SettingsTabContent value="general" className="mt-4">
             <GeneralSection
               safeConfig={safeConfig}
               saving={saving}
               onGeneralToggle={handlers.handleGeneralToggle}
               onThemeChange={handlers.handleThemeChange}
             />
-          )}
+          </SettingsTabContent>
 
-          {activeSection === 'connection' && <ConnectionSection />}
+          <SettingsTabContent value="connection" className="mt-4">
+            <ConnectionSection />
+          </SettingsTabContent>
 
-          {activeSection === 'workspace' && <WorkspaceSection />}
+          <SettingsTabContent value="workspace" className="mt-4">
+            <WorkspaceSection />
+          </SettingsTabContent>
 
-          {activeSection === 'notifications' && (
+          <SettingsTabContent value="notifications" className="mt-4">
             <NotificationsSection
               safeConfig={safeConfig}
               saving={saving}
@@ -151,9 +152,9 @@ export const SettingsView = (): React.JSX.Element | null => {
               onUpdateTrigger={handlers.handleUpdateTrigger}
               onRemoveTrigger={handlers.handleRemoveTrigger}
             />
-          )}
+          </SettingsTabContent>
 
-          {activeSection === 'advanced' && (
+          <SettingsTabContent value="advanced" className="mt-4">
             <AdvancedSection
               saving={saving}
               onResetToDefaults={handlers.handleResetToDefaults}
@@ -161,8 +162,8 @@ export const SettingsView = (): React.JSX.Element | null => {
               onImportConfig={handlers.handleImportConfig}
               onOpenInEditor={handlers.handleOpenInEditor}
             />
-          )}
-        </div>
+          </SettingsTabContent>
+        </SettingsTabs>
       </div>
     </div>
   );
