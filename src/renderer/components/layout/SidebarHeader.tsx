@@ -246,6 +246,7 @@ export const SidebarHeader = (): React.JSX.Element => {
           'relative flex h-10 items-center gap-2 pr-2 select-none',
           isMacElectron ? 'pl-[var(--macos-traffic-light-padding-left,72px)]' : 'pl-4'
         )}
+        data-tauri-drag-region
         style={isMacElectron ? { WebkitAppRegion: 'drag' } as React.CSSProperties : undefined}
       >
         <Popover open={isProjectDropdownOpen} onOpenChange={setIsProjectDropdownOpen}>

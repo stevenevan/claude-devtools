@@ -48,6 +48,7 @@ export const CustomTitleBar = (): React.JSX.Element | null => {
   return (
     <div
       className="bg-surface-sidebar border-border flex shrink-0 items-stretch border-b select-none"
+      data-tauri-drag-region
       style={
         {
           height: `${TITLE_BAR_HEIGHT}px`,
