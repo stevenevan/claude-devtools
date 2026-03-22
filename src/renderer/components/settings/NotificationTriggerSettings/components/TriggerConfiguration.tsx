@@ -3,12 +3,10 @@
  * Handles error status, content match, and token threshold mode configurations.
  */
 
-import {
-  getCursorClass,
-  SELECT_INPUT_BASE,
-  SELECT_OPTION_BG,
-} from '@renderer/constants/cssVariables';
 import { cn } from '@renderer/lib/utils';
+
+const SELECT_INPUT_BASE =
+  'rounded-sm border border-border bg-transparent px-2 py-1 text-sm text-foreground focus:border-transparent focus:outline-hidden focus:ring-1 focus:ring-indigo-500';
 import { AlertCircle } from 'lucide-react';
 
 import { CONTENT_TYPE_OPTIONS, TOOL_NAME_OPTIONS } from '../utils/constants';
@@ -87,10 +85,10 @@ export const TriggerConfiguration = ({
               value={trigger.toolName ?? ''}
               onChange={(e) => onToolNameChange(e.target.value)}
               disabled={saving}
-              className={cn(SELECT_INPUT_BASE, getCursorClass(saving))}
+              className={cn(SELECT_INPUT_BASE, saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')}
             >
               {TOOL_NAME_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value} className={SELECT_OPTION_BG}>
+                <option key={option.value} value={option.value} className="bg-background">
                   {option.label}
                 </option>
               ))}
@@ -140,10 +138,10 @@ export const TriggerConfiguration = ({
                 value={trigger.contentType}
                 onChange={(e) => onContentTypeChange(e.target.value as TriggerContentType)}
                 disabled={saving}
-                className={cn(SELECT_INPUT_BASE, getCursorClass(saving))}
+                className={cn(SELECT_INPUT_BASE, saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')}
               >
                 {CONTENT_TYPE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value} className={SELECT_OPTION_BG}>
+                  <option key={option.value} value={option.value} className="bg-background">
                     {option.label}
                   </option>
                 ))}
@@ -223,10 +221,10 @@ const ContentMatchConfig = ({
             value={matchField ?? availableMatchFields[0]?.value ?? ''}
             onChange={(e) => onMatchFieldChange(e.target.value)}
             disabled={saving}
-            className={cn(SELECT_INPUT_BASE, getCursorClass(saving))}
+            className={cn(SELECT_INPUT_BASE, saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')}
           >
             {availableMatchFields.map((option) => (
-              <option key={option.value} value={option.value} className={SELECT_OPTION_BG}>
+              <option key={option.value} value={option.value} className="bg-background">
                 {option.label}
               </option>
             ))}
@@ -306,15 +304,15 @@ const TokenThresholdConfig = ({
           value={localTokenType}
           onChange={(e) => onTokenTypeChange(e.target.value as TriggerTokenType)}
           disabled={saving}
-          className={cn(SELECT_INPUT_BASE, getCursorClass(saving))}
+          className={cn(SELECT_INPUT_BASE, saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')}
         >
-          <option value="total" className={SELECT_OPTION_BG}>
+          <option value="total" className="bg-background">
             Total Tokens
           </option>
-          <option value="input" className={SELECT_OPTION_BG}>
+          <option value="input" className="bg-background">
             Input Tokens
           </option>
-          <option value="output" className={SELECT_OPTION_BG}>
+          <option value="output" className="bg-background">
             Output Tokens
           </option>
         </select>
