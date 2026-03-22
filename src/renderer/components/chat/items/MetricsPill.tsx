@@ -1,10 +1,6 @@
 import React from 'react';
 
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from '@renderer/components/ui/hover-card';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@renderer/components/ui/hover-card';
 import { formatTokensCompact } from '@renderer/utils/formatters';
 
 import type { PhaseTokenBreakdown } from '@renderer/types/data';
@@ -74,7 +70,7 @@ export const MetricsPill = ({
       <HoverCardContent
         side="top"
         sideOffset={6}
-        className="w-[220px] bg-surface-overlay border-[var(--tag-border)] p-2 text-[11px] shadow-xl [backdrop-filter:blur(8px)]"
+        className="bg-surface-overlay w-[220px] border-[var(--tag-border)] p-2 text-[11px] shadow-xl [backdrop-filter:blur(8px)]"
       >
         <div className="space-y-1">
           {hasMainImpact && (
@@ -95,10 +91,7 @@ export const MetricsPill = ({
           )}
           {hasPhases &&
             phaseBreakdown.map((phase) => (
-              <div
-                key={phase.phaseNumber}
-                className="flex items-center justify-between gap-3 pl-2"
-              >
+              <div key={phase.phaseNumber} className="flex items-center justify-between gap-3 pl-2">
                 <span className="text-[10px] text-[var(--card-icon-muted)]">
                   Phase {phase.phaseNumber}
                 </span>

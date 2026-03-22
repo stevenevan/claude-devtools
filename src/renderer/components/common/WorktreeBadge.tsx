@@ -36,7 +36,10 @@ export const WorktreeBadge = ({
   isMain = false,
   className = '',
 }: Readonly<WorktreeBadgeProps>): React.ReactElement | null => {
-  const baseClasses = cn('inline-flex shrink-0 items-center rounded-sm px-1 py-px text-[9px] font-medium', className);
+  const baseClasses = cn(
+    'inline-flex shrink-0 items-center rounded-sm px-1 py-px text-[9px] font-medium',
+    className
+  );
 
   // Show Default badge if isMain is true (the default/primary worktree)
   if (isMain) {

@@ -5,8 +5,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { api, isDesktopMode } from '@renderer/api';
-import appIcon from '@renderer/favicon.png';
 import { Button } from '@renderer/components/ui/button';
+import appIcon from '@renderer/favicon.png';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { CheckCircle, Code2, Download, Loader2, RefreshCw, Upload } from 'lucide-react';

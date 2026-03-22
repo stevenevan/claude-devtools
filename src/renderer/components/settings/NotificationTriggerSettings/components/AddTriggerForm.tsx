@@ -210,18 +210,10 @@ export const AddTriggerForm = ({
 
           {/* Submit button */}
           <div className="flex justify-end gap-2 pt-4">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={handlers.handleCancel}
-              disabled={saving}
-            >
+            <Button type="button" variant="ghost" onClick={handlers.handleCancel} disabled={saving}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={saving || !name.trim() || !!patternError}
-            >
+            <Button type="submit" disabled={saving || !name.trim() || !!patternError}>
               {saving && <Loader2 className="size-4 animate-spin" />}
               <Plus className="size-4" />
               Add Trigger

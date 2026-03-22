@@ -114,7 +114,10 @@ export const TriggerCardHeader = ({
           <button
             onClick={onRemove}
             disabled={saving}
-            className={cn('text-text-muted rounded-sm p-1 transition-colors hover:bg-red-500/10 hover:text-red-400', saving && 'cursor-not-allowed opacity-50')}
+            className={cn(
+              'text-text-muted rounded-sm p-1 transition-colors hover:bg-red-500/10 hover:text-red-400',
+              saving && 'cursor-not-allowed opacity-50'
+            )}
             aria-label="Delete trigger"
           >
             <X className="size-4" />

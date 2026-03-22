@@ -395,9 +395,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
                 {hasMainImpact && !subagent.team && (
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <ArrowUpRight
-                        className="size-3 text-[var(--subagent-icon-main)]"
-                      />
+                      <ArrowUpRight className="size-3 text-[var(--subagent-icon-main)]" />
                       <span className="text-text-secondary text-xs">Main Context</span>
                     </div>
                     <span className="font-mono text-xs font-medium text-[var(--card-text-lighter)] tabular-nums">

@@ -32,7 +32,10 @@ export const ThinkingTextItem = ({
         onClick={() => setExpanded(!expanded)}
       >
         <ChevronRight
-          className={cn('text-text-muted size-3 shrink-0 transition-transform', expanded && 'rotate-90')}
+          className={cn(
+            'text-text-muted size-3 shrink-0 transition-transform',
+            expanded && 'rotate-90'
+          )}
         />
         <Brain size={12} className="text-text-muted shrink-0" />
         {isClickable ? (

@@ -107,7 +107,10 @@ export const Sidebar = (): React.JSX.Element | null => {
       <button
         type="button"
         aria-label="Resize sidebar"
-        className={cn('absolute top-0 right-0 h-full w-1 cursor-col-resize border-0 bg-transparent p-0 transition-colors hover:bg-blue-500/50', isResizing && 'bg-blue-500/50')}
+        className={cn(
+          'absolute top-0 right-0 h-full w-1 cursor-col-resize border-0 bg-transparent p-0 transition-colors hover:bg-blue-500/50',
+          isResizing && 'bg-blue-500/50'
+        )}
         onMouseDown={handleResizeStart}
       />
     </div>

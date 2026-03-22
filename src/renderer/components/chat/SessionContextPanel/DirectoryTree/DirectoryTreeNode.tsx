@@ -87,7 +87,10 @@ export const DirectoryTreeNode = ({
           }}
         >
           <ChevronRight
-            className={cn('text-text-muted size-3 shrink-0 transition-transform', expanded && 'rotate-90')}
+            className={cn(
+              'text-text-muted size-3 shrink-0 transition-transform',
+              expanded && 'rotate-90'
+            )}
           />
           <span className="text-text-muted">{node.name}/</span>
         </div>

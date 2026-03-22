@@ -428,7 +428,9 @@ export const DateGroupedSessions = (): React.JSX.Element => {
             }
             className={cn(
               'rounded-sm p-1 transition-colors hover:bg-white/5',
-              sessionSortMode === 'most-context' ? 'text-[var(--accent-badge-text)]' : 'text-text-muted'
+              sessionSortMode === 'most-context'
+                ? 'text-[var(--accent-badge-text)]'
+                : 'text-text-muted'
             )}
             title={sessionSortMode === 'recent' ? 'Sort by context consumption' : 'Sort by recent'}
           >

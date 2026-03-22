@@ -247,11 +247,11 @@ export const SidebarHeader = (): React.JSX.Element => {
           isMacElectron ? 'pl-[var(--macos-traffic-light-padding-left,72px)]' : 'pl-4'
         )}
         data-tauri-drag-region
-        style={isMacElectron ? { WebkitAppRegion: 'drag' } as React.CSSProperties : undefined}
+        style={isMacElectron ? ({ WebkitAppRegion: 'drag' } as React.CSSProperties) : undefined}
       >
         <Popover open={isProjectDropdownOpen} onOpenChange={setIsProjectDropdownOpen}>
           <PopoverTrigger
-            className="flex min-w-0 items-center gap-2 rounded-md px-2 py-1 -ml-2 transition-colors hover:bg-white/[0.05]"
+            className="-ml-2 flex min-w-0 items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-white/[0.05]"
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           >
             <span
@@ -273,7 +273,7 @@ export const SidebarHeader = (): React.JSX.Element => {
             side="bottom"
             sideOffset={4}
             align="start"
-            className="max-h-[350px] w-[var(--anchor-width)] overflow-y-auto bg-surface-sidebar p-0 py-1"
+            className="bg-surface-sidebar max-h-[350px] w-[var(--anchor-width)] overflow-y-auto p-0 py-1"
           >
             <div className="text-text-muted px-3 py-2 text-[10px] font-semibold tracking-wider uppercase">
               Switch {viewMode === 'grouped' ? 'Repository' : 'Project'}
@@ -345,7 +345,9 @@ export const SidebarHeader = (): React.JSX.Element => {
                 <GitBranch
                   className={cn(
                     'size-4 shrink-0',
-                    isWorktreeDropdownOpen ? 'text-[var(--worktree-icon)]' : 'text-[var(--worktree-icon-muted)]'
+                    isWorktreeDropdownOpen
+                      ? 'text-[var(--worktree-icon)]'
+                      : 'text-[var(--worktree-icon-muted)]'
                   )}
                 />
                 {activeWorktree?.isMainWorktree ? (
@@ -353,7 +355,9 @@ export const SidebarHeader = (): React.JSX.Element => {
                 ) : (
                   activeWorktree?.source && <WorktreeBadge source={activeWorktree.source} />
                 )}
-                <span className="truncate font-mono text-xs">{truncateMiddle(worktreeName, 28)}</span>
+                <span className="truncate font-mono text-xs">
+                  {truncateMiddle(worktreeName, 28)}
+                </span>
               </div>
               {hasMultipleWorktrees && (
                 <ChevronDown
@@ -368,7 +372,7 @@ export const SidebarHeader = (): React.JSX.Element => {
               side="bottom"
               sideOffset={0}
               align="start"
-              className="max-h-[400px] w-[var(--anchor-width)] overflow-y-auto border-t-0 bg-surface-sidebar p-0 py-1"
+              className="bg-surface-sidebar max-h-[400px] w-[var(--anchor-width)] overflow-y-auto border-t-0 p-0 py-1"
             >
               <div className="text-text-muted px-4 py-2 text-[10px] font-semibold tracking-wider uppercase">
                 Switch Worktree

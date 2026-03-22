@@ -130,9 +130,7 @@ export const EventMarker = ({ eventGroup }: Readonly<EventMarkerProps>): React.J
         className={cn('flex items-center gap-3 rounded-lg border px-4 py-2', style.containerClass)}
       >
         <Icon size={14} className={cn('shrink-0', style.textClass)} />
-        <span
-          className={cn('shrink-0 text-xs font-medium whitespace-nowrap', style.textClass)}
-        >
+        <span className={cn('shrink-0 text-xs font-medium whitespace-nowrap', style.textClass)}>
           {style.label}
         </span>
         <span className="text-text-muted min-w-0 truncate text-xs">{detail}</span>

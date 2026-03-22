@@ -86,7 +86,10 @@ const SessionContextSection = ({
       >
         <div className="text-text-muted flex items-center gap-1">
           <ChevronRight
-            className={cn('size-3 shrink-0 transition-transform duration-150', expanded && 'rotate-90')}
+            className={cn(
+              'size-3 shrink-0 transition-transform duration-150',
+              expanded && 'rotate-90'
+            )}
           />
           <span className="text-[10px] whitespace-nowrap">Visible Context</span>
         </div>

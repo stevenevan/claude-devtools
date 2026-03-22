@@ -18,10 +18,18 @@ import type { ContextInjection } from '@renderer/types/contextInjection';
 // =============================================================================
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  'claude-md': { bg: 'var(--ctx-claudemd-bg)', text: 'var(--ctx-claudemd-text)', label: 'CLAUDE.md' },
+  'claude-md': {
+    bg: 'var(--ctx-claudemd-bg)',
+    text: 'var(--ctx-claudemd-text)',
+    label: 'CLAUDE.md',
+  },
   'mentioned-file': { bg: 'var(--ctx-file-bg)', text: 'var(--ctx-file-text)', label: 'File' },
   'tool-output': { bg: 'var(--ctx-tool-bg)', text: 'var(--ctx-tool-text)', label: 'Tool' },
-  'thinking-text': { bg: 'var(--ctx-thinking-bg)', text: 'var(--ctx-thinking-text)', label: 'Thinking' },
+  'thinking-text': {
+    bg: 'var(--ctx-thinking-bg)',
+    text: 'var(--ctx-thinking-text)',
+    label: 'Thinking',
+  },
   'task-coordination': { bg: 'var(--ctx-team-bg)', text: 'var(--ctx-team-text)', label: 'Team' },
   'user-message': { bg: 'var(--ctx-user-bg)', text: 'var(--ctx-user-text)', label: 'User' },
 };

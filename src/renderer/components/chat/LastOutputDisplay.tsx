@@ -151,9 +151,7 @@ export const LastOutputDisplay = ({
     return (
       <div className="flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--warning-border)] bg-[var(--warning-bg)] px-4 py-2">
         <AlertTriangle className="size-4 shrink-0 text-[var(--warning-text)]" />
-        <span className="text-sm text-[var(--warning-text)]">
-          Request interrupted by user
-        </span>
+        <span className="text-sm text-[var(--warning-text)]">Request interrupted by user</span>
       </div>
     );
   }

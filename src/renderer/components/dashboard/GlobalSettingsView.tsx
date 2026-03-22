@@ -164,7 +164,10 @@ export const GlobalSettingsView = (): React.JSX.Element | null => {
             <div className="flex items-center justify-between">
               <span className="text-text-secondary text-xs">Always Thinking</span>
               <span
-                className={cn('text-xs', alwaysThinkingEnabled ? 'text-emerald-400' : 'text-zinc-500')}
+                className={cn(
+                  'text-xs',
+                  alwaysThinkingEnabled ? 'text-emerald-400' : 'text-zinc-500'
+                )}
               >
                 {alwaysThinkingEnabled ? 'Enabled' : 'Disabled'}
               </span>

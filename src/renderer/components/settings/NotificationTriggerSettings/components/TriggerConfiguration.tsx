@@ -252,7 +252,11 @@ const ContentMatchConfig = ({
           onBlur={onPatternBlur}
           placeholder="e.g., error|failed|exception"
           disabled={saving}
-          className={cn('text-text placeholder:text-text-muted w-full rounded-sm border bg-transparent px-2 py-1.5 font-mono text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden', patternError ? 'border-red-500' : 'border-border', saving && 'cursor-not-allowed opacity-50')}
+          className={cn(
+            'text-text placeholder:text-text-muted w-full rounded-sm border bg-transparent px-2 py-1.5 font-mono text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden',
+            patternError ? 'border-red-500' : 'border-border',
+            saving && 'cursor-not-allowed opacity-50'
+          )}
         />
         {patternError && (
           <p className="mt-1 flex items-center gap-1 text-xs text-red-400">
@@ -333,7 +337,10 @@ const TokenThresholdConfig = ({
             onBlur={onTokenThresholdBlur}
             placeholder="0"
             disabled={saving}
-            className={cn('border-border text-text w-20 rounded-sm border bg-transparent px-2 py-1 text-right text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden', saving && 'cursor-not-allowed opacity-50')}
+            className={cn(
+              'border-border text-text w-20 rounded-sm border bg-transparent px-2 py-1 text-right text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden',
+              saving && 'cursor-not-allowed opacity-50'
+            )}
           />
           <span className="text-text-muted text-xs">tokens</span>
         </div>

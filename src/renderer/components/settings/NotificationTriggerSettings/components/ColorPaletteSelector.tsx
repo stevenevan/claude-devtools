@@ -96,7 +96,12 @@ export const ColorPaletteSelector = ({
               title={color.label}
               onClick={() => handlePresetClick(color.key as TriggerColor)}
               disabled={disabled}
-              className={cn('size-5 rounded-full transition-all', isSelected ? 'ring-offset-surface ring-2 ring-white/60 ring-offset-1' : 'hover:ring-1 hover:ring-white/30')}
+              className={cn(
+                'size-5 rounded-full transition-all',
+                isSelected
+                  ? 'ring-offset-surface ring-2 ring-white/60 ring-offset-1'
+                  : 'hover:ring-1 hover:ring-white/30'
+              )}
               style={{ backgroundColor: color.hex }}
             />
           );

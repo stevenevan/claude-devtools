@@ -365,9 +365,7 @@ const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): React.
 
         {/* Content - polished bubble with subtle depth */}
         {textContent && (
-          <div
-            className="group relative overflow-hidden rounded-2xl rounded-br-sm border border-[var(--chat-user-border)] bg-[var(--chat-user-bg)] px-4 py-3 shadow-[var(--chat-user-shadow)]"
-          >
+          <div className="group relative overflow-hidden rounded-2xl rounded-br-sm border border-[var(--chat-user-border)] bg-[var(--chat-user-bg)] px-4 py-3 shadow-[var(--chat-user-shadow)]">
             <CopyButton text={textContent} bgColor="var(--chat-user-bg)" />
 
             <div className="text-sm text-[var(--chat-user-text)]" data-search-content>

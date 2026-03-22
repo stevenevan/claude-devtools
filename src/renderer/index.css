@@ -133,7 +133,7 @@
   --chat-system-text: #d4d4d8;
 
   /* AI message styling */
-  --chat-ai-border: rgba(99, 102, 241, 0.20);
+  --chat-ai-border: rgba(99, 102, 241, 0.2);
   --chat-ai-icon: #71717a;
 
   /* Code blocks - Soft Charcoal theme */
