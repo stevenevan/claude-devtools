@@ -1,14 +1,13 @@
 /**
- * SidebarHeader - Linear-style header with project name and worktree selector.
+ * SidebarHeader - Shows "Projects" title or project name with back button.
  *
- * Layout (2 stacked horizontal bars):
- * - Row 1: Project name (left-aligned after macOS traffic lights)
- * - Row 2: Worktree selector (full-width button)
+ * Layout:
+ * - No project selected: "Projects" title + collapse button
+ * - Project selected: Back button + project name + collapse button, optional worktree selector
  *
  * Visual requirements:
  * - Row 1 is the drag region for window movement
  * - Row 1 reserves left space for macOS traffic lights via shared layout CSS variable
- * - Row 2 is a full-width button with no side margins
  */
 
 import { useEffect, useState } from 'react';
@@ -18,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatShortcut, truncateMiddle } from '@renderer/utils/stringUtils';
-import { Check, ChevronDown, GitBranch, PanelLeft } from 'lucide-react';
+import { Check, ChevronDown, ChevronLeft, GitBranch, PanelLeft } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { WorktreeBadge } from '../common/WorktreeBadge';
@@ -98,7 +97,10 @@ const WorktreeItem = ({
       )}
     >
       <GitBranch
-        className={cn('size-3.5 shrink-0', isSelected ? 'text-emerald-400' : 'text-muted-foreground')}
+        className={cn(
+          'size-3.5 shrink-0',
+          isSelected ? 'text-emerald-400' : 'text-muted-foreground'
+        )}
       />
       {worktree.isMainWorktree && <WorktreeBadge source={worktree.source} isMain />}
       <span
@@ -115,46 +117,6 @@ const WorktreeItem = ({
   );
 };
 
-interface ProjectDropdownItemProps {
-  name: string;
-  path?: string;
-  sessionCount: number;
-  isSelected: boolean;
-  onSelect: () => void;
-}
-
-const ProjectDropdownItem = ({
-  name,
-  path,
-  sessionCount,
-  isSelected,
-  onSelect,
-}: Readonly<ProjectDropdownItemProps>): React.JSX.Element => {
-  return (
-    <button
-      onClick={onSelect}
-      className={cn(
-        'flex w-full items-center gap-2 px-3 py-2 text-left transition-colors',
-        isSelected ? 'bg-card text-foreground' : 'hover:bg-card'
-      )}
-    >
-      <div className="min-w-0 flex-1">
-        <span
-          className={cn(
-            'block truncate text-sm',
-            isSelected ? 'font-medium text-foreground' : 'text-muted-foreground'
-          )}
-        >
-          {name}
-        </span>
-        {path && <span className="text-muted-foreground block truncate text-[10px]">{path}</span>}
-      </div>
-      <span className="text-muted-foreground shrink-0 text-[10px]">{sessionCount}</span>
-      {isSelected && <Check className="size-3.5 shrink-0 text-indigo-400" />}
-    </button>
-  );
-};
-
 export const SidebarHeader = (): React.JSX.Element => {
   const isMacElectron = isDesktopMode() && window.navigator.userAgent.toLowerCase().includes('mac');
 
@@ -163,11 +125,10 @@ export const SidebarHeader = (): React.JSX.Element => {
     selectedRepositoryId,
     selectedWorktreeId,
     selectWorktree,
-    selectRepository,
     viewMode,
     projects,
     activeProjectId,
-    setActiveProject,
+    clearActiveProject,
     fetchRepositoryGroups,
     fetchProjects,
     toggleSidebar,
@@ -177,11 +138,10 @@ export const SidebarHeader = (): React.JSX.Element => {
       selectedRepositoryId: s.selectedRepositoryId,
       selectedWorktreeId: s.selectedWorktreeId,
       selectWorktree: s.selectWorktree,
-      selectRepository: s.selectRepository,
       viewMode: s.viewMode,
       projects: s.projects,
       activeProjectId: s.activeProjectId,
-      setActiveProject: s.setActiveProject,
+      clearActiveProject: s.clearActiveProject,
       fetchRepositoryGroups: s.fetchRepositoryGroups,
       fetchProjects: s.fetchProjects,
       toggleSidebar: s.toggleSidebar,
@@ -197,7 +157,6 @@ export const SidebarHeader = (): React.JSX.Element => {
   }, [viewMode, repositoryGroups.length, projects.length, fetchRepositoryGroups, fetchProjects]);
 
   const [isWorktreeDropdownOpen, setIsWorktreeDropdownOpen] = useState(false);
-  const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
 
   const activeRepo = repositoryGroups.find((r) => r.id === selectedRepositoryId);
   const activeWorktree = activeRepo?.worktrees.find((w) => w.id === selectedWorktreeId);
@@ -211,110 +170,51 @@ export const SidebarHeader = (): React.JSX.Element => {
   const activeProject = projects.find((p) => p.id === activeProjectId);
 
   const projectName =
-    viewMode === 'grouped'
-      ? (activeRepo?.name ?? 'Select Project')
-      : (activeProject?.name ?? 'Select Project');
+    viewMode === 'grouped' ? activeRepo?.name : activeProject?.name;
 
   const worktreeName = activeWorktree?.name ?? 'main';
-  const hasSelection = viewMode === 'grouped' ? !!activeRepo : !!activeProject;
+  const hasProject = !!activeProjectId;
 
   const handleSelectWorktree = (worktree: Worktree): void => {
     selectWorktree(worktree.id);
     setIsWorktreeDropdownOpen(false);
   };
 
-  const handleSelectRepo = (repoId: string): void => {
-    selectRepository(repoId);
-    setIsProjectDropdownOpen(false);
-  };
-
-  const handleSelectProject = (projectId: string): void => {
-    setActiveProject(projectId);
-    setIsProjectDropdownOpen(false);
-  };
-
-  const projectItems =
-    viewMode === 'grouped'
-      ? repositoryGroups.filter((r) => r.totalSessions > 0)
-      : projects.filter((p) => p.sessions.length > 0);
-
   return (
     <div className="bg-sidebar flex w-full flex-col">
-      {/* ROW 1: Project Identity (Title Bar / Drag Region) */}
+      {/* ROW 1: Title Bar / Drag Region */}
       <div
         className={cn(
-          'relative flex h-10 items-center gap-2 pr-2 select-none',
-          isMacElectron ? 'pl-[var(--macos-traffic-light-padding-left,72px)]' : 'pl-4'
+          'relative flex h-10 items-center gap-1 pr-2 select-none',
+          isMacElectron ? 'pl-[var(--macos-traffic-light-padding-left,72px)]' : 'pl-2'
         )}
         data-tauri-drag-region
         style={isMacElectron ? ({ WebkitAppRegion: 'drag' } as React.CSSProperties) : undefined}
       >
-        <Popover open={isProjectDropdownOpen} onOpenChange={setIsProjectDropdownOpen}>
-          <PopoverTrigger
-            className="-ml-2 flex min-w-0 items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-white/[0.05]"
-            style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-          >
-            <span
-              className={cn(
-                'min-w-0 truncate text-sm font-bold tracking-tight',
-                hasSelection ? 'text-foreground' : 'text-muted-foreground'
-              )}
+        {hasProject ? (
+          <>
+            <button
+              onClick={clearActiveProject}
+              className="text-muted-foreground hover:text-foreground hover:bg-card shrink-0 rounded-md p-1.5 transition-colors"
+              style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+              title="Back to projects"
             >
+              <ChevronLeft className="size-4" />
+            </button>
+            <span className="text-foreground min-w-0 truncate text-sm font-bold tracking-tight">
               {projectName}
             </span>
-            <ChevronDown
-              className={cn(
-                'size-3.5 shrink-0 transition-transform text-muted-foreground',
-                isProjectDropdownOpen && 'rotate-180'
-              )}
-            />
-          </PopoverTrigger>
-          <PopoverContent
-            side="bottom"
-            sideOffset={4}
-            align="start"
-            className="bg-sidebar max-h-[350px] w-[var(--anchor-width)] overflow-y-auto p-0 py-1"
-          >
-            <div className="text-muted-foreground px-3 py-2 text-[10px] font-semibold tracking-wider uppercase">
-              Switch {viewMode === 'grouped' ? 'Repository' : 'Project'}
-            </div>
-            {projectItems.length === 0 ? (
-              <div className="text-muted-foreground p-3 text-sm">
-                No {viewMode === 'grouped' ? 'repositories' : 'projects'} found
-              </div>
-            ) : (
-              projectItems.map((item) => {
-                const isSelected =
-                  viewMode === 'grouped'
-                    ? item.id === selectedRepositoryId
-                    : item.id === activeProjectId;
-                const itemSessions =
-                  viewMode === 'grouped'
-                    ? (item as (typeof repositoryGroups)[0]).totalSessions
-                    : (item as (typeof projects)[0]).sessions.length;
-                const itemPath =
-                  viewMode === 'grouped'
-                    ? (item as (typeof repositoryGroups)[0]).worktrees[0]?.path
-                    : (item as (typeof projects)[0]).path;
-
-                return (
-                  <ProjectDropdownItem
-                    key={item.id}
-                    name={item.name}
-                    path={itemPath}
-                    sessionCount={itemSessions}
-                    isSelected={isSelected}
-                    onSelect={() =>
-                      viewMode === 'grouped'
-                        ? handleSelectRepo(item.id)
-                        : handleSelectProject(item.id)
-                    }
-                  />
-                );
-              })
+          </>
+        ) : (
+          <span
+            className={cn(
+              'text-muted-foreground min-w-0 truncate text-sm font-bold tracking-tight',
+              !isMacElectron && 'pl-2'
             )}
-          </PopoverContent>
-        </Popover>
+          >
+            Projects
+          </span>
+        )}
 
         {/* Collapse sidebar button */}
         <button
@@ -327,8 +227,8 @@ export const SidebarHeader = (): React.JSX.Element => {
         </button>
       </div>
 
-      {/* ROW 2: Worktree Selector (Full Width) */}
-      {viewMode === 'grouped' && activeRepo && (
+      {/* ROW 2: Worktree Selector (Full Width) - only when project is selected */}
+      {hasProject && viewMode === 'grouped' && activeRepo && (
         <div className="relative w-full">
           <Popover open={isWorktreeDropdownOpen} onOpenChange={setIsWorktreeDropdownOpen}>
             <PopoverTrigger
@@ -345,9 +245,7 @@ export const SidebarHeader = (): React.JSX.Element => {
                 <GitBranch
                   className={cn(
                     'size-4 shrink-0',
-                    isWorktreeDropdownOpen
-                      ? 'text-emerald-400'
-                      : 'text-emerald-400/70'
+                    isWorktreeDropdownOpen ? 'text-emerald-400' : 'text-emerald-400/70'
                   )}
                 />
                 {activeWorktree?.isMainWorktree ? (

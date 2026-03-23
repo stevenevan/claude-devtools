@@ -7,6 +7,7 @@ import { Bell, Globe, Monitor, Settings, Wrench } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { DateGroupedSessions } from '../sidebar/DateGroupedSessions';
+import { ProjectList } from '../sidebar/ProjectList';
 
 import { SidebarHeader } from './SidebarHeader';
 
@@ -16,7 +17,11 @@ const MIN_WIDTH = 200;
 const MAX_WIDTH = 500;
 const DEFAULT_WIDTH = 280;
 
-const SETTINGS_SECTIONS: { id: SettingsSection; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+const SETTINGS_SECTIONS: {
+  id: SettingsSection;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
   { id: 'general', label: 'General', icon: Settings },
   { id: 'connection', label: 'Connection', icon: Globe },
   { id: 'workspace', label: 'Workspaces', icon: Monitor },
@@ -51,13 +56,21 @@ const SettingsSidebar = (): React.JSX.Element => {
 };
 
 export const Sidebar = (): React.JSX.Element | null => {
-  const { projects, projectsLoading, fetchProjects, sidebarCollapsed, activeActivity } = useStore(
+  const {
+    projects,
+    projectsLoading,
+    fetchProjects,
+    sidebarCollapsed,
+    activeActivity,
+    activeProjectId,
+  } = useStore(
     useShallow((s) => ({
       projects: s.projects,
       projectsLoading: s.projectsLoading,
       fetchProjects: s.fetchProjects,
       sidebarCollapsed: s.sidebarCollapsed,
       activeActivity: s.activeActivity,
+      activeProjectId: s.activeProjectId,
     }))
   );
   const [width, setWidth] = useState(DEFAULT_WIDTH);
@@ -123,7 +136,7 @@ export const Sidebar = (): React.JSX.Element | null => {
         <>
           <SidebarHeader />
           <div className="flex-1 overflow-hidden">
-            <DateGroupedSessions />
+            {activeProjectId ? <DateGroupedSessions /> : <ProjectList />}
           </div>
         </>
       )}

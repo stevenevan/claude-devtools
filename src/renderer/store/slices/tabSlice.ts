@@ -54,6 +54,7 @@ export interface TabSlice {
 
   // Project context actions
   setActiveProject: (projectId: string) => void;
+  clearActiveProject: () => void;
 
   // Per-tab UI state actions
   setTabContextPanelVisible: (tabId: string, visible: boolean) => void;
@@ -639,6 +640,16 @@ export const createTabSlice: StateCreator<AppState, [], [], TabSlice> = (set, ge
   setActiveProject: (projectId: string) => {
     set({ activeProjectId: projectId });
     get().selectProject(projectId);
+  },
+
+  // Clear active project (go back to project list)
+  clearActiveProject: () => {
+    set({
+      activeProjectId: null,
+      selectedProjectId: null,
+      selectedRepositoryId: null,
+      selectedWorktreeId: null,
+    });
   },
 
   // Navigate to a session (from search or other sources)
