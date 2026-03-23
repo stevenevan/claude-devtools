@@ -25,13 +25,15 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
 
   const showDefaultContent = !activeTabId && pane.tabs.length === 0;
 
-  // Global activities (analytics, agents, skills, plugins) don't create tabs,
-  // so they must show their content even when session tabs exist
+  // Global activities don't create tabs, so they must show their content
+  // even when session tabs exist
   const isGlobalActivity =
     activeActivity === 'analytics' ||
     activeActivity === 'agents' ||
     activeActivity === 'skills' ||
-    activeActivity === 'plugins';
+    activeActivity === 'plugins' ||
+    activeActivity === 'settings' ||
+    activeActivity === 'notifications';
   const showGlobalContent = isGlobalActivity || showDefaultContent;
 
   return (

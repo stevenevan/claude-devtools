@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
-import { Bell, Globe, Monitor, Settings, Wrench } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { DateGroupedSessions } from '../sidebar/DateGroupedSessions';
@@ -11,49 +9,9 @@ import { ProjectList } from '../sidebar/ProjectList';
 
 import { SidebarHeader } from './SidebarHeader';
 
-import type { SettingsSection } from '../settings/SettingsTabs';
-
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 500;
 const DEFAULT_WIDTH = 280;
-
-const SETTINGS_SECTIONS: {
-  id: SettingsSection;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-}[] = [
-  { id: 'general', label: 'General', icon: Settings },
-  { id: 'connection', label: 'Connection', icon: Globe },
-  { id: 'workspace', label: 'Workspaces', icon: Monitor },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
-  { id: 'advanced', label: 'Advanced', icon: Wrench },
-];
-
-const SettingsSidebar = (): React.JSX.Element => {
-  const openSettingsTab = useStore((s) => s.openSettingsTab);
-
-  return (
-    <div className="flex flex-col p-3">
-      <h2 className="text-muted-foreground mb-2 px-2 text-xs font-medium tracking-wider uppercase">
-        Settings
-      </h2>
-      <nav className="flex flex-col gap-0.5">
-        {SETTINGS_SECTIONS.map(({ id, label, icon: Icon }) => (
-          <Button
-            key={id}
-            variant="ghost"
-            size="default"
-            onClick={() => openSettingsTab(id)}
-            className="justify-start gap-2 px-2"
-          >
-            <Icon className="size-4" />
-            {label}
-          </Button>
-        ))}
-      </nav>
-    </div>
-  );
-};
 
 export const Sidebar = (): React.JSX.Element | null => {
   const {
@@ -77,7 +35,7 @@ export const Sidebar = (): React.JSX.Element | null => {
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  const showSidebar = activeActivity === 'projects' || activeActivity === 'settings';
+  const showSidebar = activeActivity === 'projects';
 
   useEffect(() => {
     if (projects.length === 0 && !projectsLoading) {
@@ -132,16 +90,10 @@ export const Sidebar = (): React.JSX.Element | null => {
       className="border-border bg-sidebar relative flex shrink-0 flex-col border-r"
       style={{ width: `${width}px` }}
     >
-      {activeActivity === 'projects' && (
-        <>
-          <SidebarHeader />
-          <div className="flex-1 overflow-hidden">
-            {activeProjectId ? <DateGroupedSessions /> : <ProjectList />}
-          </div>
-        </>
-      )}
-
-      {activeActivity === 'settings' && <SettingsSidebar />}
+      <SidebarHeader />
+      <div className="flex-1 overflow-hidden">
+        {activeProjectId ? <DateGroupedSessions /> : <ProjectList />}
+      </div>
 
       <button
         type="button"

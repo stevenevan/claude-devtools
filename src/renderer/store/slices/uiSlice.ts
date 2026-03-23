@@ -59,7 +59,7 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => (
   toggleSidebar: () => {
     set((state) => {
       const expanding = state.sidebarCollapsed;
-      const hasSidebar = state.activeActivity === 'projects' || state.activeActivity === 'settings';
+      const hasSidebar = state.activeActivity === 'projects';
       if (expanding && !hasSidebar) {
         return { sidebarCollapsed: false, activeActivity: 'projects' };
       }
