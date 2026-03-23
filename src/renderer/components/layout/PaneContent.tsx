@@ -25,9 +25,18 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
 
   const showDefaultContent = !activeTabId && pane.tabs.length === 0;
 
+  // Global activities (analytics, agents, skills, plugins) don't create tabs,
+  // so they must show their content even when session tabs exist
+  const isGlobalActivity =
+    activeActivity === 'analytics' ||
+    activeActivity === 'agents' ||
+    activeActivity === 'skills' ||
+    activeActivity === 'plugins';
+  const showGlobalContent = isGlobalActivity || showDefaultContent;
+
   return (
     <div className="relative flex flex-1 overflow-hidden">
-      {showDefaultContent && (
+      {showGlobalContent && (
         <div className="absolute inset-0 flex">
           {activeActivity === 'projects' && <DashboardView />}
           {activeActivity === 'analytics' && <AnalyticsDashboard />}
@@ -52,7 +61,7 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
       )}
 
       {pane.tabs.map((tab) => {
-        const isActive = tab.id === activeTabId;
+        const isActive = tab.id === activeTabId && !isGlobalActivity;
         return (
           <div key={tab.id} className={cn('absolute inset-0', isActive ? 'flex' : 'hidden')}>
             {(tab.type === 'dashboard' || tab.type === 'projects') && <DashboardView />}
