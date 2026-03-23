@@ -185,7 +185,8 @@ export const SidebarHeader = (): React.JSX.Element => {
       {/* ROW 1: Title Bar / Drag Region */}
       <div
         className={cn(
-          'relative flex h-10 items-center gap-1 pr-2 select-none',
+          'relative flex items-center gap-1 pr-2 select-none',
+          isMacElectron ? 'h-12' : 'h-10',
           isMacElectron ? 'pl-[var(--macos-traffic-light-padding-left,72px)]' : 'pl-2'
         )}
         data-tauri-drag-region
