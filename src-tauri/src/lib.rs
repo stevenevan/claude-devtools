@@ -1,4 +1,5 @@
 mod analysis;
+mod analytics;
 mod cache;
 mod commands;
 mod config;
@@ -44,6 +45,7 @@ pub fn run() {
             commands::stop_watching,
             commands::parse_session,
             commands::parse_session_metrics,
+            commands::get_analytics,
             commands::get_projects,
             commands::get_sessions_paginated,
             commands::get_session_detail,

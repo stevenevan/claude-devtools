@@ -3,6 +3,7 @@ import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 
 import { AgentsGrid } from '../dashboard/AgentsGrid';
+import { AnalyticsDashboard } from '../dashboard/AnalyticsDashboard';
 import { DashboardView } from '../dashboard/DashboardView';
 import { PluginsGrid } from '../dashboard/PluginsGrid';
 import { SkillsGrid } from '../dashboard/SkillsGrid';
@@ -29,6 +30,7 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
       {showDefaultContent && (
         <div className="absolute inset-0 flex">
           {activeActivity === 'projects' && <DashboardView />}
+          {activeActivity === 'analytics' && <AnalyticsDashboard />}
           {activeActivity === 'agents' && (
             <GlobalContentView title="Agents">
               <AgentsGrid searchQuery="" />

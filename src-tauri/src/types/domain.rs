@@ -80,6 +80,9 @@ pub struct SessionMetrics {
     pub message_count: u32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cost_usd: Option<f64>,
+    /// Primary model used in this session (most frequent assistant model)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
 }
 
 // =============================================================================

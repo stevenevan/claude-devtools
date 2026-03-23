@@ -12,6 +12,7 @@ import type { StateCreator } from 'zustand';
 /** Top-level navigation sections in the Activity Bar. */
 export type ActivityView =
   | 'projects'
+  | 'analytics'
   | 'agents'
   | 'skills'
   | 'plugins'
@@ -56,7 +57,14 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => (
 
   // Sidebar actions
   toggleSidebar: () => {
-    set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed }));
+    set((state) => {
+      const expanding = state.sidebarCollapsed;
+      const hasSidebar = state.activeActivity === 'projects' || state.activeActivity === 'settings';
+      if (expanding && !hasSidebar) {
+        return { sidebarCollapsed: false, activeActivity: 'projects' };
+      }
+      return { sidebarCollapsed: !state.sidebarCollapsed };
+    });
   },
 
   // Activity bar actions

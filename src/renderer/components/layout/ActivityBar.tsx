@@ -9,7 +9,7 @@ import {
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatShortcut } from '@renderer/utils/stringUtils';
-import { Bell, Bot, FolderGit2, Puzzle, Settings, Sparkles } from 'lucide-react';
+import { BarChart3, Bell, Bot, FolderGit2, Puzzle, Settings, Sparkles } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import type { ActivityView } from '@renderer/store/slices/uiSlice';
@@ -57,7 +57,7 @@ const ActivityBarItem = ({
         )}
         <Icon className="size-5" />
         {badge != null && badge > 0 && (
-          <span className="bg-destructive text-destructive-foreground absolute -top-0.5 -right-0.5 flex size-3.5 items-center justify-center rounded-full text-[8px] font-bold leading-none">
+          <span className="bg-destructive text-destructive-foreground absolute -top-0.5 -right-0.5 flex size-3.5 items-center justify-center rounded-full text-[8px] leading-none font-bold">
             {badge > 9 ? '9+' : badge}
           </span>
         )}
@@ -107,9 +107,17 @@ export const ActivityBar = (): React.JSX.Element => {
             onClick={() => setActiveActivity('projects')}
           />
           <ActivityBarItem
+            icon={BarChart3}
+            label="Analytics"
+            shortcut="2"
+            activity="analytics"
+            isActive={activeActivity === 'analytics'}
+            onClick={() => setActiveActivity('analytics')}
+          />
+          <ActivityBarItem
             icon={Bot}
             label="Agents"
-            shortcut="2"
+            shortcut="3"
             activity="agents"
             isActive={activeActivity === 'agents'}
             onClick={() => setActiveActivity('agents')}
@@ -117,7 +125,7 @@ export const ActivityBar = (): React.JSX.Element => {
           <ActivityBarItem
             icon={Sparkles}
             label="Skills"
-            shortcut="3"
+            shortcut="4"
             activity="skills"
             isActive={activeActivity === 'skills'}
             onClick={() => setActiveActivity('skills')}
@@ -125,7 +133,7 @@ export const ActivityBar = (): React.JSX.Element => {
           <ActivityBarItem
             icon={Puzzle}
             label="Plugins"
-            shortcut="4"
+            shortcut="5"
             activity="plugins"
             isActive={activeActivity === 'plugins'}
             onClick={() => setActiveActivity('plugins')}

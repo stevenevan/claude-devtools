@@ -6,6 +6,8 @@
 
 import type { ConversationGroup, FileChangeEvent, SessionDetail, SubagentDetail } from './chunks';
 import type {
+  AnalyticsResponse,
+  AnalyticsTimeRange,
   PaginatedSessionsResult,
   Project,
   RepositoryGroup,
@@ -364,6 +366,7 @@ export interface ElectronAPI {
   searchAllProjects: (query: string, maxResults?: number) => Promise<SearchSessionsResult>;
   getSessionDetail: (projectId: string, sessionId: string) => Promise<SessionDetail | null>;
   getSessionMetrics: (projectId: string, sessionId: string) => Promise<SessionMetrics | null>;
+  getAnalytics: (timeRange: AnalyticsTimeRange) => Promise<AnalyticsResponse>;
   getWaterfallData: (projectId: string, sessionId: string) => Promise<WaterfallData | null>;
   getSubagentDetail: (
     projectId: string,

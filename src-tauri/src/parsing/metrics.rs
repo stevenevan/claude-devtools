@@ -43,6 +43,9 @@ pub fn calculate_metrics(messages: &[ParsedMessage]) -> SessionMetrics {
         0.0
     };
 
+    // Extract primary model (most frequent non-synthetic assistant model)
+    let model = extract_primary_model(messages);
+
     SessionMetrics {
         duration_ms,
         total_tokens: input_tokens + output_tokens + cache_read_tokens + cache_creation_tokens,
@@ -52,7 +55,29 @@ pub fn calculate_metrics(messages: &[ParsedMessage]) -> SessionMetrics {
         cache_creation_tokens,
         message_count: messages.len() as u32,
         cost_usd: None,
+        model,
     }
+}
+
+/// Extract the most frequently used model from assistant messages.
+fn extract_primary_model(messages: &[ParsedMessage]) -> Option<String> {
+    use std::collections::HashMap;
+    let mut counts: HashMap<&str, u32> = HashMap::new();
+
+    for msg in messages {
+        if msg.message_type == "assistant" {
+            if let Some(ref model) = msg.model {
+                if !model.is_empty() && model != "<synthetic>" {
+                    *counts.entry(model.as_str()).or_insert(0) += 1;
+                }
+            }
+        }
+    }
+
+    counts
+        .into_iter()
+        .max_by_key(|(_, count)| *count)
+        .map(|(model, _)| model.to_string())
 }
 
 #[cfg(test)]

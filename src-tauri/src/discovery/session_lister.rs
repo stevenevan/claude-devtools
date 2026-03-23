@@ -334,7 +334,12 @@ fn extract_session_preview(file_path: &Path) -> SessionPreview {
         }
 
         let preview_text = if sanitized.len() > 500 {
-            sanitized[..500].to_string()
+            // Find a valid UTF-8 char boundary at or before byte 500
+            let mut end = 500;
+            while !sanitized.is_char_boundary(end) {
+                end -= 1;
+            }
+            sanitized[..end].to_string()
         } else {
             sanitized
         };

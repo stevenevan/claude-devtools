@@ -135,6 +135,8 @@ export interface SessionMetrics {
   messageCount: number;
   /** Estimated cost in USD */
   costUsd?: number;
+  /** Primary model used in this session */
+  model?: string;
 }
 
 // =============================================================================
@@ -331,3 +333,66 @@ export interface SessionsByIdsOptions {
    */
   metadataLevel?: SessionMetadataLevel;
 }
+
+// =============================================================================
+// Analytics Types (returned by Rust get_analytics command)
+// =============================================================================
+
+export interface TimeBucketUsage {
+  key: string;
+  label: string;
+  totalTokens: number;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  costUsd: number;
+  sessionCount: number;
+}
+
+export interface ProjectUsageEntry {
+  projectName: string;
+  totalTokens: number;
+  costUsd: number;
+  sessionCount: number;
+}
+
+export interface ModelUsageEntry {
+  model: string;
+  displayName: string;
+  totalTokens: number;
+  costUsd: number;
+  sessionCount: number;
+}
+
+export interface ScheduleEventEntry {
+  id: string;
+  projectName: string;
+  sessionTitle: string;
+  startTime: number;
+  endTime: number;
+  projectId: string;
+}
+
+export interface TopSessionEntry {
+  projectName: string;
+  title: string;
+  totalTokens: number;
+  costUsd: number;
+  durationMs: number;
+  model?: string;
+}
+
+export interface AnalyticsResponse {
+  timeBuckets: TimeBucketUsage[];
+  projectUsage: ProjectUsageEntry[];
+  modelUsage: ModelUsageEntry[];
+  scheduleEvents: ScheduleEventEntry[];
+  topSessions: TopSessionEntry[];
+  totalTokens: number;
+  totalCost: number;
+  totalSessions: number;
+  avgTokensPerSession: number;
+  avgCostPerSession: number;
+}
+
+export type AnalyticsTimeRange = 'today' | 'week' | 'month' | '3months';
