@@ -9,9 +9,9 @@ use std::sync::{Arc, Mutex};
 use chrono::{Datelike, NaiveDate, NaiveDateTime, Timelike};
 use serde::{Deserialize, Serialize};
 
-use crate::cache::SessionCache;
+use std::io::{BufRead, BufReader};
+
 use crate::discovery::{path_decoder, project_scanner, subproject_registry::SubprojectRegistry};
-use crate::parsing::session_parser;
 use crate::watcher;
 
 // =============================================================================
@@ -242,6 +242,206 @@ fn hour_label(h: u32) -> String {
 }
 
 // =============================================================================
+// Lightweight JSONL scanner — extracts only analytics-relevant fields
+// =============================================================================
+
+/// Minimal data extracted from a session file for analytics purposes.
+/// Avoids full message parsing (content blocks, tool calls, etc.).
+struct SessionSummary {
+    input_tokens: u64,
+    output_tokens: u64,
+    cache_read_tokens: u64,
+    cache_creation_tokens: u64,
+    duration_ms: f64,
+    model: Option<String>,
+    first_timestamp_ms: Option<f64>,
+    last_timestamp_ms: Option<f64>,
+    first_user_text: Option<String>,
+    custom_title: Option<String>,
+}
+
+/// Minimal struct for fast JSON deserialization — only the fields we need.
+#[derive(Deserialize)]
+struct QuickEntry {
+    #[serde(rename = "type")]
+    entry_type: Option<String>,
+    role: Option<String>,
+    model: Option<String>,
+    timestamp: Option<String>,
+    usage: Option<QuickUsage>,
+    message: Option<QuickMessage>,
+    #[serde(rename = "isMeta")]
+    is_meta: Option<bool>,
+    #[serde(rename = "customTitle")]
+    custom_title: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct QuickUsage {
+    input_tokens: Option<u64>,
+    output_tokens: Option<u64>,
+    cache_read_input_tokens: Option<u64>,
+    cache_creation_input_tokens: Option<u64>,
+}
+
+#[derive(Deserialize)]
+struct QuickMessage {
+    role: Option<String>,
+    model: Option<String>,
+    usage: Option<QuickUsage>,
+    content: Option<serde_json::Value>,
+}
+
+/// Scan a JSONL file extracting only metrics-relevant fields.
+/// Much faster than full parse — skips content block parsing, tool linking, etc.
+fn scan_session_fast(file_path: &Path) -> Option<SessionSummary> {
+    let file = std::fs::File::open(file_path).ok()?;
+    let reader = BufReader::with_capacity(64 * 1024, file);
+
+    let mut input_tokens: u64 = 0;
+    let mut output_tokens: u64 = 0;
+    let mut cache_read: u64 = 0;
+    let mut cache_create: u64 = 0;
+    let mut model_counts: HashMap<String, u32> = HashMap::new();
+    let mut first_ts: Option<f64> = None;
+    let mut last_ts: Option<f64> = None;
+    let mut first_user_text: Option<String> = None;
+    let mut custom_title: Option<String> = None;
+
+    for line in reader.lines() {
+        let line = match line {
+            Ok(l) => l,
+            Err(_) => continue,
+        };
+        if line.trim().is_empty() {
+            continue;
+        }
+
+        let entry: QuickEntry = match serde_json::from_str(&line) {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+
+        // Extract custom title
+        if custom_title.is_none() {
+            if let Some(t) = entry.custom_title {
+                custom_title = Some(t);
+            }
+        }
+
+        // Parse timestamp
+        if let Some(ref ts_str) = entry.timestamp {
+            if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(ts_str) {
+                let ms = dt.timestamp_millis() as f64;
+                if first_ts.is_none() {
+                    first_ts = Some(ms);
+                }
+                last_ts = Some(ms);
+            }
+        }
+
+        // Try to get usage from top-level or nested message
+        let (role, model, usage) = if let Some(ref msg) = entry.message {
+            (
+                msg.role.as_deref(),
+                msg.model.as_deref(),
+                msg.usage.as_ref(),
+            )
+        } else {
+            (
+                entry.role.as_deref(),
+                entry.model.as_deref(),
+                entry.usage.as_ref(),
+            )
+        };
+
+        // Accumulate usage
+        if let Some(u) = usage {
+            input_tokens += u.input_tokens.unwrap_or(0);
+            output_tokens += u.output_tokens.unwrap_or(0);
+            cache_read += u.cache_read_input_tokens.unwrap_or(0);
+            cache_create += u.cache_creation_input_tokens.unwrap_or(0);
+        }
+
+        // Track model from assistant messages
+        if role == Some("assistant") {
+            if let Some(m) = model {
+                if !m.is_empty() && m != "<synthetic>" {
+                    *model_counts.entry(m.to_string()).or_insert(0) += 1;
+                }
+            }
+        }
+
+        // Capture first real user message text for title
+        if first_user_text.is_none()
+            && role == Some("user")
+            && entry.is_meta != Some(true)
+            && entry.entry_type.as_deref() == Some("user")
+        {
+            // Try to extract text content
+            if let Some(ref msg) = entry.message {
+                if let Some(ref content) = msg.content {
+                    let text = match content {
+                        serde_json::Value::String(s) => Some(s.clone()),
+                        serde_json::Value::Array(arr) => arr.iter().find_map(|block| {
+                            if block.get("type")?.as_str()? == "text" {
+                                block.get("text")?.as_str().map(|s| s.to_string())
+                            } else {
+                                None
+                            }
+                        }),
+                        _ => None,
+                    };
+                    if let Some(t) = text {
+                        let trimmed = t.trim();
+                        if !trimmed.is_empty() && !trimmed.starts_with("<local-command") {
+                            let preview = if trimmed.len() > 100 {
+                                let mut end = 100;
+                                while !trimmed.is_char_boundary(end) {
+                                    end -= 1;
+                                }
+                                format!("{}...", &trimmed[..end])
+                            } else {
+                                trimmed.to_string()
+                            };
+                            first_user_text = Some(preview);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    let total = input_tokens + output_tokens + cache_read + cache_create;
+    if total == 0 {
+        return None; // Empty or unparseable session
+    }
+
+    let primary_model = model_counts
+        .into_iter()
+        .max_by_key(|(_, count)| *count)
+        .map(|(m, _)| m);
+
+    let duration_ms = match (first_ts, last_ts) {
+        (Some(first), Some(last)) if last > first => last - first,
+        _ => 0.0,
+    };
+
+    Some(SessionSummary {
+        input_tokens,
+        output_tokens,
+        cache_read_tokens: cache_read,
+        cache_creation_tokens: cache_create,
+        duration_ms,
+        model: primary_model,
+        first_timestamp_ms: first_ts,
+        last_timestamp_ms: last_ts,
+        first_user_text,
+        custom_title,
+    })
+}
+
+// =============================================================================
 // Main analytics function
 // =============================================================================
 
@@ -274,7 +474,6 @@ impl TimeRangeParam {
 pub fn compute_analytics(
     time_range: &TimeRangeParam,
     registry: &Arc<Mutex<SubprojectRegistry>>,
-    cache: &Arc<Mutex<SessionCache>>,
 ) -> Result<AnalyticsResponse, String> {
     let claude_dir =
         watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
@@ -416,41 +615,24 @@ pub fn compute_analytics(
                 continue;
             }
 
-            // Parse session (use cache if available)
-            let cache_key = format!("{}/{}", project.id, session_id);
-            let parsed = {
-                let mut c = cache.lock().map_err(|e| e.to_string())?;
-                if let Some(cached) = c.get(&cache_key) {
-                    cached.clone()
-                } else {
-                    let file_path = entry.path();
-                    match session_parser::parse_session_file(&file_path) {
-                        Ok(session) => {
-                            c.insert(cache_key, session.clone());
-                            session
-                        }
-                        Err(_) => continue,
-                    }
-                }
+            // Fast scan: extract only metrics-relevant fields without full parse
+            let summary = match scan_session_fast(&entry.path()) {
+                Some(s) => s,
+                None => continue,
             };
 
-            // Derive session timestamp from message data when available.
-            // Use the last message timestamp for bucket placement (when was the session active),
-            // falling back to file modified time, then creation time.
-            let session_timestamp = parsed
-                .messages
-                .last()
-                .and_then(|msg| chrono::DateTime::parse_from_rfc3339(&msg.timestamp).ok())
-                .map(|dt| dt.timestamp_millis() as f64)
+            let session_timestamp = summary
+                .last_timestamp_ms
                 .unwrap_or(modified_at.max(created_at));
 
-            let m = &parsed.metrics;
+            let tok_total =
+                summary.input_tokens + summary.output_tokens + summary.cache_read_tokens + summary.cache_creation_tokens;
             let cost = estimate_cost(
-                m.model.as_deref(),
-                m.input_tokens,
-                m.output_tokens,
-                m.cache_read_tokens,
-                m.cache_creation_tokens,
+                summary.model.as_deref(),
+                summary.input_tokens,
+                summary.output_tokens,
+                summary.cache_read_tokens,
+                summary.cache_creation_tokens,
             );
 
             // Update time bucket — place in the bucket of the session's last activity
@@ -461,87 +643,57 @@ pub fn compute_analytics(
             };
             if let Some(&idx) = bucket_map.get(&bkey) {
                 let (_, bucket) = &mut buckets[idx];
-                bucket.total_tokens += m.total_tokens;
-                bucket.input_tokens += m.input_tokens;
-                bucket.output_tokens += m.output_tokens;
-                bucket.cache_read_tokens += m.cache_read_tokens;
+                bucket.total_tokens += tok_total;
+                bucket.input_tokens += summary.input_tokens;
+                bucket.output_tokens += summary.output_tokens;
+                bucket.cache_read_tokens += summary.cache_read_tokens;
                 bucket.cost_usd += cost;
                 bucket.session_count += 1;
             }
 
             // Update project aggregation
             let pentry = project_agg.entry(project_name.clone()).or_insert((0, 0.0, 0));
-            pentry.0 += m.total_tokens;
+            pentry.0 += tok_total;
             pentry.1 += cost;
             pentry.2 += 1;
 
             // Update model aggregation
-            if let Some(ref model) = m.model {
+            if let Some(ref model) = summary.model {
                 let mentry = model_agg.entry(model.clone()).or_insert((0, 0.0, 0));
-                mentry.0 += m.total_tokens;
+                mentry.0 += tok_total;
                 mentry.1 += cost;
                 mentry.2 += 1;
             }
 
-            // Derive session start from first message timestamp (more accurate than file ctime)
-            let session_start = parsed
-                .messages
-                .first()
-                .and_then(|msg| chrono::DateTime::parse_from_rfc3339(&msg.timestamp).ok())
-                .map(|dt| dt.timestamp_millis() as f64)
-                .unwrap_or(created_at);
-
             // Build schedule event
-            if m.duration_ms > 0.0 {
-                // Get session title from the preview
-                let title = parsed.custom_title.clone().unwrap_or_else(|| {
-                    parsed
-                        .by_type
-                        .real_user
-                        .first()
-                        .and_then(|msg| match &msg.content {
-                            crate::types::messages::ParsedMessageContent::Text(t) => {
-                                let trimmed = t.trim();
-                                if trimmed.is_empty() {
-                                    None
-                                } else {
-                                    let preview = if trimmed.len() > 100 {
-                                        let mut end = 100;
-                                        while !trimmed.is_char_boundary(end) {
-                                            end -= 1;
-                                        }
-                                        format!("{}...", &trimmed[..end])
-                                    } else {
-                                        trimmed.to_string()
-                                    };
-                                    Some(preview)
-                                }
-                            }
-                            _ => None,
-                        })
-                        .unwrap_or_else(|| "Untitled session".to_string())
-                });
+            let session_start = summary.first_timestamp_ms.unwrap_or(created_at);
+            if summary.duration_ms > 0.0 {
+                let title = summary
+                    .custom_title
+                    .clone()
+                    .or(summary.first_user_text.clone())
+                    .unwrap_or_else(|| "Untitled session".to_string());
 
                 schedule_events.push(ScheduleEventEntry {
                     id: session_id.to_string(),
                     project_name: project_name.clone(),
                     session_title: title.clone(),
                     start_time: session_start,
-                    end_time: session_start + m.duration_ms,
+                    end_time: session_start + summary.duration_ms,
                     project_id: base_id.to_string(),
                 });
 
                 top_sessions.push(TopSessionEntry {
                     project_name: project_name.clone(),
                     title,
-                    total_tokens: m.total_tokens,
+                    total_tokens: tok_total,
                     cost_usd: cost,
-                    duration_ms: m.duration_ms,
-                    model: m.model.clone(),
+                    duration_ms: summary.duration_ms,
+                    model: summary.model.clone(),
                 });
             }
 
-            total_tokens += m.total_tokens;
+            total_tokens += tok_total;
             total_cost += cost;
             total_sessions += 1;
         }

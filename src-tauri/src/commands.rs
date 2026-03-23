@@ -850,9 +850,8 @@ pub fn parse_session_metrics(
 pub fn get_analytics(
     time_range: crate::analytics::TimeRangeParam,
     registry: tauri::State<'_, Arc<Mutex<SubprojectRegistry>>>,
-    cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
 ) -> Result<crate::analytics::AnalyticsResponse, String> {
-    crate::analytics::compute_analytics(&time_range, &registry, &cache)
+    crate::analytics::compute_analytics(&time_range, &registry)
 }
 
 // ---------------------------------------------------------------------------
