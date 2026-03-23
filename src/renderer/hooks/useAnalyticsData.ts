@@ -10,7 +10,7 @@ import { createLogger } from '@shared/utils/logger';
 
 import type {
   AnalyticsResponse,
-  AnalyticsTimeRange,
+  BucketGranularity,
   ModelUsageEntry,
   ProjectUsageEntry,
   ScheduleEventEntry,
@@ -21,10 +21,10 @@ import type {
 const logger = createLogger('Hook:useAnalyticsData');
 
 // =============================================================================
-// Types (display-layer additions on top of backend data)
+// Types
 // =============================================================================
 
-export type TimeRange = AnalyticsTimeRange;
+export type { BucketGranularity };
 
 export interface ProjectUsage extends ProjectUsageEntry {
   color: string;
@@ -49,15 +49,19 @@ export interface AnalyticsData {
   totalSessions: number;
   avgTokensPerSession: number;
   avgCostPerSession: number;
+  granularity: BucketGranularity;
   loading: boolean;
   error: string | null;
-  timeRange: TimeRange;
-  setTimeRange: (range: TimeRange) => void;
+  days: number;
+  setDays: (days: number) => void;
 }
 
 // =============================================================================
-// Color palettes
+// Constants
 // =============================================================================
+
+/** Max supported range */
+export const MAX_DAYS = 90;
 
 const PROJECT_COLORS = [
   '#6366f1',
@@ -93,7 +97,7 @@ export function useAnalyticsData(): AnalyticsData {
   const [data, setData] = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [timeRange, setTimeRange] = useState<TimeRange>('today');
+  const [days, setDays] = useState(1);
   const fetchIdRef = useRef(0);
 
   useEffect(() => {
@@ -105,7 +109,7 @@ export function useAnalyticsData(): AnalyticsData {
       setError(null);
 
       try {
-        const result = await api.getAnalytics(timeRange);
+        const result = await api.getAnalytics(days);
         if (!cancelled && currentFetchId === fetchIdRef.current) {
           setData(result);
         }
@@ -125,9 +129,9 @@ export function useAnalyticsData(): AnalyticsData {
     return () => {
       cancelled = true;
     };
-  }, [timeRange]);
+  }, [days]);
 
-  // Assign colors (display-only concern, not backend's job)
+  // Assign colors
   const projectUsage: ProjectUsage[] = (data?.projectUsage ?? []).map((p, i) => ({
     ...p,
     color: PROJECT_COLORS[i % PROJECT_COLORS.length],
@@ -156,9 +160,10 @@ export function useAnalyticsData(): AnalyticsData {
     totalSessions: data?.totalSessions ?? 0,
     avgTokensPerSession: data?.avgTokensPerSession ?? 0,
     avgCostPerSession: data?.avgCostPerSession ?? 0,
+    granularity: data?.granularity ?? 'daily',
     loading,
     error,
-    timeRange,
-    setTimeRange,
+    days,
+    setDays,
   };
 }

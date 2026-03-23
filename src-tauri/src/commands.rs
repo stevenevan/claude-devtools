@@ -848,10 +848,10 @@ pub fn parse_session_metrics(
 /// Compute pre-aggregated analytics data across all projects.
 #[tauri::command]
 pub fn get_analytics(
-    time_range: crate::analytics::TimeRangeParam,
+    days: u32,
     registry: tauri::State<'_, Arc<Mutex<SubprojectRegistry>>>,
 ) -> Result<crate::analytics::AnalyticsResponse, String> {
-    crate::analytics::compute_analytics(&time_range, &registry)
+    crate::analytics::compute_analytics(days, &registry)
 }
 
 // ---------------------------------------------------------------------------

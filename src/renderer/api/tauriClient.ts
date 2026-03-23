@@ -44,7 +44,6 @@ function reviveDates<T>(obj: T): T {
 
 import type {
   AnalyticsResponse,
-  AnalyticsTimeRange,
   AppConfig,
   ClaudeMdFileInfo,
   ClaudeRootFolderSelection,
@@ -131,8 +130,8 @@ export class TauriAPIClient implements ElectronAPI {
   getSessionMetrics = (projectId: string, sessionId: string): Promise<SessionMetrics | null> =>
     invoke<SessionMetrics>('parse_session_metrics', { projectId, sessionId });
 
-  getAnalytics = (timeRange: AnalyticsTimeRange): Promise<AnalyticsResponse> =>
-    invoke<AnalyticsResponse>('get_analytics', { timeRange });
+  getAnalytics = (days: number): Promise<AnalyticsResponse> =>
+    invoke<AnalyticsResponse>('get_analytics', { days });
 
   getWaterfallData = async (
     projectId: string,

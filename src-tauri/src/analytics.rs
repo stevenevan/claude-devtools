@@ -85,6 +85,7 @@ pub struct AnalyticsResponse {
     pub total_sessions: u32,
     pub avg_tokens_per_session: u64,
     pub avg_cost_per_session: f64,
+    pub granularity: BucketGranularity,
 }
 
 // =============================================================================
@@ -445,39 +446,92 @@ fn scan_session_fast(file_path: &Path) -> Option<SessionSummary> {
 // Main analytics function
 // =============================================================================
 
-/// Time range passed from the frontend.
-#[derive(Debug, Clone, Deserialize)]
+/// Bucket granularity derived from the requested day count.
+///   1 day          → Hourly  (24 buckets)
+///   2–14 days      → Daily
+///   15–56 days     → Weekly  (Mon-based weeks)
+///   57–90 days     → Monthly
+///   >90            → rejected by the frontend
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub enum TimeRangeParam {
-    Today,
-    Week,
-    Month,
-    #[serde(rename = "3months")]
-    ThreeMonths,
+pub enum BucketGranularity {
+    Hourly,
+    Daily,
+    Weekly,
+    Monthly,
 }
 
-impl TimeRangeParam {
-    fn days(&self) -> i64 {
-        match self {
-            Self::Today => 1,
-            Self::Week => 7,
-            Self::Month => 30,
-            Self::ThreeMonths => 90,
-        }
+fn granularity_for_days(days: u32) -> BucketGranularity {
+    match days {
+        0..=2 => BucketGranularity::Hourly,
+        3..=14 => BucketGranularity::Daily,
+        15..=56 => BucketGranularity::Weekly,
+        _ => BucketGranularity::Monthly,
     }
+}
 
-    fn is_hourly(&self) -> bool {
-        matches!(self, Self::Today)
+fn week_key(ts_ms: f64) -> String {
+    let secs = (ts_ms / 1000.0) as i64;
+    let dt = chrono::DateTime::from_timestamp(secs, 0).unwrap_or_default();
+    let naive = dt.date_naive();
+    // ISO week starts on Monday
+    let monday = naive - chrono::Duration::days(naive.weekday().num_days_from_monday() as i64);
+    format!("{:04}-W{:02}", monday.year(), monday.iso_week().week())
+}
+
+fn week_label(monday: &NaiveDate) -> String {
+    let sunday = *monday + chrono::Duration::days(6);
+    if monday.month() == sunday.month() {
+        format!("{} {}-{}", monday.format("%b"), monday.day(), sunday.day())
+    } else {
+        format!("{} - {}", monday.format("%b %-d"), sunday.format("%b %-d"))
+    }
+}
+
+fn month_key(ts_ms: f64) -> String {
+    let secs = (ts_ms / 1000.0) as i64;
+    let dt = chrono::DateTime::from_timestamp(secs, 0).unwrap_or_default();
+    format!("{:04}-{:02}", dt.year(), dt.month())
+}
+
+fn month_label(year: i32, month: u32) -> String {
+    let d = NaiveDate::from_ymd_opt(year, month, 1).unwrap_or_default();
+    d.format("%b %Y").to_string()
+}
+
+fn make_empty_bucket(key: String, label: String) -> TimeBucketUsage {
+    TimeBucketUsage {
+        key,
+        label,
+        total_tokens: 0,
+        input_tokens: 0,
+        output_tokens: 0,
+        cache_read_tokens: 0,
+        cost_usd: 0.0,
+        session_count: 0,
+    }
+}
+
+fn bucket_key_for(granularity: BucketGranularity, ts_ms: f64) -> String {
+    match granularity {
+        BucketGranularity::Hourly => hour_key(ts_ms),
+        BucketGranularity::Daily => day_key(ts_ms),
+        BucketGranularity::Weekly => week_key(ts_ms),
+        BucketGranularity::Monthly => month_key(ts_ms),
     }
 }
 
 pub fn compute_analytics(
-    time_range: &TimeRangeParam,
+    days: u32,
     registry: &Arc<Mutex<SubprojectRegistry>>,
 ) -> Result<AnalyticsResponse, String> {
     let claude_dir =
         watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
     let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
+
+    // Clamp to 90 days max
+    let days = days.min(90).max(1);
+    let granularity = granularity_for_days(days);
 
     // Scan all projects
     let projects = {
@@ -489,54 +543,88 @@ pub fn compute_analytics(
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
         .as_millis() as f64;
-    let cutoff_ms = now_ms - (time_range.days() as f64) * 86_400_000.0;
-    let is_hourly = time_range.is_hourly();
+    let cutoff_ms = now_ms - (days as f64) * 86_400_000.0;
 
-    // Pre-build empty time buckets
+    // Pre-build empty time buckets based on granularity
     let mut buckets: Vec<(String, TimeBucketUsage)> = Vec::new();
-    if is_hourly {
-        let now_secs = (now_ms / 1000.0) as i64;
-        let dt = chrono::DateTime::from_timestamp(now_secs, 0).unwrap_or_default();
-        let today = dt.date_naive();
-        for h in 0..24u32 {
-            let key = format!("{:04}-{:02}-{:02}-{:02}", today.year(), today.month(), today.day(), h);
-            buckets.push((
-                key.clone(),
-                TimeBucketUsage {
-                    key,
-                    label: hour_label(h),
-                    total_tokens: 0,
-                    input_tokens: 0,
-                    output_tokens: 0,
-                    cache_read_tokens: 0,
-                    cost_usd: 0.0,
-                    session_count: 0,
-                },
-            ));
+    match granularity {
+        BucketGranularity::Hourly => {
+            let now_secs = (now_ms / 1000.0) as i64;
+            let dt = chrono::DateTime::from_timestamp(now_secs, 0).unwrap_or_default();
+            let today = dt.date_naive();
+            // Generate hourly buckets for each day in range
+            for d in (0..days as i64).rev() {
+                let date = today - chrono::Duration::days(d);
+                let show_date = days > 1;
+                for h in 0..24u32 {
+                    let key = format!(
+                        "{:04}-{:02}-{:02}-{:02}",
+                        date.year(),
+                        date.month(),
+                        date.day(),
+                        h
+                    );
+                    let label = if show_date {
+                        format!("{} {}", date.format("%b %-d"), hour_label(h))
+                    } else {
+                        hour_label(h)
+                    };
+                    buckets.push((key.clone(), make_empty_bucket(key, label)));
+                }
+            }
         }
-    } else {
-        let days = time_range.days();
-        for i in (0..days).rev() {
-            let secs = ((now_ms - i as f64 * 86_400_000.0) / 1000.0) as i64;
-            let dt = chrono::DateTime::from_timestamp(secs, 0).unwrap_or_default();
-            let date = dt.date_naive();
-            let key = format!("{:04}-{:02}-{:02}", date.year(), date.month(), date.day());
-            buckets.push((
-                key.clone(),
-                TimeBucketUsage {
-                    key,
-                    label: day_label(&date),
-                    total_tokens: 0,
-                    input_tokens: 0,
-                    output_tokens: 0,
-                    cache_read_tokens: 0,
-                    cost_usd: 0.0,
-                    session_count: 0,
-                },
-            ));
+        BucketGranularity::Daily => {
+            for i in (0..days as i64).rev() {
+                let secs = ((now_ms - i as f64 * 86_400_000.0) / 1000.0) as i64;
+                let dt = chrono::DateTime::from_timestamp(secs, 0).unwrap_or_default();
+                let date = dt.date_naive();
+                let key = format!("{:04}-{:02}-{:02}", date.year(), date.month(), date.day());
+                buckets.push((key.clone(), make_empty_bucket(key, day_label(&date))));
+            }
+        }
+        BucketGranularity::Weekly => {
+            // Generate Monday-based week buckets covering the range
+            let now_secs = (now_ms / 1000.0) as i64;
+            let today = chrono::DateTime::from_timestamp(now_secs, 0)
+                .unwrap_or_default()
+                .date_naive();
+            let start_date = today - chrono::Duration::days(days as i64 - 1);
+            // Find the Monday on or before start_date
+            let mut monday =
+                start_date - chrono::Duration::days(start_date.weekday().num_days_from_monday() as i64);
+            while monday <= today {
+                let key = format!("{:04}-W{:02}", monday.year(), monday.iso_week().week());
+                buckets.push((key.clone(), make_empty_bucket(key, week_label(&monday))));
+                monday += chrono::Duration::days(7);
+            }
+        }
+        BucketGranularity::Monthly => {
+            let now_secs = (now_ms / 1000.0) as i64;
+            let today = chrono::DateTime::from_timestamp(now_secs, 0)
+                .unwrap_or_default()
+                .date_naive();
+            let start_date = today - chrono::Duration::days(days as i64 - 1);
+            let mut cursor = NaiveDate::from_ymd_opt(start_date.year(), start_date.month(), 1)
+                .unwrap_or(start_date);
+            let end_month =
+                NaiveDate::from_ymd_opt(today.year(), today.month(), 1).unwrap_or(today);
+            while cursor <= end_month {
+                let key = format!("{:04}-{:02}", cursor.year(), cursor.month());
+                buckets.push((
+                    key.clone(),
+                    make_empty_bucket(key, month_label(cursor.year(), cursor.month())),
+                ));
+                // Advance to next month
+                cursor = if cursor.month() == 12 {
+                    NaiveDate::from_ymd_opt(cursor.year() + 1, 1, 1).unwrap_or(cursor)
+                } else {
+                    NaiveDate::from_ymd_opt(cursor.year(), cursor.month() + 1, 1).unwrap_or(cursor)
+                };
+            }
         }
     }
-    let mut bucket_map: HashMap<String, usize> = buckets
+
+    let bucket_map: HashMap<String, usize> = buckets
         .iter()
         .enumerate()
         .map(|(i, (k, _))| (k.clone(), i))
@@ -636,11 +724,7 @@ pub fn compute_analytics(
             );
 
             // Update time bucket — place in the bucket of the session's last activity
-            let bkey = if is_hourly {
-                hour_key(session_timestamp)
-            } else {
-                day_key(session_timestamp)
-            };
+            let bkey = bucket_key_for(granularity, session_timestamp);
             if let Some(&idx) = bucket_map.get(&bkey) {
                 let (_, bucket) = &mut buckets[idx];
                 bucket.total_tokens += tok_total;
@@ -753,5 +837,6 @@ pub fn compute_analytics(
         total_sessions,
         avg_tokens_per_session: avg_tokens,
         avg_cost_per_session: avg_cost,
+        granularity,
     })
 }

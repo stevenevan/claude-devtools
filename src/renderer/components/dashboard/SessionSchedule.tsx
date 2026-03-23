@@ -10,7 +10,7 @@ import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import type { ScheduleEvent, TimeRange } from '@renderer/hooks/useAnalyticsData';
+import type { ScheduleEvent } from '@renderer/hooks/useAnalyticsData';
 
 // =============================================================================
 // Props
@@ -18,7 +18,7 @@ import type { ScheduleEvent, TimeRange } from '@renderer/hooks/useAnalyticsData'
 
 interface SessionScheduleProps {
   events: ScheduleEvent[];
-  timeRange: TimeRange;
+  days: number;
 }
 
 // =============================================================================
@@ -361,6 +361,64 @@ interface MonthViewProps {
 const MAX_EVENTS_PER_DAY = 3;
 const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+// =============================================================================
+// MonthView Day Cell (extracted to reduce nesting depth)
+// =============================================================================
+
+interface MonthDayCellProps {
+  date: Date;
+  isCurrentMonth: boolean;
+  events: ScheduleEvent[];
+  compact: boolean;
+}
+
+const MonthDayCell = ({
+  date,
+  isCurrentMonth,
+  events,
+  compact,
+}: Readonly<MonthDayCellProps>): React.JSX.Element => {
+  const isToday = isTodayDate(date);
+  const visibleEvents = events.slice(0, MAX_EVENTS_PER_DAY);
+  const overflow = events.length - MAX_EVENTS_PER_DAY;
+
+  return (
+    <div
+      className={cn(
+        'border-border/30 min-h-[60px] border-b border-r p-1 last:border-r-0',
+        !isCurrentMonth && 'opacity-30',
+        isToday && 'bg-indigo-500/5'
+      )}
+    >
+      <div className="mb-0.5 flex items-center justify-end">
+        <span
+          className={cn(
+            'text-[10px]',
+            isToday
+              ? 'flex size-5 items-center justify-center rounded-full bg-indigo-500 font-bold text-white'
+              : 'text-text-muted font-medium'
+          )}
+        >
+          {date.getDate()}
+        </span>
+      </div>
+      <div className="space-y-0.5">
+        {visibleEvents.map((evt) => (
+          <div
+            key={evt.id}
+            className="truncate rounded-xs px-1 py-px text-[8px] leading-tight"
+            style={{ backgroundColor: evt.color + '20', color: evt.color }}
+            title={`${evt.projectName}: ${evt.sessionTitle}\n${new Date(evt.startTime).toLocaleTimeString()}`}
+          >
+            {compact ? evt.projectName.slice(0, 8) : evt.projectName}
+          </div>
+        ))}
+        {overflow > 0 && <div className="text-text-muted px-1 text-[8px]">+{overflow} more</div>}
+      </div>
+    </div>
+  );
+};
+
 const MonthView = ({ events, monthCount }: Readonly<MonthViewProps>): React.JSX.Element => {
   const defaultMonth = useMemo(() => {
     const d = new Date();
@@ -481,56 +539,15 @@ const MonthView = ({ events, monthCount }: Readonly<MonthViewProps>): React.JSX.
             {/* Weeks */}
             {grid.weeks.map((week, wi) => (
               <div key={wi} className="grid grid-cols-7">
-                {week.map((day, di) => {
-                  const isToday = isTodayDate(day.date);
-                  const visibleEvents = day.events.slice(0, MAX_EVENTS_PER_DAY);
-                  const overflow = day.events.length - MAX_EVENTS_PER_DAY;
-
-                  return (
-                    <div
-                      key={di}
-                      className={cn(
-                        'border-border/30 min-h-[60px] border-b border-r p-1 last:border-r-0',
-                        !day.isCurrentMonth && 'opacity-30',
-                        isToday && 'bg-indigo-500/5'
-                      )}
-                    >
-                      {/* Day number */}
-                      <div className="mb-0.5 flex items-center justify-end">
-                        <span
-                          className={cn(
-                            'text-[10px]',
-                            isToday
-                              ? 'flex size-5 items-center justify-center rounded-full bg-indigo-500 font-bold text-white'
-                              : 'text-text-muted font-medium'
-                          )}
-                        >
-                          {day.date.getDate()}
-                        </span>
-                      </div>
-
-                      {/* Event badges */}
-                      <div className="space-y-0.5">
-                        {visibleEvents.map((evt) => (
-                          <div
-                            key={evt.id}
-                            className="truncate rounded-xs px-1 py-px text-[8px] leading-tight"
-                            style={{
-                              backgroundColor: evt.color + '20',
-                              color: evt.color,
-                            }}
-                            title={`${evt.projectName}: ${evt.sessionTitle}\n${new Date(evt.startTime).toLocaleTimeString()}`}
-                          >
-                            {monthCount > 1 ? evt.projectName.slice(0, 8) : evt.projectName}
-                          </div>
-                        ))}
-                        {overflow > 0 && (
-                          <div className="text-text-muted px-1 text-[8px]">+{overflow} more</div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                {week.map((day, di) => (
+                  <MonthDayCell
+                    key={di}
+                    date={day.date}
+                    isCurrentMonth={day.isCurrentMonth}
+                    events={day.events}
+                    compact={monthCount > 1}
+                  />
+                ))}
               </div>
             ))}
           </div>
@@ -552,17 +569,16 @@ const MonthView = ({ events, monthCount }: Readonly<MonthViewProps>): React.JSX.
 
 export const SessionSchedule = ({
   events,
-  timeRange,
+  days,
 }: Readonly<SessionScheduleProps>): React.JSX.Element => {
-  if (timeRange === 'today') {
+  if (days <= 1) {
     return <DayView events={events} isSingleDay />;
   }
-  if (timeRange === 'week') {
+  if (days <= 14) {
     return <DayView events={events} isSingleDay={false} />;
   }
-  if (timeRange === 'month') {
+  if (days <= 56) {
     return <MonthView events={events} monthCount={1} />;
   }
-  // 3months
   return <MonthView events={events} monthCount={3} />;
 };

@@ -382,6 +382,8 @@ export interface TopSessionEntry {
   model?: string;
 }
 
+export type BucketGranularity = 'hourly' | 'daily' | 'weekly' | 'monthly';
+
 export interface AnalyticsResponse {
   timeBuckets: TimeBucketUsage[];
   projectUsage: ProjectUsageEntry[];
@@ -393,6 +395,5 @@ export interface AnalyticsResponse {
   totalSessions: number;
   avgTokensPerSession: number;
   avgCostPerSession: number;
+  granularity: BucketGranularity;
 }
-
-export type AnalyticsTimeRange = 'today' | 'week' | 'month' | '3months';

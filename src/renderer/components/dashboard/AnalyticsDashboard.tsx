@@ -3,10 +3,10 @@
  * model usage, and session timeline.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 
 import { Skeleton } from '@renderer/components/ui/skeleton';
-import { useAnalyticsData } from '@renderer/hooks/useAnalyticsData';
+import { MAX_DAYS, useAnalyticsData } from '@renderer/hooks/useAnalyticsData';
 import { cn } from '@renderer/lib/utils';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { Activity, Clock, Cpu, DollarSign, TrendingUp, Zap } from 'lucide-react';
@@ -25,8 +25,6 @@ import {
 } from 'recharts';
 
 import { SessionSchedule } from './SessionSchedule';
-
-import type { TimeRange } from '@renderer/hooks/useAnalyticsData';
 
 // =============================================================================
 // Stat Card
@@ -166,37 +164,87 @@ const CustomPieTooltip = ({
 // Time Range Selector
 // =============================================================================
 
-const TIME_RANGES: { value: TimeRange; label: string }[] = [
-  { value: 'today', label: 'Today' },
-  { value: 'week', label: '7 days' },
-  { value: 'month', label: '30 days' },
-  { value: '3months', label: '90 days' },
+const PRESET_RANGES = [
+  { days: 1, label: 'Today' },
+  { days: 7, label: '7d' },
+  { days: 14, label: '14d' },
+  { days: 30, label: '30d' },
+  { days: 60, label: '60d' },
+  { days: 90, label: '90d' },
 ];
 
-const TimeRangeSelector = ({
+const DayRangeSelector = ({
   value,
   onChange,
 }: {
-  value: TimeRange;
-  onChange: (range: TimeRange) => void;
-}): React.JSX.Element => (
-  <div className="border-border bg-surface-raised flex items-center gap-1 rounded-xs border p-0.5">
-    {TIME_RANGES.map((range) => (
-      <button
-        key={range.value}
-        onClick={() => onChange(range.value)}
-        className={cn(
-          'rounded-xs px-2.5 py-1 text-[10px] font-medium transition-all',
-          value === range.value
-            ? 'bg-indigo-500/10 text-indigo-400'
-            : 'text-text-muted hover:text-text-secondary'
-        )}
-      >
-        {range.label}
-      </button>
-    ))}
-  </div>
-);
+  value: number;
+  onChange: (days: number) => void;
+}): React.JSX.Element => {
+  const [customInput, setCustomInput] = useState('');
+  const [showCustom, setShowCustom] = useState(false);
+  const isPreset = PRESET_RANGES.some((r) => r.days === value);
+
+  const applyCustom = (): void => {
+    const parsed = parseInt(customInput, 10);
+    if (!isNaN(parsed) && parsed >= 1 && parsed <= MAX_DAYS) {
+      onChange(parsed);
+      setShowCustom(false);
+      setCustomInput('');
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="border-border bg-surface-raised flex items-center gap-0.5 rounded-xs border p-0.5">
+        {PRESET_RANGES.map((range) => (
+          <button
+            key={range.days}
+            onClick={() => {
+              onChange(range.days);
+              setShowCustom(false);
+            }}
+            className={cn(
+              'rounded-xs px-2 py-1 text-[10px] font-medium transition-all',
+              value === range.days && !showCustom
+                ? 'bg-indigo-500/10 text-indigo-400'
+                : 'text-text-muted hover:text-text-secondary'
+            )}
+          >
+            {range.label}
+          </button>
+        ))}
+        <button
+          onClick={() => setShowCustom(!showCustom)}
+          className={cn(
+            'rounded-xs px-2 py-1 text-[10px] font-medium transition-all',
+            showCustom || !isPreset
+              ? 'bg-indigo-500/10 text-indigo-400'
+              : 'text-text-muted hover:text-text-secondary'
+          )}
+        >
+          {!isPreset ? `${value}d` : 'Custom'}
+        </button>
+      </div>
+
+      {showCustom && (
+        <div className="border-border bg-surface-raised flex items-center gap-1 rounded-xs border px-2 py-0.5">
+          <input
+            type="number"
+            min={1}
+            max={MAX_DAYS}
+            value={customInput}
+            onChange={(e) => setCustomInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && applyCustom()}
+            placeholder="1-90"
+            className="text-text placeholder:text-text-muted w-12 bg-transparent text-center text-[10px] outline-hidden"
+            autoFocus
+          />
+          <span className="text-text-muted text-[10px]">days</span>
+        </div>
+      )}
+    </div>
+  );
+};
 
 // =============================================================================
 // Top Sessions Table
@@ -286,13 +334,12 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
     totalSessions,
     avgTokensPerSession,
     avgCostPerSession,
+    granularity,
     loading,
     error,
-    timeRange,
-    setTimeRange,
+    days,
+    setDays,
   } = useAnalyticsData();
-
-  const isHourly = timeRange === 'today';
 
   // Peak bucket
   const peakBucket =
@@ -303,8 +350,19 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
   // Active buckets count
   const activeBuckets = timeBuckets.filter((d) => d.sessionCount > 0).length;
 
-  // XAxis tick interval based on range
-  const xAxisInterval = isHourly ? 2 : timeRange === '3months' ? 6 : timeRange === 'month' ? 2 : 0;
+  // Granularity-aware labels
+  const bucketNoun =
+    granularity === 'hourly'
+      ? 'hour'
+      : granularity === 'weekly'
+        ? 'week'
+        : granularity === 'monthly'
+          ? 'month'
+          : 'day';
+  const peakLabel = `Peak ${bucketNoun.charAt(0).toUpperCase() + bucketNoun.slice(1)}`;
+
+  // XAxis tick interval — skip labels when there are many buckets
+  const xAxisInterval = timeBuckets.length > 30 ? 6 : timeBuckets.length > 14 ? 2 : 0;
 
   if (loading) {
     return (
@@ -354,7 +412,7 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
               Token usage, costs, and session activity across all projects
             </p>
           </div>
-          <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+          <DayRangeSelector value={days} onChange={setDays} />
         </div>
 
         {/* Summary Stats */}
@@ -362,11 +420,7 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
           <StatCard
             label="Total Tokens"
             value={formatTokensCompact(totalTokens)}
-            subtitle={
-              isHourly
-                ? `${activeBuckets} active hour${activeBuckets !== 1 ? 's' : ''}`
-                : `${activeBuckets} active day${activeBuckets !== 1 ? 's' : ''}`
-            }
+            subtitle={`${activeBuckets} active ${bucketNoun}${activeBuckets !== 1 ? 's' : ''}`}
             icon={Zap}
             accentColor="#6366f1"
           />
@@ -391,7 +445,7 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
             accentColor="#f59e0b"
           />
           <StatCard
-            label={isHourly ? 'Peak Hour' : 'Peak Day'}
+            label={peakLabel}
             value={peakBucket ? formatTokensCompact(peakBucket.totalTokens) : '-'}
             subtitle={peakBucket?.label}
             icon={Clock}
@@ -401,12 +455,8 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
 
         {/* Token Usage Over Time */}
         <ChartSection
-          title={isHourly ? 'Token Usage by Hour' : 'Token Usage Over Time'}
-          subtitle={
-            isHourly
-              ? 'Hourly breakdown of input, output, and cache tokens'
-              : 'Daily breakdown of input, output, and cache tokens'
-          }
+          title="Token Usage Over Time"
+          subtitle={`Per-${bucketNoun} breakdown of input, output, and cache tokens`}
           className="mb-6"
         >
           <ResponsiveContainer width="100%" height={280}>
@@ -458,8 +508,8 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
 
         {/* Cost Over Time */}
         <ChartSection
-          title={isHourly ? 'Hourly Cost' : 'Daily Cost'}
-          subtitle={isHourly ? 'Estimated cost in USD per hour' : 'Estimated cost in USD per day'}
+          title={`Cost per ${bucketNoun.charAt(0).toUpperCase() + bucketNoun.slice(1)}`}
+          subtitle={`Estimated cost in USD per ${bucketNoun}`}
           className="mb-6"
         >
           <ResponsiveContainer width="100%" height={200}>
@@ -602,15 +652,15 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
         <ChartSection
           title="Session Activity Timeline"
           subtitle={
-            timeRange === 'today'
+            days <= 1
               ? "Today's session activity"
-              : timeRange === 'week'
-                ? 'Week view of session activity'
+              : days <= 14
+                ? 'Day view of session activity'
                 : 'Monthly calendar view of session activity'
           }
           className="mb-6"
         >
-          <SessionSchedule events={scheduleEvents} timeRange={timeRange} />
+          <SessionSchedule events={scheduleEvents} days={days} />
         </ChartSection>
       </div>
     </div>
