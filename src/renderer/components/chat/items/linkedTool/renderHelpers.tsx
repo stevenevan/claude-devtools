@@ -51,7 +51,9 @@ export function renderInput(toolName: string, input: Record<string, unknown>): R
     return (
       <div className="space-y-2">
         {description && <div className="text-muted-foreground mb-1 text-xs">{description}</div>}
-        {command && <code className="text-foreground break-all whitespace-pre-wrap">{command}</code>}
+        {command && (
+          <code className="text-foreground break-all whitespace-pre-wrap">{command}</code>
+        )}
       </div>
     );
   }

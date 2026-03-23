@@ -290,7 +290,9 @@ export const ContextBadge = ({
                     className="flex items-center justify-between text-xs"
                   >
                     <span className="text-muted-foreground">{tool.toolName}</span>
-                    <span className="text-muted-foreground">~{formatTokens(tool.tokenCount)} tokens</span>
+                    <span className="text-muted-foreground">
+                      ~{formatTokens(tool.tokenCount)} tokens
+                    </span>
                   </div>
                 ))
               )}
@@ -310,7 +312,9 @@ export const ContextBadge = ({
                     className="flex items-center justify-between text-xs"
                   >
                     <span className="text-muted-foreground">{item.label}</span>
-                    <span className="text-muted-foreground">~{formatTokens(item.tokenCount)} tokens</span>
+                    <span className="text-muted-foreground">
+                      ~{formatTokens(item.tokenCount)} tokens
+                    </span>
                   </div>
                 ))
               )}
@@ -325,7 +329,9 @@ export const ContextBadge = ({
             >
               {newThinkingTextInjections.map((injection) => (
                 <div key={injection.id} className="min-w-0">
-                  <div className="text-muted-foreground text-xs">Turn {injection.turnIndex + 1}</div>
+                  <div className="text-muted-foreground text-xs">
+                    Turn {injection.turnIndex + 1}
+                  </div>
                   <div className="space-y-0.5 pl-2">
                     {injection.breakdown.map((item, idx) => (
                       <div

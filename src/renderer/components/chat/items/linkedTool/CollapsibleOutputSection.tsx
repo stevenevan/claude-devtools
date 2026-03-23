@@ -25,7 +25,7 @@ export const CollapsibleOutputSection: React.FC<CollapsibleOutputSectionProps> =
 
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-      <CollapsibleTrigger className="mb-1 flex cursor-pointer items-center gap-2 border-none bg-none p-0 text-xs text-muted-foreground">
+      <CollapsibleTrigger className="text-muted-foreground mb-1 flex cursor-pointer items-center gap-2 border-none bg-none p-0 text-xs">
         {isExpanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
         {label}
         <StatusDot status={status} />

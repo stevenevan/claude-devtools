@@ -43,8 +43,8 @@ export const SessionContextHeader = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <FileText size={16} className="text-muted-foreground" />
-          <h2 className="text-sm font-semibold text-foreground">Visible Context</h2>
-          <span className="rounded-sm bg-popover px-1.5 py-0.5 text-xs text-muted-foreground">
+          <h2 className="text-foreground text-sm font-semibold">Visible Context</h2>
+          <span className="bg-popover text-muted-foreground rounded-sm px-1.5 py-0.5 text-xs">
             {injectionCount}
           </span>
         </div>
@@ -53,7 +53,7 @@ export const SessionContextHeader = ({
           {onClose && (
             <button
               onClick={onClose}
-              className="rounded-sm p-1 text-muted-foreground transition-colors hover:bg-white/10"
+              className="text-muted-foreground rounded-sm p-1 transition-colors hover:bg-white/10"
               aria-label="Close panel"
             >
               <X size={16} />
@@ -63,12 +63,12 @@ export const SessionContextHeader = ({
       </div>
 
       {/* Token comparison stats */}
-      <div className="mt-2 flex items-center justify-between border-t border-border pt-2 text-xs">
+      <div className="border-border mt-2 flex items-center justify-between border-t pt-2 text-xs">
         <div className="flex items-center gap-4">
           {/* Visible Context tokens */}
           <div>
             <span className="text-muted-foreground">Visible: </span>
-            <span className="font-medium tabular-nums text-muted-foreground">
+            <span className="text-muted-foreground font-medium tabular-nums">
               ~{formatTokens(totalTokens)}
             </span>
           </div>
@@ -76,7 +76,7 @@ export const SessionContextHeader = ({
           {totalSessionTokens !== undefined && totalSessionTokens > 0 && (
             <div>
               <span className="text-muted-foreground">Total: </span>
-              <span className="font-medium tabular-nums text-muted-foreground">
+              <span className="text-muted-foreground font-medium tabular-nums">
                 {formatTokens(totalSessionTokens)}
               </span>
             </div>
@@ -84,7 +84,7 @@ export const SessionContextHeader = ({
         </div>
         {/* Percentage of total */}
         {totalSessionTokens !== undefined && totalSessionTokens > 0 && (
-          <span className="rounded-sm bg-popover px-1.5 py-0.5 tabular-nums text-muted-foreground">
+          <span className="bg-popover text-muted-foreground rounded-sm px-1.5 py-0.5 tabular-nums">
             {Math.min((totalTokens / totalSessionTokens) * 100, 100).toFixed(1)}% of total
           </span>
         )}

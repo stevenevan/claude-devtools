@@ -169,8 +169,7 @@ export const SidebarHeader = (): React.JSX.Element => {
 
   const activeProject = projects.find((p) => p.id === activeProjectId);
 
-  const projectName =
-    viewMode === 'grouped' ? activeRepo?.name : activeProject?.name;
+  const projectName = viewMode === 'grouped' ? activeRepo?.name : activeProject?.name;
 
   const worktreeName = activeWorktree?.name ?? 'main';
   const hasProject = !!activeProjectId;

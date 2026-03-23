@@ -258,7 +258,10 @@ export const ConnectionSection = (): React.JSX.Element => {
                   )}
                 >
                   <Server
-                    className={cn('size-3.5', isSelected ? 'text-indigo-400' : 'text-muted-foreground')}
+                    className={cn(
+                      'size-3.5',
+                      isSelected ? 'text-indigo-400' : 'text-muted-foreground'
+                    )}
                   />
                   <span>{profile.name}</span>
                   <span className="text-muted-foreground text-xs">
@@ -310,7 +313,9 @@ export const ConnectionSection = (): React.JSX.Element => {
                       onClick={() => handleSelectConfigHost(entry)}
                     >
                       <span className="font-medium">{entry.alias}</span>
-                      {entry.hostName && <span className="text-muted-foreground">{entry.hostName}</span>}
+                      {entry.hostName && (
+                        <span className="text-muted-foreground">{entry.hostName}</span>
+                      )}
                       {entry.user && (
                         <span className="text-muted-foreground ml-auto text-xs">{entry.user}</span>
                       )}
@@ -369,7 +374,10 @@ export const ConnectionSection = (): React.JSX.Element => {
 
           {authMethod === 'privateKey' && (
             <div>
-              <label htmlFor="ssh-private-key-path" className="text-muted-foreground mb-1 block text-xs">
+              <label
+                htmlFor="ssh-private-key-path"
+                className="text-muted-foreground mb-1 block text-xs"
+              >
                 Private Key Path
               </label>
               <input

@@ -19,7 +19,16 @@ import {
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatShortcut } from '@renderer/utils/stringUtils';
-import { Bell, FileText, FolderGit2, LayoutDashboard, Pin, Search, Settings, X } from 'lucide-react';
+import {
+  Bell,
+  FileText,
+  FolderGit2,
+  LayoutDashboard,
+  Pin,
+  Search,
+  Settings,
+  X,
+} from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import type { Tab } from '@renderer/types/tabs';

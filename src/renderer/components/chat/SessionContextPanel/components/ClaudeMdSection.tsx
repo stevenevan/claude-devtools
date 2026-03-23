@@ -53,7 +53,7 @@ export const ClaudeMdSubSection = ({
           )}
         />
         <span className="text-muted-foreground">{label}</span>
-        <span className="rounded-sm bg-popover px-1 py-0.5 text-xs text-muted-foreground">
+        <span className="bg-popover text-muted-foreground rounded-sm px-1 py-0.5 text-xs">
           {injections.length}
         </span>
         <span className="text-muted-foreground">(~{formatTokens(sectionTokens)})</span>

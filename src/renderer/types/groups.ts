@@ -361,6 +361,8 @@ export interface AIGroup {
   isOngoing?: boolean;
   /** Number of progress updates during this response */
   progressCount?: number;
+  /** Progress message texts during this response */
+  progressTexts?: string[];
 }
 
 // =============================================================================

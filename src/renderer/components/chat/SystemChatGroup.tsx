@@ -36,8 +36,8 @@ const SystemChatGroupInner = ({
         </div>
 
         {/* Content - theme-aware neutral styling */}
-        <div className="rounded-lg bg-card/50 px-4 py-3">
-          <pre className="font-mono text-sm whitespace-pre-wrap text-muted-foreground">
+        <div className="bg-card/50 rounded-lg px-4 py-3">
+          <pre className="text-muted-foreground font-mono text-sm whitespace-pre-wrap">
             {cleanOutput}
           </pre>
         </div>

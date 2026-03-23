@@ -42,7 +42,7 @@ export const EditToolViewer: React.FC<EditToolViewerProps> = ({ linkedTool, stat
       {/* Show result status if available */}
       {!linkedTool.isOrphaned && linkedTool.result != null && (
         <div>
-          <div className="mb-1 flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="text-muted-foreground mb-1 flex items-center gap-2 text-xs">
             Result
             <StatusDot status={status} />
             {linkedTool.result?.tokenCount !== undefined && linkedTool.result.tokenCount > 0 && (

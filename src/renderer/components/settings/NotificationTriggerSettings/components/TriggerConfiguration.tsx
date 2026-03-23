@@ -85,7 +85,10 @@ export const TriggerConfiguration = ({
               value={trigger.toolName ?? ''}
               onChange={(e) => onToolNameChange(e.target.value)}
               disabled={saving}
-              className={cn(SELECT_INPUT_BASE, saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')}
+              className={cn(
+                SELECT_INPUT_BASE,
+                saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+              )}
             >
               {TOOL_NAME_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value} className="bg-background">
@@ -138,7 +141,10 @@ export const TriggerConfiguration = ({
                 value={trigger.contentType}
                 onChange={(e) => onContentTypeChange(e.target.value as TriggerContentType)}
                 disabled={saving}
-                className={cn(SELECT_INPUT_BASE, saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')}
+                className={cn(
+                  SELECT_INPUT_BASE,
+                  saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                )}
               >
                 {CONTENT_TYPE_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value} className="bg-background">
@@ -221,7 +227,10 @@ const ContentMatchConfig = ({
             value={matchField ?? availableMatchFields[0]?.value ?? ''}
             onChange={(e) => onMatchFieldChange(e.target.value)}
             disabled={saving}
-            className={cn(SELECT_INPUT_BASE, saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')}
+            className={cn(
+              SELECT_INPUT_BASE,
+              saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+            )}
           >
             {availableMatchFields.map((option) => (
               <option key={option.value} value={option.value} className="bg-background">
@@ -296,7 +305,10 @@ const TokenThresholdConfig = ({
   return (
     <div className="space-y-3">
       <div className="border-border/50 flex items-center justify-between border-b py-2">
-        <label htmlFor={`trigger-${triggerId}-token-type`} className="text-muted-foreground text-sm">
+        <label
+          htmlFor={`trigger-${triggerId}-token-type`}
+          className="text-muted-foreground text-sm"
+        >
           Token Type
         </label>
         <select
@@ -304,7 +316,10 @@ const TokenThresholdConfig = ({
           value={localTokenType}
           onChange={(e) => onTokenTypeChange(e.target.value as TriggerTokenType)}
           disabled={saving}
-          className={cn(SELECT_INPUT_BASE, saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')}
+          className={cn(
+            SELECT_INPUT_BASE,
+            saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+          )}
         >
           <option value="total" className="bg-background">
             Total Tokens

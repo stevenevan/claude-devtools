@@ -33,8 +33,8 @@ export const SkillToolViewer: React.FC<SkillToolViewerProps> = ({ linkedTool }) 
       {/* Initial result */}
       {resultText && (
         <div>
-          <div className="mb-1 text-xs text-muted-foreground">Result</div>
-          <div className="overflow-x-auto rounded-sm border border-border bg-muted p-3 font-mono text-xs text-muted-foreground">
+          <div className="text-muted-foreground mb-1 text-xs">Result</div>
+          <div className="border-border bg-muted text-muted-foreground overflow-x-auto rounded-sm border p-3 font-mono text-xs">
             {resultText}
           </div>
         </div>
@@ -43,7 +43,7 @@ export const SkillToolViewer: React.FC<SkillToolViewerProps> = ({ linkedTool }) 
       {/* Skill instructions */}
       {skillInstructions && (
         <div>
-          <div className="mb-1 text-xs text-muted-foreground">Skill Instructions</div>
+          <div className="text-muted-foreground mb-1 text-xs">Skill Instructions</div>
           <CodeBlockViewer
             fileName={`${skillName} skill`}
             content={skillInstructions}

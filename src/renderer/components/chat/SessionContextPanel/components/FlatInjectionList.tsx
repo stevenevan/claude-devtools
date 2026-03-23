@@ -214,7 +214,7 @@ export const FlatInjectionList = ({
                 {categoryInfo.label}
               </span>
               {/* Description */}
-              <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+              <span className="text-muted-foreground min-w-0 flex-1 truncate text-xs">
                 {displayText}
               </span>
               {/* Error badge */}
@@ -224,7 +224,7 @@ export const FlatInjectionList = ({
                 </span>
               )}
               {/* Token count */}
-              <span className="shrink-0 text-xs font-medium tabular-nums text-muted-foreground">
+              <span className="text-muted-foreground shrink-0 text-xs font-medium tabular-nums">
                 {formatTokens(row.tokens)}
               </span>
             </button>

@@ -864,7 +864,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
               scrollToBottom('smooth');
               setShowScrollButton(false);
             }}
-            className="text-muted-foreground border-border absolute bottom-5 z-20 flex items-center gap-1.5 rounded-full border bg-muted px-3 py-1.5 text-xs shadow-lg backdrop-blur-md transition-all"
+            className="text-muted-foreground border-border bg-muted absolute bottom-5 z-20 flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs shadow-lg backdrop-blur-md transition-all"
             style={{
               right:
                 isContextPanelVisible && allContextInjections.length > 0

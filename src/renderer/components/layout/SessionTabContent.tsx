@@ -56,9 +56,7 @@ export const SessionTabContent = ({
         <div className="p-8 text-center">
           <AlertCircle className="mx-auto mb-4 size-12 text-red-500/70" />
           <h3 className="text-foreground mb-2 text-lg font-medium">Failed to load session</h3>
-          <p className="text-foreground-secondary mb-4 max-w-md text-sm">
-            {sessionDetailError}
-          </p>
+          <p className="text-foreground-secondary mb-4 max-w-md text-sm">{sessionDetailError}</p>
           <div className="flex justify-center gap-3">
             <button
               onClick={() => {

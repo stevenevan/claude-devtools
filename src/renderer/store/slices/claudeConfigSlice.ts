@@ -109,5 +109,4 @@ export const createClaudeConfigSlice: StateCreator<AppState, [], [], ClaudeConfi
       set({ globalSettingsError: message, globalSettingsLoading: false });
     }
   },
-
 });

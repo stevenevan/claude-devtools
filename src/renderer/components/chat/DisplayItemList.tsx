@@ -82,9 +82,7 @@ export const DisplayItemList = React.memo(function DisplayItemList({
 
   if (!items || items.length === 0) {
     return (
-      <div className="text-muted-foreground px-3 py-2 text-sm italic">
-        No items to display
-      </div>
+      <div className="text-muted-foreground px-3 py-2 text-sm italic">No items to display</div>
     );
   }
 
@@ -255,9 +253,7 @@ export const DisplayItemList = React.memo(function DisplayItemList({
                     />
                     <Layers size={14} />
                   </div>
-                  <span className="shrink-0 text-xs font-medium text-amber-300">
-                    Compacted
-                  </span>
+                  <span className="shrink-0 text-xs font-medium text-amber-300">Compacted</span>
                   {item.tokenDelta && (
                     <span className="text-muted-foreground min-w-0 truncate text-[11px] tabular-nums">
                       {formatTokensCompact(item.tokenDelta.preCompactionTokens)} →{' '}
@@ -276,7 +272,7 @@ export const DisplayItemList = React.memo(function DisplayItemList({
                   </span>
                 </button>
                 {compactExpanded && compactContent && (
-                  <div className="mt-1 overflow-hidden rounded-lg border border-border bg-muted">
+                  <div className="border-border bg-muted mt-1 overflow-hidden rounded-lg border">
                     <div className="max-h-64 overflow-y-auto border-l-2 border-indigo-500/20 px-3 py-2">
                       <MarkdownViewer content={compactContent} copyable />
                     </div>

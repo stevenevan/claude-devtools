@@ -41,9 +41,7 @@ export const PaneSplitDropZone = ({
         <div
           className={cn(
             'absolute inset-0 opacity-[0.12] bg-indigo-500',
-            side === 'right'
-              ? 'border-l-2 border-indigo-500'
-              : 'border-r-2 border-indigo-500'
+            side === 'right' ? 'border-l-2 border-indigo-500' : 'border-r-2 border-indigo-500'
           )}
         />
       )}

@@ -17,11 +17,10 @@ import { createLogger } from '@shared/utils/logger';
 import { useShallow } from 'zustand/react/shallow';
 
 const logger = createLogger('Component:DashboardView');
-import { formatDistanceToNow } from 'date-fns';
-import { Command, FolderGit2, FolderOpen, GitBranch, Search, Settings } from 'lucide-react';
-
 import { Button } from '@renderer/components/ui/button';
 import { Skeleton } from '@renderer/components/ui/skeleton';
+import { formatDistanceToNow } from 'date-fns';
+import { Command, FolderGit2, FolderOpen, GitBranch, Search, Settings } from 'lucide-react';
 
 import type { RepositoryGroup } from '@renderer/types/data';
 
@@ -172,9 +171,7 @@ const RepositoryCard = ({
       onClick={onClick}
       className={cn(
         'group relative flex min-h-[120px] flex-col overflow-hidden rounded-xs border p-4 text-left transition-all duration-300',
-        isHighlighted
-          ? 'border-border bg-card'
-          : 'bg-background/50 border-border hover:bg-card'
+        isHighlighted ? 'border-border bg-card' : 'bg-background/50 border-border hover:bg-card'
       )}
     >
       {/* Icon with subtle border */}
@@ -188,7 +185,9 @@ const RepositoryCard = ({
       </h3>
 
       {/* Project path - monospace, muted */}
-      <p className="text-muted-foreground mb-auto truncate font-mono text-[10px]">{formattedPath}</p>
+      <p className="text-muted-foreground mb-auto truncate font-mono text-[10px]">
+        {formattedPath}
+      </p>
 
       {/* Meta row: worktrees, sessions, time */}
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -256,9 +255,7 @@ const NewProjectCard = (): React.JSX.Element => {
       <div className="border-border mb-2 flex size-8 items-center justify-center rounded-xs border border-dashed transition-colors duration-300">
         <FolderOpen className="text-muted-foreground size-4 transition-colors" />
       </div>
-      <span className="text-muted-foreground text-xs transition-colors">
-        Select Folder
-      </span>
+      <span className="text-muted-foreground text-xs transition-colors">Select Folder</span>
     </button>
   );
 };
@@ -374,21 +371,21 @@ const ProjectsGrid = ({
             style={{ animationDelay: `${i * 80}ms` }}
           >
             {/* Icon placeholder */}
-            <div className="mb-3 size-8 rounded-xs bg-muted-foreground/10" />
+            <div className="bg-muted-foreground/10 mb-3 size-8 rounded-xs" />
             {/* Title placeholder */}
             <div
-              className="mb-2 h-3.5 rounded-xs bg-muted-foreground/10"
+              className="bg-muted-foreground/10 mb-2 h-3.5 rounded-xs"
               style={{ width: `${titleWidths[i]}%` }}
             />
             {/* Path placeholder */}
             <div
-              className="mb-auto h-2.5 rounded-xs bg-muted-foreground/5"
+              className="bg-muted-foreground/5 mb-auto h-2.5 rounded-xs"
               style={{ width: `${pathWidths[i]}%` }}
             />
             {/* Meta row placeholder */}
             <div className="mt-3 flex gap-2">
-              <div className="h-2.5 w-16 rounded-xs bg-muted-foreground/5" />
-              <div className="h-2.5 w-12 rounded-xs bg-muted-foreground/5" />
+              <div className="bg-muted-foreground/5 h-2.5 w-16 rounded-xs" />
+              <div className="bg-muted-foreground/5 h-2.5 w-12 rounded-xs" />
             </div>
           </Skeleton>
         ))}

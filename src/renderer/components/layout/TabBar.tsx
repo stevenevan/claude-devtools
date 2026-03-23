@@ -303,12 +303,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         className="ml-2 flex shrink-0 items-center gap-1"
         style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
       >
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={openDashboard}
-          title="New tab"
-        >
+        <Button variant="ghost" size="icon" onClick={openDashboard} title="New tab">
           <Plus className="size-4" />
         </Button>
       </div>

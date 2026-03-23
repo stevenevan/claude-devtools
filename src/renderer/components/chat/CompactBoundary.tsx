@@ -104,7 +104,7 @@ export const CompactBoundary = ({
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div className="group relative mt-2 overflow-hidden rounded-lg border border-border bg-muted">
+        <div className="group border-border bg-muted relative mt-2 overflow-hidden rounded-lg border">
           {compactContent && <CopyButton text={compactContent} />}
 
           {/* Content - scrollable with left accent bar */}

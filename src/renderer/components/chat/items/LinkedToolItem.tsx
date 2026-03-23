@@ -91,7 +91,7 @@ export const LinkedToolItem: React.FC<LinkedToolItemProps> = React.memo(function
         >
           {name}
         </span>
-        <span className="text-xs text-muted-foreground">Teammate spawned</span>
+        <span className="text-muted-foreground text-xs">Teammate spawned</span>
       </div>
     );
   }
@@ -104,7 +104,7 @@ export const LinkedToolItem: React.FC<LinkedToolItemProps> = React.memo(function
     return (
       <div ref={handleRef} className="flex items-center gap-2 px-3 py-1.5">
         <span className="size-2 rounded-full bg-zinc-500" />
-        <span className="text-xs text-muted-foreground">
+        <span className="text-muted-foreground text-xs">
           Shutdown requested &rarr;{' '}
           <span className="text-muted-foreground font-medium">{target}</span>
         </span>
@@ -185,14 +185,14 @@ export const LinkedToolItem: React.FC<LinkedToolItemProps> = React.memo(function
 
         {/* Orphaned indicator */}
         {linkedTool.isOrphaned && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground italic">
+          <div className="text-muted-foreground flex items-center gap-2 text-xs italic">
             <StatusDot status="orphaned" />
             No result received
           </div>
         )}
 
         {/* Timing */}
-        <div className="text-xs text-muted-foreground">
+        <div className="text-muted-foreground text-xs">
           Duration: {formatDuration(linkedTool.durationMs)}
         </div>
       </BaseItem>

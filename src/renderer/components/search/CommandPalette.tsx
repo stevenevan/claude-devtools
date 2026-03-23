@@ -89,7 +89,13 @@ export const CommandPalette = (): React.JSX.Element | null => {
     ) {
       void fetchRepositoryGroups();
     }
-  }, [commandPaletteOpen, searchMode, globalSearchEnabled, repositoryGroups.length, fetchRepositoryGroups]);
+  }, [
+    commandPaletteOpen,
+    searchMode,
+    globalSearchEnabled,
+    repositoryGroups.length,
+    fetchRepositoryGroups,
+  ]);
 
   useEffect(() => {
     if (commandPaletteOpen) {
@@ -312,9 +318,8 @@ export const CommandPalette = (): React.JSX.Element | null => {
             <CommandGroup heading="Results">
               {sessionResults.map((result, index) => {
                 const projectName = globalSearchEnabled
-                  ? repositoryGroups.find((r) =>
-                      r.worktrees.some((w) => w.id === result.projectId)
-                    )?.name
+                  ? repositoryGroups.find((r) => r.worktrees.some((w) => w.id === result.projectId))
+                      ?.name
                   : undefined;
 
                 return (

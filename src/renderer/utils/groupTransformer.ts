@@ -241,14 +241,21 @@ function extractUserGroupContent(message: ParsedMessage): UserGroupContent {
   const images: ImageData[] = [];
   const fileReferences: FileReference[] = [];
 
-  // Extract text from content
-  // Note: Image handling not yet implemented - images are not part of ContentBlock type
+  // Extract text and images from content
   if (typeof message.content === 'string') {
     rawText = message.content;
   } else if (Array.isArray(message.content)) {
+    let imageIndex = 0;
     for (const block of message.content) {
       if (block.type === 'text' && block.text) {
         rawText += block.text;
+      } else if (block.type === 'image' && 'source' in block) {
+        const src = block.source as { media_type: string; data: string };
+        images.push({
+          id: `${message.uuid}-img-${imageIndex++}`,
+          mediaType: src.media_type as ImageData['mediaType'],
+          data: src.data,
+        });
       }
     }
   }
@@ -518,6 +525,7 @@ function createAIGroupFromChunk(chunk: EnhancedAIChunk, turnIndex: number): AIGr
     metrics: chunk.metrics,
     responses: chunk.responses,
     progressCount: chunk.progressCount,
+    progressTexts: chunk.progressTexts,
   };
 }
 

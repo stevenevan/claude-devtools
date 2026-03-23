@@ -55,7 +55,7 @@ function highlightTextNode(text: string, validatedPaths: Record<string, boolean>
       parts.push(
         <span
           key={match.index}
-          className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[0.8125em] text-foreground"
+          className="border-border bg-muted text-foreground rounded border px-1.5 py-0.5 font-mono text-[0.8125em]"
         >
           {fullMatch}
         </span>
@@ -118,38 +118,38 @@ function createUserMarkdownComponents(
 
   return {
     h1: ({ children }) => (
-      <h1 className="mt-6 mb-3 text-lg font-semibold text-muted-foreground first:mt-0">
+      <h1 className="text-muted-foreground mt-6 mb-3 text-lg font-semibold first:mt-0">
         {hl(children)}
       </h1>
     ),
     h2: ({ children }) => (
-      <h2 className="mt-5 mb-2 text-base font-semibold text-muted-foreground first:mt-0">
+      <h2 className="text-muted-foreground mt-5 mb-2 text-base font-semibold first:mt-0">
         {hl(children)}
       </h2>
     ),
     h3: ({ children }) => (
-      <h3 className="mt-4 mb-2 text-sm font-semibold text-muted-foreground first:mt-0">
+      <h3 className="text-muted-foreground mt-4 mb-2 text-sm font-semibold first:mt-0">
         {hl(children)}
       </h3>
     ),
     h4: ({ children }) => (
-      <h4 className="mt-3 mb-1.5 text-sm font-semibold text-muted-foreground first:mt-0">
+      <h4 className="text-muted-foreground mt-3 mb-1.5 text-sm font-semibold first:mt-0">
         {hl(children)}
       </h4>
     ),
     h5: ({ children }) => (
-      <h5 className="mt-2 mb-1 text-sm font-medium text-muted-foreground first:mt-0">
+      <h5 className="text-muted-foreground mt-2 mb-1 text-sm font-medium first:mt-0">
         {hl(children)}
       </h5>
     ),
     h6: ({ children }) => (
-      <h6 className="mt-2 mb-1 text-xs font-medium text-muted-foreground first:mt-0">
+      <h6 className="text-muted-foreground mt-2 mb-1 text-xs font-medium first:mt-0">
         {hl(children)}
       </h6>
     ),
 
     p: ({ children }) => (
-      <p className="my-2 text-sm leading-relaxed text-muted-foreground first:mt-0 last:mb-0">
+      <p className="text-muted-foreground my-2 text-sm leading-relaxed first:mt-0 last:mb-0">
         {hl(children)}
       </p>
     ),
@@ -167,14 +167,12 @@ function createUserMarkdownComponents(
     ),
 
     strong: ({ children }) => (
-      <strong className="font-semibold text-muted-foreground">{children}</strong>
+      <strong className="text-muted-foreground font-semibold">{children}</strong>
     ),
 
     em: ({ children }) => <em className="text-muted-foreground italic">{children}</em>,
 
-    del: ({ children }) => (
-      <del className="text-muted-foreground line-through">{children}</del>
-    ),
+    del: ({ children }) => <del className="text-muted-foreground line-through">{children}</del>,
 
     code: ({ className, children }) => {
       const hasLanguageClass = className?.includes('language-');
@@ -184,59 +182,53 @@ function createUserMarkdownComponents(
 
       if (isBlock) {
         return (
-          <code className="block font-mono text-xs text-muted-foreground">
-            {hl(children)}
-          </code>
+          <code className="text-muted-foreground block font-mono text-xs">{hl(children)}</code>
         );
       }
       // Inline code — no hl()
       return (
-        <code className="rounded-sm border border-border bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
+        <code className="border-border bg-muted text-foreground rounded-sm border px-1.5 py-0.5 font-mono text-xs">
           {children}
         </code>
       );
     },
 
     pre: ({ children }) => (
-      <pre className="my-3 overflow-x-auto rounded-lg border border-border bg-[rgba(0,0,0,0.15)] p-3 font-mono text-xs leading-relaxed text-muted-foreground">
+      <pre className="border-border text-muted-foreground my-3 overflow-x-auto rounded-lg border bg-[rgba(0,0,0,0.15)] p-3 font-mono text-xs leading-relaxed">
         {children}
       </pre>
     ),
 
     blockquote: ({ children }) => (
-      <blockquote className="my-3 border-l-4 border-border pl-4 text-muted-foreground italic">
+      <blockquote className="border-border text-muted-foreground my-3 border-l-4 pl-4 italic">
         {hl(children)}
       </blockquote>
     ),
 
     ul: ({ children }) => (
-      <ul className="my-2 list-disc space-y-1 pl-5 text-muted-foreground">{children}</ul>
+      <ul className="text-muted-foreground my-2 list-disc space-y-1 pl-5">{children}</ul>
     ),
     ol: ({ children }) => (
-      <ol className="my-2 list-decimal space-y-1 pl-5 text-muted-foreground">{children}</ol>
+      <ol className="text-muted-foreground my-2 list-decimal space-y-1 pl-5">{children}</ol>
     ),
-    li: ({ children }) => <li className="text-sm text-muted-foreground">{hl(children)}</li>,
+    li: ({ children }) => <li className="text-muted-foreground text-sm">{hl(children)}</li>,
 
     table: ({ children }) => (
       <div className="my-3 overflow-x-auto">
-        <table className="min-w-full border-collapse border-border text-sm">
-          {children}
-        </table>
+        <table className="border-border min-w-full border-collapse text-sm">{children}</table>
       </div>
     ),
     thead: ({ children }) => <thead className="bg-[rgba(0,0,0,0.1)]">{children}</thead>,
     th: ({ children }) => (
-      <th className="border border-border px-3 py-2 text-left font-semibold text-muted-foreground">
+      <th className="border-border text-muted-foreground border px-3 py-2 text-left font-semibold">
         {hl(children)}
       </th>
     ),
     td: ({ children }) => (
-      <td className="border border-border px-3 py-2 text-muted-foreground">
-        {hl(children)}
-      </td>
+      <td className="border-border text-muted-foreground border px-3 py-2">{hl(children)}</td>
     ),
 
-    hr: () => <hr className="my-4 border-border" />,
+    hr: () => <hr className="border-border my-4" />,
   };
 }
 
@@ -358,17 +350,19 @@ const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): React.
       <div className="max-w-[85%] space-y-2">
         {/* Header - right aligned with improved hierarchy */}
         <div className="flex items-center justify-end gap-1.5">
-          <span className="text-muted-foreground text-[10px]">{format(timestamp, 'h:mm:ss a')}</span>
+          <span className="text-muted-foreground text-[10px]">
+            {format(timestamp, 'h:mm:ss a')}
+          </span>
           <span className="text-muted-foreground text-xs font-semibold">You</span>
           <User className="text-muted-foreground size-3.5" />
         </div>
 
         {/* Content - polished bubble with subtle depth */}
         {textContent && (
-          <div className="group relative overflow-hidden rounded-2xl rounded-br-sm border border-border bg-card px-4 py-3 shadow-sm">
+          <div className="group border-border bg-card relative overflow-hidden rounded-2xl rounded-br-sm border px-4 py-3 shadow-sm">
             <CopyButton text={textContent} />
 
-            <div className="text-sm text-muted-foreground" data-search-content>
+            <div className="text-muted-foreground text-sm" data-search-content>
               <ReactMarkdown remarkPlugins={[remarkGfm]} components={userMarkdownComponents}>
                 {displayText}
               </ReactMarkdown>
@@ -384,10 +378,30 @@ const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): React.
           </div>
         )}
 
-        {/* Images indicator */}
+        {/* User-attached images */}
         {hasImages && (
-          <div className="text-muted-foreground text-right text-xs">
-            {content.images.length} image{content.images.length > 1 ? 's' : ''} attached
+          <div className="mt-2 space-y-1.5">
+            <div className="text-muted-foreground text-right text-[10px]">
+              {content.images.length} image{content.images.length > 1 ? 's' : ''} attached
+            </div>
+            <div className="flex flex-wrap justify-end gap-2">
+              {content.images.map((img) => (
+                <div key={img.id} className="border-border overflow-hidden rounded-lg border">
+                  {img.data ? (
+                    <img
+                      src={`data:${img.mediaType};base64,${img.data}`}
+                      alt="User attached image"
+                      className="max-h-64 max-w-full object-contain"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="bg-surface-raised text-muted-foreground flex h-20 w-32 items-center justify-center text-xs">
+                      Image unavailable
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

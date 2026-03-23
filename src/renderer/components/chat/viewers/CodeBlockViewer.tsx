@@ -143,9 +143,9 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
   const displayFileName = getBaseName(fileName) || fileName;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-muted shadow-xs">
+    <div className="border-border bg-muted overflow-hidden rounded-lg border shadow-xs">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border bg-muted px-3 py-2">
+      <div className="border-border bg-muted flex items-center justify-between border-b px-3 py-2">
         <div className="flex min-w-0 items-center gap-2">
           <FileCode className="text-muted-foreground size-4 shrink-0" />
           <span className="truncate font-mono text-sm text-blue-400" title={fileName}>
@@ -156,7 +156,7 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
               (lines {startLine}-{actualEndLine})
             </span>
           )}
-          <span className="shrink-0 rounded-sm border border-border bg-card px-1.5 py-0.5 text-xs text-muted-foreground">
+          <span className="border-border bg-card text-muted-foreground shrink-0 rounded-sm border px-1.5 py-0.5 text-xs">
             {detectedLanguage}
           </span>
         </div>
@@ -182,9 +182,9 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
             {lines.map((line, index) => {
               const lineNumber = startLine + index;
               return (
-                <div key={index} className="flex hover:bg-popover">
+                <div key={index} className="hover:bg-popover flex">
                   {/* Line number */}
-                  <span className="w-12 shrink-0 border-r border-border px-3 py-0.5 text-right text-zinc-600 select-none">
+                  <span className="border-border w-12 shrink-0 border-r px-3 py-0.5 text-right text-zinc-600 select-none">
                     {lineNumber}
                   </span>
                   {/* Code line */}

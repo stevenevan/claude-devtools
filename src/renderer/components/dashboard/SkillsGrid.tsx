@@ -37,9 +37,7 @@ const SkillCard = ({ skill, isHighlighted }: Readonly<SkillCardProps>): React.JS
       onClick={() => void api.openPath(skill.resolvedPath)}
       className={cn(
         'group relative flex min-h-[120px] flex-col overflow-hidden rounded-xs border p-4 text-left transition-all duration-300',
-        isHighlighted
-          ? 'border-border bg-card'
-          : 'bg-background/50 border-border hover:bg-card'
+        isHighlighted ? 'border-border bg-card' : 'bg-background/50 border-border hover:bg-card'
       )}
     >
       <div className="border-border bg-popover mb-3 flex size-8 items-center justify-center rounded-xs border transition-colors duration-300">
@@ -79,13 +77,13 @@ const SkillsGridSkeleton = (): React.JSX.Element => {
           className="border-border flex min-h-[120px] flex-col rounded-xs border p-4"
           style={{ animationDelay: `${i * 80}ms` }}
         >
-          <div className="mb-3 size-8 rounded-xs bg-muted-foreground/10" />
+          <div className="bg-muted-foreground/10 mb-3 size-8 rounded-xs" />
           <div
-            className="mb-2 h-3.5 rounded-xs bg-muted-foreground/10"
+            className="bg-muted-foreground/10 mb-2 h-3.5 rounded-xs"
             style={{ width: `${titleWidths[i]}%` }}
           />
           <div
-            className="mb-auto h-2.5 rounded-xs bg-muted-foreground/5"
+            className="bg-muted-foreground/5 mb-auto h-2.5 rounded-xs"
             style={{ width: `${descWidths[i]}%` }}
           />
         </Skeleton>

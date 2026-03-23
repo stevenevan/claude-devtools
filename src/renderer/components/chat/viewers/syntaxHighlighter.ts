@@ -433,11 +433,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       if (endQuote !== -1) {
         const str = remaining.slice(0, endQuote + 1);
         segments.push(
-          React.createElement(
-            'span',
-            { key: currentPos, style: { color: 'rgb(74 222 128)' } },
-            str
-          )
+          React.createElement('span', { key: currentPos, style: { color: 'rgb(74 222 128)' } }, str)
         );
         currentPos += str.length;
         continue;
@@ -450,11 +446,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       if (endQuote !== -1) {
         const str = remaining.slice(0, endQuote + 1);
         segments.push(
-          React.createElement(
-            'span',
-            { key: currentPos, style: { color: 'rgb(74 222 128)' } },
-            str
-          )
+          React.createElement('span', { key: currentPos, style: { color: 'rgb(74 222 128)' } }, str)
         );
         currentPos += str.length;
         continue;
@@ -467,11 +459,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       if (endQuote !== -1) {
         const str = remaining.slice(0, endQuote + 1);
         segments.push(
-          React.createElement(
-            'span',
-            { key: currentPos, style: { color: 'rgb(74 222 128)' } },
-            str
-          )
+          React.createElement('span', { key: currentPos, style: { color: 'rgb(74 222 128)' } }, str)
         );
         currentPos += str.length;
         continue;

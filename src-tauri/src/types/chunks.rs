@@ -118,6 +118,8 @@ pub struct EnhancedAIChunk {
     pub raw_messages: Vec<ParsedMessage>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub progress_count: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub progress_texts: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

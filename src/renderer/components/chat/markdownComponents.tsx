@@ -16,39 +16,31 @@ export function createMarkdownComponents(searchCtx: SearchContext | null): Compo
   return {
     // Headings - Bold text with generous spacing to break up content
     h1: ({ children }) => (
-      <h1 className="mt-6 mb-3 text-lg font-semibold text-foreground first:mt-0">
-        {hl(children)}
-      </h1>
+      <h1 className="text-foreground mt-6 mb-3 text-lg font-semibold first:mt-0">{hl(children)}</h1>
     ),
     h2: ({ children }) => (
-      <h2 className="mt-5 mb-2 text-base font-semibold text-foreground first:mt-0">
+      <h2 className="text-foreground mt-5 mb-2 text-base font-semibold first:mt-0">
         {hl(children)}
       </h2>
     ),
     h3: ({ children }) => (
-      <h3 className="mt-4 mb-2 text-sm font-semibold text-foreground first:mt-0">
-        {hl(children)}
-      </h3>
+      <h3 className="text-foreground mt-4 mb-2 text-sm font-semibold first:mt-0">{hl(children)}</h3>
     ),
     h4: ({ children }) => (
-      <h4 className="mt-3 mb-1.5 text-sm font-semibold text-foreground first:mt-0">
+      <h4 className="text-foreground mt-3 mb-1.5 text-sm font-semibold first:mt-0">
         {hl(children)}
       </h4>
     ),
     h5: ({ children }) => (
-      <h5 className="mt-2 mb-1 text-sm font-medium text-foreground first:mt-0">
-        {hl(children)}
-      </h5>
+      <h5 className="text-foreground mt-2 mb-1 text-sm font-medium first:mt-0">{hl(children)}</h5>
     ),
     h6: ({ children }) => (
-      <h6 className="mt-2 mb-1 text-xs font-medium text-foreground first:mt-0">
-        {hl(children)}
-      </h6>
+      <h6 className="text-foreground mt-2 mb-1 text-xs font-medium first:mt-0">{hl(children)}</h6>
     ),
 
     // Paragraphs
     p: ({ children }) => (
-      <p className="my-2 text-sm leading-relaxed text-foreground first:mt-0 last:mb-0">
+      <p className="text-foreground my-2 text-sm leading-relaxed first:mt-0 last:mb-0">
         {hl(children)}
       </p>
     ),
@@ -66,9 +58,7 @@ export function createMarkdownComponents(searchCtx: SearchContext | null): Compo
     ),
 
     // Strong/Bold — inline element, no hl()
-    strong: ({ children }) => (
-      <strong className="font-semibold text-foreground">{children}</strong>
-    ),
+    strong: ({ children }) => <strong className="text-foreground font-semibold">{children}</strong>,
 
     // Emphasis/Italic — inline element, no hl()
     em: ({ children }) => <em className="text-foreground italic">{children}</em>,
@@ -88,7 +78,7 @@ export function createMarkdownComponents(searchCtx: SearchContext | null): Compo
       }
       // Inline code — no hl(); parent block element's hl() descends here
       return (
-        <code className="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
+        <code className="bg-muted text-foreground rounded-sm px-1.5 py-0.5 font-mono text-xs">
           {children}
         </code>
       );
@@ -96,51 +86,45 @@ export function createMarkdownComponents(searchCtx: SearchContext | null): Compo
 
     // Code blocks
     pre: ({ children }) => (
-      <pre className="text-foreground my-3 overflow-x-auto rounded-lg border border-border bg-muted p-3 font-mono text-xs leading-relaxed">
+      <pre className="text-foreground border-border bg-muted my-3 overflow-x-auto rounded-lg border p-3 font-mono text-xs leading-relaxed">
         {children}
       </pre>
     ),
 
     // Blockquotes
     blockquote: ({ children }) => (
-      <blockquote className="my-3 border-l-4 border-border pl-4 text-muted-foreground italic">
+      <blockquote className="border-border text-muted-foreground my-3 border-l-4 pl-4 italic">
         {hl(children)}
       </blockquote>
     ),
 
     // Lists
     ul: ({ children }) => (
-      <ul className="my-2 list-disc space-y-1 pl-5 text-foreground">{children}</ul>
+      <ul className="text-foreground my-2 list-disc space-y-1 pl-5">{children}</ul>
     ),
     ol: ({ children }) => (
-      <ol className="my-2 list-decimal space-y-1 pl-5 text-foreground">{children}</ol>
+      <ol className="text-foreground my-2 list-decimal space-y-1 pl-5">{children}</ol>
     ),
-    li: ({ children }) => <li className="text-sm text-foreground">{hl(children)}</li>,
+    li: ({ children }) => <li className="text-foreground text-sm">{hl(children)}</li>,
 
     // Tables
     table: ({ children }) => (
       <div className="my-3 overflow-x-auto">
-        <table className="min-w-full border-collapse border-border/50 text-sm">
-          {children}
-        </table>
+        <table className="border-border/50 min-w-full border-collapse text-sm">{children}</table>
       </div>
     ),
-    thead: ({ children }) => (
-      <thead className="bg-card">{children}</thead>
-    ),
+    thead: ({ children }) => <thead className="bg-card">{children}</thead>,
     th: ({ children }) => (
-      <th className="border border-border/50 px-3 py-2 text-left font-semibold text-foreground">
+      <th className="border-border/50 text-foreground border px-3 py-2 text-left font-semibold">
         {hl(children)}
       </th>
     ),
     td: ({ children }) => (
-      <td className="border border-border/50 px-3 py-2 text-foreground">
-        {hl(children)}
-      </td>
+      <td className="border-border/50 text-foreground border px-3 py-2">{hl(children)}</td>
     ),
 
     // Horizontal rule
-    hr: () => <hr className="my-4 border-border/50" />,
+    hr: () => <hr className="border-border/50 my-4" />,
   };
 }
 

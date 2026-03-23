@@ -57,9 +57,7 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
   };
 
   if (!items || items.length === 0) {
-    return (
-      <div className="px-3 py-2 text-xs text-muted-foreground">No execution items</div>
-    );
+    return <div className="text-muted-foreground px-3 py-2 text-xs">No execution items</div>;
   }
 
   return (
@@ -140,7 +138,7 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
             return (
               <div
                 key={`nested-subagent-${index}`}
-                className="px-2 py-1 text-xs text-muted-foreground"
+                className="text-muted-foreground px-2 py-1 text-xs"
               >
                 Nested: {item.subagent.description ?? item.subagent.id}
               </div>
@@ -195,9 +193,7 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
                     />
                     <Layers size={14} />
                   </div>
-                  <span className="shrink-0 text-xs font-medium text-amber-300">
-                    Compacted
-                  </span>
+                  <span className="shrink-0 text-xs font-medium text-amber-300">Compacted</span>
                   {item.tokenDelta && (
                     <span className="text-muted-foreground min-w-0 truncate text-[11px] tabular-nums">
                       {formatTokensCompact(item.tokenDelta.preCompactionTokens)} →{' '}
@@ -211,13 +207,13 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
                   <span className="shrink-0 rounded-sm bg-indigo-500/15 px-1.5 py-0.5 text-[10px] text-indigo-400">
                     Phase {item.phaseNumber}
                   </span>
-                  <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
+                  <span className="text-muted-foreground ml-auto shrink-0 text-[11px]">
                     {format(new Date(item.timestamp), 'h:mm:ss a')}
                   </span>
                 </button>
                 {/* Expanded content */}
                 {isExpanded && item.content && (
-                  <div className="mt-1 overflow-hidden rounded-lg border border-border bg-muted">
+                  <div className="border-border bg-muted mt-1 overflow-hidden rounded-lg border">
                     <div className="max-h-64 overflow-y-auto border-l-2 border-indigo-500/20 px-3 py-2">
                       <MarkdownViewer content={item.content} copyable />
                     </div>

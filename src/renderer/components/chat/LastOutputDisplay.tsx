@@ -82,7 +82,7 @@ export const LastOutputDisplay = ({
     const textContent = lastOutput.text || '';
 
     return (
-      <div className="group relative overflow-hidden rounded-lg border border-border bg-muted">
+      <div className="group border-border bg-muted relative overflow-hidden rounded-lg border">
         <CopyButton text={textContent} />
 
         {/* Content - scrollable */}
@@ -104,36 +104,23 @@ export const LastOutputDisplay = ({
       <div
         className={cn(
           'overflow-hidden rounded-lg border',
-          isError
-            ? 'bg-red-900/20 border-red-700/40'
-            : 'bg-green-900/20 border-green-700/40'
+          isError ? 'bg-red-900/20 border-red-700/40' : 'bg-green-900/20 border-green-700/40'
         )}
       >
         {/* Header */}
         <div
           className={cn(
             'flex items-center gap-2 px-4 py-2 border-b',
-            isError
-              ? 'border-red-700/40'
-              : 'border-green-700/40'
+            isError ? 'border-red-700/40' : 'border-green-700/40'
           )}
         >
-          <Icon
-            className={cn(
-              'size-4',
-              isError
-                ? 'text-red-300'
-                : 'text-green-300'
-            )}
-          />
+          <Icon className={cn('size-4', isError ? 'text-red-300' : 'text-green-300')} />
           {lastOutput.toolName && (
-            <code className="rounded-sm border border-border bg-card px-1.5 py-0.5 text-xs text-muted-foreground">
+            <code className="border-border bg-card text-muted-foreground rounded-sm border px-1.5 py-0.5 text-xs">
               {lastOutput.toolName}
             </code>
           )}
-          {isError && (
-            <span className="text-xs font-medium text-red-300">Error</span>
-          )}
+          {isError && <span className="text-xs font-medium text-red-300">Error</span>}
         </div>
 
         {/* Content */}
@@ -165,7 +152,7 @@ export const LastOutputDisplay = ({
       <div className="space-y-3">
         {/* Preamble text (e.g., "The plan is complete. Let me exit plan mode...") */}
         {planPreamble && (
-          <div className="overflow-hidden rounded-lg border border-border bg-muted">
+          <div className="border-border bg-muted overflow-hidden rounded-lg border">
             <div className="px-4 py-3">
               <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
                 {planPreamble}
@@ -180,9 +167,7 @@ export const LastOutputDisplay = ({
           <div className="flex items-center justify-between border-b border-green-500/25 bg-green-500/10 px-4 py-2">
             <div className="flex items-center gap-2">
               <FileCheck className="size-4 text-green-400" />
-              <span className="text-sm font-medium text-green-400">
-                Plan Ready for Approval
-              </span>
+              <span className="text-sm font-medium text-green-400">Plan Ready for Approval</span>
             </div>
             <CopyButton text={planContent} inline />
           </div>

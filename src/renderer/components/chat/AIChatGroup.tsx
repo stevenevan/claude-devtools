@@ -436,7 +436,14 @@ const AIChatGroupInner = ({
             <span className="text-muted-foreground truncate text-xs">
               {enhanced.itemsSummary}
               {aiGroup.progressCount != null && aiGroup.progressCount > 0 && (
-                <span className="ml-1 opacity-60">({aiGroup.progressCount} progress)</span>
+                <span
+                  className="ml-1 opacity-60"
+                  title={
+                    aiGroup.progressTexts?.length ? aiGroup.progressTexts.join('\n') : undefined
+                  }
+                >
+                  ({aiGroup.progressCount} progress)
+                </span>
               )}
             </span>
             <ChevronDown

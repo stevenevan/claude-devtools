@@ -86,6 +86,7 @@ pub fn build_ai_chunk_from_buffer(
     subagents: &[Process],
     all_messages: &[ParsedMessage],
     progress_count: Option<u32>,
+    progress_texts: Option<Vec<String>>,
 ) -> EnhancedChunk {
     let id = if let Some(first) = responses.first() {
         format!("ai-{}", first.uuid)
@@ -118,6 +119,7 @@ pub fn build_ai_chunk_from_buffer(
         semantic_step_groups: Some(semantic_step_groups),
         raw_messages: responses.to_vec(),
         progress_count,
+        progress_texts,
     })
 }
 

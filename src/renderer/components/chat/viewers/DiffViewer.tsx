@@ -276,24 +276,18 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
   const displayName = getBaseName(fileName);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-muted shadow-xs">
+    <div className="border-border bg-muted overflow-hidden rounded-lg border shadow-xs">
       {/* Header - matches CodeBlockViewer style */}
-      <div className="flex items-center gap-2 border-b border-border bg-muted px-3 py-2">
+      <div className="border-border bg-muted flex items-center gap-2 border-b px-3 py-2">
         <Pencil className="text-muted-foreground size-4 shrink-0" />
-        <span className="truncate font-mono text-sm text-blue-400">
-          {displayName}
-        </span>
-        <span className="shrink-0 rounded-sm border border-border bg-card px-1.5 py-0.5 text-xs text-muted-foreground">
+        <span className="truncate font-mono text-sm text-blue-400">{displayName}</span>
+        <span className="border-border bg-card text-muted-foreground shrink-0 rounded-sm border px-1.5 py-0.5 text-xs">
           {detectedLanguage}
         </span>
         <span className="text-muted-foreground">-</span>
         <span className="shrink-0 text-sm">
-          {stats.added > 0 && (
-            <span className="mr-1 text-green-400">+{stats.added}</span>
-          )}
-          {stats.removed > 0 && (
-            <span className="text-red-400">-{stats.removed}</span>
-          )}
+          {stats.added > 0 && <span className="mr-1 text-green-400">+{stats.added}</span>}
+          {stats.removed > 0 && <span className="text-red-400">-{stats.removed}</span>}
           {stats.added === 0 && stats.removed === 0 && (
             <span className="text-muted-foreground">Changed</span>
           )}

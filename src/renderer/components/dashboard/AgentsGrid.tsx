@@ -42,9 +42,7 @@ const AgentCard = ({ agent, isHighlighted }: Readonly<AgentCardProps>): React.JS
       onClick={() => void api.openPath(agent.filePath)}
       className={cn(
         'group relative flex min-h-[120px] flex-col overflow-hidden rounded-xs border p-4 text-left transition-all duration-300',
-        isHighlighted
-          ? 'border-border bg-card'
-          : 'bg-background/50 border-border hover:bg-card'
+        isHighlighted ? 'border-border bg-card' : 'bg-background/50 border-border hover:bg-card'
       )}
     >
       <div className="border-border bg-popover mb-3 flex size-8 items-center justify-center rounded-xs border transition-colors duration-300">
@@ -68,7 +66,9 @@ const AgentCard = ({ agent, isHighlighted }: Readonly<AgentCardProps>): React.JS
             {tool}
           </span>
         ))}
-        {extraCount > 0 && <span className="text-muted-foreground text-[10px]">+{extraCount} more</span>}
+        {extraCount > 0 && (
+          <span className="text-muted-foreground text-[10px]">+{extraCount} more</span>
+        )}
       </div>
     </button>
   );
@@ -90,17 +90,17 @@ const AgentsGridSkeleton = (): React.JSX.Element => {
           className="border-border flex min-h-[120px] flex-col rounded-xs border p-4"
           style={{ animationDelay: `${i * 80}ms` }}
         >
-          <div className="mb-3 size-8 rounded-xs bg-muted-foreground/10" />
+          <div className="bg-muted-foreground/10 mb-3 size-8 rounded-xs" />
           <div
-            className="mb-2 h-3.5 rounded-xs bg-muted-foreground/10"
+            className="bg-muted-foreground/10 mb-2 h-3.5 rounded-xs"
             style={{ width: `${titleWidths[i]}%` }}
           />
           <div
-            className="mb-auto h-2.5 rounded-xs bg-muted-foreground/5"
+            className="bg-muted-foreground/5 mb-auto h-2.5 rounded-xs"
             style={{ width: `${descWidths[i]}%` }}
           />
           <div className="mt-3 flex gap-2">
-            <div className="h-2.5 w-12 rounded-xs bg-muted-foreground/5" />
+            <div className="bg-muted-foreground/5 h-2.5 w-12 rounded-xs" />
           </div>
         </Skeleton>
       ))}

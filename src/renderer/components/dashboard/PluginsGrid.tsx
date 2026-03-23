@@ -56,9 +56,7 @@ const PluginCard = ({ plugin, isHighlighted }: Readonly<PluginCardProps>): React
     <div
       className={cn(
         'group relative flex min-h-[120px] flex-col overflow-hidden rounded-xs border p-4 text-left transition-all duration-300',
-        isHighlighted
-          ? 'border-border bg-card'
-          : 'bg-background/50 border-border hover:bg-card'
+        isHighlighted ? 'border-border bg-card' : 'bg-background/50 border-border hover:bg-card'
       )}
     >
       <div className="mb-3 flex items-center gap-2">
@@ -83,12 +81,16 @@ const PluginCard = ({ plugin, isHighlighted }: Readonly<PluginCardProps>): React
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {plugin.version && (
-          <span className="text-muted-foreground text-[10px]">v{formatVersion(plugin.version)}</span>
+          <span className="text-muted-foreground text-[10px]">
+            v{formatVersion(plugin.version)}
+          </span>
         )}
         {plugin.lastUpdated && (
           <>
             <span className="text-muted-foreground">·</span>
-            <span className="text-muted-foreground text-[10px]">{formatDate(plugin.lastUpdated)}</span>
+            <span className="text-muted-foreground text-[10px]">
+              {formatDate(plugin.lastUpdated)}
+            </span>
           </>
         )}
       </div>
@@ -113,15 +115,15 @@ const PluginsGridSkeleton = (): React.JSX.Element => {
           style={{ animationDelay: `${i * 80}ms` }}
         >
           <div className="mb-3 flex items-center gap-2">
-            <div className="size-8 rounded-xs bg-muted-foreground/10" />
-            <div className="h-4 w-14 rounded-sm bg-muted-foreground/5" />
+            <div className="bg-muted-foreground/10 size-8 rounded-xs" />
+            <div className="bg-muted-foreground/5 h-4 w-14 rounded-sm" />
           </div>
           <div
-            className="mb-2 h-3.5 rounded-xs bg-muted-foreground/10"
+            className="bg-muted-foreground/10 mb-2 h-3.5 rounded-xs"
             style={{ width: `${titleWidths[i]}%` }}
           />
           <div
-            className="mb-auto h-2.5 rounded-xs bg-muted-foreground/5"
+            className="bg-muted-foreground/5 mb-auto h-2.5 rounded-xs"
             style={{ width: `${metaWidths[i]}%` }}
           />
         </Skeleton>

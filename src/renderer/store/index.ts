@@ -82,9 +82,7 @@ export function initializeNotificationListeners(): () => void {
     const session = state.sessions.find((s) => s.id === sessionId);
     if (session && !session.isOngoing) {
       useStore.setState({
-        sessions: state.sessions.map((s) =>
-          s.id === sessionId ? { ...s, isOngoing: true } : s
-        ),
+        sessions: state.sessions.map((s) => (s.id === sessionId ? { ...s, isOngoing: true } : s)),
       });
     }
   };
@@ -105,9 +103,7 @@ export function initializeNotificationListeners(): () => void {
     const needsUpdate = state.sessions.some((s) => staleSet.has(s.id) && s.isOngoing);
     if (needsUpdate) {
       useStore.setState({
-        sessions: state.sessions.map((s) =>
-          staleSet.has(s.id) ? { ...s, isOngoing: false } : s
-        ),
+        sessions: state.sessions.map((s) => (staleSet.has(s.id) ? { ...s, isOngoing: false } : s)),
       });
     }
   };

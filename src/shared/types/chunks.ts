@@ -364,6 +364,8 @@ export interface EnhancedAIChunk extends AIChunk {
   rawMessages: ParsedMessage[];
   /** Number of progress updates during this AI chunk */
   progressCount?: number;
+  /** Progress message texts during this AI chunk */
+  progressTexts?: string[];
 }
 
 /**

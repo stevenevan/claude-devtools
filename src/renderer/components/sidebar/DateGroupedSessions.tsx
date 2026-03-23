@@ -420,9 +420,7 @@ export const DateGroupedSessions = (): React.JSX.Element => {
             }
             className={cn(
               'rounded-sm p-1 transition-colors hover:bg-white/5',
-              sessionSortMode === 'most-context'
-                ? 'text-indigo-400'
-                : 'text-muted-foreground'
+              sessionSortMode === 'most-context' ? 'text-indigo-400' : 'text-muted-foreground'
             )}
             title={sessionSortMode === 'recent' ? 'Sort by context consumption' : 'Sort by recent'}
           >
@@ -488,12 +486,12 @@ export const DateGroupedSessions = (): React.JSX.Element => {
                 }}
               >
                 {item.type === 'pinned-header' ? (
-                  <div className="border-border text-muted-foreground sticky top-0 flex h-full items-center gap-1.5 border-t bg-sidebar/95 px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase backdrop-blur-xs">
+                  <div className="border-border text-muted-foreground bg-sidebar/95 sticky top-0 flex h-full items-center gap-1.5 border-t px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase backdrop-blur-xs">
                     <Pin className="size-3" />
                     Pinned
                   </div>
                 ) : item.type === 'header' ? (
-                  <div className="border-border text-muted-foreground sticky top-0 flex h-full items-center border-t bg-sidebar/95 px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase backdrop-blur-xs">
+                  <div className="border-border text-muted-foreground bg-sidebar/95 sticky top-0 flex h-full items-center border-t px-4 py-1.5 text-[11px] font-semibold tracking-wider uppercase backdrop-blur-xs">
                     {item.category}
                   </div>
                 ) : item.type === 'loader' ? (

@@ -134,10 +134,8 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
     return (
       <div className="flex items-center gap-2 px-3 py-1 opacity-[0.45]">
         <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: colors.border }} />
-        <span className="text-[11px] text-muted-foreground">
-          {teammateMessage.teammateId}
-        </span>
-        <span className="text-[11px] text-muted-foreground">{noiseLabel}</span>
+        <span className="text-muted-foreground text-[11px]">{teammateMessage.teammateId}</span>
+        <span className="text-muted-foreground text-[11px]">{noiseLabel}</span>
       </div>
     );
   }
@@ -170,9 +168,7 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
         }}
         className={cn(
           'flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors',
-          isExpanded
-            ? 'border-b border-border bg-muted/50'
-            : 'bg-transparent'
+          isExpanded ? 'border-b border-border bg-muted/50' : 'bg-transparent'
         )}
       >
         <ChevronRight
@@ -198,15 +194,13 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
         </span>
 
         {/* "Message" type label — parallels SubagentItem's model info */}
-        <span className="text-[10px] tracking-wide text-muted-foreground uppercase">
-          Message
-        </span>
+        <span className="text-muted-foreground text-[10px] tracking-wide uppercase">Message</span>
 
         {/* Reply indicator — shows which SendMessage triggered this response */}
         {teammateMessage.replyToSummary && (
           <span
             role="presentation"
-            className="flex cursor-default items-center gap-1 text-[10px] text-muted-foreground"
+            className="text-muted-foreground flex cursor-default items-center gap-1 text-[10px]"
             onMouseEnter={() => onReplyHover?.(teammateMessage.replyToToolId ?? null)}
             onMouseLeave={() => onReplyHover?.(null)}
           >
@@ -217,20 +211,20 @@ export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
 
         {/* Resend badge — marks duplicate/resent messages */}
         {isResend && (
-          <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+          <span className="text-muted-foreground flex items-center gap-0.5 text-[10px]">
             <RefreshCw className="size-2.5" />
             Resent
           </span>
         )}
 
         {/* Summary */}
-        <span className="flex-1 truncate text-xs text-foreground">
+        <span className="text-foreground flex-1 truncate text-xs">
           {truncatedSummary || 'Teammate message'}
         </span>
 
         {/* Context impact — tokens injected into main session */}
         {teammateMessage.tokenCount != null && teammateMessage.tokenCount > 0 && (
-          <span className="shrink-0 font-mono text-[11px] text-muted-foreground tabular-nums">
+          <span className="text-muted-foreground shrink-0 font-mono text-[11px] tabular-nums">
             ~{formatTokensCompact(teammateMessage.tokenCount)} tokens
           </span>
         )}

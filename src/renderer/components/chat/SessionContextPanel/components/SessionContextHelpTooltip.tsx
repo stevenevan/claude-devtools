@@ -26,7 +26,9 @@ export const SessionContextHelpTooltip = (): React.ReactElement => {
           <Separator />
 
           <div>
-            <div className="text-foreground mb-1 font-semibold">Total Context vs Visible Context</div>
+            <div className="text-foreground mb-1 font-semibold">
+              Total Context vs Visible Context
+            </div>
             <div className="text-muted-foreground space-y-2 leading-normal">
               <div className="flex">
                 <span className="text-muted-foreground min-w-[74px] text-left">Total:</span>

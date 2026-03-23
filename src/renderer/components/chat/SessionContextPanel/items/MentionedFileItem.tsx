@@ -38,9 +38,7 @@ export const MentionedFileItem = ({
           className="text-muted-foreground text-xs"
         />
         {!injection.exists && (
-          <span className="rounded-sm bg-red-900/20 px-1 py-0.5 text-xs text-red-400">
-            missing
-          </span>
+          <span className="rounded-sm bg-red-900/20 px-1 py-0.5 text-xs text-red-400">missing</span>
         )}
       </div>
       <div className="mt-0.5 ml-4 flex items-center gap-2">

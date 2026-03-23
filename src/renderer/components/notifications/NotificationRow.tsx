@@ -100,7 +100,7 @@ export const NotificationRow = ({
           <span className="text-muted-foreground">&middot;</span>
           <span className="text-muted-foreground truncate text-sm">{projectName}</span>
           {error.subagentId && (
-            <span className="text-muted-foreground inline-flex shrink-0 items-center gap-1 rounded-sm border border-border bg-card px-1.5 py-0.5 text-[10px] font-medium">
+            <span className="text-muted-foreground border-border bg-card inline-flex shrink-0 items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[10px] font-medium">
               <Bot className="size-3" />
               subagent
             </span>
@@ -120,7 +120,9 @@ export const NotificationRow = ({
             onNavigateClick={handleNavigateClick}
           />
         ) : (
-          <span className="text-muted-foreground text-[11px] whitespace-nowrap">{relativeTime}</span>
+          <span className="text-muted-foreground text-[11px] whitespace-nowrap">
+            {relativeTime}
+          </span>
         )}
       </div>
     </div>

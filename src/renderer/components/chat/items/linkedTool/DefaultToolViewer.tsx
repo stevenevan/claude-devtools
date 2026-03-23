@@ -23,8 +23,8 @@ export const DefaultToolViewer: React.FC<DefaultToolViewerProps> = ({ linkedTool
     <>
       {/* Input Section */}
       <div>
-        <div className="mb-1 text-xs text-muted-foreground">Input</div>
-        <div className="max-h-96 overflow-auto rounded border border-border bg-muted p-3 font-mono text-xs text-muted-foreground">
+        <div className="text-muted-foreground mb-1 text-xs">Input</div>
+        <div className="border-border bg-muted text-muted-foreground max-h-96 overflow-auto rounded border p-3 font-mono text-xs">
           {renderInput(linkedTool.name, linkedTool.input)}
         </div>
       </div>

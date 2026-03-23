@@ -78,7 +78,10 @@ export const DynamicConfigSection = ({
               value={contentType}
               onChange={(e) => onContentTypeChange(e.target.value as TriggerContentType)}
               disabled={saving}
-              className={cn(SELECT_INPUT_BASE, saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')}
+              className={cn(
+                SELECT_INPUT_BASE,
+                saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+              )}
             >
               {CONTENT_TYPE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value} className="bg-background">
@@ -99,7 +102,10 @@ export const DynamicConfigSection = ({
                 value={matchField || availableMatchFields[0]?.value || ''}
                 onChange={(e) => onMatchFieldChange(e.target.value)}
                 disabled={saving}
-                className={cn(SELECT_INPUT_BASE, saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')}
+                className={cn(
+                  SELECT_INPUT_BASE,
+                  saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+                )}
               >
                 {availableMatchFields.map((option) => (
                   <option key={option.value} value={option.value} className="bg-background">
@@ -155,7 +161,10 @@ export const DynamicConfigSection = ({
               value={tokenType}
               onChange={(e) => onTokenTypeChange(e.target.value as TriggerTokenType)}
               disabled={saving}
-              className={cn(SELECT_INPUT_BASE, saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer')}
+              className={cn(
+                SELECT_INPUT_BASE,
+                saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+              )}
             >
               <option value="total" className="bg-background">
                 Total Tokens

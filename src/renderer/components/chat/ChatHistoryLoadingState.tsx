@@ -20,22 +20,14 @@ export const ChatHistoryLoadingState = (): JSX.Element => {
             <div className="flex justify-end">
               <div className="w-2/3 space-y-2">
                 {row.user.map((width, j) => (
-                  <Skeleton
-                    key={j}
-                    className="ml-auto h-3 rounded-xs"
-                    style={{ width }}
-                  />
+                  <Skeleton key={j} className="ml-auto h-3 rounded-xs" style={{ width }} />
                 ))}
               </div>
             </div>
             {/* AI response skeleton — left aligned with border accent */}
             <div className="border-border space-y-2.5 border-l-2 pl-3">
               {row.ai.map((width, j) => (
-                <Skeleton
-                  key={j}
-                  className="h-3 rounded-xs"
-                  style={{ width }}
-                />
+                <Skeleton key={j} className="h-3 rounded-xs" style={{ width }} />
               ))}
             </div>
           </div>

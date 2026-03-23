@@ -288,7 +288,9 @@ export const WorkspaceSection = (): React.JSX.Element => {
   return (
     <div className="space-y-6">
       <SettingsSectionHeader title="Workspace Profiles" />
-      <p className="text-muted-foreground text-sm">Save SSH connection profiles for quick reconnection</p>
+      <p className="text-muted-foreground text-sm">
+        Save SSH connection profiles for quick reconnection
+      </p>
 
       {loading && (
         <div className="text-muted-foreground flex items-center gap-2 py-4">

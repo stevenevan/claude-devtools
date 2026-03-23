@@ -71,7 +71,9 @@ export const ThinkingTextItem = ({
               <span className="text-muted-foreground">
                 {item.type === 'thinking' ? 'Thinking' : 'Text'}
               </span>
-              <span className="text-muted-foreground opacity-70">~{formatTokens(item.tokenCount)}</span>
+              <span className="text-muted-foreground opacity-70">
+                ~{formatTokens(item.tokenCount)}
+              </span>
             </div>
           ))}
         </div>

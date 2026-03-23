@@ -85,7 +85,9 @@ export const TaskCoordinationItem = ({
           {injection.breakdown.map((item, idx) => (
             <div key={`${item.label}-${idx}`} className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">{item.label}</span>
-              <span className="text-muted-foreground tabular-nums">~{formatTokens(item.tokenCount)}</span>
+              <span className="text-muted-foreground tabular-nums">
+                ~{formatTokens(item.tokenCount)}
+              </span>
             </div>
           ))}
         </div>

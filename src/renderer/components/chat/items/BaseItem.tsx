@@ -103,21 +103,19 @@ export const BaseItem: React.FC<BaseItemProps> = ({
             onClick();
           }
         }}
-        className="group flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-card/50"
+        className="group hover:bg-card/50 flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5"
       >
         {/* Icon */}
-        <span className="size-4 shrink-0 text-muted-foreground">{icon}</span>
+        <span className="text-muted-foreground size-4 shrink-0">{icon}</span>
 
         {/* Label */}
-        <span className="text-sm font-medium text-foreground">{label}</span>
+        <span className="text-foreground text-sm font-medium">{label}</span>
 
         {/* Separator and Summary */}
         {summary && (
           <>
-            <span className="text-sm text-muted-foreground">-</span>
-            <span className="flex-1 truncate text-sm text-muted-foreground">
-              {summary}
-            </span>
+            <span className="text-muted-foreground text-sm">-</span>
+            <span className="text-muted-foreground flex-1 truncate text-sm">{summary}</span>
           </>
         )}
 
@@ -126,7 +124,7 @@ export const BaseItem: React.FC<BaseItemProps> = ({
 
         {/* Token count badge */}
         {tokenCount != null && tokenCount > 0 && (
-          <span className="shrink-0 rounded-sm bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+          <span className="bg-muted text-muted-foreground shrink-0 rounded-sm px-1.5 py-0.5 text-xs">
             ~{formatTokens(tokenCount)} {tokenLabel}
           </span>
         )}
@@ -144,7 +142,7 @@ export const BaseItem: React.FC<BaseItemProps> = ({
 
         {/* Duration */}
         {durationMs !== undefined && (
-          <span className="shrink-0 text-xs text-muted-foreground">
+          <span className="text-muted-foreground shrink-0 text-xs">
             {formatDuration(durationMs)}
           </span>
         )}
