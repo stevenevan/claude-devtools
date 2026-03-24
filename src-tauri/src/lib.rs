@@ -49,6 +49,7 @@ pub fn run() {
             commands::get_projects,
             commands::get_sessions_paginated,
             commands::get_session_detail,
+            commands::get_session_detail_incremental,
             commands::get_sessions,
             commands::get_sessions_by_ids,
             commands::validate_path,

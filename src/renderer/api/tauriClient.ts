@@ -127,6 +127,14 @@ export class TauriAPIClient implements ElectronAPI {
     return reviveDates(raw);
   };
 
+  getSessionDetailIncremental = async (
+    projectId: string,
+    sessionId: string
+  ): Promise<SessionDetail | null> => {
+    const raw = await invoke<SessionDetail>('get_session_detail_incremental', { projectId, sessionId });
+    return reviveDates(raw);
+  };
+
   getSessionMetrics = (projectId: string, sessionId: string): Promise<SessionMetrics | null> =>
     invoke<SessionMetrics>('parse_session_metrics', { projectId, sessionId });
 

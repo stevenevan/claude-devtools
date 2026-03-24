@@ -56,6 +56,8 @@ export interface TabSessionData {
   sessionPhaseInfo: ContextPhaseInfo | null;
   visibleAIGroupId: string | null;
   selectedAIGroup: AIGroup | null;
+  /** Whether this tab is streaming real-time updates from an ongoing session. */
+  isStreaming: boolean;
 }
 
 function createEmptyTabSessionData(): TabSessionData {
@@ -70,6 +72,7 @@ function createEmptyTabSessionData(): TabSessionData {
     sessionPhaseInfo: null,
     visibleAIGroupId: null,
     selectedAIGroup: null,
+    isStreaming: false,
   };
 }
 
@@ -444,6 +447,7 @@ export const createSessionDetailSlice: StateCreator<AppState, [], [], SessionDet
               sessionPhaseInfo: phaseInfo,
               visibleAIGroupId: firstAIGroupId,
               selectedAIGroup: firstAIGroup,
+              isStreaming: detail?.session?.isOngoing ?? false,
             },
           },
         });
@@ -506,7 +510,9 @@ export const createSessionDetailSlice: StateCreator<AppState, [], [], SessionDet
     sessionRefreshInFlight.add(refreshKey);
 
     try {
-      const detail = await api.getSessionDetail(projectId, sessionId);
+      // Use incremental parsing for refresh — only re-parses new JSONL lines.
+      // Falls back to full parse internally if incremental state is unavailable.
+      const detail = await api.getSessionDetailIncremental(projectId, sessionId);
 
       // Drop stale responses if a newer refresh started while this one was in flight.
       if (sessionRefreshGeneration.get(refreshKey) !== generation) {
@@ -638,6 +644,7 @@ export const createSessionDetailSlice: StateCreator<AppState, [], [], SessionDet
             ...tabData,
             sessionDetail: detail,
             conversation: newConversation,
+            isStreaming: detail.session?.isOngoing ?? false,
             ...(tabGroupStillExists ? { selectedAIGroup: tabSelectedGroup } : {}),
           };
         }

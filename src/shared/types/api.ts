@@ -364,6 +364,8 @@ export interface ElectronAPI {
   ) => Promise<SearchSessionsResult>;
   searchAllProjects: (query: string, maxResults?: number) => Promise<SearchSessionsResult>;
   getSessionDetail: (projectId: string, sessionId: string) => Promise<SessionDetail | null>;
+  /** Incrementally refresh a session — only re-parses new JSONL lines since last read. */
+  getSessionDetailIncremental: (projectId: string, sessionId: string) => Promise<SessionDetail | null>;
   getSessionMetrics: (projectId: string, sessionId: string) => Promise<SessionMetrics | null>;
   getAnalytics: (days: number) => Promise<AnalyticsResponse>;
   getWaterfallData: (projectId: string, sessionId: string) => Promise<WaterfallData | null>;

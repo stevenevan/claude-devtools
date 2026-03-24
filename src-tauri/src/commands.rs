@@ -971,3 +971,137 @@ pub fn get_session_detail(
         subagents,
     ))
 }
+
+/// Incrementally refresh a session — only re-parses new JSONL lines since last read.
+/// Returns a full SessionDetail (same as get_session_detail) but much faster for
+/// ongoing sessions where only a few new lines were appended.
+/// Falls back to full parse on first call or when incremental state is missing.
+#[tauri::command]
+pub fn get_session_detail_incremental(
+    project_id: String,
+    session_id: String,
+    cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+) -> Result<SessionDetail, String> {
+    let claude_dir = watcher::resolve_claude_dir()
+        .ok_or("Cannot resolve home directory")?;
+    let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
+    let file_path = resolve_session_path(&project_id, &session_id)?;
+    let cache_key = format!("{project_id}/{session_id}");
+
+    // Try incremental parse if we have prior state
+    let parsed = {
+        let mut cache_guard = cache.lock().map_err(|e| e.to_string())?;
+
+        let inc_state = cache_guard.get_incremental(&cache_key).cloned();
+        let cached_session = cache_guard.get(&cache_key).cloned();
+
+        match (inc_state, cached_session) {
+            (Some(state), Some(mut existing)) => {
+                // Incremental path: only read new bytes
+                let (new_msgs, new_metadata, new_offset) =
+                    session_parser::parse_jsonl_incremental(
+                        &file_path,
+                        state.byte_offset,
+                        &state.metadata,
+                    )?;
+
+                if new_msgs.is_empty() {
+                    // No new data — return cached session as-is
+                    existing
+                } else {
+                    // Merge new messages into existing session
+                    existing.messages.extend(new_msgs);
+                    if new_metadata.custom_title.is_some() {
+                        existing.custom_title = new_metadata.custom_title.clone();
+                    }
+                    if new_metadata.agent_name.is_some() {
+                        existing.agent_name = new_metadata.agent_name.clone();
+                    }
+
+                    // Recompute categorization and metrics
+                    let reprocessed = session_parser::process_messages(
+                        existing.messages,
+                        session_parser::SessionFileMetadata {
+                            custom_title: existing.custom_title,
+                            agent_name: existing.agent_name,
+                        },
+                    );
+
+                    // Update cache
+                    cache_guard.set_incremental(
+                        cache_key.clone(),
+                        crate::cache::IncrementalState {
+                            byte_offset: new_offset,
+                            metadata: new_metadata,
+                        },
+                    );
+                    cache_guard.insert(cache_key, reprocessed.clone());
+                    reprocessed
+                }
+            }
+            _ => {
+                // First call or missing state — full parse, then seed incremental state
+                let session = session_parser::parse_session_file(&file_path)?;
+
+                // Compute the byte offset by reading file size
+                let file_len = std::fs::metadata(&file_path)
+                    .map(|m| m.len())
+                    .unwrap_or(0);
+
+                cache_guard.set_incremental(
+                    cache_key.clone(),
+                    crate::cache::IncrementalState {
+                        byte_offset: file_len,
+                        metadata: session_parser::SessionFileMetadata {
+                            custom_title: session.custom_title.clone(),
+                            agent_name: session.agent_name.clone(),
+                        },
+                    },
+                );
+                cache_guard.insert(cache_key, session.clone());
+                session
+            }
+        }
+    };
+
+    // Resolve subagents
+    let subagents = subagent_resolver::resolve_subagents(
+        &projects_dir,
+        &project_id,
+        &session_id,
+        &parsed.task_calls,
+        &parsed.messages,
+    );
+
+    let decoded_path = path_decoder::decode_path(
+        &path_decoder::extract_base_dir(&project_id),
+    );
+
+    let is_ongoing = ongoing_detector::detect_ongoing(&file_path);
+
+    let session = Session {
+        id: session_id.clone(),
+        project_id: project_id.clone(),
+        project_path: decoded_path,
+        todo_data: None,
+        created_at: 0.0,
+        first_message: None,
+        message_timestamp: None,
+        has_subagents: !subagents.is_empty(),
+        message_count: parsed.messages.len() as u32,
+        is_ongoing,
+        git_branch: None,
+        metadata_level: Some("deep".to_string()),
+        context_consumption: None,
+        compaction_count: None,
+        phase_breakdown: None,
+        custom_title: parsed.custom_title.clone(),
+        agent_name: parsed.agent_name.clone(),
+    };
+
+    Ok(chunk_builder::build_session_detail(
+        session,
+        parsed.messages,
+        subagents,
+    ))
+}
