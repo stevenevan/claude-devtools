@@ -241,6 +241,13 @@ export function useKeyboardShortcuts(): void {
         return;
       }
 
+      // Cmd+Shift+F: Open advanced search view
+      if (event.key === 'f' && event.shiftKey) {
+        event.preventDefault();
+        setActiveActivity('search');
+        return;
+      }
+
       // Cmd+F: Find in session
       if (event.key === 'f') {
         event.preventDefault();

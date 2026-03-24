@@ -10,6 +10,8 @@ import type {
   PaginatedSessionsResult,
   Project,
   RepositoryGroup,
+  FilteredSearchResponse,
+  SearchFilters,
   SearchSessionsResult,
   Session,
   SessionMetrics,
@@ -363,6 +365,8 @@ export interface ElectronAPI {
     maxResults?: number
   ) => Promise<SearchSessionsResult>;
   searchAllProjects: (query: string, maxResults?: number) => Promise<SearchSessionsResult>;
+  /** Search sessions with optional filters (date range, status, text query). */
+  searchSessionsFiltered: (filters: SearchFilters, maxResults?: number) => Promise<FilteredSearchResponse>;
   getSessionDetail: (projectId: string, sessionId: string) => Promise<SessionDetail | null>;
   /** Incrementally refresh a session — only re-parses new JSONL lines since last read. */
   getSessionDetailIncremental: (projectId: string, sessionId: string) => Promise<SessionDetail | null>;

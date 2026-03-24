@@ -17,7 +17,8 @@ export type ActivityView =
   | 'skills'
   | 'plugins'
   | 'settings'
-  | 'notifications';
+  | 'notifications'
+  | 'search';
 
 // =============================================================================
 // Slice Interface

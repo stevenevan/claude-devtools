@@ -64,6 +64,7 @@ pub fn run() {
             commands::read_global_settings,
             commands::search_sessions,
             commands::search_all_projects,
+            commands::search_sessions_filtered,
             commands::get_waterfall_data,
             commands::get_subagent_detail,
             commands::get_session_groups,

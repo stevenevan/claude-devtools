@@ -53,6 +53,7 @@ import type {
   ConversationGroup,
   ElectronAPI,
   FileChangeEvent,
+  FilteredSearchResponse,
   HttpServerAPI,
   HttpServerStatus,
   NotificationsAPI,
@@ -118,6 +119,18 @@ export class TauriAPIClient implements ElectronAPI {
 
   searchAllProjects = (query: string, maxResults?: number): Promise<SearchSessionsResult> =>
     invoke<SearchSessionsResult>('search_all_projects', { query, maxResults });
+
+  searchSessionsFiltered = (
+    filters: import('@shared/types/domain').SearchFilters,
+    maxResults?: number
+  ): Promise<FilteredSearchResponse> =>
+    invoke<FilteredSearchResponse>('search_sessions_filtered', {
+      query: filters.query ?? null,
+      maxResults,
+      statusFilter: filters.statusFilter ?? null,
+      minCreatedAt: filters.minCreatedAt ?? null,
+      maxCreatedAt: filters.maxCreatedAt ?? null,
+    });
 
   getSessionDetail = async (
     projectId: string,

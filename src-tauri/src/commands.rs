@@ -614,6 +614,105 @@ pub fn search_all_projects(
     }))
 }
 
+/// Search across all projects with optional filters.
+#[tauri::command]
+pub fn search_sessions_filtered(
+    query: Option<String>,
+    max_results: Option<usize>,
+    status_filter: Option<String>,     // "ongoing" | "completed" | null (any)
+    min_created_at: Option<f64>,       // Unix timestamp lower bound
+    max_created_at: Option<f64>,       // Unix timestamp upper bound
+    registry: tauri::State<'_, Arc<Mutex<SubprojectRegistry>>>,
+    _cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+) -> Result<Value, String> {
+    let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
+    let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
+    let limit = max_results.unwrap_or(50);
+    let query_lower = query.as_ref().map(|q| q.to_lowercase());
+
+    let mut reg = registry.lock().map_err(|e| e.to_string())?;
+    let projects = project_scanner::scan_projects(&projects_dir, &mut reg)?;
+    drop(reg);
+
+    let mut results = Vec::new();
+
+    for project in &projects {
+        if results.len() >= limit {
+            break;
+        }
+
+        let reg = registry.lock().map_err(|e| e.to_string())?;
+        let opts = SessionsPaginationOptions::default();
+        if let Ok(all) = session_lister::list_sessions_paginated(
+            &projects_dir, &claude_dir, &project.id, None, 1000, &opts, &reg,
+        ) {
+            for session in &all.sessions {
+                if results.len() >= limit {
+                    break;
+                }
+
+                // Date range filter
+                if let Some(min_ts) = min_created_at {
+                    if session.created_at < min_ts {
+                        continue;
+                    }
+                }
+                if let Some(max_ts) = max_created_at {
+                    if session.created_at > max_ts {
+                        continue;
+                    }
+                }
+
+                // Status filter
+                if let Some(ref status) = status_filter {
+                    let is_ongoing = session.is_ongoing.unwrap_or(false);
+                    match status.as_str() {
+                        "ongoing" if !is_ongoing => continue,
+                        "completed" if is_ongoing => continue,
+                        _ => {}
+                    }
+                }
+
+                // Text query match (searches first_message, customTitle, agentName)
+                if let Some(ref ql) = query_lower {
+                    if ql.is_empty() {
+                        // Empty query = match all (filters only)
+                    } else {
+                        let text_match =
+                            session.first_message.as_ref().map_or(false, |fm| fm.to_lowercase().contains(ql))
+                            || session.custom_title.as_ref().map_or(false, |t| t.to_lowercase().contains(ql))
+                            || session.agent_name.as_ref().map_or(false, |n| n.to_lowercase().contains(ql))
+                            || session.id.to_lowercase().contains(ql);
+                        if !text_match {
+                            continue;
+                        }
+                    }
+                }
+
+                results.push(serde_json::json!({
+                    "sessionId": session.id,
+                    "projectId": session.project_id,
+                    "projectPath": session.project_path,
+                    "preview": session.first_message,
+                    "customTitle": session.custom_title,
+                    "agentName": session.agent_name,
+                    "timestamp": session.created_at,
+                    "messageCount": session.message_count,
+                    "isOngoing": session.is_ongoing,
+                    "hasSubagents": session.has_subagents,
+                    "contextConsumption": session.context_consumption,
+                }));
+            }
+        }
+    }
+
+    Ok(serde_json::json!({
+        "results": results,
+        "total": results.len(),
+        "query": query,
+    }))
+}
+
 /// Get waterfall data for a session (reuses session detail).
 #[tauri::command]
 pub fn get_waterfall_data(

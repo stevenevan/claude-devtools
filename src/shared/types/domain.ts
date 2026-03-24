@@ -267,6 +267,42 @@ export interface SearchSessionsResult {
   isPartial?: boolean;
 }
 
+/**
+ * A session-level search result from filtered search.
+ */
+export interface FilteredSearchResult {
+  sessionId: string;
+  projectId: string;
+  projectPath: string;
+  preview?: string;
+  customTitle?: string;
+  agentName?: string;
+  timestamp: number;
+  messageCount: number;
+  isOngoing?: boolean;
+  hasSubagents: boolean;
+  contextConsumption?: number;
+}
+
+/**
+ * Filters for advanced session search.
+ */
+export interface SearchFilters {
+  query?: string;
+  statusFilter?: 'ongoing' | 'completed';
+  minCreatedAt?: number;
+  maxCreatedAt?: number;
+}
+
+/**
+ * Result of a filtered session search.
+ */
+export interface FilteredSearchResponse {
+  results: FilteredSearchResult[];
+  total: number;
+  query?: string;
+}
+
 // =============================================================================
 // Pagination Types
 // =============================================================================

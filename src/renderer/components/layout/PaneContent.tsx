@@ -8,6 +8,7 @@ import { DashboardView } from '../dashboard/DashboardView';
 import { PluginsGrid } from '../dashboard/PluginsGrid';
 import { SkillsGrid } from '../dashboard/SkillsGrid';
 import { NotificationsView } from '../notifications/NotificationsView';
+import { SearchView } from '../search/SearchView';
 import { SettingsView } from '../settings/SettingsView';
 
 import { GlobalContentView } from './GlobalContentView';
@@ -33,7 +34,8 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
     activeActivity === 'skills' ||
     activeActivity === 'plugins' ||
     activeActivity === 'settings' ||
-    activeActivity === 'notifications';
+    activeActivity === 'notifications' ||
+    activeActivity === 'search';
   const showGlobalContent = isGlobalActivity || showDefaultContent;
 
   return (
@@ -58,6 +60,7 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
             </GlobalContentView>
           )}
           {activeActivity === 'notifications' && <NotificationsView />}
+          {activeActivity === 'search' && <SearchView />}
           {activeActivity === 'settings' && <SettingsView />}
         </div>
       )}
