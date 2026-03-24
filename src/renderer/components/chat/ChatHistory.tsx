@@ -11,6 +11,7 @@ import { ChevronsDown } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { SessionContextPanel } from './SessionContextPanel/index';
+import { SessionMinimap } from './SessionMinimap';
 
 /** Pixels from bottom considered "near bottom" for scroll-button visibility and auto-scroll. */
 const SCROLL_THRESHOLD = 300;
@@ -387,6 +388,65 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     return () => window.removeEventListener('session-refresh-scroll-bottom', handler);
   }, [scrollToBottom]);
 
+  // J/K turn navigation: listen for custom events from keyboard shortcuts
+  useEffect(() => {
+    if (!isThisTabActive || !conversation) return;
+
+    const aiGroupIndices = conversation.items
+      .map((item, i) => (item.type === 'ai' ? i : -1))
+      .filter((i) => i !== -1);
+
+    if (aiGroupIndices.length === 0) return;
+
+    const handler = (e: Event): void => {
+      const detail = (e as CustomEvent<{ direction: 'next' | 'prev' }>).detail;
+      const currentFocused = useStore.getState().getFocusedTurnIndexForTab(effectiveTabId ?? '');
+
+      let nextIdx: number;
+      if (currentFocused < 0) {
+        // No focus yet — start at first or last
+        nextIdx = detail.direction === 'next' ? 0 : aiGroupIndices.length - 1;
+      } else {
+        const currentPos = aiGroupIndices.indexOf(currentFocused);
+        if (currentPos < 0) {
+          nextIdx = 0;
+        } else {
+          nextIdx = detail.direction === 'next'
+            ? Math.min(currentPos + 1, aiGroupIndices.length - 1)
+            : Math.max(currentPos - 1, 0);
+        }
+      }
+
+      const targetItemIndex = aiGroupIndices[nextIdx];
+      const targetItem = conversation.items[targetItemIndex];
+      if (!targetItem || targetItem.type !== 'ai') return;
+
+      useStore.getState().setFocusedTurnIndexForTab(effectiveTabId ?? '', targetItemIndex);
+
+      // Scroll to the target
+      if (shouldVirtualize) {
+        rowVirtualizer.scrollToIndex(targetItemIndex, { align: 'center', behavior: 'smooth' });
+      } else {
+        const el = aiGroupRefs.current.get(targetItem.group.id);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      // Highlight the group temporarily
+      setHighlightedGroupId(targetItem.group.id);
+      setIsNavigationHighlight(true);
+      if (navigationHighlightTimerRef.current) {
+        clearTimeout(navigationHighlightTimerRef.current);
+      }
+      navigationHighlightTimerRef.current = setTimeout(() => {
+        setHighlightedGroupId(null);
+        setIsNavigationHighlight(false);
+      }, 1500);
+    };
+
+    window.addEventListener('turn-navigate', handler);
+    return () => window.removeEventListener('turn-navigate', handler);
+  }, [isThisTabActive, conversation, effectiveTabId, shouldVirtualize, rowVirtualizer, setHighlightedGroupId]);
+
   // Callback to register AI group refs (combines with visibility hook)
   const registerAIGroupRefCombined = useCallback(
     (groupId: string) => {
@@ -739,6 +799,23 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     else toolItemRefs.current.delete(toolId);
   }, []);
 
+  // Minimap: jump to a conversation item by index
+  const handleMinimapJump = useCallback(
+    (index: number) => {
+      if (!conversation) return;
+      const item = conversation.items[index];
+      if (!item) return;
+
+      if (shouldVirtualize) {
+        rowVirtualizer.scrollToIndex(index, { align: 'start', behavior: 'smooth' });
+      } else {
+        const el = chatItemRefs.current.get(item.group.id) ?? aiGroupRefs.current.get(item.group.id);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    },
+    [conversation, shouldVirtualize, rowVirtualizer]
+  );
+
   // Loading state
   if (conversationLoading) return <ChatHistoryLoadingState />;
 
@@ -876,6 +953,16 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
             <ChevronsDown className="size-3.5" />
             <span>Bottom</span>
           </button>
+        )}
+
+        {/* Session minimap */}
+        {conversation.items.length >= 5 && (
+          <SessionMinimap
+            items={conversation.items}
+            scrollContainerRef={scrollContainerRef}
+            onJumpToIndex={handleMinimapJump}
+            className="border-border/30 border-l"
+          />
         )}
 
         {/* Context panel sidebar */}

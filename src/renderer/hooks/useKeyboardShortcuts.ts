@@ -104,6 +104,24 @@ export function useKeyboardShortcuts(): void {
         return;
       }
 
+      // --- J/K turn navigation (no modifier needed, only in session tabs) ---
+      if (!isMod && !event.altKey && !event.shiftKey) {
+        // Skip if an input/textarea is focused
+        const tag = (event.target as HTMLElement)?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+          // Don't intercept typing
+        } else if (event.key === 'j' || event.key === 'k') {
+          const activeTab = getActiveTab();
+          if (activeTab?.type === 'session') {
+            event.preventDefault();
+            window.dispatchEvent(
+              new CustomEvent('turn-navigate', { detail: { direction: event.key === 'j' ? 'next' : 'prev' } })
+            );
+            return;
+          }
+        }
+      }
+
       if (!isMod) return;
 
       // --- Pane management shortcuts (Cmd+Option) ---

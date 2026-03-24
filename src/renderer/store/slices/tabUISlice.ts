@@ -42,6 +42,9 @@ export interface TabUIState {
 
   /** Saved scroll position for restoring when switching back to this tab */
   savedScrollTop?: number;
+
+  /** Focused turn index for J/K navigation (-1 = none) */
+  focusedTurnIndex: number;
 }
 
 /**
@@ -55,6 +58,7 @@ function createDefaultTabUIState(): TabUIState {
     showContextPanel: false,
     selectedContextPhase: null,
     savedScrollTop: undefined,
+    focusedTurnIndex: -1,
   };
 }
 
@@ -111,6 +115,12 @@ export interface TabUISlice {
   saveScrollPositionForTab: (tabId: string, scrollTop: number) => void;
   /** Get saved scroll position for a specific tab */
   getScrollPositionForTab: (tabId: string) => number | undefined;
+
+  // Turn navigation (per-tab)
+  /** Get the focused turn index for a tab (-1 = none) */
+  getFocusedTurnIndexForTab: (tabId: string) => number;
+  /** Set the focused turn index for a tab */
+  setFocusedTurnIndexForTab: (tabId: string, index: number) => void;
 }
 
 // =============================================================================
@@ -315,5 +325,16 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
   getScrollPositionForTab: (tabId: string) => {
     const tabState = get().tabUIStates.get(tabId);
     return tabState?.savedScrollTop;
+  },
+
+  getFocusedTurnIndexForTab: (tabId: string) => {
+    return get().tabUIStates.get(tabId)?.focusedTurnIndex ?? -1;
+  },
+
+  setFocusedTurnIndexForTab: (tabId: string, index: number) => {
+    const states = new Map(get().tabUIStates);
+    const current = states.get(tabId) ?? createDefaultTabUIState();
+    states.set(tabId, { ...current, focusedTurnIndex: index });
+    set({ tabUIStates: states });
   },
 });
