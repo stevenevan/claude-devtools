@@ -4,6 +4,7 @@ import { api } from './api';
 import { ConfirmDialog } from './components/common/ConfirmDialog';
 import { ContextSwitchOverlay } from './components/common/ContextSwitchOverlay';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { ShortcutCheatSheet } from './components/common/ShortcutCheatSheet';
 import { TabbedLayout } from './components/layout/TabbedLayout';
 import { TooltipProvider } from './components/ui/tooltip';
 import { useTheme } from './hooks/useTheme';
@@ -12,6 +13,11 @@ import { initializeNotificationListeners, useStore } from './store';
 export const App = (): React.JSX.Element => {
   // Initialize theme on app load
   useTheme();
+
+  const { shortcutCheatSheetOpen, toggleShortcutCheatSheet } = useStore((s) => ({
+    shortcutCheatSheetOpen: s.shortcutCheatSheetOpen,
+    toggleShortcutCheatSheet: s.toggleShortcutCheatSheet,
+  }));
 
   // Dismiss splash screen once React is ready
   useEffect(() => {
@@ -48,6 +54,10 @@ export const App = (): React.JSX.Element => {
         <ContextSwitchOverlay />
         <TabbedLayout />
         <ConfirmDialog />
+        <ShortcutCheatSheet
+          open={shortcutCheatSheetOpen}
+          onClose={toggleShortcutCheatSheet}
+        />
       </TooltipProvider>
     </ErrorBoundary>
   );

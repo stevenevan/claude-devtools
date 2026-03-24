@@ -104,6 +104,16 @@ export function useKeyboardShortcuts(): void {
         return;
       }
 
+      // --- ? key: shortcut cheat sheet ---
+      if (!isMod && !event.altKey && event.key === '?') {
+        const tag = (event.target as HTMLElement)?.tagName;
+        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') {
+          event.preventDefault();
+          useStore.getState().toggleShortcutCheatSheet();
+          return;
+        }
+      }
+
       // --- J/K turn navigation (no modifier needed, only in session tabs) ---
       if (!isMod && !event.altKey && !event.shiftKey) {
         // Skip if an input/textarea is focused
