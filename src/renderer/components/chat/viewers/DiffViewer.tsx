@@ -3,7 +3,7 @@ import React from 'react';
 import { cn } from '@renderer/lib/utils';
 import { getBaseName } from '@renderer/utils/pathUtils';
 import { formatTokens } from '@shared/utils/tokenFormatting';
-import { Pencil } from 'lucide-react';
+import { Columns2, Pencil, Rows3 } from 'lucide-react';
 
 // =============================================================================
 // Types
@@ -253,6 +253,93 @@ const DiffLineRow: React.FC<DiffLineRowProps> = ({ line }): React.JSX.Element =>
 };
 
 // =============================================================================
+// Split (Side-by-Side) Diff View
+// =============================================================================
+
+interface SplitDiffViewProps {
+  diffLines: DiffLine[];
+  maxHeight: string;
+}
+
+/** Build paired rows for side-by-side display. */
+function buildSplitRows(diffLines: DiffLine[]): Array<{ left: DiffLine | null; right: DiffLine | null }> {
+  const rows: Array<{ left: DiffLine | null; right: DiffLine | null }> = [];
+  let i = 0;
+  while (i < diffLines.length) {
+    const line = diffLines[i];
+    if (line.type === 'context') {
+      rows.push({ left: line, right: line });
+      i++;
+    } else if (line.type === 'removed') {
+      // Check if next is added (paired change)
+      const next = diffLines[i + 1];
+      if (next?.type === 'added') {
+        rows.push({ left: line, right: next });
+        i += 2;
+      } else {
+        rows.push({ left: line, right: null });
+        i++;
+      }
+    } else if (line.type === 'added') {
+      rows.push({ left: null, right: line });
+      i++;
+    } else {
+      i++;
+    }
+  }
+  return rows;
+}
+
+const SplitDiffHalf: React.FC<{ line: DiffLine | null; side: 'left' | 'right' }> = ({ line }) => {
+  if (!line) {
+    return <div className="flex-1 bg-zinc-800/30 px-2 py-px" />;
+  }
+  const isRemoved = line.type === 'removed';
+  const isAdded = line.type === 'added';
+  return (
+    <div
+      className={cn(
+        'flex flex-1 min-w-0 border-l-2 px-2 py-px',
+        isRemoved && 'bg-red-500/10 border-red-500',
+        isAdded && 'bg-green-500/10 border-green-500',
+        !isRemoved && !isAdded && 'border-transparent'
+      )}
+    >
+      <span
+        className={cn(
+          'flex-1 whitespace-pre',
+          isRemoved && 'text-red-400',
+          isAdded && 'text-green-400',
+          !isRemoved && !isAdded && 'text-muted-foreground'
+        )}
+      >
+        {line.content || ' '}
+      </span>
+    </div>
+  );
+};
+
+const SplitDiffView: React.FC<SplitDiffViewProps> = ({ diffLines, maxHeight }) => {
+  const rows = buildSplitRows(diffLines);
+  return (
+    <div className={cn('overflow-auto font-mono text-xs', maxHeight)}>
+      <div className="inline-block min-w-full">
+        {rows.map((row, i) => (
+          <div key={i} className="flex">
+            <SplitDiffHalf line={row.left} side="left" />
+            <div className="border-border w-px shrink-0 border-l" />
+            <SplitDiffHalf line={row.right} side="right" />
+          </div>
+        ))}
+        {rows.length === 0 && (
+          <div className="text-muted-foreground px-3 py-2 italic">No changes detected</div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// =============================================================================
 // Main Component
 // =============================================================================
 
@@ -263,6 +350,8 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
   maxHeight = 'max-h-96',
   tokenCount,
 }): React.JSX.Element => {
+  const [mode, setMode] = React.useState<'unified' | 'split'>('unified');
+
   // Compute diff
   const oldLines = oldString.split('\n');
   const newLines = newString.split('\n');
@@ -297,19 +386,31 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
             ~{formatTokens(tokenCount)} tokens
           </span>
         )}
+        {/* Unified / Split toggle */}
+        <button
+          onClick={() => setMode(mode === 'unified' ? 'split' : 'unified')}
+          className="text-muted-foreground hover:text-foreground ml-auto shrink-0 transition-colors"
+          title={mode === 'unified' ? 'Switch to side-by-side' : 'Switch to unified'}
+        >
+          {mode === 'unified' ? <Columns2 className="size-3.5" /> : <Rows3 className="size-3.5" />}
+        </button>
       </div>
 
       {/* Diff content */}
-      <div className={cn('overflow-auto font-mono text-xs', maxHeight)}>
-        <div className="inline-block min-w-full">
-          {diffLines.map((line, index) => (
-            <DiffLineRow key={index} line={line} />
-          ))}
-          {diffLines.length === 0 && (
-            <div className="text-muted-foreground px-3 py-2 italic">No changes detected</div>
-          )}
+      {mode === 'unified' ? (
+        <div className={cn('overflow-auto font-mono text-xs', maxHeight)}>
+          <div className="inline-block min-w-full">
+            {diffLines.map((line, index) => (
+              <DiffLineRow key={index} line={line} />
+            ))}
+            {diffLines.length === 0 && (
+              <div className="text-muted-foreground px-3 py-2 italic">No changes detected</div>
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        <SplitDiffView diffLines={diffLines} maxHeight={maxHeight} />
+      )}
     </div>
   );
 };
