@@ -134,3 +134,39 @@
     @apply font-sans;
   }
 }
+
+/* Streaming tab indicator — subtle pulsing green border */
+@keyframes streaming-border {
+  0%, 100% { box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.3); }
+  50% { box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.6); }
+}
+
+.animate-streaming-border {
+  animation: streaming-border 3s ease-in-out infinite;
+}
+
+/* Chunk slide-in animation for new streaming content */
+@keyframes chunk-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-chunk-slide-in {
+  animation: chunk-slide-in 0.3s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-streaming-border {
+    animation: none;
+    box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.4);
+  }
+  .animate-chunk-slide-in {
+    animation: none;
+  }
+}

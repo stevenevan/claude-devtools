@@ -519,6 +519,7 @@ const AIChatGroupInner = ({
           aiGroupId={aiGroup.id}
           isLastGroup={aiGroup.isOngoing ?? false}
           isSessionOngoing={isSessionOngoing}
+          lastStep={aiGroup.steps.length > 0 ? aiGroup.steps[aiGroup.steps.length - 1] : null}
         />
       </div>
     </div>

@@ -76,7 +76,7 @@ export const SortableTab = ({
   disableSplit,
   setRef,
 }: SortableTabProps): React.JSX.Element => {
-  const { isPinned, isHidden, togglePinSession, toggleHideSession } = useStore(
+  const { isPinned, isHidden, isStreaming, togglePinSession, toggleHideSession } = useStore(
     useShallow((s) => ({
       isPinned:
         tab.type === 'session' && tab.sessionId
@@ -86,6 +86,7 @@ export const SortableTab = ({
         tab.type === 'session' && tab.sessionId
           ? s.hiddenSessionIds.includes(tab.sessionId)
           : false,
+      isStreaming: s.tabSessionData[tab.id]?.isStreaming ?? false,
       togglePinSession: s.togglePinSession,
       toggleHideSession: s.toggleHideSession,
     }))
@@ -130,7 +131,8 @@ export const SortableTab = ({
               isActive
                 ? 'bg-card text-foreground'
                 : 'text-muted-foreground hover:bg-popover hover:text-foreground',
-              isSelected && 'outline outline-1 -outline-offset-1 outline-border'
+              isSelected && 'outline outline-1 -outline-offset-1 outline-border',
+              isStreaming && 'animate-streaming-border'
             )}
             style={
               {

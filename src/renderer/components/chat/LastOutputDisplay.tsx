@@ -8,12 +8,14 @@ import remarkGfm from 'remark-gfm';
 import { useShallow } from 'zustand/react/shallow';
 
 import { CopyButton } from '../common/CopyButton';
+import { LiveActivityBar } from '../common/LiveActivityBar';
 import { OngoingBanner } from '../common/OngoingIndicator';
 
 import { createMarkdownComponents, markdownComponents } from './markdownComponents';
 import { createSearchContext, EMPTY_SEARCH_MATCHES } from './searchHighlightUtils';
 
 import type { AIGroupLastOutput } from '@renderer/types/groups';
+import type { SemanticStep } from '@shared/types/chunks';
 
 interface LastOutputDisplayProps {
   lastOutput: AIGroupLastOutput | null;
@@ -22,6 +24,8 @@ interface LastOutputDisplayProps {
   isLastGroup?: boolean;
   /** Whether the session is ongoing (from sessions array, same source as sidebar) */
   isSessionOngoing?: boolean;
+  /** Last semantic step for the LiveActivityBar (when session is ongoing) */
+  lastStep?: SemanticStep | null;
 }
 
 /**
@@ -40,6 +44,7 @@ export const LastOutputDisplay = ({
   aiGroupId,
   isLastGroup = false,
   isSessionOngoing = false,
+  lastStep,
 }: Readonly<LastOutputDisplayProps>): React.JSX.Element | null => {
   // Only re-render if THIS AI group has search matches
   const { searchQuery, searchMatches, currentSearchIndex } = useStore(
@@ -65,10 +70,10 @@ export const LastOutputDisplay = ({
   // useMemo would cache stale closures when parent re-renders without search deps changing
   const mdComponents = searchCtx ? createMarkdownComponents(searchCtx) : markdownComponents;
 
-  // Show ongoing banner if this is the last AI group and session is ongoing
-  // This uses the same source (sessions array) as the sidebar green dot for consistency
+  // Show live activity bar if this is the last AI group and session is ongoing
+  // Uses lastStep to show what the AI is currently doing (Thinking, Running Bash, etc.)
   if (isLastGroup && isSessionOngoing) {
-    return <OngoingBanner />;
+    return <LiveActivityBar lastStep={lastStep} />;
   }
 
   if (!lastOutput) {
