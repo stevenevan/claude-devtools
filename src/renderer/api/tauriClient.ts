@@ -321,6 +321,16 @@ export class TauriAPIClient implements ElectronAPI {
       invoke('config_unhide_sessions', { projectId, sessionIds }),
     getClaudeRootInfo: () => invoke<ClaudeRootInfo>('config_get_claude_root_info'),
     openInEditor: () => invoke('config_open_in_editor'),
+    addBookmark: (sessionId: string, projectId: string, groupId: string, note?: string) =>
+      invoke('config_add_bookmark', { sessionId, projectId, groupId, note: note ?? null }),
+    removeBookmark: (bookmarkId: string) =>
+      invoke('config_remove_bookmark', { bookmarkId }),
+    getBookmarks: () =>
+      invoke<Array<{ id: string; sessionId: string; projectId: string; groupId: string; note?: string; createdAt: number }>>('config_get_bookmarks'),
+    setSessionTags: (sessionId: string, tags: string[]) =>
+      invoke('config_set_session_tags', { sessionId, tags }),
+    getSessionTags: (sessionId: string) =>
+      invoke<string[]>('config_get_session_tags', { sessionId }),
 
     // Native: folder selection dialogs via Tauri plugin
     selectFolders: async (): Promise<string[]> => {

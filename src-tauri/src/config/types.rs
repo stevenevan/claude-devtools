@@ -104,6 +104,23 @@ pub struct DisplayConfig {
 pub struct SessionsConfig {
     pub pinned_sessions: HashMap<String, Vec<PinnedSession>>,
     pub hidden_sessions: HashMap<String, Vec<HiddenSession>>,
+    #[serde(default)]
+    pub bookmarks: Vec<BookmarkEntry>,
+    #[serde(default)]
+    pub session_tags: HashMap<String, Vec<String>>,
+}
+
+/// A bookmark on a specific AI group within a session.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BookmarkEntry {
+    pub id: String,
+    pub session_id: String,
+    pub project_id: String,
+    pub group_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
+    pub created_at: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -243,6 +260,8 @@ impl Default for SessionsConfig {
         Self {
             pinned_sessions: HashMap::new(),
             hidden_sessions: HashMap::new(),
+            bookmarks: vec![],
+            session_tags: HashMap::new(),
         }
     }
 }

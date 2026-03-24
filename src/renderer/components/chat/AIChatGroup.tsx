@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
+import { api } from '@renderer/api';
 import { useTabUI } from '@renderer/hooks/useTabUI';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -8,7 +9,7 @@ import { extractSlashInfo, isCommandContent } from '@shared/utils/contentSanitiz
 import { getModelColorClass } from '@shared/utils/modelParser';
 import { estimateTokens } from '@shared/utils/tokenFormatting';
 import { format } from 'date-fns';
-import { Bot, ChevronDown, Clock } from 'lucide-react';
+import { Bookmark, Bot, ChevronDown, Clock } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { TokenUsageDisplay } from '../common/TokenUsageDisplay';
@@ -492,6 +493,22 @@ const AIChatGroupInner = ({
                 {format(enhanced.lastOutput.timestamp, 'h:mm:ss a')}
               </span>
             )}
+
+            {/* Bookmark button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const sessionId = useStore.getState().selectedSessionId;
+                const projectId = useStore.getState().selectedProjectId;
+                if (sessionId && projectId) {
+                  void api.config.addBookmark(sessionId, projectId, aiGroup.id);
+                }
+              }}
+              className="text-muted-foreground hover:text-amber-400 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+              title="Bookmark this turn"
+            >
+              <Bookmark className="size-3.5" />
+            </button>
           </div>
         </div>
       )}

@@ -144,6 +144,16 @@ export interface ConfigAPI {
   hideSessions: (projectId: string, sessionIds: string[]) => Promise<void>;
   /** Bulk unhide sessions for a project */
   unhideSessions: (projectId: string, sessionIds: string[]) => Promise<void>;
+  /** Add a bookmark on an AI group */
+  addBookmark: (sessionId: string, projectId: string, groupId: string, note?: string) => Promise<void>;
+  /** Remove a bookmark by ID */
+  removeBookmark: (bookmarkId: string) => Promise<void>;
+  /** Get all bookmarks */
+  getBookmarks: () => Promise<Array<{ id: string; sessionId: string; projectId: string; groupId: string; note?: string; createdAt: number }>>;
+  /** Set tags for a session */
+  setSessionTags: (sessionId: string, tags: string[]) => Promise<void>;
+  /** Get tags for a session */
+  getSessionTags: (sessionId: string) => Promise<string[]>;
 }
 
 export interface ClaudeRootInfo {

@@ -399,6 +399,41 @@ impl ConfigState {
     }
 
     // =========================================================================
+    // Bookmarks
+    // =========================================================================
+
+    pub fn add_bookmark(&mut self, entry: super::types::BookmarkEntry) {
+        self.config.sessions.bookmarks.push(entry);
+        self.save_config();
+    }
+
+    pub fn remove_bookmark(&mut self, bookmark_id: &str) {
+        self.config.sessions.bookmarks.retain(|b| b.id != bookmark_id);
+        self.save_config();
+    }
+
+    pub fn get_bookmarks(&self) -> &[super::types::BookmarkEntry] {
+        &self.config.sessions.bookmarks
+    }
+
+    // =========================================================================
+    // Session Tags
+    // =========================================================================
+
+    pub fn set_session_tags(&mut self, session_id: &str, tags: Vec<String>) {
+        if tags.is_empty() {
+            self.config.sessions.session_tags.remove(session_id);
+        } else {
+            self.config.sessions.session_tags.insert(session_id.to_string(), tags);
+        }
+        self.save_config();
+    }
+
+    pub fn get_session_tags(&self, session_id: &str) -> Vec<String> {
+        self.config.sessions.session_tags.get(session_id).cloned().unwrap_or_default()
+    }
+
+    // =========================================================================
     // Internal
     // =========================================================================
 
