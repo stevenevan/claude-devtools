@@ -1,18 +1,28 @@
+import React, { Suspense } from 'react';
+
 import { TabUIProvider } from '@renderer/contexts/TabUIContext';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
+import { Loader2 } from 'lucide-react';
 
-import { AgentsGrid } from '../dashboard/AgentsGrid';
-import { AnalyticsDashboard } from '../dashboard/AnalyticsDashboard';
-import { DashboardView } from '../dashboard/DashboardView';
-import { PluginsGrid } from '../dashboard/PluginsGrid';
-import { SkillsGrid } from '../dashboard/SkillsGrid';
-import { NotificationsView } from '../notifications/NotificationsView';
-import { SearchView } from '../search/SearchView';
-import { SettingsView } from '../settings/SettingsView';
-
-import { GlobalContentView } from './GlobalContentView';
 import { SessionTabContent } from './SessionTabContent';
+
+// Lazy-load non-critical views for faster initial load
+const DashboardView = React.lazy(() => import('../dashboard/DashboardView').then((m) => ({ default: m.DashboardView })));
+const AnalyticsDashboard = React.lazy(() => import('../dashboard/AnalyticsDashboard').then((m) => ({ default: m.AnalyticsDashboard })));
+const AgentsGrid = React.lazy(() => import('../dashboard/AgentsGrid').then((m) => ({ default: m.AgentsGrid })));
+const SkillsGrid = React.lazy(() => import('../dashboard/SkillsGrid').then((m) => ({ default: m.SkillsGrid })));
+const PluginsGrid = React.lazy(() => import('../dashboard/PluginsGrid').then((m) => ({ default: m.PluginsGrid })));
+const NotificationsView = React.lazy(() => import('../notifications/NotificationsView').then((m) => ({ default: m.NotificationsView })));
+const SearchView = React.lazy(() => import('../search/SearchView').then((m) => ({ default: m.SearchView })));
+const SettingsView = React.lazy(() => import('../settings/SettingsView').then((m) => ({ default: m.SettingsView })));
+const GlobalContentView = React.lazy(() => import('./GlobalContentView').then((m) => ({ default: m.GlobalContentView })));
+
+const LazyFallback = (): React.JSX.Element => (
+  <div className="bg-background flex flex-1 items-center justify-center">
+    <Loader2 className="text-muted-foreground size-5 animate-spin" />
+  </div>
+);
 
 import type { Pane } from '@renderer/types/panes';
 
@@ -42,26 +52,28 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
     <div className="relative flex flex-1 overflow-hidden">
       {showGlobalContent && (
         <div className="absolute inset-0 flex">
-          {activeActivity === 'projects' && <DashboardView />}
-          {activeActivity === 'analytics' && <AnalyticsDashboard />}
-          {activeActivity === 'agents' && (
-            <GlobalContentView title="Agents">
-              <AgentsGrid searchQuery="" />
-            </GlobalContentView>
-          )}
-          {activeActivity === 'skills' && (
-            <GlobalContentView title="Skills">
-              <SkillsGrid searchQuery="" />
-            </GlobalContentView>
-          )}
-          {activeActivity === 'plugins' && (
-            <GlobalContentView title="Plugins">
-              <PluginsGrid searchQuery="" />
-            </GlobalContentView>
-          )}
-          {activeActivity === 'notifications' && <NotificationsView />}
-          {activeActivity === 'search' && <SearchView />}
-          {activeActivity === 'settings' && <SettingsView />}
+          <Suspense fallback={<LazyFallback />}>
+            {activeActivity === 'projects' && <DashboardView />}
+            {activeActivity === 'analytics' && <AnalyticsDashboard />}
+            {activeActivity === 'agents' && (
+              <GlobalContentView title="Agents">
+                <AgentsGrid searchQuery="" />
+              </GlobalContentView>
+            )}
+            {activeActivity === 'skills' && (
+              <GlobalContentView title="Skills">
+                <SkillsGrid searchQuery="" />
+              </GlobalContentView>
+            )}
+            {activeActivity === 'plugins' && (
+              <GlobalContentView title="Plugins">
+                <PluginsGrid searchQuery="" />
+              </GlobalContentView>
+            )}
+            {activeActivity === 'notifications' && <NotificationsView />}
+            {activeActivity === 'search' && <SearchView />}
+            {activeActivity === 'settings' && <SettingsView />}
+          </Suspense>
         </div>
       )}
 
@@ -69,9 +81,11 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
         const isActive = tab.id === activeTabId && !isGlobalActivity;
         return (
           <div key={tab.id} className={cn('absolute inset-0', isActive ? 'flex' : 'hidden')}>
-            {(tab.type === 'dashboard' || tab.type === 'projects') && <DashboardView />}
-            {tab.type === 'notifications' && <NotificationsView />}
-            {tab.type === 'settings' && <SettingsView />}
+            <Suspense fallback={<LazyFallback />}>
+              {(tab.type === 'dashboard' || tab.type === 'projects') && <DashboardView />}
+              {tab.type === 'notifications' && <NotificationsView />}
+              {tab.type === 'settings' && <SettingsView />}
+            </Suspense>
             {tab.type === 'session' && (
               <TabUIProvider tabId={tab.id}>
                 <SessionTabContent tab={tab} isActive={isActive} />
