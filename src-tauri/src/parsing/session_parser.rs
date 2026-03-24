@@ -1,6 +1,6 @@
 /// Full session file parsing — streaming JSONL reader and message categorization.
 
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Seek, SeekFrom};
 use std::path::Path;
 
 use crate::types::domain::{MessagesByType, ParsedSession};
@@ -16,6 +16,42 @@ use super::metrics::calculate_metrics;
 pub struct SessionFileMetadata {
     pub custom_title: Option<String>,
     pub agent_name: Option<String>,
+}
+
+/// Result of parsing JSONL lines — messages plus metadata updates.
+pub struct LineParseResult {
+    pub messages: Vec<ParsedMessage>,
+    pub metadata: SessionFileMetadata,
+}
+
+/// Parse a single JSONL line into an optional message and metadata update.
+/// This is the shared core used by both full and incremental parsing.
+pub fn parse_jsonl_line(line: &str, metadata: &mut SessionFileMetadata) -> Option<ParsedMessage> {
+    if line.trim().is_empty() {
+        return None;
+    }
+
+    match serde_json::from_str::<RawJsonlEntry>(line) {
+        Ok(entry) => {
+            // Extract session-level metadata from non-message entries
+            match entry.entry_type.as_str() {
+                "custom-title" => {
+                    if let Some(ref title) = entry.custom_title {
+                        metadata.custom_title = Some(title.clone());
+                    }
+                }
+                "agent-name" => {
+                    if let Some(ref name) = entry.agent_name {
+                        metadata.agent_name = Some(name.clone());
+                    }
+                }
+                _ => {}
+            }
+
+            parse_entry(&entry)
+        }
+        Err(_) => None,
+    }
 }
 
 /// Parse a JSONL session file into messages and session metadata.
@@ -44,41 +80,66 @@ pub fn parse_jsonl_file(file_path: &Path) -> Result<(Vec<ParsedMessage>, Session
             }
         };
 
-        if line.trim().is_empty() {
-            continue;
-        }
-
-        match serde_json::from_str::<RawJsonlEntry>(&line) {
-            Ok(entry) => {
-                // Extract session-level metadata from non-message entries
-                match entry.entry_type.as_str() {
-                    "custom-title" => {
-                        if let Some(ref title) = entry.custom_title {
-                            metadata.custom_title = Some(title.clone());
-                        }
-                    }
-                    "agent-name" => {
-                        if let Some(ref name) = entry.agent_name {
-                            metadata.agent_name = Some(name.clone());
-                        }
-                    }
-                    _ => {}
-                }
-
-                if let Some(msg) = parse_entry(&entry) {
-                    messages.push(msg);
-                }
-            }
-            Err(e) => {
-                eprintln!(
-                    "[parser] Error parsing JSON in {}: {e}",
-                    file_path.display()
-                );
-            }
+        if let Some(msg) = parse_jsonl_line(&line, &mut metadata) {
+            messages.push(msg);
         }
     }
 
     Ok((messages, metadata))
+}
+
+/// Parse a JSONL file incrementally starting from `byte_offset`.
+/// Returns new messages, updated metadata, and the new byte offset.
+/// Handles partial lines (from mid-write) by not advancing past an incomplete last line.
+pub fn parse_jsonl_incremental(
+    file_path: &Path,
+    byte_offset: u64,
+    existing_metadata: &SessionFileMetadata,
+) -> Result<(Vec<ParsedMessage>, SessionFileMetadata, u64), String> {
+    if !file_path.exists() {
+        return Ok((vec![], existing_metadata.clone(), byte_offset));
+    }
+
+    let mut file =
+        std::fs::File::open(file_path).map_err(|e| format!("Failed to open {}: {e}", file_path.display()))?;
+
+    let file_len = file
+        .metadata()
+        .map_err(|e| format!("Failed to get file metadata: {e}"))?
+        .len();
+
+    // Nothing new to read
+    if file_len <= byte_offset {
+        return Ok((vec![], existing_metadata.clone(), byte_offset));
+    }
+
+    file.seek(SeekFrom::Start(byte_offset))
+        .map_err(|e| format!("Failed to seek: {e}"))?;
+
+    let reader = BufReader::new(file);
+    let mut messages = Vec::new();
+    let mut metadata = existing_metadata.clone();
+    let mut current_offset = byte_offset;
+
+    for line in reader.lines() {
+        let line = match line {
+            Ok(l) => l,
+            Err(_) => {
+                // Likely a partial line from a concurrent write — stop here.
+                // Don't advance the offset past this incomplete line.
+                break;
+            }
+        };
+
+        // Advance offset by line length + newline byte
+        current_offset += line.len() as u64 + 1;
+
+        if let Some(msg) = parse_jsonl_line(&line, &mut metadata) {
+            messages.push(msg);
+        }
+    }
+
+    Ok((messages, metadata, current_offset))
 }
 
 /// Process parsed messages into a full ParsedSession with categorized fields.

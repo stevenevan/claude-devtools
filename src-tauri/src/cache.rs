@@ -1,10 +1,12 @@
 /// LRU cache with TTL for parsed session data.
 
+use std::collections::HashMap;
 use std::num::NonZeroUsize;
 use std::time::{Duration, Instant};
 
 use lru::LruCache;
 
+use crate::parsing::session_parser::SessionFileMetadata;
 use crate::types::domain::ParsedSession;
 
 /// Cached entry with expiration tracking.
@@ -13,11 +15,22 @@ struct CacheEntry {
     inserted_at: Instant,
 }
 
+/// Tracks incremental parsing state for a session file.
+#[derive(Debug, Clone)]
+pub struct IncrementalState {
+    /// Byte offset of the last successfully parsed position.
+    pub byte_offset: u64,
+    /// Accumulated metadata from all lines parsed so far.
+    pub metadata: SessionFileMetadata,
+}
+
 /// Thread-safe LRU cache for parsed sessions.
 /// Matching the TypeScript DataCache: 50 entries, 10-min TTL.
 pub struct SessionCache {
     inner: LruCache<String, CacheEntry>,
     ttl: Duration,
+    /// Tracks incremental parsing state per session (keyed by cache key).
+    incremental: HashMap<String, IncrementalState>,
 }
 
 impl SessionCache {
@@ -25,6 +38,7 @@ impl SessionCache {
         Self {
             inner: LruCache::new(NonZeroUsize::new(capacity).unwrap_or(NonZeroUsize::new(50).unwrap())),
             ttl,
+            incremental: HashMap::new(),
         }
     }
 
@@ -50,12 +64,28 @@ impl SessionCache {
         );
     }
 
+    /// Get incremental parsing state for a session.
+    pub fn get_incremental(&self, key: &str) -> Option<&IncrementalState> {
+        self.incremental.get(key)
+    }
+
+    /// Update incremental parsing state for a session.
+    pub fn set_incremental(&mut self, key: String, state: IncrementalState) {
+        self.incremental.insert(key, state);
+    }
+
+    /// Remove incremental state (e.g., when session cache entry is evicted).
+    pub fn remove_incremental(&mut self, key: &str) {
+        self.incremental.remove(key);
+    }
+
 }
 
 #[cfg(test)]
 impl SessionCache {
     pub fn invalidate(&mut self, key: &str) {
         self.inner.pop(key);
+        self.incremental.remove(key);
     }
 
     pub fn invalidate_project(&mut self, project_id: &str) {
@@ -66,8 +96,9 @@ impl SessionCache {
             .filter(|(k, _)| k.starts_with(&prefix))
             .map(|(k, _)| k.clone())
             .collect();
-        for key in keys_to_remove {
-            self.inner.pop(&key);
+        for key in &keys_to_remove {
+            self.inner.pop(key);
+            self.incremental.remove(key.as_str());
         }
     }
 }
