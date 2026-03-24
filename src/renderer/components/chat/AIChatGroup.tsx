@@ -9,7 +9,7 @@ import { extractSlashInfo, isCommandContent } from '@shared/utils/contentSanitiz
 import { getModelColorClass } from '@shared/utils/modelParser';
 import { estimateTokens } from '@shared/utils/tokenFormatting';
 import { format } from 'date-fns';
-import { Bookmark, Bot, ChevronDown, Clock } from 'lucide-react';
+import { Bookmark, Bot, ChevronDown, Clock, Copy } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { TokenUsageDisplay } from '../common/TokenUsageDisplay';
@@ -493,6 +493,19 @@ const AIChatGroupInner = ({
                 {format(enhanced.lastOutput.timestamp, 'h:mm:ss a')}
               </span>
             )}
+
+            {/* Copy as Markdown */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const text = enhanced.lastOutput?.text ?? '';
+                if (text) void navigator.clipboard.writeText(text);
+              }}
+              className="text-muted-foreground hover:text-foreground shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+              title="Copy response as text"
+            >
+              <Copy className="size-3.5" />
+            </button>
 
             {/* Bookmark button */}
             <button

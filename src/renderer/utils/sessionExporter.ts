@@ -390,6 +390,17 @@ export function exportAsMarkdown(detail: SessionDetail): string {
 }
 
 /**
+ * Export a single AI chunk as Markdown (for "Copy as Markdown" on AI groups).
+ */
+export function exportAIChunkAsMarkdown(chunk: Chunk): string {
+  if (chunk.chunkType !== 'ai') return '';
+  const lines = formatChunkMarkdown(chunk, 0);
+  // Remove the "### Assistant (Turn 0)" header, just return content
+  const filtered = lines.filter((l) => !l.startsWith('### Assistant'));
+  return filtered.join('\n').trim();
+}
+
+/**
  * Export session as pretty-printed JSON.
  */
 export function exportAsJson(detail: SessionDetail): string {
