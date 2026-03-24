@@ -203,6 +203,9 @@ export const createNotificationSlice: StateCreator<AppState, [], [], Notificatio
   navigateToError: (error: DetectedError) => {
     const state = get();
 
+    // Switch away from global activity (e.g. notifications) so session tab is visible
+    set({ activeActivity: 'projects' });
+
     // Mark the notification as read
     void state.markNotificationRead(error.id);
 
