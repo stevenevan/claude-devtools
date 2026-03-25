@@ -6,8 +6,18 @@ import { useStore } from '../store';
 
 type Theme = 'dark' | 'light' | 'system';
 type ResolvedTheme = 'dark' | 'light';
+export type ThemePreset = 'default' | 'nord' | 'solarized' | 'monokai' | 'high-contrast';
+
+export const THEME_PRESETS: { value: ThemePreset; label: string }[] = [
+  { value: 'default', label: 'Default' },
+  { value: 'nord', label: 'Nord' },
+  { value: 'solarized', label: 'Solarized Dark' },
+  { value: 'monokai', label: 'Monokai' },
+  { value: 'high-contrast', label: 'High Contrast' },
+];
 
 const THEME_CACHE_KEY = 'claude-devtools-theme-cache';
+const PRESET_CACHE_KEY = 'claude-devtools-theme-preset';
 
 /**
  * Hook to manage theme state and application.
@@ -21,6 +31,8 @@ export function useTheme(): {
   resolvedTheme: ResolvedTheme;
   isDark: boolean;
   isLight: boolean;
+  preset: ThemePreset;
+  setPreset: (preset: ThemePreset) => void;
 } {
   const { appConfig, fetchConfig } = useStore(
     useShallow((s) => ({
@@ -38,6 +50,23 @@ export function useTheme(): {
     }
     return 'dark';
   });
+
+  const [preset, setPresetState] = useState<ThemePreset>(() => {
+    try {
+      return (localStorage.getItem(PRESET_CACHE_KEY) as ThemePreset) ?? 'default';
+    } catch {
+      return 'default';
+    }
+  });
+
+  const setPreset = useCallback((p: ThemePreset) => {
+    setPresetState(p);
+    try {
+      localStorage.setItem(PRESET_CACHE_KEY, p);
+    } catch {
+      // localStorage may not be available
+    }
+  }, []);
 
   // Fetch config on mount if not loaded
   useEffect(() => {
@@ -82,21 +111,28 @@ export function useTheme(): {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [configuredTheme, getSystemTheme]);
 
-  // Apply theme class to document root
+  // Apply theme and preset classes to document root
   useEffect(() => {
     const root = document.documentElement;
 
-    // Remove existing theme classes
-    root.classList.remove('dark', 'light');
+    // Remove existing theme and preset classes
+    root.classList.remove('dark', 'light', 'theme-nord', 'theme-solarized', 'theme-monokai', 'theme-high-contrast');
 
-    // Add new theme class
+    // Add theme class
     root.classList.add(resolvedTheme);
-  }, [resolvedTheme]);
+
+    // Add preset class (only for dark mode)
+    if (resolvedTheme === 'dark' && preset !== 'default') {
+      root.classList.add(`theme-${preset}`);
+    }
+  }, [resolvedTheme, preset]);
 
   return {
     theme: configuredTheme,
     resolvedTheme,
     isDark: resolvedTheme === 'dark',
     isLight: resolvedTheme === 'light',
+    preset,
+    setPreset,
   };
 }
