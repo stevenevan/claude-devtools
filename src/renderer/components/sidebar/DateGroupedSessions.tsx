@@ -31,6 +31,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { SessionItem } from './SessionItem';
 
+import type { SidebarFilter } from './SidebarQuickFilters';
 import type { Session } from '@renderer/types/data';
 import type { DateCategory } from '@renderer/types/tabs';
 
@@ -52,7 +53,11 @@ const SESSION_HEIGHT = 48; // Must match h-[48px] in SessionItem.tsx
 const LOADER_HEIGHT = 36;
 const OVERSCAN = 5;
 
-export const DateGroupedSessions = (): React.JSX.Element => {
+interface DateGroupedSessionsProps {
+  sidebarFilters?: Set<SidebarFilter>;
+}
+
+export const DateGroupedSessions = ({ sidebarFilters }: DateGroupedSessionsProps = {}): React.JSX.Element => {
   const {
     sessions,
     selectedSessionId,
@@ -116,10 +121,20 @@ export const DateGroupedSessions = (): React.JSX.Element => {
     return sessions.filter((s) => !hiddenSet.has(s.id));
   }, [sessions, hiddenSet, showHiddenSessions]);
 
+  // Apply sidebar quick filters
+  const filteredSessions = useMemo(() => {
+    if (!sidebarFilters || sidebarFilters.size === 0) return visibleSessions;
+    return visibleSessions.filter((s) => {
+      if (sidebarFilters.has('ongoing') && !s.isOngoing) return false;
+      if (sidebarFilters.has('subagents') && !s.hasSubagents) return false;
+      return true;
+    });
+  }, [visibleSessions, sidebarFilters]);
+
   // Separate pinned sessions from unpinned
   const { pinned: pinnedSessions, unpinned: unpinnedSessions } = useMemo(
-    () => separatePinnedSessions(visibleSessions, pinnedSessionIds),
-    [visibleSessions, pinnedSessionIds]
+    () => separatePinnedSessions(filteredSessions, pinnedSessionIds),
+    [filteredSessions, pinnedSessionIds]
   );
 
   // Group only unpinned sessions by date

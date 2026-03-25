@@ -6,6 +6,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { DateGroupedSessions } from '../sidebar/DateGroupedSessions';
 import { ProjectList } from '../sidebar/ProjectList';
+import { SidebarQuickFilters, type SidebarFilter } from '../sidebar/SidebarQuickFilters';
 
 import { SidebarHeader } from './SidebarHeader';
 
@@ -33,7 +34,17 @@ export const Sidebar = (): React.JSX.Element | null => {
   );
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<Set<SidebarFilter>>(new Set());
   const sidebarRef = useRef<HTMLDivElement>(null);
+
+  const handleToggleFilter = useCallback((filter: SidebarFilter) => {
+    setActiveFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(filter)) next.delete(filter);
+      else next.add(filter);
+      return next;
+    });
+  }, []);
 
   const showSidebar = activeActivity === 'projects';
 
@@ -91,8 +102,11 @@ export const Sidebar = (): React.JSX.Element | null => {
       style={{ width: `${width}px` }}
     >
       <SidebarHeader />
+      {activeProjectId && (
+        <SidebarQuickFilters activeFilters={activeFilters} onToggle={handleToggleFilter} />
+      )}
       <div className="flex-1 overflow-hidden">
-        {activeProjectId ? <DateGroupedSessions /> : <ProjectList />}
+        {activeProjectId ? <DateGroupedSessions sidebarFilters={activeFilters} /> : <ProjectList />}
       </div>
 
       <button
