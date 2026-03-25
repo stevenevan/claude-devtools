@@ -5,6 +5,7 @@ import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Loader2 } from 'lucide-react';
 
+import { SessionComparison } from '../chat/SessionComparison';
 import { SessionTabContent } from './SessionTabContent';
 
 // Lazy-load non-critical views for faster initial load
@@ -91,6 +92,7 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
                 <SessionTabContent tab={tab} isActive={isActive} />
               </TabUIProvider>
             )}
+            {tab.type === 'comparison' && <SessionComparison tab={tab} />}
           </div>
         );
       })}

@@ -20,6 +20,7 @@ import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatShortcut } from '@renderer/utils/stringUtils';
 import {
+  ArrowLeftRight,
   Bell,
   FileText,
   FolderGit2,
@@ -57,6 +58,7 @@ const TAB_ICONS = {
   notifications: Bell,
   settings: Settings,
   session: FileText,
+  comparison: ArrowLeftRight,
 } as const;
 
 export const SortableTab = ({

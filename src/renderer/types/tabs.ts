@@ -76,13 +76,17 @@ export interface Tab {
   id: string;
 
   /** Type of content displayed in this tab */
-  type: 'session' | 'dashboard' | 'projects' | 'notifications' | 'settings';
+  type: 'session' | 'dashboard' | 'projects' | 'notifications' | 'settings' | 'comparison';
 
   /** Session ID (required when type === 'session') */
   sessionId?: string;
 
   /** Project ID (required when type === 'session') */
   projectId?: string;
+
+  /** Second session/project for comparison tabs */
+  compareSessionId?: string;
+  compareProjectId?: string;
 
   /** Display name for the tab (max 50 chars) */
   label: string;
