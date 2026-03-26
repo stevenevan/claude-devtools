@@ -10,8 +10,11 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChevronsDown } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
+import { countPendingTodos } from '@renderer/types/todos';
+
 import { SessionContextPanel } from './SessionContextPanel/index';
 import { SessionMinimap } from './SessionMinimap';
+import { TodoPanel } from './TodoPanel';
 
 /** Pixels from bottom considered "near bottom" for scroll-button visibility and auto-scroll. */
 const SCROLL_THRESHOLD = 300;
@@ -53,6 +56,8 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     selectedContextPhase,
     setSelectedContextPhase,
   } = useTabUI();
+
+  const [isTodoPanelVisible, setIsTodoPanelVisible] = useState(false);
 
   // Global store subscriptions (shared data)
   const {
@@ -171,6 +176,11 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     return { allContextInjections: injections, lastAiGroupTotalTokens: totalTokens };
   }, [sessionContextStats, conversation, selectedContextPhase, sessionPhaseInfo]);
 
+  // Todo data
+  const todoData = sessionDetail?.session?.todoData;
+  const hasTodoData = todoData != null && Array.isArray(todoData) && todoData.length > 0;
+  const todoPendingCount = hasTodoData ? countPendingTodos(todoData) : 0;
+
   // State for navigation highlight (blue, used for Turn navigation from CLAUDE.md panel)
   const [isNavigationHighlight, setIsNavigationHighlight] = useState(false);
   const navigationHighlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -231,7 +241,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
 
   // Sticky context button height (py-3 = 12px padding * 2 + button height ~28px + pt-3 = 12px)
   // Total: approximately 52px, round up to 60px for safety
-  const STICKY_BUTTON_OFFSET = allContextInjections.length > 0 ? 60 : 0;
+  const STICKY_BUTTON_OFFSET = allContextInjections.length > 0 || hasTodoData ? 60 : 0;
 
   // Unified navigation controller - replaces useNavigationCoordinator + useSearchContextNavigation
   // Must be created before useAutoScrollBottom so we can pass shouldDisableAutoScroll
@@ -831,24 +841,39 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
           className="bg-background flex-1 overflow-y-auto"
           onScroll={checkScrollButton}
         >
-          {/* Sticky Context button */}
-          {allContextInjections.length > 0 && (
-            <div className="pointer-events-none sticky top-0 z-10 flex justify-end px-4 pt-3 pb-0">
-              <button
-                onClick={() => setContextPanelVisible(!isContextPanelVisible)}
-                onMouseEnter={() => setIsContextButtonHovered(true)}
-                onMouseLeave={() => setIsContextButtonHovered(false)}
-                className={cn(
-                  'pointer-events-auto flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs shadow-lg backdrop-blur-md transition-colors',
-                  isContextPanelVisible
-                    ? 'bg-indigo-500/45 text-indigo-100'
-                    : isContextButtonHovered
-                      ? 'hover:bg-accent text-muted-foreground'
-                      : 'bg-muted text-muted-foreground'
-                )}
-              >
-                Context ({allContextInjections.length})
-              </button>
+          {/* Sticky toolbar buttons (Context + Tasks) */}
+          {(allContextInjections.length > 0 || hasTodoData) && (
+            <div className="pointer-events-none sticky top-0 z-10 flex justify-end gap-1.5 px-4 pt-3 pb-0">
+              {hasTodoData && (
+                <button
+                  onClick={() => setIsTodoPanelVisible(!isTodoPanelVisible)}
+                  className={cn(
+                    'pointer-events-auto flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs shadow-lg backdrop-blur-md transition-colors',
+                    isTodoPanelVisible
+                      ? 'bg-emerald-500/45 text-emerald-100'
+                      : 'bg-muted text-muted-foreground hover:bg-accent'
+                  )}
+                >
+                  Tasks ({todoPendingCount})
+                </button>
+              )}
+              {allContextInjections.length > 0 && (
+                <button
+                  onClick={() => setContextPanelVisible(!isContextPanelVisible)}
+                  onMouseEnter={() => setIsContextButtonHovered(true)}
+                  onMouseLeave={() => setIsContextButtonHovered(false)}
+                  className={cn(
+                    'pointer-events-auto flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs shadow-lg backdrop-blur-md transition-colors',
+                    isContextPanelVisible
+                      ? 'bg-indigo-500/45 text-indigo-100'
+                      : isContextButtonHovered
+                        ? 'hover:bg-accent text-muted-foreground'
+                        : 'bg-muted text-muted-foreground'
+                  )}
+                >
+                  Context ({allContextInjections.length})
+                </button>
+              )}
             </div>
           )}
           <div
@@ -963,6 +988,16 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
             onJumpToIndex={handleMinimapJump}
             className="border-border/30 border-l"
           />
+        )}
+
+        {/* Todo panel sidebar */}
+        {isTodoPanelVisible && hasTodoData && (
+          <div className="w-72 shrink-0 border-l border-border">
+            <TodoPanel
+              todoData={todoData}
+              onClose={() => setIsTodoPanelVisible(false)}
+            />
+          </div>
         )}
 
         {/* Context panel sidebar */}

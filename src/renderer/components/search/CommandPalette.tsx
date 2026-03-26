@@ -17,8 +17,10 @@ import { formatModifierShortcut } from '@renderer/utils/keyboardUtils';
 import { createLogger } from '@shared/utils/logger';
 import { Command as CommandPrimitive } from 'cmdk';
 import { formatDistanceToNow } from 'date-fns';
+import { triggerDownload } from '@renderer/utils/sessionExporter';
 import {
   Bot,
+  Download,
   FileText,
   FolderGit2,
   Globe,
@@ -45,6 +47,7 @@ export const CommandPalette = (): React.JSX.Element | null => {
     repositoryGroups,
     fetchRepositoryGroups,
     selectRepository,
+    sessionDetail,
   } = useStore(
     useShallow((s) => ({
       commandPaletteOpen: s.commandPaletteOpen,
@@ -54,6 +57,7 @@ export const CommandPalette = (): React.JSX.Element | null => {
       repositoryGroups: s.repositoryGroups,
       fetchRepositoryGroups: s.fetchRepositoryGroups,
       selectRepository: s.selectRepository,
+      sessionDetail: s.sessionDetail,
     }))
   );
 
@@ -368,6 +372,38 @@ export const CommandPalette = (): React.JSX.Element | null => {
                   </CommandItem>
                 );
               })}
+            </CommandGroup>
+          )}
+          {/* Export actions (when a session is loaded) */}
+          {sessionDetail && query.trim() === '' && (
+            <CommandGroup heading="Export Session">
+              <CommandItem
+                onSelect={() => {
+                  triggerDownload(sessionDetail, 'markdown');
+                  closeCommandPalette();
+                }}
+              >
+                <Download className="mr-2 size-4" />
+                Export as Markdown
+              </CommandItem>
+              <CommandItem
+                onSelect={() => {
+                  triggerDownload(sessionDetail, 'json');
+                  closeCommandPalette();
+                }}
+              >
+                <Download className="mr-2 size-4" />
+                Export as JSON
+              </CommandItem>
+              <CommandItem
+                onSelect={() => {
+                  triggerDownload(sessionDetail, 'plaintext');
+                  closeCommandPalette();
+                }}
+              >
+                <Download className="mr-2 size-4" />
+                Export as Plain Text
+              </CommandItem>
             </CommandGroup>
           )}
         </CommandList>

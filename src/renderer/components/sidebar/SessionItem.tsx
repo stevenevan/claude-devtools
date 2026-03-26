@@ -12,8 +12,10 @@ import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { EyeOff, MessageSquare, Pin } from 'lucide-react';
+import { EyeOff, ListTodo, MessageSquare, Pin } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
+
+import { countPendingTodos } from '@renderer/types/todos';
 
 import { OngoingIndicator } from '../common/OngoingIndicator';
 
@@ -264,6 +266,15 @@ export const SessionItem = React.memo(function SessionItem({
                 contextConsumption={session.contextConsumption}
                 phaseBreakdown={session.phaseBreakdown}
               />
+            </>
+          )}
+          {session.todoData != null && countPendingTodos(session.todoData) > 0 && (
+            <>
+              <span className="opacity-50">·</span>
+              <span className="flex items-center gap-0.5 text-emerald-400">
+                <ListTodo className="size-2.5" />
+                {countPendingTodos(session.todoData)}
+              </span>
             </>
           )}
         </div>
