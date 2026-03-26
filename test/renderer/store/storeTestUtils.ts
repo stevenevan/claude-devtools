@@ -4,7 +4,10 @@
 
 import { create } from 'zustand';
 
+import { createClaudeConfigSlice } from '../../../src/renderer/store/slices/claudeConfigSlice';
 import { createConfigSlice } from '../../../src/renderer/store/slices/configSlice';
+import { createConnectionSlice } from '../../../src/renderer/store/slices/connectionSlice';
+import { createContextSlice } from '../../../src/renderer/store/slices/contextSlice';
 import { createConversationSlice } from '../../../src/renderer/store/slices/conversationSlice';
 import { createNotificationSlice } from '../../../src/renderer/store/slices/notificationSlice';
 import { createPaneSlice } from '../../../src/renderer/store/slices/paneSlice';
@@ -16,6 +19,7 @@ import { createSubagentSlice } from '../../../src/renderer/store/slices/subagent
 import { createTabSlice } from '../../../src/renderer/store/slices/tabSlice';
 import { createTabUISlice } from '../../../src/renderer/store/slices/tabUISlice';
 import { createUISlice } from '../../../src/renderer/store/slices/uiSlice';
+import { createUpdateSlice } from '../../../src/renderer/store/slices/updateSlice';
 
 import type { AppState } from '../../../src/renderer/store/types';
 
@@ -37,6 +41,10 @@ export function createTestStore() {
     ...createUISlice(...args),
     ...createNotificationSlice(...args),
     ...createConfigSlice(...args),
+    ...createClaudeConfigSlice(...args),
+    ...createConnectionSlice(...args),
+    ...createContextSlice(...args),
+    ...createUpdateSlice(...args),
   }));
 }
 

@@ -11,10 +11,10 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       include: [
-        'src/main/ipc/guards.ts',
-        'src/main/ipc/configValidation.ts',
-        'src/main/utils/pathDecoder.ts',
-        'src/main/services/discovery/ProjectPathResolver.ts',
+        'src/renderer/utils/groupTransformer.ts',
+        'src/renderer/utils/contextTracker.ts',
+        'src/renderer/utils/aiGroupEnhancer.ts',
+        'src/renderer/store/slices/sessionDetailSlice.ts',
       ],
       thresholds: {
         lines: 65,
