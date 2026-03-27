@@ -96,8 +96,9 @@ export const Sidebar = (): React.JSX.Element | null => {
   }
 
   return (
-    <div
+    <aside
       ref={sidebarRef}
+      aria-label="Session list"
       className="border-border bg-sidebar relative flex shrink-0 flex-col border-r"
       style={{ width: `${width}px` }}
     >
@@ -118,6 +119,6 @@ export const Sidebar = (): React.JSX.Element | null => {
         )}
         onMouseDown={handleResizeStart}
       />
-    </div>
+    </aside>
   );
 };

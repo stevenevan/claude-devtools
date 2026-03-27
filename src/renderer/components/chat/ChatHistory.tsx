@@ -833,7 +833,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
   if (!conversation || conversation.items.length === 0) return <ChatHistoryEmptyState />;
 
   return (
-    <div className="bg-background flex flex-1 flex-col overflow-hidden">
+    <div role="log" aria-label="Chat history" className="bg-background flex flex-1 flex-col overflow-hidden">
       <div className="relative flex flex-1 overflow-hidden">
         {/* Chat content */}
         <div

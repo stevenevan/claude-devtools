@@ -1,12 +1,18 @@
 /**
  * ShortcutCheatSheet - Modal overlay showing all keyboard shortcuts.
  * Opened via ? key. Organized by category.
+ * Uses the Dialog component for proper focus trapping and ARIA semantics.
  */
 
 import { useEffect } from 'react';
 
-import { cn } from '@renderer/lib/utils';
-import { X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@renderer/components/ui/dialog';
 
 interface ShortcutCheatSheetProps {
   open: boolean;
@@ -68,12 +74,12 @@ const SECTIONS: ShortcutSection[] = [
 export const ShortcutCheatSheet = ({
   open,
   onClose,
-}: Readonly<ShortcutCheatSheetProps>): React.JSX.Element | null => {
-  // Close on Escape
+}: Readonly<ShortcutCheatSheetProps>): React.JSX.Element => {
+  // Also close on ? key (in addition to Escape handled by Dialog)
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape' || e.key === '?') {
+      if (e.key === '?') {
         e.preventDefault();
         onClose();
       }
@@ -82,30 +88,18 @@ export const ShortcutCheatSheet = ({
     return () => window.removeEventListener('keydown', handler);
   }, [open, onClose]);
 
-  if (!open) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="border-border bg-card w-full max-w-lg rounded-lg border shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="border-border flex items-center justify-between border-b px-5 py-3">
-          <h2 className="text-foreground text-sm font-semibold">Keyboard Shortcuts</h2>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <X className="size-4" />
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DialogContent className="max-w-lg" showCloseButton>
+        <DialogHeader>
+          <DialogTitle className="text-sm font-semibold">Keyboard Shortcuts</DialogTitle>
+          <DialogDescription className="sr-only">
+            List of available keyboard shortcuts organized by category
+          </DialogDescription>
+        </DialogHeader>
 
         {/* Content */}
-        <div className="max-h-[60vh] overflow-y-auto px-5 py-4">
+        <div className="max-h-[60vh] overflow-y-auto">
           <div className="grid grid-cols-2 gap-6">
             {SECTIONS.map((section) => (
               <div key={section.title}>
@@ -128,13 +122,13 @@ export const ShortcutCheatSheet = ({
         </div>
 
         {/* Footer */}
-        <div className="border-border border-t px-5 py-2.5">
+        <div className="border-border border-t pt-2.5">
           <span className="text-muted-foreground text-[10px]">
             Press <kbd className="border-border bg-muted rounded-sm border px-1 font-mono text-[10px]">?</kbd> or{' '}
             <kbd className="border-border bg-muted rounded-sm border px-1 font-mono text-[10px]">Esc</kbd> to close
           </span>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };

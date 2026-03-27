@@ -134,14 +134,14 @@ export const PaneContainer = (): React.JSX.Element => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div id="pane-container" className="flex flex-1 overflow-hidden">
+      <main id="pane-container" className="flex flex-1 overflow-hidden">
         {panes.map((pane, i) => (
           <Fragment key={pane.id}>
             {i > 0 && <PaneResizeHandle leftPaneId={panes[i - 1].id} rightPaneId={pane.id} />}
             <PaneView paneId={pane.id} />
           </Fragment>
         ))}
-      </div>
+      </main>
 
       {/* Drag overlay - semi-transparent ghost of the dragged tab */}
       <DragOverlay dropAnimation={null}>

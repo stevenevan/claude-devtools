@@ -220,6 +220,7 @@ export const SessionItem = React.memo(function SessionItem({
         render={
           <button
             onClick={handleClick}
+            aria-current={isActive ? 'true' : undefined}
             className={cn(
               'h-[48px] w-full overflow-hidden border-b border-border py-2 text-left transition-all duration-150 border-l-2 focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:ring-inset',
               isActive
