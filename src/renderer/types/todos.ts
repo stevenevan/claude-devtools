@@ -1,5 +1,5 @@
 /**
- * Type definitions for Claude Code task/todo data.
+ * Type definitions for Claude Code task data.
  * Parsed from ~/.claude/todos/{sessionId}.json files.
  */
 
@@ -9,16 +9,21 @@ export interface TodoItem {
   activeForm?: string;
 }
 
+const VALID_STATUSES = new Set(['pending', 'in_progress', 'completed']);
+
+function isTodoItem(item: unknown): item is TodoItem {
+  if (typeof item !== 'object' || item === null) return false;
+  const obj = item as Record<string, unknown>;
+  return (
+    typeof obj.content === 'string' &&
+    typeof obj.status === 'string' &&
+    VALID_STATUSES.has(obj.status)
+  );
+}
+
 export function parseTodoData(data: unknown): TodoItem[] {
   if (!Array.isArray(data)) return [];
-  return data.filter(
-    (item): item is TodoItem =>
-      typeof item === 'object' &&
-      item !== null &&
-      typeof item.content === 'string' &&
-      typeof item.status === 'string' &&
-      ['pending', 'in_progress', 'completed'].includes(item.status)
-  );
+  return data.filter(isTodoItem);
 }
 
 export function countPendingTodos(data: unknown): number {
