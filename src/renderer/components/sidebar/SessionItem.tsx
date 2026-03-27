@@ -4,7 +4,7 @@
  * Supports right-click context menu for pane management.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 import { ContextMenu, ContextMenuTrigger } from '@renderer/components/ui/context-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/ui/tooltip';
@@ -132,6 +132,11 @@ export const SessionItem = React.memo(function SessionItem({
       togglePinSession: s.togglePinSession,
       toggleHideSession: s.toggleHideSession,
     }))
+  );
+
+  const pendingTodoCount = useMemo(
+    () => (session.todoData != null ? countPendingTodos(session.todoData) : 0),
+    [session.todoData]
   );
 
   const handleClick = (event: React.MouseEvent): void => {
@@ -268,12 +273,12 @@ export const SessionItem = React.memo(function SessionItem({
               />
             </>
           )}
-          {session.todoData != null && countPendingTodos(session.todoData) > 0 && (
+          {pendingTodoCount > 0 && (
             <>
               <span className="opacity-50">·</span>
               <span className="flex items-center gap-0.5 text-emerald-400">
                 <ListTodo className="size-2.5" />
-                {countPendingTodos(session.todoData)}
+                {pendingTodoCount}
               </span>
             </>
           )}
