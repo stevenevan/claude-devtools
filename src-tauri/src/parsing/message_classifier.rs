@@ -267,6 +267,38 @@ mod tests {
         }
     }
 
+    fn make_blocks_msg(blocks: Vec<ContentBlock>, is_meta: bool) -> ParsedMessage {
+        ParsedMessage {
+            uuid: "u1".to_string(),
+            parent_uuid: None,
+            message_type: "user".to_string(),
+            timestamp: "2024-01-01T00:00:00Z".to_string(),
+            role: Some("user".to_string()),
+            content: ParsedMessageContent::Blocks(blocks),
+            usage: None,
+            model: None,
+            cwd: None,
+            git_branch: None,
+            agent_id: None,
+            is_sidechain: false,
+            is_meta,
+            user_type: None,
+            tool_calls: vec![],
+            tool_results: vec![],
+            source_tool_use_id: None,
+            source_tool_assistant_uuid: None,
+            tool_use_result: None,
+            is_compact_summary: None,
+            request_id: None,
+            subtype: None,
+            event_data: None,
+        }
+    }
+
+    // =========================================================================
+    // is_parsed_real_user_message
+    // =========================================================================
+
     #[test]
     fn test_real_user_message() {
         let msg = make_user_msg("hello world", false);
@@ -280,12 +312,207 @@ mod tests {
     }
 
     #[test]
+    fn test_real_user_message_with_blocks() {
+        let msg = make_blocks_msg(
+            vec![ContentBlock::Text {
+                text: "hello".to_string(),
+            }],
+            false,
+        );
+        assert!(is_parsed_real_user_message(&msg));
+    }
+
+    #[test]
+    fn test_real_user_message_blocks_no_text_or_image() {
+        let msg = make_blocks_msg(
+            vec![ContentBlock::ToolUse {
+                id: "tu1".to_string(),
+                name: "Read".to_string(),
+                input: serde_json::json!({}),
+            }],
+            false,
+        );
+        assert!(!is_parsed_real_user_message(&msg));
+    }
+
+    #[test]
+    fn test_real_user_message_assistant_type_rejected() {
+        let mut msg = make_user_msg("text", false);
+        msg.message_type = "assistant".to_string();
+        assert!(!is_parsed_real_user_message(&msg));
+    }
+
+    // =========================================================================
+    // is_parsed_user_chunk_message
+    // =========================================================================
+
+    #[test]
+    fn test_user_chunk_message() {
+        let msg = make_user_msg("help me debug this", false);
+        assert!(is_parsed_user_chunk_message(&msg));
+        assert_eq!(categorize_message(&msg), MessageCategory::User);
+    }
+
+    #[test]
+    fn test_user_chunk_excludes_meta() {
+        let msg = make_user_msg("tool result content", true);
+        assert!(!is_parsed_user_chunk_message(&msg));
+    }
+
+    #[test]
+    fn test_user_chunk_excludes_system_output_tags() {
+        for tag in SYSTEM_OUTPUT_TAGS {
+            let content = format!("{tag}content</{}>", &tag[1..]);
+            let msg = make_user_msg(&content, false);
+            assert!(
+                !is_parsed_user_chunk_message(&msg),
+                "Should exclude tag: {tag}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_user_chunk_excludes_empty_content() {
+        let msg = make_user_msg("", false);
+        assert!(!is_parsed_user_chunk_message(&msg));
+    }
+
+    #[test]
+    fn test_user_chunk_excludes_whitespace_only() {
+        let msg = make_user_msg("   \t\n  ", false);
+        assert!(!is_parsed_user_chunk_message(&msg));
+    }
+
+    #[test]
+    fn test_user_chunk_excludes_interruption_block() {
+        let msg = make_blocks_msg(
+            vec![ContentBlock::Text {
+                text: "[Request interrupted by user at 2024-01-01]".to_string(),
+            }],
+            false,
+        );
+        assert!(!is_parsed_user_chunk_message(&msg));
+    }
+
+    #[test]
+    fn test_user_chunk_excludes_system_tag_in_blocks() {
+        let msg = make_blocks_msg(
+            vec![ContentBlock::Text {
+                text: "<local-command-stdout>output</local-command-stdout>".to_string(),
+            }],
+            false,
+        );
+        assert!(!is_parsed_user_chunk_message(&msg));
+    }
+
+    #[test]
+    fn test_user_chunk_with_blocks_containing_text() {
+        let msg = make_blocks_msg(
+            vec![ContentBlock::Text {
+                text: "Please fix this bug".to_string(),
+            }],
+            false,
+        );
+        assert!(is_parsed_user_chunk_message(&msg));
+    }
+
+    // =========================================================================
+    // is_parsed_system_chunk_message
+    // =========================================================================
+
+    #[test]
     fn test_system_chunk_stdout() {
         let msg = make_user_msg("<local-command-stdout>output</local-command-stdout>", false);
         assert!(is_parsed_system_chunk_message(&msg));
         assert!(!is_parsed_user_chunk_message(&msg));
         assert_eq!(categorize_message(&msg), MessageCategory::System);
     }
+
+    #[test]
+    fn test_system_chunk_stderr() {
+        let msg = make_user_msg("<local-command-stderr>error output</local-command-stderr>", false);
+        assert!(is_parsed_system_chunk_message(&msg));
+    }
+
+    #[test]
+    fn test_system_chunk_from_blocks() {
+        let msg = make_blocks_msg(
+            vec![ContentBlock::Text {
+                text: "<local-command-stdout>block output</local-command-stdout>".to_string(),
+            }],
+            false,
+        );
+        assert!(is_parsed_system_chunk_message(&msg));
+    }
+
+    #[test]
+    fn test_system_chunk_requires_user_type() {
+        let mut msg = make_user_msg("<local-command-stdout>output</local-command-stdout>", false);
+        msg.message_type = "assistant".to_string();
+        assert!(!is_parsed_system_chunk_message(&msg));
+    }
+
+    // =========================================================================
+    // is_parsed_event_message
+    // =========================================================================
+
+    #[test]
+    fn test_event_api_error() {
+        let mut msg = make_user_msg("", false);
+        msg.message_type = "system".to_string();
+        msg.subtype = Some("api_error".to_string());
+        assert!(is_parsed_event_message(&msg));
+        assert_eq!(categorize_message(&msg), MessageCategory::Event);
+    }
+
+    #[test]
+    fn test_event_bridge_status() {
+        let mut msg = make_user_msg("", false);
+        msg.message_type = "system".to_string();
+        msg.subtype = Some("bridge_status".to_string());
+        assert!(is_parsed_event_message(&msg));
+    }
+
+    #[test]
+    fn test_event_memory_saved() {
+        let mut msg = make_user_msg("", false);
+        msg.message_type = "system".to_string();
+        msg.subtype = Some("memory_saved".to_string());
+        assert!(is_parsed_event_message(&msg));
+    }
+
+    #[test]
+    fn test_event_turn_duration() {
+        let mut msg = make_user_msg("", false);
+        msg.message_type = "system".to_string();
+        msg.subtype = Some("turn_duration".to_string());
+        assert!(is_parsed_event_message(&msg));
+    }
+
+    #[test]
+    fn test_event_queue_operation() {
+        let mut msg = make_user_msg("", false);
+        msg.message_type = "queue-operation".to_string();
+        assert!(is_parsed_event_message(&msg));
+    }
+
+    #[test]
+    fn test_event_system_without_displayable_subtype_is_not_event() {
+        let mut msg = make_user_msg("", false);
+        msg.message_type = "system".to_string();
+        msg.subtype = Some("init".to_string());
+        assert!(!is_parsed_event_message(&msg));
+    }
+
+    #[test]
+    fn test_event_user_type_not_event() {
+        let msg = make_user_msg("hello", false);
+        assert!(!is_parsed_event_message(&msg));
+    }
+
+    // =========================================================================
+    // is_parsed_hard_noise_message
+    // =========================================================================
 
     #[test]
     fn test_hard_noise_caveat() {
@@ -313,8 +540,20 @@ mod tests {
     }
 
     #[test]
+    fn test_hard_noise_empty_stderr() {
+        let msg = make_user_msg("<local-command-stderr></local-command-stderr>", false);
+        assert!(is_parsed_hard_noise_message(&msg));
+    }
+
+    #[test]
     fn test_hard_noise_interruption() {
         let msg = make_user_msg("[Request interrupted by user]", false);
+        assert!(is_parsed_hard_noise_message(&msg));
+    }
+
+    #[test]
+    fn test_hard_noise_interruption_with_details() {
+        let msg = make_user_msg("[Request interrupted by user at 2024-01-01T12:00:00Z]", false);
         assert!(is_parsed_hard_noise_message(&msg));
     }
 
@@ -326,6 +565,14 @@ mod tests {
     }
 
     #[test]
+    fn test_hard_noise_system_with_displayable_subtype_not_noise() {
+        let mut msg = make_user_msg("", false);
+        msg.message_type = "system".to_string();
+        msg.subtype = Some("api_error".to_string());
+        assert!(!is_parsed_hard_noise_message(&msg));
+    }
+
+    #[test]
     fn test_hard_noise_synthetic_assistant() {
         let mut msg = make_user_msg("", false);
         msg.message_type = "assistant".to_string();
@@ -334,11 +581,79 @@ mod tests {
     }
 
     #[test]
-    fn test_user_chunk_message() {
-        let msg = make_user_msg("help me debug this", false);
-        assert!(is_parsed_user_chunk_message(&msg));
-        assert_eq!(categorize_message(&msg), MessageCategory::User);
+    fn test_hard_noise_real_assistant_not_noise() {
+        let mut msg = make_user_msg("response", false);
+        msg.message_type = "assistant".to_string();
+        msg.model = Some("claude-sonnet-4-20250514".to_string());
+        assert!(!is_parsed_hard_noise_message(&msg));
     }
+
+    #[test]
+    fn test_hard_noise_summary_type() {
+        let mut msg = make_user_msg("", false);
+        msg.message_type = "summary".to_string();
+        assert!(is_parsed_hard_noise_message(&msg));
+    }
+
+    #[test]
+    fn test_hard_noise_file_history_snapshot() {
+        let mut msg = make_user_msg("", false);
+        msg.message_type = "file-history-snapshot".to_string();
+        assert!(is_parsed_hard_noise_message(&msg));
+    }
+
+    #[test]
+    fn test_hard_noise_progress() {
+        let mut msg = make_user_msg("", false);
+        msg.message_type = "progress".to_string();
+        assert!(is_parsed_hard_noise_message(&msg));
+    }
+
+    #[test]
+    fn test_hard_noise_interruption_in_blocks() {
+        let msg = make_blocks_msg(
+            vec![ContentBlock::Text {
+                text: "[Request interrupted by user]".to_string(),
+            }],
+            false,
+        );
+        assert!(is_parsed_hard_noise_message(&msg));
+    }
+
+    #[test]
+    fn test_regular_user_message_not_hard_noise() {
+        let msg = make_user_msg("please fix the bug", false);
+        assert!(!is_parsed_hard_noise_message(&msg));
+    }
+
+    // =========================================================================
+    // is_parsed_compact_message
+    // =========================================================================
+
+    #[test]
+    fn test_compact_message() {
+        let mut msg = make_user_msg("", false);
+        msg.is_compact_summary = Some(true);
+        assert!(is_parsed_compact_message(&msg));
+        assert_eq!(categorize_message(&msg), MessageCategory::Compact);
+    }
+
+    #[test]
+    fn test_compact_false_not_compact() {
+        let mut msg = make_user_msg("", false);
+        msg.is_compact_summary = Some(false);
+        assert!(!is_parsed_compact_message(&msg));
+    }
+
+    #[test]
+    fn test_compact_none_not_compact() {
+        let msg = make_user_msg("content", false);
+        assert!(!is_parsed_compact_message(&msg));
+    }
+
+    // =========================================================================
+    // is_parsed_teammate_message
+    // =========================================================================
 
     #[test]
     fn test_teammate_message_excluded_from_user_chunk() {
@@ -351,18 +666,89 @@ mod tests {
     }
 
     #[test]
-    fn test_compact_message() {
-        let mut msg = make_user_msg("", false);
-        msg.is_compact_summary = Some(true);
-        assert!(is_parsed_compact_message(&msg));
-        assert_eq!(categorize_message(&msg), MessageCategory::Compact);
+    fn test_teammate_message_in_blocks() {
+        let msg = make_blocks_msg(
+            vec![ContentBlock::Text {
+                text: r#"<teammate-message teammate_id="a2" color="red" summary="ok">data</teammate-message>"#.to_string(),
+            }],
+            false,
+        );
+        assert!(is_parsed_teammate_message(&msg));
     }
+
+    #[test]
+    fn test_teammate_message_meta_rejected() {
+        let msg = make_user_msg(
+            r#"<teammate-message teammate_id="a1" color="blue" summary="x">y</teammate-message>"#,
+            true,
+        );
+        assert!(!is_parsed_teammate_message(&msg));
+    }
+
+    #[test]
+    fn test_teammate_message_non_user_rejected() {
+        let mut msg = make_user_msg(
+            r#"<teammate-message teammate_id="a1" color="blue" summary="x">y</teammate-message>"#,
+            false,
+        );
+        msg.message_type = "assistant".to_string();
+        assert!(!is_parsed_teammate_message(&msg));
+    }
+
+    #[test]
+    fn test_not_teammate_message() {
+        let msg = make_user_msg("regular user message", false);
+        assert!(!is_parsed_teammate_message(&msg));
+    }
+
+    // =========================================================================
+    // categorize_message — priority ordering
+    // =========================================================================
 
     #[test]
     fn test_assistant_categorized_as_ai() {
         let mut msg = make_user_msg("response", false);
         msg.message_type = "assistant".to_string();
         msg.role = Some("assistant".to_string());
+        assert_eq!(categorize_message(&msg), MessageCategory::Ai);
+    }
+
+    #[test]
+    fn test_categorize_event_priority_over_noise() {
+        // system type with displayable subtype → Event, not HardNoise
+        let mut msg = make_user_msg("", false);
+        msg.message_type = "system".to_string();
+        msg.subtype = Some("api_error".to_string());
+        assert_eq!(categorize_message(&msg), MessageCategory::Event);
+    }
+
+    #[test]
+    fn test_categorize_compact_priority_over_user() {
+        // compact summary on a user message → Compact, not User
+        let mut msg = make_user_msg("content", false);
+        msg.is_compact_summary = Some(true);
+        assert_eq!(categorize_message(&msg), MessageCategory::Compact);
+    }
+
+    #[test]
+    fn test_categorize_system_priority_over_user() {
+        // stdout content on user message → System, not User
+        let msg = make_user_msg("<local-command-stdout>output</local-command-stdout>", false);
+        assert_eq!(categorize_message(&msg), MessageCategory::System);
+    }
+
+    #[test]
+    fn test_categorize_hard_noise_system_no_subtype() {
+        let mut msg = make_user_msg("", false);
+        msg.message_type = "system".to_string();
+        // No subtype → HardNoise
+        assert_eq!(categorize_message(&msg), MessageCategory::HardNoise);
+    }
+
+    #[test]
+    fn test_categorize_meta_user_as_ai() {
+        // Meta user message (tool result) — not a user chunk, not system, not noise → Ai fallback
+        let msg = make_user_msg("tool output", true);
         assert_eq!(categorize_message(&msg), MessageCategory::Ai);
     }
 }
