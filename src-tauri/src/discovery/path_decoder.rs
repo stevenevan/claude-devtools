@@ -246,4 +246,73 @@ mod tests {
             PathBuf::from("/home/.claude/projects/-Users-name-project/sess123.jsonl")
         );
     }
+
+    // =========================================================================
+    // Lossy path decoding edge cases
+    // =========================================================================
+
+    #[test]
+    fn test_decode_path_with_dashes_in_name() {
+        // Paths with dashes are lossy: /Users/name/my-project → -Users-name-my-project
+        // Decodes to /Users/name/my/project (wrong!)
+        let encoded = encode_path("/Users/name/my-project");
+        assert_eq!(encoded, "-Users-name-my-project");
+        let decoded = decode_path(&encoded);
+        // Known lossy behavior: dashes become slashes
+        assert_eq!(decoded, "/Users/name/my/project");
+    }
+
+    #[test]
+    fn test_extract_project_name_with_hint_recovers_dashes() {
+        // cwd_hint allows recovering the correct name
+        assert_eq!(
+            extract_project_name("-Users-name-my-project", Some("/Users/name/my-project")),
+            "my-project"
+        );
+    }
+
+    #[test]
+    fn test_decode_path_deep_nesting() {
+        let decoded = decode_path("-Users-name-code-repos-project-v2");
+        assert_eq!(decoded, "/Users/name/code/repos/project/v2");
+    }
+
+    #[test]
+    fn test_decode_windows_modern_drive() {
+        let decoded = decode_path("-C:-Users-name-project");
+        assert_eq!(decoded, "C:/Users/name/project");
+    }
+
+    #[test]
+    fn test_is_valid_encoded_path_rejects_special_chars() {
+        assert!(!is_valid_encoded_path("-Users/name"));
+        assert!(!is_valid_encoded_path("-Users\\name"));
+        assert!(!is_valid_encoded_path("-Users@name"));
+    }
+
+    #[test]
+    fn test_is_valid_encoded_path_dots_and_underscores() {
+        assert!(is_valid_encoded_path("-Users-name-my_project.v2"));
+    }
+
+    #[test]
+    fn test_build_todo_path() {
+        let path = build_todo_path(Path::new("/home/.claude"), "sess123");
+        assert_eq!(
+            path,
+            PathBuf::from("/home/.claude/todos/sess123.json")
+        );
+    }
+
+    #[test]
+    fn test_get_projects_base_path() {
+        let path = get_projects_base_path(Path::new("/home/.claude"));
+        assert_eq!(path, PathBuf::from("/home/.claude/projects"));
+    }
+
+    #[test]
+    fn test_extract_project_name_no_hint_single_dash() {
+        // "-" decodes to empty segments — falls back to encoded name
+        assert_eq!(extract_project_name("-", None), "-");
+    }
 }

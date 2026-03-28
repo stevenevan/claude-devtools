@@ -5,10 +5,10 @@
 
 ## Deliverables
 
-- [ ] Unit tests for `analysis/chunk_builder.rs` — state machine transitions, AI buffer flushing [BE] [L]
-- [ ] Unit tests for `analysis/chunk_factory.rs` — all chunk type builders with metric correctness [BE] [M]
-- [ ] Unit tests for `discovery/path_decoder.rs` — encode/decode roundtrip, lossy paths with dashes [BE] [M]
-- [ ] Unit tests for `discovery/session_lister.rs` — pagination, sorting, filtering [BE] [M]
+- [x] Unit tests for `analysis/chunk_builder.rs` — state machine transitions, AI buffer flushing [BE] [L]
+- [x] Unit tests for `analysis/chunk_factory.rs` — all chunk type builders with metric correctness [BE] [M]
+- [x] Unit tests for `discovery/path_decoder.rs` — encode/decode roundtrip, lossy paths with dashes [BE] [M]
+- [ ] Unit tests for `discovery/session_lister.rs` — pagination, sorting, filtering [BE] [M] (skipped: heavy filesystem dependency)
 
 ## Key Files
 
