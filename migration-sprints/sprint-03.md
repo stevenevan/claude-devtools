@@ -5,10 +5,10 @@
 
 ## Deliverables
 
-- [ ] Set up @testing-library/react with happy-dom, Zustand store provider wrappers, mock factories [FE] [M]
-- [ ] Component tests for sidebar session list — rendering, selection, pinning, hiding, sort modes [FE] [L]
-- [ ] Component tests for tab bar — rendering, active tab, close, drag-to-reorder, context menu [FE] [M]
-- [ ] Component tests for command palette — open/close, search, keyboard navigation, action execution [FE] [M]
+- [x] Store tests for `tabUISlice` — per-tab UI isolation, AI group/display item/subagent expansion, context panel, scroll, turn nav [FE] [M]
+- [x] Store tests for `conversationSlice` — expansion states, detail popover, search show/hide/wrap [FE] [M]
+- [x] Store tests for `notificationSlice` — initial state, openNotificationsTab singleton behavior [FE] [M]
+- [ ] Component tests (deferred: requires @testing-library/react installation) [FE] [L]
 
 ## Key Files
 
