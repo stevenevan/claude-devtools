@@ -840,3 +840,191 @@ pub fn compute_analytics(
         granularity,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // =========================================================================
+    // Model pricing
+    // =========================================================================
+
+    #[test]
+    fn test_pricing_defaults_to_sonnet() {
+        let p = get_model_pricing(None);
+        assert_eq!(p.input, 3e-06);
+        assert_eq!(p.output, 1.5e-05);
+    }
+
+    #[test]
+    fn test_pricing_opus_new() {
+        let p = get_model_pricing(Some("claude-opus-4-6-20260101"));
+        assert_eq!(p.input, 5e-06);
+    }
+
+    #[test]
+    fn test_pricing_opus_old() {
+        let p = get_model_pricing(Some("claude-3-opus-20240229"));
+        assert_eq!(p.input, 1.5e-05);
+    }
+
+    #[test]
+    fn test_pricing_haiku_45() {
+        let p = get_model_pricing(Some("claude-haiku-4-5-20251001"));
+        assert_eq!(p.input, 1e-06);
+    }
+
+    #[test]
+    fn test_pricing_haiku_35() {
+        let p = get_model_pricing(Some("claude-3-5-haiku-20241022"));
+        assert_eq!(p.input, 8e-07);
+    }
+
+    #[test]
+    fn test_pricing_sonnet_fallback() {
+        let p = get_model_pricing(Some("claude-sonnet-4-20250514"));
+        assert_eq!(p.input, 3e-06);
+    }
+
+    // =========================================================================
+    // Cost estimation
+    // =========================================================================
+
+    #[test]
+    fn test_estimate_cost_zero_tokens() {
+        let cost = estimate_cost(None, 0, 0, 0, 0);
+        assert_eq!(cost, 0.0);
+    }
+
+    #[test]
+    fn test_estimate_cost_sonnet() {
+        let cost = estimate_cost(Some("claude-sonnet-4-20250514"), 1000, 500, 0, 0);
+        // 1000 * 3e-6 + 500 * 1.5e-5 = 0.003 + 0.0075 = 0.0105
+        assert!((cost - 0.0105).abs() < 1e-10);
+    }
+
+    #[test]
+    fn test_estimate_cost_with_cache() {
+        let cost = estimate_cost(None, 0, 0, 1000, 500);
+        // 1000 * 3e-7 + 500 * 3.75e-6 = 0.0003 + 0.001875 = 0.002175
+        assert!((cost - 0.002175).abs() < 1e-10);
+    }
+
+    // =========================================================================
+    // Model display name
+    // =========================================================================
+
+    #[test]
+    fn test_display_name_sonnet() {
+        assert_eq!(model_display_name("claude-sonnet-4-20250514"), "Sonnet 4");
+    }
+
+    #[test]
+    fn test_display_name_opus_with_minor() {
+        assert_eq!(model_display_name("claude-opus-4-6-20260101"), "Opus 4.6");
+    }
+
+    #[test]
+    fn test_display_name_haiku_45() {
+        assert_eq!(model_display_name("claude-haiku-4-5-20251001"), "Haiku 4.5");
+    }
+
+    #[test]
+    fn test_display_name_unknown_model() {
+        assert_eq!(model_display_name("gpt-4o"), "gpt-4o");
+    }
+
+    #[test]
+    fn test_display_name_claude_prefix_stripped() {
+        assert_eq!(model_display_name("claude-unknown-model"), "unknown-model");
+    }
+
+    // =========================================================================
+    // Time bucket helpers
+    // =========================================================================
+
+    #[test]
+    fn test_day_key() {
+        // 2024-01-15 12:00:00 UTC in ms
+        let ts_ms = 1705320000.0 * 1000.0;
+        assert_eq!(day_key(ts_ms), "2024-01-15");
+    }
+
+    #[test]
+    fn test_hour_key() {
+        let ts_ms = 1705320000.0 * 1000.0; // 2024-01-15 12:00:00 UTC
+        assert_eq!(hour_key(ts_ms), "2024-01-15-12");
+    }
+
+    #[test]
+    fn test_hour_label_midnight() {
+        assert_eq!(hour_label(0), "12 AM");
+    }
+
+    #[test]
+    fn test_hour_label_morning() {
+        assert_eq!(hour_label(9), "9 AM");
+    }
+
+    #[test]
+    fn test_hour_label_noon() {
+        assert_eq!(hour_label(12), "12 PM");
+    }
+
+    #[test]
+    fn test_hour_label_afternoon() {
+        assert_eq!(hour_label(15), "3 PM");
+    }
+
+    // =========================================================================
+    // Granularity selection
+    // =========================================================================
+
+    #[test]
+    fn test_granularity_hourly() {
+        assert!(matches!(granularity_for_days(1), BucketGranularity::Hourly));
+        assert!(matches!(granularity_for_days(2), BucketGranularity::Hourly));
+    }
+
+    #[test]
+    fn test_granularity_daily() {
+        assert!(matches!(granularity_for_days(3), BucketGranularity::Daily));
+        assert!(matches!(granularity_for_days(14), BucketGranularity::Daily));
+    }
+
+    #[test]
+    fn test_granularity_weekly() {
+        assert!(matches!(granularity_for_days(15), BucketGranularity::Weekly));
+        assert!(matches!(granularity_for_days(56), BucketGranularity::Weekly));
+    }
+
+    #[test]
+    fn test_granularity_monthly() {
+        assert!(matches!(granularity_for_days(57), BucketGranularity::Monthly));
+        assert!(matches!(granularity_for_days(90), BucketGranularity::Monthly));
+    }
+
+    // =========================================================================
+    // Month/week helpers
+    // =========================================================================
+
+    #[test]
+    fn test_month_key() {
+        let ts_ms = 1705320000.0 * 1000.0; // 2024-01-15
+        assert_eq!(month_key(ts_ms), "2024-01");
+    }
+
+    #[test]
+    fn test_month_label() {
+        assert_eq!(month_label(2024, 1), "Jan 2024");
+        assert_eq!(month_label(2024, 12), "Dec 2024");
+    }
+
+    #[test]
+    fn test_make_empty_bucket() {
+        let b = make_empty_bucket("key".to_string(), "label".to_string());
+        assert_eq!(b.key, "key");
+        assert_eq!(b.total_tokens, 0);
+        assert_eq!(b.session_count, 0);
+    }
+}

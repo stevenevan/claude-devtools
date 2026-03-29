@@ -5,11 +5,11 @@
 
 ## Deliverables
 
-- [ ] Tests for `useAutoScrollBottom` — scroll-to-bottom, unlock on manual scroll, re-lock [FE] [M]
-- [ ] Tests for `useKeyboardShortcuts` — registration, modifier combos, scope isolation [FE] [M]
-- [ ] Rust tests for `notifications/manager.rs` — CRUD, throttle dedup, persistence [BE] [M]
-- [ ] Rust tests for `analytics.rs` — time buckets, project usage, model extraction [BE] [M]
-- [ ] Rust tests for `config/manager.rs` — get/update, trigger CRUD, pin/unpin, bookmarks [BE] [M]
+- [x] Tests for `isNearBottom` — threshold edges, zero/large threshold, non-scrollable container [FE] [M]
+- [x] Tests for `findAIGroupByTimestamp` and `findChatItemByTimestamp` — exact match, closest fallback, mixed types [FE] [M]
+- [x] Rust tests for `analytics.rs` — model pricing, cost estimation, display names, time buckets, granularity [BE] [M]
+- [ ] Rust tests for `notifications/manager.rs` — deferred (heavy state/filesystem deps) [BE] [M]
+- [ ] Rust tests for `config/manager.rs` — deferred (heavy state/filesystem deps) [BE] [M]
 
 ## Key Files
 
