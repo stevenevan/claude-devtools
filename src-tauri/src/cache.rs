@@ -169,4 +169,109 @@ mod tests {
         std::thread::sleep(Duration::from_millis(10));
         assert!(cache.get("proj/sess1").is_none());
     }
+
+    // =========================================================================
+    // Incremental state tracking
+    // =========================================================================
+
+    #[test]
+    fn test_set_and_get_incremental() {
+        let mut cache = SessionCache::default();
+        let state = IncrementalState {
+            byte_offset: 1024,
+            metadata: SessionFileMetadata {
+                custom_title: Some("My Session".to_string()),
+                agent_name: None,
+            },
+        };
+        cache.set_incremental("proj/sess1".to_string(), state);
+        let retrieved = cache.get_incremental("proj/sess1").unwrap();
+        assert_eq!(retrieved.byte_offset, 1024);
+        assert_eq!(retrieved.metadata.custom_title.as_deref(), Some("My Session"));
+    }
+
+    #[test]
+    fn test_get_incremental_missing() {
+        let cache = SessionCache::default();
+        assert!(cache.get_incremental("nonexistent").is_none());
+    }
+
+    #[test]
+    fn test_remove_incremental() {
+        let mut cache = SessionCache::default();
+        cache.set_incremental(
+            "proj/sess1".to_string(),
+            IncrementalState {
+                byte_offset: 512,
+                metadata: SessionFileMetadata::default(),
+            },
+        );
+        cache.remove_incremental("proj/sess1");
+        assert!(cache.get_incremental("proj/sess1").is_none());
+    }
+
+    #[test]
+    fn test_update_incremental_offset() {
+        let mut cache = SessionCache::default();
+        cache.set_incremental(
+            "proj/sess1".to_string(),
+            IncrementalState {
+                byte_offset: 100,
+                metadata: SessionFileMetadata::default(),
+            },
+        );
+        cache.set_incremental(
+            "proj/sess1".to_string(),
+            IncrementalState {
+                byte_offset: 500,
+                metadata: SessionFileMetadata {
+                    custom_title: Some("Updated".to_string()),
+                    agent_name: None,
+                },
+            },
+        );
+        let state = cache.get_incremental("proj/sess1").unwrap();
+        assert_eq!(state.byte_offset, 500);
+        assert_eq!(state.metadata.custom_title.as_deref(), Some("Updated"));
+    }
+
+    #[test]
+    fn test_invalidate_clears_incremental() {
+        let mut cache = SessionCache::default();
+        cache.insert("proj/sess1".to_string(), make_session());
+        cache.set_incremental(
+            "proj/sess1".to_string(),
+            IncrementalState {
+                byte_offset: 256,
+                metadata: SessionFileMetadata::default(),
+            },
+        );
+        cache.invalidate("proj/sess1");
+        assert!(cache.get("proj/sess1").is_none());
+        assert!(cache.get_incremental("proj/sess1").is_none());
+    }
+
+    #[test]
+    fn test_invalidate_project_clears_incremental() {
+        let mut cache = SessionCache::default();
+        cache.insert("proj1/sess1".to_string(), make_session());
+        cache.set_incremental(
+            "proj1/sess1".to_string(),
+            IncrementalState {
+                byte_offset: 100,
+                metadata: SessionFileMetadata::default(),
+            },
+        );
+        cache.insert("proj2/sess1".to_string(), make_session());
+        cache.set_incremental(
+            "proj2/sess1".to_string(),
+            IncrementalState {
+                byte_offset: 200,
+                metadata: SessionFileMetadata::default(),
+            },
+        );
+        cache.invalidate_project("proj1");
+        assert!(cache.get_incremental("proj1/sess1").is_none());
+        assert!(cache.get_incremental("proj2/sess1").is_some());
+    }
 }

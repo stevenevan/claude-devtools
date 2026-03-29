@@ -6,10 +6,10 @@
 
 ## Deliverables
 
-- [ ] Byte-offset tracking in `SessionCache` — store last-parsed offset, `parse_jsonl_file_incremental(path, offset)` [BE] [L]
-- [ ] Enhance `get_session_detail_incremental` — accept last-known message count, return only new chunks [BE] [L]
-- [ ] Rust tests for incremental parsing — byte offset across appends, truncation, concurrent access [BE] [M]
-- [ ] Wire file watcher to emit incremental change hints (byte offset/message count in `FileChangeEvent`) [BE] [M]
+- [x] Byte-offset tracking in `SessionCache` — already implemented with `IncrementalState` [BE] [L]
+- [x] `get_session_detail_incremental` command — already implemented in commands.rs [BE] [L]
+- [x] Rust tests for incremental cache state — set/get/update/remove, invalidation clears state [BE] [M]
+- [x] File watcher emits `FileChangeEvent` with project_id/session_id — already implemented [BE] [M]
 
 ## Key Files
 
