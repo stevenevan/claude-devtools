@@ -479,4 +479,48 @@ mod tests {
             None
         );
     }
+
+    #[test]
+    fn test_map_event_kind_other_returns_none() {
+        assert_eq!(map_event_kind(&EventKind::Other), None);
+    }
+
+    #[test]
+    fn test_parse_project_file_preserves_path() {
+        let projects = Path::new("/home/user/.claude/projects");
+        let file = Path::new("/home/user/.claude/projects/-Users-name-project/session1.jsonl");
+        let event = parse_project_file(projects, file, "add").unwrap();
+        assert_eq!(
+            event.path,
+            "/home/user/.claude/projects/-Users-name-project/session1.jsonl"
+        );
+    }
+
+    #[test]
+    fn test_parse_project_file_different_change_types() {
+        let projects = Path::new("/home/user/.claude/projects");
+        let file = Path::new("/home/user/.claude/projects/-Users-name-project/s1.jsonl");
+        for ct in &["add", "change", "unlink"] {
+            let event = parse_project_file(projects, file, ct).unwrap();
+            assert_eq!(event.change_type, *ct);
+        }
+    }
+
+    #[test]
+    fn test_parse_todo_file_session_id_with_uuid() {
+        let todos = Path::new("/home/user/.claude/todos");
+        let file = Path::new("/home/user/.claude/todos/a1b2c3d4-e5f6-7890-abcd-ef1234567890.json");
+        let event = parse_todo_file(todos, file, "change").unwrap();
+        assert_eq!(
+            event.session_id,
+            Some("a1b2c3d4-e5f6-7890-abcd-ef1234567890".to_string())
+        );
+    }
+
+    #[test]
+    fn test_resolve_claude_dir_uses_home() {
+        // Should resolve to some path (either CLAUDE_ROOT or home/.claude)
+        let result = resolve_claude_dir();
+        assert!(result.is_some());
+    }
 }

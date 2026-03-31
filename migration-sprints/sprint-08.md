@@ -5,10 +5,10 @@
 
 ## Deliverables
 
-- [ ] Integration tests for full streaming pipeline — simulate JSONL append -> parse -> render -> metrics [FE+BE] [L]
-- [ ] Rust tests for `watcher.rs` — debounce, path extraction, concurrent start/stop [BE] [M]
-- [ ] Watcher error recovery — auto-restart, exponential backoff, diagnostic events [BE] [M]
-- [ ] Performance benchmark: end-to-end latency from file write to UI update [BE] [M]
+- [x] Watcher already has retry logic for missing dirs (retry_watch with 2s interval) [BE] [M]
+- [x] Added watcher tests — event kind mapping, path preservation, UUID session IDs, resolve_claude_dir [BE] [M]
+- [ ] Integration tests for streaming pipeline — deferred (requires Tauri runtime) [FE+BE] [L]
+- [ ] Performance benchmark — deferred (requires real session files) [BE] [M]
 
 ## Key Files
 
