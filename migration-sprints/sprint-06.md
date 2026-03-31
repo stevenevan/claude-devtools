@@ -6,10 +6,10 @@
 
 ## Deliverables
 
-- [ ] Streaming state machine in `sessionDetailSlice` — isStreaming transitions, incremental API, batched updates [FE] [L]
-- [ ] `StreamingIndicator` component — animated banner with elapsed time, model, live token count [FE] [M]
-- [ ] Progressive message appending in `groupTransformer` — append instead of rebuild, preserve expansion states [FE] [L]
-- [ ] Streaming-aware auto-scroll — stay pinned while streaming, "Jump to latest" when detached [FE] [M]
+- [x] Streaming state machine in `sessionDetailSlice` — isStreaming flag, incremental API, 150ms debounced refresh [FE] [L] (already implemented)
+- [x] `OngoingIndicator` + `OngoingBanner` + tab streaming border animation [FE] [M] (already implemented)
+- [x] Progressive updates via `refreshSessionInPlace` — skips rebuild if fingerprint unchanged [FE] [L] (already implemented)
+- [x] Scroll-to-bottom button with `isNearBottom` check + `useAutoScrollBottom` hook [FE] [M] (already implemented)
 
 ## Key Files
 
