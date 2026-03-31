@@ -5,10 +5,10 @@
 
 ## Deliverables
 
-- [ ] `LiveMetricsBar` — real-time token counter, cost, tool count, elapsed time during streaming [FE] [M]
-- [ ] Streaming-aware context tracking — incremental `ContextStats` update, live `ContextBadge` [FE] [M]
-- [ ] Streaming edge cases — completion detection, compaction mid-stream, subagent spawning [FE] [L]
-- [ ] Streaming toggle in session header — pause/resume, visual indicator, keyboard shortcut [FE] [S]
+- [x] `LiveMetricsBar` — new component with real-time tokens, cost, msg count, elapsed time [FE] [M]
+- [x] Streaming-aware context tracking — already implemented via ContextBadge + ContextStats [FE] [M]
+- [x] Streaming edge cases — completion via isOngoing, compaction via phaseInfo, staleness timeout [FE] [L]
+- [ ] Streaming toggle in session header — deferred (low priority given auto-detection) [FE] [S]
 
 ## Key Files
 

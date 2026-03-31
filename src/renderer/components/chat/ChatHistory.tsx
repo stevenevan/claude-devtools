@@ -12,6 +12,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { countPendingTodos } from '@renderer/types/todos';
 
+import { LiveMetricsBar } from '../common/LiveMetricsBar';
 import { SessionContextPanel } from './SessionContextPanel/index';
 import { SessionMinimap } from './SessionMinimap';
 import { TodoPanel } from './TodoPanel';
@@ -96,6 +97,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
         sessionContextStats: td?.sessionContextStats ?? s.sessionContextStats,
         sessionPhaseInfo: td?.sessionPhaseInfo ?? s.sessionPhaseInfo,
         sessionDetail: td?.sessionDetail ?? s.sessionDetail,
+        isStreaming: td?.isStreaming ?? false,
       };
     })
   );
@@ -105,6 +107,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     sessionContextStats,
     sessionPhaseInfo,
     sessionDetail,
+    isStreaming,
   } = tabData;
 
   // State for Context button hover (local state OK - doesn't need per-tab isolation)
@@ -834,6 +837,11 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
 
   return (
     <div role="log" aria-label="Chat history" className="bg-background flex flex-1 flex-col overflow-hidden">
+      <LiveMetricsBar
+        metrics={sessionDetail?.metrics ?? null}
+        isStreaming={isStreaming}
+        startTime={sessionDetail?.session?.createdAt ?? null}
+      />
       <div className="relative flex flex-1 overflow-hidden">
         {/* Chat content */}
         <div
