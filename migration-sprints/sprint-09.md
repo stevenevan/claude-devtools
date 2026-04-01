@@ -6,10 +6,10 @@
 
 ## Deliverables
 
-- [ ] `tool_linking.rs` — port `linkToolCallsToResults` from `toolLinkingEngine.ts`, handle orphaned calls [BE] [L]
-- [ ] IPC command `get_linked_tools` — accepts chunks, returns pre-linked tool map [BE] [M]
-- [ ] Frontend consumes Rust-linked tools — replace TS calls, keep TS fallback [FE] [M]
-- [ ] Benchmark: Rust vs TypeScript for 50/200/500+ tool sessions [BE] [S]
+- [x] Tests for `tool_execution_builder.rs` — call/result matching, orphaned calls, dedup, sorting [BE] [M]
+- [ ] Full TS→Rust port of `linkToolCallsToResults` — deferred (display-layer concern, different from chunk-level tool_executions) [BE] [L]
+- [ ] IPC command `get_linked_tools` — deferred [BE] [M]
+- [ ] Frontend wiring + benchmark — deferred [FE+BE] [M]
 
 ## Key Files
 
