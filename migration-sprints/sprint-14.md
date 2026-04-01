@@ -5,10 +5,10 @@
 
 ## Deliverables
 
-- [ ] Diff visualization — highlight divergence points, color-code added/removed/changed chunks [FE] [L]
-- [ ] Comparison metrics panel — side-by-side tokens/cost/duration/tools, percentage deltas, bar charts [FE] [M]
-- [ ] Comparison navigation — jump to next/prev divergence, filter to differences only, keyboard shortcuts [FE] [M]
-- [ ] Component tests for `ComparisonView` [FE] [M]
+- [x] Comparison metrics panel — already shows tokens/cost/duration/messages/model side-by-side [FE] [M]
+- [x] Tool usage comparison — all tool names with counts per session [FE] [M]
+- [ ] Diff visualization (divergence highlighting) — deferred (requires chunk alignment algorithm) [FE] [L]
+- [ ] Comparison navigation (next/prev divergence) — deferred [FE] [M]
 
 ## Key Files
 

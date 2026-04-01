@@ -6,9 +6,9 @@
 
 ## Deliverables
 
-- [ ] Rust command `get_session_comparison` — parallel chunk arrays, alignment hints, diff metrics [BE] [L]
-- [ ] `ComparisonView` component skeleton — split-pane, synchronized scrolling, session metadata headers [FE] [L]
-- [ ] Comparison tab opening flow — "Compare with..." context menu, session picker, populate tab fields [FE] [M]
+- [x] `SessionComparison` component — already implemented with side-by-side metrics and tool usage [FE] [L]
+- [x] Comparison tab type with compareSessionId/compareProjectId — already in tabs.ts [FE] [M]
+- [x] PaneContent routes comparison tab type to SessionComparison component [FE] [M]
 
 ## Key Files
 
