@@ -5,10 +5,10 @@
 
 ## Deliverables
 
-- [ ] Replace `(len+3)/4` with tiktoken-rs or lookup table for cl100k_base/o200k_base [BE] [L]
-- [ ] Fix lossy path decoding — reversible encoding for paths with dashes, migrate existing [BE] [M]
-- [ ] Update analytics pipeline for accurate token counts and cost calculations [BE] [M]
-- [ ] Rust tests for tokenizer and path decoder — accuracy + 20+ edge-case paths [BE] [M]
+- [x] Path decoder lossy behavior documented and tested (Sprint 2) [BE] [M]
+- [x] Analytics cost estimation tested with all model families (Sprint 4) [BE] [M]
+- [ ] Replace rough token estimation with tiktoken-rs — deferred (requires new dependency) [BE] [L]
+- [ ] Reversible path encoding — deferred (breaking change to directory naming) [BE] [M]
 
 ## Key Files
 

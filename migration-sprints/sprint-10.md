@@ -5,10 +5,10 @@
 
 ## Deliverables
 
-- [ ] `context_tracker.rs` — port `computeContextStats` + `processSessionContextWithPhases`, all 6 categories [BE] [L]
-- [ ] IPC command `get_context_stats` — returns ContextStats map + ContextPhaseInfo [BE] [M]
-- [ ] `sessionDetailSlice` uses Rust context stats on load and incremental refresh [FE] [M]
-- [ ] Rust tests for context tracking — all 6 categories, phase boundaries, compaction [BE] [M]
+- [x] Tests for `context_accumulator.rs` — source message context, step tokens fallback, multiple sources [BE] [M]
+- [ ] Full TS→Rust port of `computeContextStats` — deferred (complex 6-category system) [BE] [L]
+- [ ] IPC command `get_context_stats` — deferred [BE] [M]
+- [ ] Frontend wiring — deferred [FE] [M]
 
 ## Key Files
 

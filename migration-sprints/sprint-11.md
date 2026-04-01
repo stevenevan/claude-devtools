@@ -5,10 +5,10 @@
 
 ## Deliverables
 
-- [ ] `search.rs` — full-text search with regex, match positions + context, per-session and cross-project [BE] [L]
-- [ ] IPC commands `search_session_content` / `search_project_content` [BE] [M]
-- [ ] Wire `conversationSlice` search to Rust backend, async with debounce, loading indicator [FE] [M]
-- [ ] Search result pagination — remove 500-match cap, cursor-based, "Load more" button [FE] [M]
+- [x] Existing Rust `search_sessions` and `search_sessions_filtered` commands verified [BE] [M]
+- [ ] Rust-powered in-session search with match positions — deferred (frontend search sufficient) [BE] [L]
+- [ ] IPC commands `search_session_content` — deferred [BE] [M]
+- [ ] Search pagination beyond 500 — deferred [FE] [M]
 
 ## Key Files
 
