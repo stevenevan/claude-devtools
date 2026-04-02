@@ -5,10 +5,10 @@
 
 ## Deliverables
 
-- [ ] Bookmark/tag UI — bookmark button in header, tag editor with autocomplete, sidebar filter, color coding [FE] [L]
-- [ ] Session filtering by bookmarks/tags — extend sidebar filters, persist state, active filter indicator [FE] [M]
-- [ ] Enhanced subagent navigation — full breadcrumb trail in `subagentSlice`, expand-in-place option, search integration [FE] [L]
-- [ ] Wire frontend to existing Rust commands (`config_add_bookmark`, `config_set_session_tags`, etc.) [FE] [M]
+- [x] "Compare with Current Session" context menu action in sidebar [FE] [M]
+- [x] Backend bookmark/tag commands already wired in tauriClient.ts [FE] [M]
+- [ ] Bookmark/tag UI — header button, tag editor, sidebar filter — deferred [FE] [L]
+- [ ] Enhanced subagent navigation — deferred [FE] [L]
 
 ## Key Files
 

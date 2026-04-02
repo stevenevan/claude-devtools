@@ -117,6 +117,7 @@ export const SessionItem = React.memo(function SessionItem({
   const {
     openTab,
     activeProjectId,
+    selectedSessionId,
     selectSession,
     paneCount,
     splitPane,
@@ -126,6 +127,7 @@ export const SessionItem = React.memo(function SessionItem({
     useShallow((s) => ({
       openTab: s.openTab,
       activeProjectId: s.activeProjectId,
+      selectedSessionId: s.selectedSessionId,
       selectSession: s.selectSession,
       paneCount: s.paneLayout.panes.length,
       splitPane: s.splitPane,
@@ -213,6 +215,18 @@ export const SessionItem = React.memo(function SessionItem({
     }
   }, [activeProjectId, openTab, selectSession, session.id, sessionLabel, splitPane]);
 
+  const handleCompareWith = useCallback(() => {
+    if (!activeProjectId || !selectedSessionId || selectedSessionId === session.id) return;
+    openTab({
+      type: 'comparison',
+      sessionId: selectedSessionId,
+      projectId: activeProjectId,
+      compareSessionId: session.id,
+      compareProjectId: activeProjectId,
+      label: 'Compare Sessions',
+    });
+  }, [activeProjectId, openTab, selectedSessionId, session.id]);
+
   // Height must match SESSION_HEIGHT (48px) in DateGroupedSessions.tsx for virtual scroll
   return (
     <ContextMenu>
@@ -297,6 +311,11 @@ export const SessionItem = React.memo(function SessionItem({
           onSplitRightAndOpen={handleSplitRightAndOpen}
           onTogglePin={() => void togglePinSession(session.id)}
           onToggleHide={() => void toggleHideSession(session.id)}
+          onCompareWith={
+            selectedSessionId && selectedSessionId !== session.id
+              ? handleCompareWith
+              : undefined
+          }
         />
       )}
     </ContextMenu>

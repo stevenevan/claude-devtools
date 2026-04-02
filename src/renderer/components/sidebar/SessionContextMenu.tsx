@@ -14,7 +14,7 @@ import {
 import { useClipboard } from '@renderer/hooks/mantine';
 import { MAX_PANES } from '@renderer/types/panes';
 import { formatShortcut } from '@renderer/utils/stringUtils';
-import { Check, ClipboardCopy, Eye, EyeOff, Pin, PinOff, Terminal } from 'lucide-react';
+import { ArrowLeftRight, Check, ClipboardCopy, Eye, EyeOff, Pin, PinOff, Terminal } from 'lucide-react';
 
 interface SessionContextMenuProps {
   sessionId: string;
@@ -26,6 +26,7 @@ interface SessionContextMenuProps {
   onSplitRightAndOpen: () => void;
   onTogglePin: () => void;
   onToggleHide: () => void;
+  onCompareWith?: () => void;
 }
 
 export const SessionContextMenu = ({
@@ -38,6 +39,7 @@ export const SessionContextMenu = ({
   onSplitRightAndOpen,
   onTogglePin,
   onToggleHide,
+  onCompareWith,
 }: SessionContextMenuProps): React.JSX.Element => {
   const idClipboard = useClipboard({ timeout: 600 });
   const cmdClipboard = useClipboard({ timeout: 600 });
@@ -68,6 +70,16 @@ export const SessionContextMenu = ({
         {isHidden ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
         {isHidden ? 'Unhide Session' : 'Hide Session'}
       </ContextMenuItem>
+
+      {onCompareWith && (
+        <>
+          <ContextMenuSeparator />
+          <ContextMenuItem onClick={onCompareWith}>
+            <ArrowLeftRight className="size-4" />
+            Compare with Current Session
+          </ContextMenuItem>
+        </>
+      )}
 
       <ContextMenuSeparator />
 
