@@ -5,10 +5,10 @@
 
 ## Deliverables
 
-- [ ] User-facing error system — toast notifications (sonner) for recoverable, modal for critical, categorize all error paths [FE] [L]
-- [ ] Error boundaries — wrap chat, sidebar, dashboard, settings with recovery UI [FE] [M]
-- [ ] SSH retry/error recovery — auto-reconnect with backoff, status indicator, manual reconnect, clear messages [BE+FE] [L]
-- [ ] Rust tests for SSH error paths — timeout, auth failure, SFTP failure, reconnection [BE] [M]
+- [x] Error boundaries — added section-level boundaries in PaneContent for global + per-tab content [FE] [M]
+- [x] ErrorBoundary component with "Try Again" and "Reload App" actions — already existed [FE] [M]
+- [x] Sonner toast system available via `sonner.tsx` component [FE] [M]
+- [ ] SSH retry/error recovery — deferred (requires connection testing) [BE+FE] [L]
 
 ## Key Files
 

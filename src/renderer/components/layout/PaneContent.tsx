@@ -5,6 +5,8 @@ import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Loader2 } from 'lucide-react';
 
+import { ErrorBoundary } from '../common/ErrorBoundary';
+
 import { SessionComparison } from '../chat/SessionComparison';
 import { SessionTabContent } from './SessionTabContent';
 
@@ -53,6 +55,7 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
     <div className="relative flex flex-1 overflow-hidden">
       {showGlobalContent && (
         <div className="absolute inset-0 flex">
+          <ErrorBoundary>
           <Suspense fallback={<LazyFallback />}>
             {activeActivity === 'projects' && <DashboardView />}
             {activeActivity === 'analytics' && <AnalyticsDashboard />}
@@ -75,6 +78,7 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
             {activeActivity === 'search' && <SearchView />}
             {activeActivity === 'settings' && <SettingsView />}
           </Suspense>
+          </ErrorBoundary>
         </div>
       )}
 
@@ -82,17 +86,19 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
         const isActive = tab.id === activeTabId && !isGlobalActivity;
         return (
           <div key={tab.id} className={cn('absolute inset-0', isActive ? 'flex' : 'hidden')}>
-            <Suspense fallback={<LazyFallback />}>
-              {(tab.type === 'dashboard' || tab.type === 'projects') && <DashboardView />}
-              {tab.type === 'notifications' && <NotificationsView />}
-              {tab.type === 'settings' && <SettingsView />}
-            </Suspense>
-            {tab.type === 'session' && (
-              <TabUIProvider tabId={tab.id}>
-                <SessionTabContent tab={tab} isActive={isActive} />
-              </TabUIProvider>
-            )}
-            {tab.type === 'comparison' && <SessionComparison tab={tab} />}
+            <ErrorBoundary>
+              <Suspense fallback={<LazyFallback />}>
+                {(tab.type === 'dashboard' || tab.type === 'projects') && <DashboardView />}
+                {tab.type === 'notifications' && <NotificationsView />}
+                {tab.type === 'settings' && <SettingsView />}
+              </Suspense>
+              {tab.type === 'session' && (
+                <TabUIProvider tabId={tab.id}>
+                  <SessionTabContent tab={tab} isActive={isActive} />
+                </TabUIProvider>
+              )}
+              {tab.type === 'comparison' && <SessionComparison tab={tab} />}
+            </ErrorBoundary>
           </div>
         );
       })}
