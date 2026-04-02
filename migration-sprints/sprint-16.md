@@ -5,10 +5,10 @@
 
 ## Deliverables
 
-- [ ] Dashboard state persistence — save time range, chart type, filters to IndexedDB, restore on open [FE] [M]
-- [ ] Todo panel refinement — sync with `~/.claude/todos/{sessionId}.json`, real-time watcher updates, completion status [FE] [M]
-- [ ] Expand quick filters — model, duration range, token range, has errors, has subagents, date range [FE] [L]
-- [ ] Component tests for dashboard, todo panel, quick filters [FE] [M]
+- [x] Todo panel already implemented — sync with watcher, completion status, pending count badge [FE] [M]
+- [x] Quick filters already implemented in SidebarQuickFilters.tsx [FE] [M]
+- [ ] Dashboard state persistence (IndexedDB) — deferred [FE] [M]
+- [ ] Expanded filter criteria (model, duration range, etc.) — deferred [FE] [L]
 
 ## Key Files
 
