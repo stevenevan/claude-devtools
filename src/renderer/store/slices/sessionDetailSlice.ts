@@ -41,9 +41,7 @@ import type { AIGroup, SessionConversation } from '@renderer/types/groups';
 import type { AgentConfig } from '@shared/types/api';
 import type { StateCreator } from 'zustand';
 
-// =============================================================================
 // Per-tab session data type
-// =============================================================================
 
 export interface TabSessionData {
   sessionDetail: SessionDetail | null;
@@ -76,9 +74,7 @@ function createEmptyTabSessionData(): TabSessionData {
   };
 }
 
-// =============================================================================
 // Slice Interface
-// =============================================================================
 
 export interface SessionDetailSlice {
   // State
@@ -118,9 +114,7 @@ export interface SessionDetailSlice {
   cleanupTabSessionData: (tabId: string) => void;
 }
 
-// =============================================================================
 // Slice Creator
-// =============================================================================
 
 export const createSessionDetailSlice: StateCreator<AppState, [], [], SessionDetailSlice> = (
   set,

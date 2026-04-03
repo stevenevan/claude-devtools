@@ -5,9 +5,7 @@
 import type { ClaudeMdSource } from '@renderer/types/claudeMd';
 import type { ContextInjection, ContextPhaseInfo } from '@renderer/types/contextInjection';
 
-// =============================================================================
 // Props Interface
-// =============================================================================
 
 export interface SessionContextPanelProps {
   /** All accumulated context injections */
@@ -32,9 +30,7 @@ export interface SessionContextPanelProps {
   onPhaseChange: (phase: number | null) => void;
 }
 
-// =============================================================================
 // Section Types
-// =============================================================================
 
 /** Section type constants */
 export const SECTION_CLAUDE_MD = 'claude-md' as const;
@@ -56,9 +52,7 @@ export type SectionType =
 /** View mode for the context panel */
 export type ContextViewMode = 'category' | 'ranked';
 
-// =============================================================================
 // CLAUDE.md Group Types
-// =============================================================================
 
 /** Group category for CLAUDE.md files */
 export type ClaudeMdGroupCategory = 'global' | 'project' | 'directory';

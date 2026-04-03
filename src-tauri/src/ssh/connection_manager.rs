@@ -10,9 +10,7 @@ use super::agent_discovery;
 use super::config_parser;
 use super::types::{SshConfigHostEntry, SshConnectionConfig, SshConnectionStatus};
 
-// =============================================================================
 // SSH Client Handler (required by russh)
-// =============================================================================
 
 struct SshHandler;
 
@@ -29,9 +27,7 @@ impl client::Handler for SshHandler {
     }
 }
 
-// =============================================================================
 // SshConnection
-// =============================================================================
 
 pub struct SshConnection {
     _handle: client::Handle<SshHandler>,
@@ -41,9 +37,7 @@ pub struct SshConnection {
     host: String,
 }
 
-// =============================================================================
 // SshState
-// =============================================================================
 
 pub struct SshState {
     pub connection: Option<SshConnection>,
@@ -70,9 +64,7 @@ impl SshState {
 
 }
 
-// =============================================================================
 // Connect
-// =============================================================================
 
 pub async fn connect(config: &SshConnectionConfig) -> Result<SshConnection, String> {
     // Resolve SSH config for the host
@@ -159,9 +151,7 @@ pub async fn test_connection(
     Ok(())
 }
 
-// =============================================================================
 // Authentication
-// =============================================================================
 
 async fn authenticate(
     session: &mut client::Handle<SshHandler>,
@@ -289,9 +279,7 @@ async fn authenticate(
     Ok(())
 }
 
-// =============================================================================
 // Remote Path Resolution
-// =============================================================================
 
 async fn resolve_remote_home(session: &client::Handle<SshHandler>) -> Option<String> {
     let channel = session.channel_open_session().await.ok()?;

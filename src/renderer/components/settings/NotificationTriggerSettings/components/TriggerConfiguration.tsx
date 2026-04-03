@@ -184,9 +184,7 @@ export const TriggerConfiguration = ({
   );
 };
 
-// =============================================================================
 // Content Match Configuration
-// =============================================================================
 
 interface ContentMatchConfigProps {
   triggerId: string;
@@ -279,9 +277,7 @@ const ContentMatchConfig = ({
   );
 };
 
-// =============================================================================
 // Token Threshold Configuration
-// =============================================================================
 
 interface TokenThresholdConfigProps {
   triggerId: string;

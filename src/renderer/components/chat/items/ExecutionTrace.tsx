@@ -17,9 +17,7 @@ import { ThinkingItem } from './ThinkingItem';
 import type { AIGroupDisplayItem } from '@renderer/types/groups';
 import type { TriggerColor } from '@shared/constants/triggerColors';
 
-// =============================================================================
 // Types
-// =============================================================================
 
 interface ExecutionTraceProps {
   items: AIGroupDisplayItem[];
@@ -34,9 +32,7 @@ interface ExecutionTraceProps {
   registerToolRef?: (toolId: string, el: HTMLDivElement | null) => void;
 }
 
-// =============================================================================
 // Execution Trace Component
-// =============================================================================
 
 export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function ExecutionTrace({
   items,

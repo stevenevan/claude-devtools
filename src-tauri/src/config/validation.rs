@@ -6,9 +6,7 @@ use super::types::NotificationTrigger;
 
 const MAX_SNOOZE_MINUTES: u32 = 24 * 60;
 
-// =============================================================================
 // Top-level dispatcher
-// =============================================================================
 
 /// Validate a config update payload. Returns validated (section, data) or error.
 pub fn validate_config_update(section: &str, data: &Value) -> Result<(String, Value), String> {
@@ -24,9 +22,7 @@ pub fn validate_config_update(section: &str, data: &Value) -> Result<(String, Va
     }
 }
 
-// =============================================================================
 // Notifications
-// =============================================================================
 
 fn validate_notifications(data: &Value) -> Result<Value, String> {
     let obj = data
@@ -117,9 +113,7 @@ fn validate_notifications(data: &Value) -> Result<Value, String> {
     Ok(Value::Object(result))
 }
 
-// =============================================================================
 // General
-// =============================================================================
 
 fn validate_general(data: &Value) -> Result<Value, String> {
     let obj = data
@@ -205,9 +199,7 @@ fn validate_general(data: &Value) -> Result<Value, String> {
     Ok(Value::Object(result))
 }
 
-// =============================================================================
 // Display
-// =============================================================================
 
 fn validate_display(data: &Value) -> Result<Value, String> {
     let obj = data
@@ -230,9 +222,7 @@ fn validate_display(data: &Value) -> Result<Value, String> {
     Ok(Value::Object(result))
 }
 
-// =============================================================================
 // HTTP Server
-// =============================================================================
 
 fn validate_http_server(data: &Value) -> Result<Value, String> {
     let obj = data
@@ -272,9 +262,7 @@ fn validate_http_server(data: &Value) -> Result<Value, String> {
     Ok(Value::Object(result))
 }
 
-// =============================================================================
 // SSH
-// =============================================================================
 
 fn validate_ssh(data: &Value) -> Result<Value, String> {
     let obj = data.as_object().ok_or("ssh update must be an object")?;
@@ -330,9 +318,7 @@ fn validate_ssh(data: &Value) -> Result<Value, String> {
     Ok(Value::Object(result))
 }
 
-// =============================================================================
 // Helpers
-// =============================================================================
 
 fn is_string_array(value: &Value) -> bool {
     match value.as_array() {
@@ -384,9 +370,7 @@ fn is_valid_ssh_profile(profile: &Value) -> bool {
     }
 }
 
-// =============================================================================
 // Validation helper for trigger add/update in manager
-// =============================================================================
 
 
 #[cfg(test)]

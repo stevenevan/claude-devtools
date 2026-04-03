@@ -11,9 +11,7 @@ import type { StateCreator } from 'zustand';
 
 const logger = createLogger('Store:config');
 
-// =============================================================================
 // Slice Interface
-// =============================================================================
 
 export interface ConfigSlice {
   // State
@@ -29,9 +27,7 @@ export interface ConfigSlice {
   clearPendingSettingsSection: () => void;
 }
 
-// =============================================================================
 // Slice Creator
-// =============================================================================
 
 export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (set, get) => ({
   // Initial state

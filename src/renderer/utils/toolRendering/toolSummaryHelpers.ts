@@ -199,9 +199,7 @@ export function getToolSummary(toolName: string, input: Record<string, unknown>)
       return 'NotebookEdit';
     }
 
-    // =========================================================================
     // Team Tools
-    // =========================================================================
 
     case 'TeamCreate': {
       const teamName = input.team_name as string | undefined;

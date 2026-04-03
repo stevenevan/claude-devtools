@@ -17,9 +17,7 @@ import { parseTurnIndex } from '../utils/pathParsing';
 
 import type { ContextInjection, ToolOutputInjection } from '@renderer/types/contextInjection';
 
-// =============================================================================
 // Constants
-// =============================================================================
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   'claude-md': {
@@ -38,9 +36,7 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string 
   'user-message': { bg: 'rgb(34 197 94 / 0.15)', text: 'rgb(134 239 172)', label: 'User' },
 };
 
-// =============================================================================
 // Props
-// =============================================================================
 
 interface RankedInjectionListProps {
   injections: ContextInjection[];
@@ -49,9 +45,7 @@ interface RankedInjectionListProps {
   onNavigateToUserGroup?: (turnIndex: number) => void;
 }
 
-// =============================================================================
 // Helpers
-// =============================================================================
 
 function getInjectionDescription(injection: ContextInjection): string {
   switch (injection.category) {
@@ -91,9 +85,7 @@ function getCopyablePath(injection: ContextInjection): string | null {
   return null;
 }
 
-// =============================================================================
 // Sub-components
-// =============================================================================
 
 /** Expandable tool-output row with breakdown sorted by token count desc. */
 const ToolOutputRankedItem = ({
@@ -191,9 +183,7 @@ const ToolOutputRankedItem = ({
   );
 };
 
-// =============================================================================
 // Component
-// =============================================================================
 
 export const RankedInjectionList = ({
   injections,

@@ -26,9 +26,7 @@ import { useTabIdOptional } from '@renderer/contexts/useTabUIContext';
 import { useStore } from '@renderer/store';
 import { useShallow } from 'zustand/react/shallow';
 
-// =============================================================================
 // Types
-// =============================================================================
 
 interface UseTabUIReturn {
   tabId: string | null;
@@ -50,9 +48,7 @@ interface UseTabUIReturn {
   initializeTabUI: () => void;
 }
 
-// =============================================================================
 // Main Hook
-// =============================================================================
 
 /**
  * Hook for accessing per-tab UI state and actions.
@@ -100,9 +96,7 @@ export function useTabUI(): UseTabUIReturn {
     }))
   );
 
-  // ==========================================================================
   // Derived state from tabState (reactive!)
-  // ==========================================================================
 
   // AI Group expansion - check directly from tabState
   const isAIGroupExpanded = useCallback(

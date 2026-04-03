@@ -2,9 +2,7 @@
 
 use super::types::NotificationTrigger;
 
-// =============================================================================
 // Default Built-in Triggers
-// =============================================================================
 
 pub fn default_triggers() -> Vec<NotificationTrigger> {
     vec![
@@ -65,9 +63,7 @@ pub fn default_triggers() -> Vec<NotificationTrigger> {
     ]
 }
 
-// =============================================================================
 // Trigger Merging
-// =============================================================================
 
 /// Merge loaded triggers with defaults.
 /// - Preserves all existing triggers (including user-modified builtins)
@@ -102,9 +98,7 @@ pub fn merge_triggers(
     merged
 }
 
-// =============================================================================
 // Trigger Validation
-// =============================================================================
 
 const MAX_PATTERN_LENGTH: usize = 100;
 

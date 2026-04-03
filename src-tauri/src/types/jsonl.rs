@@ -3,9 +3,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-// =============================================================================
 // Content Blocks
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -51,9 +49,7 @@ pub struct ImageSource {
     pub data: String,
 }
 
-// =============================================================================
 // JSONL Entries
-// =============================================================================
 
 /// Raw JSONL entry — deserialized loosely to handle all entry types.
 /// We use a single struct with optional fields rather than a tagged enum

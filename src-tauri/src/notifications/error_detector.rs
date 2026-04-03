@@ -11,9 +11,7 @@ use super::trigger_checker::{
 };
 use super::types::DetectedError;
 
-// =============================================================================
 // Repository Scope
-// =============================================================================
 
 /// Simplified repository scope check: treats repositoryIds as project ID matching.
 /// Full git identity resolution deferred to a future sprint.
@@ -25,9 +23,7 @@ fn matches_repository_scope(project_id: &str, repository_ids: Option<&[String]>)
     }
 }
 
-// =============================================================================
 // Trigger Router
-// =============================================================================
 
 fn check_trigger(
     message: &ParsedMessage,
@@ -83,9 +79,7 @@ fn check_trigger(
     vec![]
 }
 
-// =============================================================================
 // Main Detection
-// =============================================================================
 
 /// Detect errors from messages using the provided triggers.
 pub fn detect_errors(

@@ -16,9 +16,7 @@ import type { ClaudeMdStats } from './claudeMd';
 import type { CompactionTokenDelta } from './contextInjection';
 import type { ModelInfo } from '@shared/utils/modelParser';
 
-// =============================================================================
 // Expansion Levels
-// =============================================================================
 
 /**
  * AI Group expansion levels for the collapsible UI.
@@ -28,9 +26,7 @@ import type { ModelInfo } from '@shared/utils/modelParser';
  */
 export type AIGroupExpansionLevel = 'collapsed' | 'items' | 'full';
 
-// =============================================================================
 // User Group Types
-// =============================================================================
 
 /**
  * Command reference extracted from user input (e.g., /isolate-context, /context).
@@ -119,9 +115,7 @@ export interface SystemGroup {
   commandName?: string; // Optional: extracted command name
 }
 
-// =============================================================================
 // AI Group Types
-// =============================================================================
 
 /**
  * Summary statistics for the collapsed AI Group view.
@@ -365,9 +359,7 @@ export interface AIGroup {
   progressTexts?: string[];
 }
 
-// =============================================================================
 // Conversation Types
-// =============================================================================
 
 /**
  * Compact Group - marks where conversation was compacted.

@@ -6,9 +6,7 @@ use lru::LruCache;
 use regex::Regex;
 use serde_json::Value;
 
-// =============================================================================
 // Regex Cache
-// =============================================================================
 
 const MAX_CACHE_SIZE: usize = 500;
 
@@ -42,9 +40,7 @@ fn get_cached_regex(pattern: &str) -> Option<Regex> {
     })
 }
 
-// =============================================================================
 // Pattern Matching
-// =============================================================================
 
 /// Checks if `content` matches a regex `pattern` (case-insensitive).
 pub fn matches_pattern(content: &str, pattern: &str) -> bool {
@@ -71,9 +67,7 @@ pub fn matches_ignore_patterns(content: &str, ignore_patterns: Option<&[String]>
     false
 }
 
-// =============================================================================
 // Field Extraction
-// =============================================================================
 
 /// Extracts a named field from a tool_use input object.
 pub fn extract_tool_use_field(input: &Value, match_field: &str) -> Option<String> {
@@ -85,9 +79,7 @@ pub fn extract_tool_use_field(input: &Value, match_field: &str) -> Option<String
     }
 }
 
-// =============================================================================
 // Tests
-// =============================================================================
 
 #[cfg(test)]
 mod tests {

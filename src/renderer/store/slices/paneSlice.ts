@@ -21,9 +21,7 @@ import type { PaneLayout } from '@renderer/types/panes';
 import type { Tab } from '@renderer/types/tabs';
 import type { StateCreator } from 'zustand';
 
-// =============================================================================
 // Slice Interface
-// =============================================================================
 
 export interface PaneSlice {
   // State
@@ -57,9 +55,7 @@ export interface PaneSlice {
   getAllPaneTabs: () => Tab[];
 }
 
-// =============================================================================
 // Helpers
-// =============================================================================
 
 /**
  * Sync root-level openTabs/activeTabId/selectedTabIds from the focused pane.
@@ -75,9 +71,7 @@ function syncRootState(layout: PaneLayout): Record<string, unknown> {
   };
 }
 
-// =============================================================================
 // Slice Creator
-// =============================================================================
 
 export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, get) => ({
   // Initial state: single pane (populated by tabSlice init or first openTab)

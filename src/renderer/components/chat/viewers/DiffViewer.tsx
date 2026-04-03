@@ -5,9 +5,7 @@ import { getBaseName } from '@renderer/utils/pathUtils';
 import { formatTokens } from '@shared/utils/tokenFormatting';
 import { Columns2, Pencil, Rows3 } from 'lucide-react';
 
-// =============================================================================
 // Types
-// =============================================================================
 
 interface DiffViewerProps {
   fileName: string; // The file being edited
@@ -23,9 +21,7 @@ interface DiffLine {
   lineNumber: number;
 }
 
-// =============================================================================
 // Diff Algorithm (LCS-based)
-// =============================================================================
 
 /**
  * Computes the Longest Common Subsequence matrix for two arrays of strings.
@@ -106,9 +102,7 @@ function computeStats(diffLines: DiffLine[]): { added: number; removed: number }
   return { added, removed };
 }
 
-// =============================================================================
 // Language Detection
-// =============================================================================
 
 const EXTENSION_LANGUAGE_MAP: Record<string, string> = {
   // JavaScript/TypeScript
@@ -198,9 +192,7 @@ function inferLanguage(fileName: string): string {
   return 'text';
 }
 
-// =============================================================================
 // Diff Line Component
-// =============================================================================
 
 interface DiffLineRowProps {
   line: DiffLine;
@@ -252,9 +244,7 @@ const DiffLineRow: React.FC<DiffLineRowProps> = ({ line }): React.JSX.Element =>
   );
 };
 
-// =============================================================================
 // Split (Side-by-Side) Diff View
-// =============================================================================
 
 interface SplitDiffViewProps {
   diffLines: DiffLine[];
@@ -262,8 +252,8 @@ interface SplitDiffViewProps {
 }
 
 /** Build paired rows for side-by-side display. */
-function buildSplitRows(diffLines: DiffLine[]): Array<{ left: DiffLine | null; right: DiffLine | null }> {
-  const rows: Array<{ left: DiffLine | null; right: DiffLine | null }> = [];
+function buildSplitRows(diffLines: DiffLine[]): { left: DiffLine | null; right: DiffLine | null }[] {
+  const rows: { left: DiffLine | null; right: DiffLine | null }[] = [];
   let i = 0;
   while (i < diffLines.length) {
     const line = diffLines[i];
@@ -339,9 +329,7 @@ const SplitDiffView: React.FC<SplitDiffViewProps> = ({ diffLines, maxHeight }) =
   );
 };
 
-// =============================================================================
 // Main Component
-// =============================================================================
 
 export const DiffViewer: React.FC<DiffViewerProps> = ({
   fileName,

@@ -17,9 +17,7 @@ import type { Pane } from '@renderer/types/panes';
 import type { ContextInfo } from '@shared/types/api';
 import type { StateCreator } from 'zustand';
 
-// =============================================================================
 // Slice Interface
-// =============================================================================
 
 export interface ContextSlice {
   // State
@@ -35,9 +33,7 @@ export interface ContextSlice {
   fetchAvailableContexts: () => Promise<void>;
 }
 
-// =============================================================================
 // Helpers
-// =============================================================================
 
 /**
  * Get empty context state for fresh contexts.
@@ -220,9 +216,7 @@ function captureSnapshot(state: AppState, contextId: string): ContextSnapshot {
   };
 }
 
-// =============================================================================
 // Slice Creator
-// =============================================================================
 
 export const createContextSlice: StateCreator<AppState, [], [], ContextSlice> = (set, get) => ({
   // Initial state

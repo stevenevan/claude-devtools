@@ -18,9 +18,7 @@ import type {
 } from '@shared/types';
 import type { StateCreator } from 'zustand';
 
-// =============================================================================
 // Slice Interface
-// =============================================================================
 
 export interface ConnectionSlice {
   // State
@@ -45,9 +43,7 @@ export interface ConnectionSlice {
   loadLastConnection: () => Promise<void>;
 }
 
-// =============================================================================
 // Slice Creator
-// =============================================================================
 
 export const createConnectionSlice: StateCreator<AppState, [], [], ConnectionSlice> = (
   set,

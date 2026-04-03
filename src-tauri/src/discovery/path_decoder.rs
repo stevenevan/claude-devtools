@@ -8,9 +8,7 @@ use std::path::{Path, PathBuf};
 use regex::Regex;
 use std::sync::LazyLock;
 
-// =============================================================================
 // Core Encoding/Decoding
-// =============================================================================
 
 /// Decode a project directory name to its original path (lossy).
 pub fn decode_path(encoded_name: &str) -> String {
@@ -64,9 +62,7 @@ pub fn extract_project_name(encoded_name: &str, cwd_hint: Option<&str>) -> Strin
         .unwrap_or_else(|| encoded_name.to_string())
 }
 
-// =============================================================================
 // Validation
-// =============================================================================
 
 static VALID_ENCODED: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^-[a-zA-Z0-9_.\s:-]+$").unwrap());
@@ -118,9 +114,7 @@ pub fn extract_base_dir(project_id: &str) -> &str {
     }
 }
 
-// =============================================================================
 // Path Construction
-// =============================================================================
 
 pub fn build_todo_path(claude_base: &Path, session_id: &str) -> PathBuf {
     claude_base.join("todos").join(format!("{session_id}.json"))

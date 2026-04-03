@@ -13,9 +13,7 @@ import type { StateCreator } from 'zustand';
 
 const logger = createLogger('Store:repository');
 
-// =============================================================================
 // Slice Interface
-// =============================================================================
 
 export interface RepositorySlice {
   // State
@@ -33,9 +31,7 @@ export interface RepositorySlice {
   setViewMode: (mode: 'flat' | 'grouped') => void;
 }
 
-// =============================================================================
 // Slice Creator
-// =============================================================================
 
 export const createRepositorySlice: StateCreator<AppState, [], [], RepositorySlice> = (
   set,

@@ -5,9 +5,7 @@ use serde_json::Value;
 
 use super::messages::ParsedMessage;
 
-// =============================================================================
 // Project & Session
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -64,9 +62,7 @@ pub struct Session {
     pub agent_name: Option<String>,
 }
 
-// =============================================================================
 // Metrics
-// =============================================================================
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -85,9 +81,7 @@ pub struct SessionMetrics {
     pub model: Option<String>,
 }
 
-// =============================================================================
 // Parsed Session (result of full parse)
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -113,9 +107,7 @@ pub struct MessagesByType {
     pub other: Vec<ParsedMessage>,
 }
 
-// =============================================================================
 // Pagination
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

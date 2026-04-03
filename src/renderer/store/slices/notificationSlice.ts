@@ -15,9 +15,7 @@ import type { StateCreator } from 'zustand';
 const logger = createLogger('Store:notification');
 const NOTIFICATIONS_FETCH_LIMIT = 200;
 
-// =============================================================================
 // Slice Interface
-// =============================================================================
 
 export interface NotificationSlice {
   // State
@@ -36,9 +34,7 @@ export interface NotificationSlice {
   openNotificationsTab: () => void;
 }
 
-// =============================================================================
 // Slice Creator
-// =============================================================================
 
 export const createNotificationSlice: StateCreator<AppState, [], [], NotificationSlice> = (
   set,

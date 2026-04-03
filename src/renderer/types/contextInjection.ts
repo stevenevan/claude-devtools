@@ -6,9 +6,7 @@
 
 import type { ClaudeMdInjection } from './claudeMd';
 
-// =============================================================================
 // Constants
-// =============================================================================
 
 /**
  * Maximum tokens to estimate for a mentioned file.
@@ -16,9 +14,7 @@ import type { ClaudeMdInjection } from './claudeMd';
  */
 export const MAX_MENTIONED_FILE_TOKENS = 25000;
 
-// =============================================================================
 // Mentioned File Types
-// =============================================================================
 
 /**
  * Represents a file mentioned via @-mention that was injected into context.
@@ -58,9 +54,7 @@ export interface MentionedFileInfo {
   estimatedTokens: number;
 }
 
-// =============================================================================
 // Tool Output Types
-// =============================================================================
 
 /**
  * Breakdown of tokens contributed by a single tool in a turn.
@@ -97,9 +91,7 @@ export interface ToolOutputInjection {
   toolBreakdown: ToolTokenBreakdown[];
 }
 
-// =============================================================================
 // Thinking/Text Output Types
-// =============================================================================
 
 /**
  * Breakdown of thinking vs text tokens within a turn.
@@ -130,9 +122,7 @@ export interface ThinkingTextInjection {
   breakdown: ThinkingTextBreakdown[];
 }
 
-// =============================================================================
 // User Message Types
-// =============================================================================
 
 /**
  * Represents a user message injected into context for a single turn.
@@ -154,9 +144,7 @@ export interface UserMessageInjection {
   textPreview: string;
 }
 
-// =============================================================================
 // Task Coordination Types
-// =============================================================================
 
 /**
  * Breakdown of tokens contributed by a single task coordination item.
@@ -192,9 +180,7 @@ export interface TaskCoordinationInjection {
   breakdown: TaskCoordinationBreakdown[];
 }
 
-// =============================================================================
 // Union Types
-// =============================================================================
 
 /**
  * Extended ClaudeMdInjection with category discriminator for union compatibility.
@@ -219,9 +205,7 @@ export type ContextInjection =
   | TaskCoordinationInjection
   | UserMessageInjection;
 
-// =============================================================================
 // Statistics Types
-// =============================================================================
 
 /**
  * Token counts broken down by context source category.
@@ -279,9 +263,7 @@ export interface ContextStats {
   phaseNumber?: number;
 }
 
-// =============================================================================
 // Context Phase Types
-// =============================================================================
 
 /** Token change at a compaction boundary */
 export interface CompactionTokenDelta {

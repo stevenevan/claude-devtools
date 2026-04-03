@@ -11,17 +11,13 @@ import type { DetectedError, Project, RepositoryGroup, Session } from '@renderer
 import type { PaneLayout } from '@renderer/types/panes';
 import type { Tab } from '@renderer/types/tabs';
 
-// =============================================================================
 // Constants
-// =============================================================================
 
 const SNAPSHOT_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const STORAGE_KEY_PREFIX = 'context-snapshot:';
 const SNAPSHOT_VERSION = 1; // Increment when ContextSnapshot structure changes
 
-// =============================================================================
 // Types
-// =============================================================================
 
 /**
  * Context snapshot - persistable state for instant workspace switching.
@@ -71,9 +67,7 @@ interface StoredSnapshot {
   version: number;
 }
 
-// =============================================================================
 // Storage Implementation
-// =============================================================================
 
 /**
  * Save a context snapshot to IndexedDB.
@@ -188,9 +182,7 @@ async function isAvailable(): Promise<boolean> {
   }
 }
 
-// =============================================================================
 // Exports
-// =============================================================================
 
 export const contextStorage = {
   saveSnapshot,

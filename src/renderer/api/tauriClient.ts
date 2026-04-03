@@ -326,7 +326,7 @@ export class TauriAPIClient implements ElectronAPI {
     removeBookmark: (bookmarkId: string) =>
       invoke('config_remove_bookmark', { bookmarkId }),
     getBookmarks: () =>
-      invoke<Array<{ id: string; sessionId: string; projectId: string; groupId: string; note?: string; createdAt: number }>>('config_get_bookmarks'),
+      invoke<{ id: string; sessionId: string; projectId: string; groupId: string; note?: string; createdAt: number }[]>('config_get_bookmarks'),
     setSessionTags: (sessionId: string, tags: string[]) =>
       invoke('config_set_session_tags', { sessionId, tags }),
     getSessionTags: (sessionId: string) =>

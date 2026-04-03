@@ -12,9 +12,7 @@ use crate::types::messages::{ParsedMessage, ParsedMessageContent};
 use super::trigger_matcher::{extract_tool_use_field, matches_ignore_patterns, matches_pattern};
 use super::types::{create_detected_error, CreateDetectedErrorParams, DetectedError};
 
-// =============================================================================
 // Tool Map Types
-// =============================================================================
 
 pub struct ToolUseInfo {
     pub name: String,
@@ -24,9 +22,7 @@ pub struct ToolResultInfo {
     pub content: String,
 }
 
-// =============================================================================
 // Map Building
-// =============================================================================
 
 /// Builds a map of tool_use_id → ToolUseInfo from assistant messages.
 pub fn build_tool_use_map(messages: &[ParsedMessage]) -> HashMap<String, ToolUseInfo> {
@@ -142,9 +138,7 @@ fn extract_content_from_tool_use_result(tur: &Value) -> String {
     String::new()
 }
 
-// =============================================================================
 // Token Estimation
-// =============================================================================
 
 /// Estimate token count: ~4 chars per token (ceiling).
 pub fn estimate_tokens(content: &str) -> usize {
@@ -165,9 +159,7 @@ fn format_tokens(count: usize) -> String {
     }
 }
 
-// =============================================================================
 // Tool Result Extraction (for trigger checking)
-// =============================================================================
 
 struct ExtractedToolResult {
     tool_use_id: String,
@@ -264,9 +256,7 @@ fn find_tool_name_by_id(msg: &ParsedMessage, tool_use_id: &str) -> Option<String
     None
 }
 
-// =============================================================================
 // Tool Summary (simplified)
-// =============================================================================
 
 fn get_tool_summary(tool_name: &str, input: &Value) -> String {
     let get_str = |field: &str| -> Option<&str> { input.get(field)?.as_str() };
@@ -300,9 +290,7 @@ fn get_tool_summary(tool_name: &str, input: &Value) -> String {
     }
 }
 
-// =============================================================================
 // Trigger Checkers
-// =============================================================================
 
 /// Check a tool_result trigger against a message.
 pub fn check_tool_result_trigger(
@@ -611,9 +599,7 @@ pub fn check_token_threshold_trigger(
     errors
 }
 
-// =============================================================================
 // Helpers
-// =============================================================================
 
 /// Parse ISO-8601 timestamp string to epoch milliseconds.
 fn parse_timestamp_ms(ts: &str) -> f64 {
@@ -622,9 +608,7 @@ fn parse_timestamp_ms(ts: &str) -> f64 {
         .unwrap_or(0.0)
 }
 
-// =============================================================================
 // Tests
-// =============================================================================
 
 #[cfg(test)]
 mod tests {

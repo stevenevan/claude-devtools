@@ -48,9 +48,7 @@ import type {
 
 const logger = createLogger('Util:groupTransformer');
 
-// =============================================================================
 // Constants
-// =============================================================================
 
 /**
  * Regex pattern for detecting slash commands.
@@ -65,9 +63,7 @@ const COMMAND_PATTERN = /\/([a-z][a-z-]{0,50})(?:\s+(\S[^\n]{0,1000}))?$/gim;
  */
 const THINKING_PREVIEW_LENGTH = 100;
 
-// =============================================================================
 // Main Transformation Function
-// =============================================================================
 
 /**
  * Transforms EnhancedChunk[] into SessionConversation.
@@ -196,9 +192,7 @@ export function transformChunksToConversation(
   };
 }
 
-// =============================================================================
 // UserGroup Creation
-// =============================================================================
 
 /**
  * Creates a UserGroup from an EnhancedUserChunk.
@@ -426,9 +420,7 @@ export function extractFileReferences(text: string): FileReference[] {
   return references;
 }
 
-// =============================================================================
 // SystemGroup Creation
-// =============================================================================
 
 /**
  * Creates a SystemGroup from an EnhancedSystemChunk.
@@ -445,9 +437,7 @@ function createSystemGroup(chunk: EnhancedSystemChunk): SystemGroup {
   };
 }
 
-// =============================================================================
 // CompactGroup Creation
-// =============================================================================
 
 /**
  * Creates a CompactGroup from an EnhancedCompactChunk.
@@ -463,9 +453,7 @@ function createCompactGroup(chunk: EnhancedCompactChunk): CompactGroup {
   };
 }
 
-// =============================================================================
 // EventGroup Creation
-// =============================================================================
 
 function createEventGroup(chunk: EnhancedEventChunk): EventGroup {
   return {
@@ -476,9 +464,7 @@ function createEventGroup(chunk: EnhancedEventChunk): EventGroup {
   };
 }
 
-// =============================================================================
 // AIGroup Creation
-// =============================================================================
 
 /**
  * Creates an AIGroup from an EnhancedAIChunk.
@@ -577,9 +563,7 @@ function calculateTokensFromSteps(
   };
 }
 
-// =============================================================================
 // AIGroup Summary & Status Computation
-// =============================================================================
 
 /**
  * Computes summary statistics for an AIGroup's collapsed view.
@@ -665,9 +649,7 @@ function determineAIGroupStatus(steps: SemanticStep[]): AIGroupStatus {
   return 'complete';
 }
 
-// =============================================================================
 // CompactGroup Enrichment Helpers
-// =============================================================================
 
 /**
  * Find the last AI group before a given index in the items array.
@@ -729,6 +711,4 @@ function getFirstAssistantTotalTokens(aiGroup: AIGroup): number | undefined {
   return undefined;
 }
 
-// =============================================================================
 // Helper Functions
-// =============================================================================

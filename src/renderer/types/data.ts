@@ -10,9 +10,7 @@
  * - Renderer types: API interfaces, notifications, visualization
  */
 
-// =============================================================================
 // Re-exports from Main Process Types
-// =============================================================================
 
 // Domain types
 export type {
@@ -50,9 +48,7 @@ export { isEnhancedAIChunk } from '@shared/types';
 // JSONL types (for components that need content block types)
 export type { ToolUseResultData } from '@shared/types';
 
-// =============================================================================
 // Re-exports from Renderer-Specific Types
-// =============================================================================
 
 // API types
 export type { ClaudeMdFileInfo } from './api';
@@ -70,16 +66,12 @@ export type {
   TriggerToolName,
 } from './notifications';
 
-// =============================================================================
 // Session Sort Mode
-// =============================================================================
 
 /** Sort mode for session list in sidebar */
 export type SessionSortMode = 'recent' | 'most-context';
 
-// =============================================================================
 // Renderer-Specific Type Guards
-// =============================================================================
 
 import type {
   Chunk,

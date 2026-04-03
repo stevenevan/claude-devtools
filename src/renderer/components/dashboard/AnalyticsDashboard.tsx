@@ -26,9 +26,7 @@ import {
 
 import { SessionSchedule } from './SessionSchedule';
 
-// =============================================================================
 // Stat Card
-// =============================================================================
 
 interface StatCardProps {
   label: string;
@@ -62,9 +60,7 @@ const StatCard = ({
   </div>
 );
 
-// =============================================================================
 // Chart Section Wrapper
-// =============================================================================
 
 interface ChartSectionProps {
   title: string;
@@ -88,9 +84,7 @@ const ChartSection = ({
   </div>
 );
 
-// =============================================================================
 // Custom Tooltips
-// =============================================================================
 
 interface TooltipPayloadItem {
   name: string;
@@ -160,9 +154,7 @@ const CustomPieTooltip = ({
   );
 };
 
-// =============================================================================
 // Time Range Selector
-// =============================================================================
 
 const PRESET_RANGES = [
   { days: 1, label: 'Today' },
@@ -246,9 +238,7 @@ const DayRangeSelector = ({
   );
 };
 
-// =============================================================================
 // Top Sessions Table
-// =============================================================================
 
 import type { TopSessionEntry } from '@shared/types';
 
@@ -299,9 +289,7 @@ function formatCost(usd: number): string {
   return `$${usd.toFixed(4)}`;
 }
 
-// =============================================================================
 // Loading Skeleton
-// =============================================================================
 
 const DashboardSkeleton = (): React.JSX.Element => (
   <div className="space-y-6">
@@ -318,9 +306,7 @@ const DashboardSkeleton = (): React.JSX.Element => (
   </div>
 );
 
-// =============================================================================
 // Main Component
-// =============================================================================
 
 export const AnalyticsDashboard = (): React.JSX.Element => {
   const {

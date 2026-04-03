@@ -14,9 +14,7 @@ use super::types::{GetNotificationsOptions, GetNotificationsResult, TriggerTestR
 /// Type alias for managed notification state.
 pub type NotificationMutex = Mutex<NotificationState>;
 
-// =============================================================================
 // CRUD Commands
-// =============================================================================
 
 #[tauri::command]
 pub fn notifications_get(
@@ -85,9 +83,7 @@ pub fn notifications_get_unread_count(
     Ok(guard.unread_count())
 }
 
-// =============================================================================
 // Trigger Testing
-// =============================================================================
 
 #[tauri::command]
 pub fn notifications_test_trigger(
@@ -97,9 +93,7 @@ pub fn notifications_test_trigger(
     Ok(trigger_tester::test_trigger(&trigger, limit))
 }
 
-// =============================================================================
 // Error Detection (called from watcher integration)
-// =============================================================================
 
 /// Run error detection for a session and add results to notification state.
 /// Called from the watcher when a JSONL file changes.

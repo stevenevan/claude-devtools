@@ -53,9 +53,7 @@ import type {
   UserGroup,
 } from '../types/groups';
 
-// =============================================================================
 // Constants
-// =============================================================================
 
 /** Category identifier for mentioned file injections */
 const CATEGORY_MENTIONED_FILE = 'mentioned-file' as const;
@@ -71,9 +69,7 @@ const TASK_COORDINATION_TOOL_NAMES = new Set([
   'TaskGet',
 ]);
 
-// =============================================================================
 // ID Generation Functions
-// =============================================================================
 
 /**
  * Generate a unique ID for a mentioned file injection.
@@ -118,9 +114,7 @@ function generateUserMessageId(turnIndex: number): string {
   return `user-msg-ai-${turnIndex}`;
 }
 
-// =============================================================================
 // Injection Wrapping Functions
-// =============================================================================
 
 /**
  * Wrap a ClaudeMdInjection with the 'claude-md' category for union compatibility.
@@ -132,9 +126,7 @@ function wrapClaudeMdInjection(injection: ClaudeMdInjection): ClaudeMdContextInj
   };
 }
 
-// =============================================================================
 // Mentioned File Injection Creation
-// =============================================================================
 
 /**
  * Parameters for creating a mentioned file injection.
@@ -172,9 +164,7 @@ function createMentionedFileInjection(
   };
 }
 
-// =============================================================================
 // Tool Output Aggregation
-// =============================================================================
 
 /**
  * Aggregate tool outputs from all linked tools in a turn.
@@ -251,9 +241,7 @@ function aggregateToolOutputs(
   };
 }
 
-// =============================================================================
 // Task Coordination Aggregation
-// =============================================================================
 
 /**
  * Aggregate task coordination tokens from linked tools and display items.
@@ -328,9 +316,7 @@ function aggregateTaskCoordination(
   };
 }
 
-// =============================================================================
 // User Message Injection Creation
-// =============================================================================
 
 /**
  * Create a UserMessageInjection from a user group.
@@ -362,9 +348,7 @@ function createUserMessageInjection(
   };
 }
 
-// =============================================================================
 // Thinking/Text Output Aggregation
-// =============================================================================
 
 /**
  * Aggregates thinking and text output tokens for a single turn.
@@ -416,9 +400,7 @@ function aggregateThinkingText(
   };
 }
 
-// =============================================================================
 // Stats Computation
-// =============================================================================
 
 /**
  * Parameters for computing context stats for an AI group.
@@ -891,9 +873,7 @@ function computeContextStats(params: ComputeContextStatsParams): ContextStats {
   };
 }
 
-// =============================================================================
 // Session Processing
-// =============================================================================
 
 /**
  * Get total tokens from the last assistant message in an AI group.
@@ -1095,6 +1075,4 @@ export function processSessionContextWithPhases(
   return { statsMap, phaseInfo };
 }
 
-// =============================================================================
 // Utility Functions
-// =============================================================================

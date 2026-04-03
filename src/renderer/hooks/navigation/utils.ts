@@ -7,9 +7,7 @@
 
 import type { ChatItem } from '@renderer/types/groups';
 
-// =============================================================================
 // Target Resolution
-// =============================================================================
 
 /**
  * Find the AI group that contains or is closest to the given error timestamp.
@@ -89,9 +87,7 @@ export function findChatItemByTimestamp(
   return bestMatch;
 }
 
-// =============================================================================
 // Subagent Group Resolution
-// =============================================================================
 
 /**
  * Find the AI group that contains a subagent with the given ID.
@@ -107,9 +103,7 @@ export function findAIGroupBySubagentId(items: ChatItem[], subagentId: string): 
   return null;
 }
 
-// =============================================================================
 // DOM Readiness Helpers
-// =============================================================================
 
 /**
  * Wait for element size to stabilize using ResizeObserver.
@@ -209,9 +203,7 @@ export function waitForScrollEnd(container: HTMLElement, timeoutMs = 400): Promi
   });
 }
 
-// =============================================================================
 // Visibility and Scroll Calculation
-// =============================================================================
 
 /**
  * Calculate the scrollTop value to center an element in the visible area

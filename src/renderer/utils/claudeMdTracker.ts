@@ -13,9 +13,7 @@ import type { ClaudeMdInjection, ClaudeMdSource, ClaudeMdStats } from '../types/
 import type { ClaudeMdFileInfo, ParsedMessage, SemanticStep } from '../types/data';
 import type { AIGroup, ChatItem, FileReference, UserGroup } from '../types/groups';
 
-// =============================================================================
 // Constants
-// =============================================================================
 
 /** Default estimated tokens for global CLAUDE.md sources */
 const DEFAULT_ESTIMATED_TOKENS = 500;
@@ -26,9 +24,7 @@ const CLAUDE_MD_FILENAME = 'CLAUDE.md';
 /** Source identifier for project memory CLAUDE.md files */
 const SOURCE_PROJECT_MEMORY: ClaudeMdSource = 'project-memory';
 
-// =============================================================================
 // Helper Functions
-// =============================================================================
 
 /**
  * Generate a unique ID for an injection based on its path.
@@ -202,9 +198,7 @@ function isAtOrAbove(dirPath: string, stopPath: string): boolean {
   return normStop === normDir || normStop.startsWith(normDir + '/');
 }
 
-// =============================================================================
 // Path Extraction Functions
-// =============================================================================
 
 /**
  * Extract file paths from Read tool calls in semantic steps.
@@ -271,9 +265,7 @@ export function extractFileRefsFromResponses(responses: ParsedMessage[]): FileRe
   return refs;
 }
 
-// =============================================================================
 // CLAUDE.md Detection Functions
-// =============================================================================
 
 /**
  * Detect potential CLAUDE.md files by walking up from a file's directory to project root.
@@ -303,9 +295,7 @@ export function detectClaudeMdFromFilePath(filePath: string, projectRoot: string
   return claudeMdPaths;
 }
 
-// =============================================================================
 // Injection Creation Functions
-// =============================================================================
 
 /**
  * Create injection entries for global CLAUDE.md sources.
@@ -465,9 +455,7 @@ function createDirectoryInjection(path: string, aiGroupId: string): ClaudeMdInje
   };
 }
 
-// =============================================================================
 // Stats Computation
-// =============================================================================
 
 /**
  * Parameters for computing CLAUDE.md stats for an AI group.
@@ -584,9 +572,7 @@ function computeClaudeMdStats(params: ComputeClaudeMdStatsParams): ClaudeMdStats
   };
 }
 
-// =============================================================================
 // Session Processing
-// =============================================================================
 
 /**
  * Process all chat items in a session and compute CLAUDE.md stats for each AI group.
@@ -651,6 +637,4 @@ export function processSessionClaudeMd(
   return statsMap;
 }
 
-// =============================================================================
 // Utility Exports
-// =============================================================================

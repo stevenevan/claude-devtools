@@ -7,9 +7,7 @@ use crate::types::constants::*;
 use crate::types::jsonl::ContentBlock;
 use crate::types::messages::{MessageCategory, ParsedMessage, ParsedMessageContent};
 
-// =============================================================================
 // Type Guards
-// =============================================================================
 
 /// Real user message: type=user, !isMeta, has text/image content.
 pub fn is_parsed_real_user_message(msg: &ParsedMessage) -> bool {
@@ -210,9 +208,7 @@ pub fn is_parsed_teammate_message(msg: &ParsedMessage) -> bool {
     }
 }
 
-// =============================================================================
 // Message Categorization
-// =============================================================================
 
 /// Categorize a parsed message into one of the six categories.
 /// Order matters: event → hardNoise → compact → system → user → ai

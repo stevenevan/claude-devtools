@@ -24,9 +24,7 @@ import { Command, FolderGit2, FolderOpen, GitBranch, Search, Settings } from 'lu
 
 import type { RepositoryGroup } from '@renderer/types/data';
 
-// =============================================================================
 // Command Search Input
-// =============================================================================
 
 interface CommandSearchProps {
   value: string;
@@ -103,9 +101,7 @@ const CommandSearch = ({
   );
 };
 
-// =============================================================================
 // Repository Card
-// =============================================================================
 
 interface RepositoryCardProps {
   repo: RepositoryGroup;
@@ -205,9 +201,7 @@ const RepositoryCard = ({
   );
 };
 
-// =============================================================================
 // Ghost Card (New Project)
-// =============================================================================
 
 const NewProjectCard = (): React.JSX.Element => {
   const { repositoryGroups, selectRepository } = useStore(
@@ -260,9 +254,7 @@ const NewProjectCard = (): React.JSX.Element => {
   );
 };
 
-// =============================================================================
 // Projects Grid
-// =============================================================================
 
 interface ProjectsGridProps {
   searchQuery: string;

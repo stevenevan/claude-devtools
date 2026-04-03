@@ -9,9 +9,7 @@ use super::types::{AppConfig, BookmarkEntry, ClaudeRootInfo, NotificationTrigger
 
 type ConfigMutex = Arc<Mutex<ConfigState>>;
 
-// =============================================================================
 // Config CRUD
-// =============================================================================
 
 #[tauri::command]
 pub fn config_get(config: tauri::State<'_, ConfigMutex>) -> Result<AppConfig, String> {
@@ -29,9 +27,7 @@ pub fn config_update(
     state.update_config(&section, &data)
 }
 
-// =============================================================================
 // Ignore Regex
-// =============================================================================
 
 #[tauri::command]
 pub fn config_add_ignore_regex(
@@ -51,9 +47,7 @@ pub fn config_remove_ignore_regex(
     Ok(state.remove_ignore_regex(&pattern))
 }
 
-// =============================================================================
 // Ignore Repository
-// =============================================================================
 
 #[tauri::command]
 pub fn config_add_ignore_repository(
@@ -73,9 +67,7 @@ pub fn config_remove_ignore_repository(
     Ok(state.remove_ignore_repository(&repository_id))
 }
 
-// =============================================================================
 // Snooze
-// =============================================================================
 
 #[tauri::command]
 pub fn config_snooze(
@@ -94,9 +86,7 @@ pub fn config_clear_snooze(
     Ok(state.clear_snooze())
 }
 
-// =============================================================================
 // Triggers
-// =============================================================================
 
 #[tauri::command]
 pub fn config_add_trigger(
@@ -134,9 +124,7 @@ pub fn config_get_triggers(
     Ok(state.get_triggers())
 }
 
-// =============================================================================
 // Session Pinning
-// =============================================================================
 
 #[tauri::command]
 pub fn config_pin_session(
@@ -160,9 +148,7 @@ pub fn config_unpin_session(
     Ok(())
 }
 
-// =============================================================================
 // Session Hiding
-// =============================================================================
 
 #[tauri::command]
 pub fn config_hide_session(
@@ -208,9 +194,7 @@ pub fn config_unhide_sessions(
     Ok(())
 }
 
-// =============================================================================
 // Claude Root Info
-// =============================================================================
 
 #[tauri::command]
 pub fn config_get_claude_root_info(
@@ -220,9 +204,7 @@ pub fn config_get_claude_root_info(
     Ok(state.get_claude_root_info())
 }
 
-// =============================================================================
 // Open in Editor
-// =============================================================================
 
 #[tauri::command]
 pub fn config_open_in_editor(
@@ -237,9 +219,7 @@ pub fn config_open_in_editor(
         .map_err(|e| format!("Failed to open config file: {e}"))
 }
 
-// =============================================================================
 // Bookmarks
-// =============================================================================
 
 #[tauri::command]
 pub fn config_add_bookmark(
@@ -284,9 +264,7 @@ pub fn config_get_bookmarks(
     Ok(state.get_bookmarks().to_vec())
 }
 
-// =============================================================================
 // Session Tags
-// =============================================================================
 
 #[tauri::command]
 pub fn config_set_session_tags(

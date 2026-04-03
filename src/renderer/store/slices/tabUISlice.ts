@@ -16,9 +16,7 @@
 import type { AppState } from '../types';
 import type { StateCreator } from 'zustand';
 
-// =============================================================================
 // Types
-// =============================================================================
 
 /**
  * UI state for a single tab.
@@ -62,9 +60,7 @@ function createDefaultTabUIState(): TabUIState {
   };
 }
 
-// =============================================================================
 // Slice Interface
-// =============================================================================
 
 export interface TabUISlice {
   /** Per-tab UI states: Map<tabId, TabUIState> */
@@ -123,16 +119,12 @@ export interface TabUISlice {
   setFocusedTurnIndexForTab: (tabId: string, index: number) => void;
 }
 
-// =============================================================================
 // Slice Creator
-// =============================================================================
 
 export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set, get) => ({
   tabUIStates: new Map<string, TabUIState>(),
 
-  // ==========================================================================
   // Initialization & Cleanup
-  // ==========================================================================
 
   initTabUIState: (tabId: string) => {
     const state = get();
@@ -152,9 +144,7 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
     set({ tabUIStates: newMap });
   },
 
-  // ==========================================================================
   // AI Group Expansion
-  // ==========================================================================
 
   toggleAIGroupExpansionForTab: (tabId: string, aiGroupId: string) => {
     const state = get();
@@ -192,9 +182,7 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
     set({ tabUIStates: newMap });
   },
 
-  // ==========================================================================
   // Display Item Expansion
-  // ==========================================================================
 
   toggleDisplayItemExpansionForTab: (tabId: string, aiGroupId: string, itemId: string) => {
     const state = get();
@@ -239,9 +227,7 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
     set({ tabUIStates: newMap });
   },
 
-  // ==========================================================================
   // Subagent Trace Expansion
-  // ==========================================================================
 
   toggleSubagentTraceExpansionForTab: (tabId: string, subagentId: string) => {
     const state = get();
@@ -279,9 +265,7 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
     return tabState?.expandedSubagentTraceIds.has(subagentId) ?? false;
   },
 
-  // ==========================================================================
   // Context Panel
-  // ==========================================================================
 
   setContextPanelVisibleForTab: (tabId: string, visible: boolean) => {
     const state = get();
@@ -297,9 +281,7 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
     return tabState?.showContextPanel ?? false;
   },
 
-  // ==========================================================================
   // Context Phase Selection
-  // ==========================================================================
 
   setSelectedContextPhaseForTab: (tabId: string, phase: number | null) => {
     const state = get();
@@ -309,9 +291,7 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
     set({ tabUIStates: newMap });
   },
 
-  // ==========================================================================
   // Scroll Position
-  // ==========================================================================
 
   saveScrollPositionForTab: (tabId: string, scrollTop: number) => {
     const state = get();

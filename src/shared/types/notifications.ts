@@ -11,9 +11,7 @@
 
 import type { TriggerColor } from '@shared/constants/triggerColors';
 
-// =============================================================================
 // Detected Error Types
-// =============================================================================
 
 /**
  * Detected error from session JSONL files.
@@ -59,9 +57,7 @@ export interface DetectedError {
   };
 }
 
-// =============================================================================
 // Notification Trigger Types
-// =============================================================================
 
 /**
  * Content types that can trigger notifications.
@@ -222,9 +218,7 @@ export interface TriggerTestResult {
   truncated?: boolean;
 }
 
-// =============================================================================
 // Application Configuration Types
-// =============================================================================
 
 /**
  * Application configuration settings.

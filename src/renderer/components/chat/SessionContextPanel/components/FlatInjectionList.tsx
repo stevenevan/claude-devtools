@@ -13,9 +13,7 @@ import { parseTurnIndex } from '../utils/pathParsing';
 
 import type { ContextInjection } from '@renderer/types/contextInjection';
 
-// =============================================================================
 // Constants
-// =============================================================================
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   'claude-md': {
@@ -34,9 +32,7 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string 
   'user-message': { bg: 'rgb(34 197 94 / 0.15)', text: 'rgb(134 239 172)', label: 'User' },
 };
 
-// =============================================================================
 // Types
-// =============================================================================
 
 interface FlatRow {
   key: string;
@@ -58,9 +54,7 @@ interface FlatInjectionListProps {
   onNavigateToUserGroup?: (turnIndex: number) => void;
 }
 
-// =============================================================================
 // Helpers
-// =============================================================================
 
 function flattenInjections(injections: ContextInjection[]): FlatRow[] {
   const rows: FlatRow[] = [];
@@ -166,9 +160,7 @@ function flattenInjections(injections: ContextInjection[]): FlatRow[] {
   return rows.sort((a, b) => b.tokens - a.tokens);
 }
 
-// =============================================================================
 // Component
-// =============================================================================
 
 export const FlatInjectionList = ({
   injections,

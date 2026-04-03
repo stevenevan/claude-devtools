@@ -6,9 +6,7 @@ import { ChevronRight } from 'lucide-react';
 
 import { formatDuration, formatTokens, getStatusDotClass } from './baseItemHelpers';
 
-// =============================================================================
 // Types
-// =============================================================================
 
 export type ItemStatus = 'ok' | 'error' | 'pending' | 'orphaned';
 
@@ -43,9 +41,7 @@ interface BaseItemProps {
   children?: React.ReactNode;
 }
 
-// =============================================================================
 // Helper Components
-// =============================================================================
 
 /**
  * Small status dot indicator.
@@ -58,9 +54,7 @@ export const StatusDot: React.FC<{ status: ItemStatus }> = ({ status }) => {
   );
 };
 
-// =============================================================================
 // Main Component
-// =============================================================================
 
 /**
  * BaseItem provides a consistent layout for all expandable items in the chat view.

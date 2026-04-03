@@ -91,9 +91,7 @@ pub fn build_session_detail(
     }
 }
 
-// =============================================================================
 // Incremental chunk building
-// =============================================================================
 
 /// Delta produced by incremental chunk building.
 #[derive(Debug, Clone, serde::Serialize)]

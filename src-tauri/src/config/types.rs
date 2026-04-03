@@ -5,9 +5,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-// =============================================================================
 // Top-Level Config
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -20,9 +18,7 @@ pub struct AppConfig {
     pub http_server: HttpServerConfig,
 }
 
-// =============================================================================
 // Notification Config
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -67,9 +63,7 @@ pub struct NotificationTrigger {
     pub color: Option<String>,
 }
 
-// =============================================================================
 // General Config
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -83,9 +77,7 @@ pub struct GeneralConfig {
     pub use_native_title_bar: bool,
 }
 
-// =============================================================================
 // Display Config
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -95,9 +87,7 @@ pub struct DisplayConfig {
     pub syntax_highlighting: bool,
 }
 
-// =============================================================================
 // Sessions Config
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -137,9 +127,7 @@ pub struct HiddenSession {
     pub hidden_at: f64,
 }
 
-// =============================================================================
 // SSH Config
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -174,9 +162,7 @@ pub struct SshConnectionProfile {
     pub private_key_path: Option<String>,
 }
 
-// =============================================================================
 // HTTP Server Config
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -185,9 +171,7 @@ pub struct HttpServerConfig {
     pub port: u16,
 }
 
-// =============================================================================
 // Claude Root Info (query response)
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -197,9 +181,7 @@ pub struct ClaudeRootInfo {
     pub effective_path: String,
 }
 
-// =============================================================================
 // Defaults
-// =============================================================================
 
 impl Default for AppConfig {
     fn default() -> Self {
@@ -286,9 +268,7 @@ impl Default for HttpServerConfig {
     }
 }
 
-// =============================================================================
 // Merge helpers
-// =============================================================================
 
 /// Merge a loaded partial JSON config with defaults, filling missing fields.
 pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {

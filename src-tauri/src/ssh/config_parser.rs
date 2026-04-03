@@ -7,9 +7,7 @@ use std::path::Path;
 
 use super::types::SshConfigHostEntry;
 
-// =============================================================================
 // Parsed SSH Config
-// =============================================================================
 
 struct HostBlock {
     patterns: Vec<String>,
@@ -67,9 +65,7 @@ fn host_matches(pattern: &str, hostname: &str) -> bool {
         .unwrap_or(false)
 }
 
-// =============================================================================
 // Parsing
-// =============================================================================
 
 fn parse_ssh_config(content: &str) -> ParsedConfig {
     let mut blocks: Vec<HostBlock> = Vec::new();
@@ -154,9 +150,7 @@ fn parse_ssh_config(content: &str) -> ParsedConfig {
     ParsedConfig { blocks }
 }
 
-// =============================================================================
 // Include Expansion
-// =============================================================================
 
 fn expand_includes(content: &str, home: &Path) -> String {
     let mut result = Vec::new();
@@ -187,9 +181,7 @@ fn expand_includes(content: &str, home: &Path) -> String {
     result.join("\n")
 }
 
-// =============================================================================
 // Public API
-// =============================================================================
 
 fn resolve_entry(computed: &HashMap<String, Vec<String>>, alias: &str) -> SshConfigHostEntry {
     let host_name = computed
@@ -275,9 +267,7 @@ pub fn resolve_host(alias: &str) -> Option<SshConfigHostEntry> {
     Some(entry)
 }
 
-// =============================================================================
 // Tests
-// =============================================================================
 
 #[cfg(test)]
 mod tests {

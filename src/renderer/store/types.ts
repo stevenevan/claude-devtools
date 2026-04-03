@@ -20,9 +20,7 @@ import type { TabUISlice } from './slices/tabUISlice';
 import type { UISlice } from './slices/uiSlice';
 import type { UpdateSlice } from './slices/updateSlice';
 
-// =============================================================================
 // Shared Types
-// =============================================================================
 
 /**
  * Breadcrumb item for subagent drill-down navigation.
@@ -69,9 +67,7 @@ export interface SearchNavigationContext {
   targetMessageUuid?: string;
 }
 
-// =============================================================================
 // Combined AppState Type
-// =============================================================================
 
 /**
  * Combined application state type.

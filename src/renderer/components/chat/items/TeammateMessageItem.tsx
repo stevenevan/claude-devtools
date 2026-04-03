@@ -9,9 +9,7 @@ import { MarkdownViewer } from '../viewers/MarkdownViewer';
 
 import type { TeammateMessage } from '@renderer/types/groups';
 
-// =============================================================================
 // Types
-// =============================================================================
 
 interface TeammateMessageItemProps {
   teammateMessage: TeammateMessage;
@@ -76,9 +74,7 @@ function detectNoise(content: string, teammateId: string): string | null {
   return null;
 }
 
-// =============================================================================
 // Resend Detection
-// =============================================================================
 
 const RESEND_PATTERNS = [
   /\bresend/i,
@@ -96,9 +92,7 @@ function isResendMessage(message: TeammateMessage): boolean {
   return RESEND_PATTERNS.some((p) => p.test(contentSnippet));
 }
 
-// =============================================================================
 // Component
-// =============================================================================
 
 /**
  * TeammateMessageItem - Card component for teammate messages.

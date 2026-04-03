@@ -8,9 +8,7 @@
 import type { Chunk, SessionDetail } from '@renderer/types/data';
 import type { ContentBlock } from '@shared/types';
 
-// =============================================================================
 // Types
-// =============================================================================
 
 export type ExportFormat = 'markdown' | 'json' | 'plaintext';
 
@@ -18,9 +16,7 @@ interface ExtractOptions {
   includeThinking?: boolean;
 }
 
-// =============================================================================
 // Helpers (not exported)
-// =============================================================================
 
 function formatNumber(n: number): string {
   return n.toLocaleString('en-US');
@@ -52,9 +48,7 @@ function truncate(text: string, maxLen: number): string {
   return text.slice(0, maxLen) + '...';
 }
 
-// =============================================================================
 // extractTextFromContent
-// =============================================================================
 
 /**
  * Extract readable text from message content (string or ContentBlock[]).
@@ -110,9 +104,7 @@ export function extractTextFromContent(
   return parts.join('\n');
 }
 
-// =============================================================================
 // Plain Text Chunk Formatters
-// =============================================================================
 
 function formatToolExecutionPlainText(exec: {
   toolCall: { name: string; input: Record<string, unknown> };
@@ -181,9 +173,7 @@ function formatChunkPlainText(chunk: Chunk): string[] {
   return lines;
 }
 
-// =============================================================================
 // Markdown Chunk Formatters
-// =============================================================================
 
 function formatToolExecutionMarkdown(exec: {
   toolCall: { name: string; input: Record<string, unknown> };
@@ -281,9 +271,7 @@ function formatChunkMarkdown(chunk: Chunk, turnNum: number): string[] {
   return lines;
 }
 
-// =============================================================================
 // Export Functions
-// =============================================================================
 
 /**
  * Export session as plain text transcript.

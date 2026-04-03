@@ -9,9 +9,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import type { GlobalAgent } from '@shared/types/api';
 
-// =============================================================================
 // Helpers
-// =============================================================================
 
 /** Convert "backend-developer" → "Backend Developer" */
 function formatAgentName(name: string): string {
@@ -21,9 +19,7 @@ function formatAgentName(name: string): string {
     .join(' ');
 }
 
-// =============================================================================
 // Agent Card
-// =============================================================================
 
 interface AgentCardProps {
   agent: GlobalAgent;
@@ -74,9 +70,7 @@ const AgentCard = ({ agent, isHighlighted }: Readonly<AgentCardProps>): React.JS
   );
 };
 
-// =============================================================================
 // Skeleton
-// =============================================================================
 
 const AgentsGridSkeleton = (): React.JSX.Element => {
   const titleWidths = [60, 50, 70, 55, 65, 45];
@@ -108,9 +102,7 @@ const AgentsGridSkeleton = (): React.JSX.Element => {
   );
 };
 
-// =============================================================================
 // Agents Grid
-// =============================================================================
 
 interface AgentsGridProps {
   searchQuery: string;

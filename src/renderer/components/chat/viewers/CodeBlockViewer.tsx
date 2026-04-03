@@ -10,9 +10,7 @@ const logger = createLogger('Component:CodeBlockViewer');
 
 import { highlightLine } from './syntaxHighlighter';
 
-// =============================================================================
 // Types
-// =============================================================================
 
 interface CodeBlockViewerProps {
   fileName: string; // e.g., "src/components/Header.tsx"
@@ -23,9 +21,7 @@ interface CodeBlockViewerProps {
   maxHeight?: string; // CSS max-height class (default: "max-h-96")
 }
 
-// =============================================================================
 // Language Detection
-// =============================================================================
 
 const EXTENSION_LANGUAGE_MAP: Record<string, string> = {
   // JavaScript/TypeScript
@@ -115,9 +111,7 @@ function inferLanguage(fileName: string): string {
   return 'text';
 }
 
-// =============================================================================
 // Component
-// =============================================================================
 
 export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
   fileName,

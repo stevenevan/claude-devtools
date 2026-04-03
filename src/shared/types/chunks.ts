@@ -21,9 +21,7 @@ import {
   type ToolResult,
 } from './messages';
 
-// =============================================================================
 // Process Types (Subagent Execution)
-// =============================================================================
 
 /**
  * Resolved subagent information.
@@ -74,9 +72,7 @@ export interface Process {
   };
 }
 
-// =============================================================================
 // Chunk Types (for visualization)
-// =============================================================================
 
 /**
  * Base chunk properties shared by all chunk types.
@@ -172,9 +168,7 @@ export interface ToolExecution {
   durationMs?: number;
 }
 
-// =============================================================================
 // Conversation Group Types (Simplified Grouping Strategy)
-// =============================================================================
 
 /**
  * Task execution links a Task tool call to its subagent execution.
@@ -230,9 +224,7 @@ export interface ConversationGroup {
   metrics: SessionMetrics;
 }
 
-// =============================================================================
 // Semantic Step Types (Enhanced Chunk Visualization)
-// =============================================================================
 
 /**
  * Semantic step types for breakdown within responses.
@@ -347,9 +339,7 @@ export interface SemanticStepGroup {
   totalDuration: number;
 }
 
-// =============================================================================
 // Enhanced Chunk Types
-// =============================================================================
 
 /**
  * Enhanced AI chunk with semantic step breakdown.
@@ -410,9 +400,7 @@ export type EnhancedChunk =
   | EnhancedCompactChunk
   | EnhancedEventChunk;
 
-// =============================================================================
 // Session Detail (complete parsed session)
-// =============================================================================
 
 /**
  * Complete parsed session with all data.
@@ -458,9 +446,7 @@ export interface SubagentDetail {
   };
 }
 
-// =============================================================================
 // Utility Types
-// =============================================================================
 
 /**
  * File watching event.
@@ -473,9 +459,7 @@ export interface FileChangeEvent {
   isSubagent: boolean;
 }
 
-// =============================================================================
 // Constants
-// =============================================================================
 
 /**
  * Empty metrics constant for initialization.
@@ -490,9 +474,7 @@ export const EMPTY_METRICS: SessionMetrics = {
   messageCount: 0,
 };
 
-// =============================================================================
 // Chunk Type Guards
-// =============================================================================
 
 /**
  * Type guard to check if a chunk is a UserChunk.

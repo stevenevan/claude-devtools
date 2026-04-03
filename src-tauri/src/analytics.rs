@@ -14,9 +14,7 @@ use std::io::{BufRead, BufReader};
 use crate::discovery::{path_decoder, project_scanner, subproject_registry::SubprojectRegistry};
 use crate::watcher;
 
-// =============================================================================
 // Types returned to the frontend
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -88,9 +86,7 @@ pub struct AnalyticsResponse {
     pub granularity: BucketGranularity,
 }
 
-// =============================================================================
 // Cost estimation (pricing from litellm model_prices_and_context_window.json)
-// =============================================================================
 
 struct ModelPricing {
     input: f64,
@@ -153,9 +149,7 @@ fn estimate_cost(
         + (cache_creation as f64) * p.cache_write
 }
 
-// =============================================================================
 // Model display name
-// =============================================================================
 
 fn model_display_name(model: &str) -> String {
     let lower = model.to_lowercase();
@@ -207,9 +201,7 @@ fn model_display_name(model: &str) -> String {
         .to_string()
 }
 
-// =============================================================================
 // Time bucket helpers
-// =============================================================================
 
 fn day_key(ts_ms: f64) -> String {
     let secs = (ts_ms / 1000.0) as i64;
@@ -242,9 +234,7 @@ fn hour_label(h: u32) -> String {
     }
 }
 
-// =============================================================================
 // Lightweight JSONL scanner — extracts only analytics-relevant fields
-// =============================================================================
 
 /// Minimal data extracted from a session file for analytics purposes.
 /// Avoids full message parsing (content blocks, tool calls, etc.).
@@ -442,9 +432,7 @@ fn scan_session_fast(file_path: &Path) -> Option<SessionSummary> {
     })
 }
 
-// =============================================================================
 // Main analytics function
-// =============================================================================
 
 /// Bucket granularity derived from the requested day count.
 ///   1 day          → Hourly  (24 buckets)

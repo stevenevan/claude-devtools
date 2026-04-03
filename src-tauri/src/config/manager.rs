@@ -13,9 +13,7 @@ use super::types::{
 };
 use super::validation;
 
-// =============================================================================
 // ConfigState
-// =============================================================================
 
 pub struct ConfigState {
     config: AppConfig,
@@ -472,9 +470,7 @@ impl ConfigState {
     }
 }
 
-// =============================================================================
 // Helpers
-// =============================================================================
 
 fn resolve_config_path() -> PathBuf {
     dirs::home_dir()
@@ -500,9 +496,7 @@ fn now_millis() -> f64 {
         .as_millis() as f64
 }
 
-// =============================================================================
 // JSON merge helpers for partial updates
-// =============================================================================
 
 fn merge_json_into_notifications(
     notif: &mut super::types::NotificationConfig,

@@ -10,9 +10,7 @@
 
 import { type UsageMetadata } from './jsonl';
 
-// =============================================================================
 // Application-Specific Type Aliases
-// =============================================================================
 
 /**
  * Token usage statistics (alias for API compatibility).
@@ -37,9 +35,7 @@ export type MessageType =
  */
 export type MessageCategory = 'user' | 'system' | 'hardNoise' | 'ai' | 'compact';
 
-// =============================================================================
 // Project & Session Types
-// =============================================================================
 
 /**
  * Project information derived from ~/.claude/projects/ directory.
@@ -139,9 +135,7 @@ export interface SessionMetrics {
   model?: string;
 }
 
-// =============================================================================
 // Repository & Worktree Grouping Types
-// =============================================================================
 
 /**
  * Worktree source identifies how/where the worktree was created.
@@ -217,9 +211,7 @@ export interface RepositoryGroup {
   totalSessions: number;
 }
 
-// =============================================================================
 // Search Types
-// =============================================================================
 
 /**
  * A single search result from searching sessions.
@@ -303,9 +295,7 @@ export interface FilteredSearchResponse {
   query?: string;
 }
 
-// =============================================================================
 // Pagination Types
-// =============================================================================
 
 /**
  * Cursor for session pagination.
@@ -370,9 +360,7 @@ export interface SessionsByIdsOptions {
   metadataLevel?: SessionMetadataLevel;
 }
 
-// =============================================================================
 // Analytics Types (returned by Rust get_analytics command)
-// =============================================================================
 
 export interface TimeBucketUsage {
   key: string;

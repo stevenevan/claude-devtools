@@ -8,9 +8,7 @@ import type { AppState, BreadcrumbItem } from '../types';
 import type { SubagentDetail } from '@renderer/types/data';
 import type { StateCreator } from 'zustand';
 
-// =============================================================================
 // Slice Interface
-// =============================================================================
 
 export interface SubagentSlice {
   // State
@@ -30,9 +28,7 @@ export interface SubagentSlice {
   closeSubagentModal: () => void;
 }
 
-// =============================================================================
 // Slice Creator
-// =============================================================================
 
 export const createSubagentSlice: StateCreator<AppState, [], [], SubagentSlice> = (set, get) => ({
   // Initial state

@@ -5,9 +5,7 @@ use serde_json::Value;
 
 use super::jsonl::ContentBlock;
 
-// =============================================================================
 // Tool Types
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -30,9 +28,7 @@ pub struct ToolResult {
     pub is_error: bool,
 }
 
-// =============================================================================
 // Message Content (string | ContentBlock[])
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -41,9 +37,7 @@ pub enum ParsedMessageContent {
     Blocks(Vec<ContentBlock>),
 }
 
-// =============================================================================
 // Parsed Message
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -93,9 +87,7 @@ pub struct ParsedMessage {
     pub event_data: Option<SystemEventData>,
 }
 
-// =============================================================================
 // Token Usage
-// =============================================================================
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TokenUsage {
@@ -109,9 +101,7 @@ pub struct TokenUsage {
     pub cache_creation_input_tokens: Option<u64>,
 }
 
-// =============================================================================
 // System Event Data
-// =============================================================================
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -150,9 +140,7 @@ pub struct SystemEventData {
     pub queued_content: Option<String>,
 }
 
-// =============================================================================
 // Message Category
-// =============================================================================
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

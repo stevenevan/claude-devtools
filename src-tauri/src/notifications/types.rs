@@ -2,9 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-// =============================================================================
 // DetectedError
-// =============================================================================
 
 /// Represents a detected error from a Claude Code session.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -40,9 +38,7 @@ pub struct ErrorContext {
     pub cwd: Option<String>,
 }
 
-// =============================================================================
 // StoredNotification
-// =============================================================================
 
 /// A notification stored to disk (DetectedError + read status).
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -54,9 +50,7 @@ pub struct StoredNotification {
     pub created_at: f64,
 }
 
-// =============================================================================
 // GetNotificationsResult
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -75,9 +69,7 @@ pub struct GetNotificationsOptions {
     pub offset: Option<usize>,
 }
 
-// =============================================================================
 // TriggerTestResult
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -88,9 +80,7 @@ pub struct TriggerTestResult {
     pub truncated: Option<bool>,
 }
 
-// =============================================================================
 // CreateDetectedErrorParams
-// =============================================================================
 
 pub struct CreateDetectedErrorParams {
     pub session_id: String,
@@ -141,9 +131,7 @@ pub fn create_detected_error(params: CreateDetectedErrorParams) -> DetectedError
     }
 }
 
-// =============================================================================
 // NotificationUpdated event payload
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]

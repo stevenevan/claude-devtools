@@ -18,9 +18,7 @@ import {
 import { type MessageType, type TokenUsage } from './domain';
 import { type ContentBlock, type ToolUseResultData } from './jsonl';
 
-// =============================================================================
 // Tool Types
-// =============================================================================
 
 /**
  * Tool call extracted from assistant message.
@@ -52,9 +50,7 @@ export interface ToolResult {
   isError: boolean;
 }
 
-// =============================================================================
 // Parsed Message
-// =============================================================================
 
 /**
  * Parsed and enriched message from JSONL.
@@ -111,9 +107,7 @@ export interface ParsedMessage {
   eventData?: SystemEventData;
 }
 
-// =============================================================================
 // System Event Data
-// =============================================================================
 
 /**
  * Structured data for displayable system events (api_error, bridge_status, memory_saved).
@@ -140,9 +134,7 @@ export interface SystemEventData {
   queuedContent?: string;
 }
 
-// =============================================================================
 // ParsedMessage Type Guards
-// =============================================================================
 
 /**
  * Type guard to check if a ParsedMessage is a real user message.

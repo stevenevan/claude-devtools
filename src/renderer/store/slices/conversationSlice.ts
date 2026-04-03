@@ -9,9 +9,7 @@ import type { AIGroupExpansionLevel } from '@renderer/types/groups';
 import type { SessionConversation } from '@renderer/types/groups';
 import type { StateCreator } from 'zustand';
 
-// =============================================================================
 // Types
-// =============================================================================
 
 type DetailItemType = 'thinking' | 'text' | 'linked-tool' | 'subagent';
 
@@ -36,9 +34,7 @@ export interface ActiveDetailItem {
   type: DetailItemType;
 }
 
-// =============================================================================
 // Slice Interface
-// =============================================================================
 
 export interface ConversationSlice {
   // Expansion states
@@ -107,9 +103,7 @@ export interface ConversationSlice {
   expandForCurrentSearchResult: () => void;
 }
 
-// =============================================================================
 // Slice Creator
-// =============================================================================
 
 export const createConversationSlice: StateCreator<AppState, [], [], ConversationSlice> = (
   set,

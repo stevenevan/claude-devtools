@@ -7,9 +7,7 @@ use serde_json::Value;
 use super::domain::SessionMetrics;
 use super::messages::{ParsedMessage, SystemEventData, ToolCall, ToolResult};
 
-// =============================================================================
 // Process (Subagent Execution)
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -52,9 +50,7 @@ pub struct TeamMetadata {
     pub member_color: String,
 }
 
-// =============================================================================
 // Tool Execution
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -69,9 +65,7 @@ pub struct ToolExecution {
     pub duration_ms: Option<f64>,
 }
 
-// =============================================================================
 // Enhanced Chunk (discriminated union via chunkType tag)
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "chunkType", rename_all = "camelCase")]
@@ -160,9 +154,7 @@ pub struct EnhancedEventChunk {
     pub raw_messages: Vec<ParsedMessage>,
 }
 
-// =============================================================================
 // Semantic Step
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -247,9 +239,7 @@ pub struct TokenBreakdown {
     pub cache_creation: u64,
 }
 
-// =============================================================================
 // Semantic Step Group
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -265,9 +255,7 @@ pub struct SemanticStepGroup {
     pub total_duration: f64,
 }
 
-// =============================================================================
 // Session Detail (complete parsed + chunked session)
-// =============================================================================
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

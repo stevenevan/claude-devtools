@@ -10,9 +10,7 @@ import type { AppState } from '../types';
 import type { Project, Session } from '@renderer/types/data';
 import type { StateCreator } from 'zustand';
 
-// =============================================================================
 // Slice Interface
-// =============================================================================
 
 export interface SessionCacheEntry {
   sessions: Session[];
@@ -35,9 +33,7 @@ export interface ProjectSlice {
   selectProject: (id: string) => void;
 }
 
-// =============================================================================
 // Slice Creator
-// =============================================================================
 
 export const createProjectSlice: StateCreator<AppState, [], [], ProjectSlice> = (set, get) => ({
   // Initial state

@@ -13,9 +13,7 @@ use super::types::{
 /// Type alias for managed SSH state.
 pub type SshStateMutex = tokio::sync::Mutex<connection_manager::SshState>;
 
-// =============================================================================
 // SSH Config Commands (no connection needed)
-// =============================================================================
 
 #[tauri::command]
 pub fn ssh_get_config_hosts() -> Result<Vec<SshConfigHostEntry>, String> {
@@ -27,9 +25,7 @@ pub fn ssh_resolve_host(alias: String) -> Result<Option<SshConfigHostEntry>, Str
     Ok(config_parser::resolve_host(&alias))
 }
 
-// =============================================================================
 // Connection Commands
-// =============================================================================
 
 #[tauri::command]
 pub async fn ssh_connect(
@@ -114,9 +110,7 @@ pub async fn ssh_test(
     }
 }
 
-// =============================================================================
 // Last Connection Persistence (uses ConfigState)
-// =============================================================================
 
 #[tauri::command]
 pub fn ssh_save_last_connection(

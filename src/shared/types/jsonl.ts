@@ -8,9 +8,7 @@
  * operate directly on the raw JSONL structures.
  */
 
-// =============================================================================
 // Core Type Aliases
-// =============================================================================
 
 type EntryType =
   | 'user'
@@ -24,9 +22,7 @@ type ContentType = 'text' | 'thinking' | 'tool_use' | 'tool_result' | 'image';
 
 type StopReason = 'end_turn' | 'tool_use' | 'max_tokens' | 'stop_sequence' | null;
 
-// =============================================================================
 // Content Blocks
-// =============================================================================
 
 interface BaseContent {
   type: ContentType;
@@ -73,9 +69,7 @@ export type ContentBlock =
   | ToolResultContent
   | ImageContent;
 
-// =============================================================================
 // Usage Metadata
-// =============================================================================
 
 export interface UsageMetadata {
   input_tokens: number;
@@ -84,9 +78,7 @@ export interface UsageMetadata {
   cache_creation_input_tokens?: number;
 }
 
-// =============================================================================
 // Messages
-// =============================================================================
 
 interface UserMessage {
   role: 'user';
@@ -104,9 +96,7 @@ interface AssistantMessage {
   usage: UsageMetadata;
 }
 
-// =============================================================================
 // JSONL Entries
-// =============================================================================
 
 interface BaseEntry {
   type: EntryType;
@@ -223,9 +213,7 @@ export type ChatHistoryEntry =
  */
 export type ConversationalChatEntry = UserEntry | AssistantEntry | SystemEntry;
 
-// =============================================================================
 // Content Type Guards
-// =============================================================================
 
 export function isTextContent(content: ContentBlock): content is TextContent {
   return content.type === 'text';
@@ -242,9 +230,7 @@ export function isConversationalEntry(entry: ChatHistoryEntry): entry is Convers
   return entry.type === 'user' || entry.type === 'assistant' || entry.type === 'system';
 }
 
-// =============================================================================
 // Subagent Directory Structures
-// =============================================================================
 
 /**
  * Claude Code supports two subagent directory structures:
@@ -273,9 +259,7 @@ export function isConversationalEntry(entry: ChatHistoryEntry): entry is Convers
  * 3. Match by sessionId field to link to parent
  */
 
-// =============================================================================
 // Message Flow Pattern
-// =============================================================================
 
 /**
  * Typical conversation flow:

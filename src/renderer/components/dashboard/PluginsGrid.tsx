@@ -8,9 +8,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import type { GlobalPlugin } from '@shared/types/api';
 
-// =============================================================================
 // Helpers
-// =============================================================================
 
 function formatPluginName(name: string): string {
   return name
@@ -40,9 +38,7 @@ function formatDate(isoDate: string): string {
   }
 }
 
-// =============================================================================
 // Plugin Card
-// =============================================================================
 
 interface PluginCardProps {
   plugin: GlobalPlugin;
@@ -98,9 +94,7 @@ const PluginCard = ({ plugin, isHighlighted }: Readonly<PluginCardProps>): React
   );
 };
 
-// =============================================================================
 // Skeleton
-// =============================================================================
 
 const PluginsGridSkeleton = (): React.JSX.Element => {
   const titleWidths = [55, 65, 50, 70, 60, 45];
@@ -132,9 +126,7 @@ const PluginsGridSkeleton = (): React.JSX.Element => {
   );
 };
 
-// =============================================================================
 // Plugins Grid
-// =============================================================================
 
 interface PluginsGridProps {
   searchQuery: string;

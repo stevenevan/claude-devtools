@@ -18,9 +18,7 @@ import { highlightLine } from '../viewers/syntaxHighlighter';
 
 import type { SearchMatch } from '@renderer/store/types';
 
-// =============================================================================
 // Types
-// =============================================================================
 
 interface MarkdownViewerProps {
   content: string;
@@ -33,9 +31,7 @@ interface MarkdownViewerProps {
   copyable?: boolean;
 }
 
-// =============================================================================
 // Component factories
-// =============================================================================
 
 function createViewerMarkdownComponents(searchCtx: SearchContext | null): Components {
   const hl = (children: React.ReactNode): React.ReactNode =>
@@ -192,9 +188,7 @@ const EMPTY_SEARCH_STATE = {
   currentSearchIndex: -1,
 };
 
-// =============================================================================
 // Component
-// =============================================================================
 
 export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
   content,

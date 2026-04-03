@@ -55,7 +55,7 @@ function countTools(detail: SessionDetail): Map<string, number> {
   const counts = new Map<string, number>();
   for (const chunk of detail.chunks) {
     if ('toolExecutions' in chunk) {
-      for (const exec of (chunk as { toolExecutions: Array<{ toolCall: { name: string } }> }).toolExecutions) {
+      for (const exec of (chunk as { toolExecutions: { toolCall: { name: string } }[] }).toolExecutions) {
         const name = exec.toolCall.name;
         counts.set(name, (counts.get(name) ?? 0) + 1);
       }

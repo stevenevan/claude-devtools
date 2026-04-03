@@ -26,18 +26,14 @@ import type {
 } from './notifications';
 import type { WaterfallData } from './visualization';
 
-// =============================================================================
 // Agent Config
-// =============================================================================
 
 export interface AgentConfig {
   name: string;
   color?: string;
 }
 
-// =============================================================================
 // Global ~/.claude/ Config Types
-// =============================================================================
 
 export interface GlobalAgent {
   name: string;
@@ -66,9 +62,7 @@ export interface GlobalPlugin {
   enabled: boolean;
 }
 
-// =============================================================================
 // Notifications API
-// =============================================================================
 
 /**
  * Result of notifications:get with pagination.
@@ -100,9 +94,7 @@ export interface NotificationsAPI {
   onClicked: (callback: (event: unknown, data: unknown) => void) => () => void;
 }
 
-// =============================================================================
 // Config API
-// =============================================================================
 
 /**
  * Config API exposed via preload.
@@ -149,7 +141,7 @@ export interface ConfigAPI {
   /** Remove a bookmark by ID */
   removeBookmark: (bookmarkId: string) => Promise<void>;
   /** Get all bookmarks */
-  getBookmarks: () => Promise<Array<{ id: string; sessionId: string; projectId: string; groupId: string; note?: string; createdAt: number }>>;
+  getBookmarks: () => Promise<{ id: string; sessionId: string; projectId: string; groupId: string; note?: string; createdAt: number }[]>;
   /** Set tags for a session */
   setSessionTags: (sessionId: string, tags: string[]) => Promise<void>;
   /** Get tags for a session */
@@ -183,9 +175,7 @@ export interface WslClaudeRootCandidate {
   hasProjectsDir: boolean;
 }
 
-// =============================================================================
 // Session API
-// =============================================================================
 
 /**
  * Session navigation API exposed via preload.
@@ -194,9 +184,7 @@ export interface SessionAPI {
   scrollToLine: (sessionId: string, lineNumber: number) => Promise<void>;
 }
 
-// =============================================================================
 // CLAUDE.md File Info
-// =============================================================================
 
 /**
  * CLAUDE.md file information returned from reading operations.
@@ -208,9 +196,7 @@ export interface ClaudeMdFileInfo {
   estimatedTokens: number;
 }
 
-// =============================================================================
 // Updater API
-// =============================================================================
 
 /**
  * Status payload sent from the main process updater to the renderer.
@@ -233,9 +219,7 @@ export interface UpdaterAPI {
   onStatus: (callback: (event: unknown, status: unknown) => void) => () => void;
 }
 
-// =============================================================================
 // Context API
-// =============================================================================
 
 /**
  * Context information for listing available contexts.
@@ -245,9 +229,7 @@ export interface ContextInfo {
   type: 'local' | 'ssh';
 }
 
-// =============================================================================
 // SSH API
-// =============================================================================
 
 /**
  * SSH connection state.
@@ -331,9 +313,7 @@ export interface SshAPI {
   onStatus: (callback: (event: unknown, status: SshConnectionStatus) => void) => () => void;
 }
 
-// =============================================================================
 // HTTP Server API
-// =============================================================================
 
 /**
  * HTTP server status returned from main process.
@@ -352,9 +332,7 @@ export interface HttpServerAPI {
   getStatus: () => Promise<HttpServerStatus>;
 }
 
-// =============================================================================
 // Main Electron API
-// =============================================================================
 
 /**
  * Complete Electron API exposed to the renderer process via preload script.
@@ -481,9 +459,7 @@ export interface ElectronAPI {
   httpServer: HttpServerAPI;
 }
 
-// =============================================================================
 // Window Type Extension
-// =============================================================================
 
 declare global {
   interface Window {

@@ -167,9 +167,7 @@ pub fn list_sessions_paginated(
     })
 }
 
-// =============================================================================
 // First user message extraction
-// =============================================================================
 
 struct SessionPreview {
     first_message: Option<MessagePreview>,
@@ -357,9 +355,7 @@ fn extract_session_preview(file_path: &Path) -> SessionPreview {
     }
 }
 
-// =============================================================================
 // Todo data loading
-// =============================================================================
 
 /// Load todo data from ~/.claude/todos/{sessionId}.json.
 fn load_todo_data(claude_dir: &Path, session_id: &str) -> Option<serde_json::Value> {
@@ -371,9 +367,7 @@ fn load_todo_data(claude_dir: &Path, session_id: &str) -> Option<serde_json::Val
     serde_json::from_str(&content).ok()
 }
 
-// =============================================================================
 // Cursor encoding/decoding
-// =============================================================================
 
 /// Encode a pagination cursor as base64.
 fn encode_cursor(timestamp: f64, session_id: &str) -> String {

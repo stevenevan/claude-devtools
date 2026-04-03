@@ -9,9 +9,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import type { GlobalSkill } from '@shared/types/api';
 
-// =============================================================================
 // Helpers
-// =============================================================================
 
 function formatSkillName(name: string): string {
   return name
@@ -20,9 +18,7 @@ function formatSkillName(name: string): string {
     .join(' ');
 }
 
-// =============================================================================
 // Skill Card
-// =============================================================================
 
 interface SkillCardProps {
   skill: GlobalSkill;
@@ -61,9 +57,7 @@ const SkillCard = ({ skill, isHighlighted }: Readonly<SkillCardProps>): React.JS
   );
 };
 
-// =============================================================================
 // Skeleton
-// =============================================================================
 
 const SkillsGridSkeleton = (): React.JSX.Element => {
   const titleWidths = [55, 70, 60, 50];
@@ -92,9 +86,7 @@ const SkillsGridSkeleton = (): React.JSX.Element => {
   );
 };
 
-// =============================================================================
 // Skills Grid
-// =============================================================================
 
 interface SkillsGridProps {
   searchQuery: string;

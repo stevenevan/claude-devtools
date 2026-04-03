@@ -1,8 +1,6 @@
 import React from 'react';
 
-// =============================================================================
 // Syntax Highlighting (Basic Token-based)
-// =============================================================================
 
 // Basic keyword sets for common languages
 const KEYWORDS: Record<string, Set<string>> = {

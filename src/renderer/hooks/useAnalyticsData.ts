@@ -20,9 +20,7 @@ import type {
 
 const logger = createLogger('Hook:useAnalyticsData');
 
-// =============================================================================
 // Types
-// =============================================================================
 
 export type { BucketGranularity };
 
@@ -56,9 +54,7 @@ export interface AnalyticsData {
   setDays: (days: number) => void;
 }
 
-// =============================================================================
 // Constants
-// =============================================================================
 
 /** Max supported range */
 export const MAX_DAYS = 90;
@@ -89,9 +85,7 @@ const MODEL_COLORS = [
   '#84cc16',
 ];
 
-// =============================================================================
 // Hook
-// =============================================================================
 
 export function useAnalyticsData(): AnalyticsData {
   const [data, setData] = useState<AnalyticsResponse | null>(null);

@@ -19,9 +19,7 @@
 
 import { createContext, type ReactNode } from 'react';
 
-// =============================================================================
 // Context Definition
-// =============================================================================
 
 interface TabUIContextValue {
   /** The unique ID of the current tab */
@@ -32,9 +30,7 @@ const TabUIContext = createContext<TabUIContextValue | null>(null);
 
 export { TabUIContext };
 
-// =============================================================================
 // Provider Component
-// =============================================================================
 
 interface TabUIProviderProps {
   /** The tab ID to provide to descendants */

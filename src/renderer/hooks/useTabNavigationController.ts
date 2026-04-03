@@ -38,9 +38,7 @@ import type { SessionConversation } from '@renderer/types/groups';
 import type { TabNavigationRequest } from '@renderer/types/tabs';
 import type { TriggerColor } from '@shared/constants/triggerColors';
 
-// =============================================================================
 // Types
-// =============================================================================
 
 export type NavigationPhase =
   | 'idle' // No navigation in progress
@@ -106,9 +104,7 @@ interface UseTabNavigationControllerReturn {
   handleHighlightEnd: () => void;
 }
 
-// =============================================================================
 // Hook Implementation
-// =============================================================================
 
 export function useTabNavigationController(
   options: UseTabNavigationControllerOptions

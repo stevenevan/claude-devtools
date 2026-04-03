@@ -26,9 +26,7 @@ import type { DetectedError } from '../types/data';
 import type { AppState } from './types';
 import type { UpdaterStatus } from '@shared/types';
 
-// =============================================================================
 // Store Creation
-// =============================================================================
 
 export const useStore = create<AppState>()((...args) => ({
   ...createProjectSlice(...args),
@@ -49,13 +47,9 @@ export const useStore = create<AppState>()((...args) => ({
   ...createUpdateSlice(...args),
 }));
 
-// =============================================================================
 // Re-exports
-// =============================================================================
 
-// =============================================================================
 // Store Initialization - Subscribe to IPC Events
-// =============================================================================
 
 /**
  * Initialize notification event listeners and fetch initial notification count.

@@ -25,9 +25,7 @@ import { MetricsPill } from './MetricsPill';
 
 import type { Process, SemanticStep } from '@renderer/types/data';
 
-// =============================================================================
 // Types
-// =============================================================================
 
 interface SubagentItemProps {
   step: SemanticStep;
@@ -45,9 +43,7 @@ interface SubagentItemProps {
   registerToolRef?: (toolId: string, el: HTMLDivElement | null) => void;
 }
 
-// =============================================================================
 // Main Component - Linear-style DevTools Card
-// =============================================================================
 
 export const SubagentItem: React.FC<SubagentItemProps> = ({
   step,

@@ -3,9 +3,7 @@
  * Tracks system context injections from various sources throughout the session.
  */
 
-// =============================================================================
 // Source Types
-// =============================================================================
 
 /**
  * Source types for CLAUDE.md injections.
@@ -26,9 +24,7 @@ export type ClaudeMdSource =
   | 'project-local'
   | 'directory';
 
-// =============================================================================
 // Injection Types
-// =============================================================================
 
 /**
  * Represents a single CLAUDE.md injection detected in the session.
@@ -50,9 +46,7 @@ export interface ClaudeMdInjection {
   firstSeenInGroup: string;
 }
 
-// =============================================================================
 // Statistics Types
-// =============================================================================
 
 /**
  * Statistics about CLAUDE.md injections for an AI group.

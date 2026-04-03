@@ -17,9 +17,7 @@ const logger = createLogger('Store:session');
  */
 const projectRefreshGeneration = new Map<string, number>();
 
-// =============================================================================
 // Slice Interface
-// =============================================================================
 
 export interface SessionSlice {
   // State
@@ -78,9 +76,7 @@ export interface SessionSlice {
   pinMultipleSessions: (sessionIds: string[]) => Promise<void>;
 }
 
-// =============================================================================
 // Slice Creator
-// =============================================================================
 
 export const createSessionSlice: StateCreator<AppState, [], [], SessionSlice> = (set, get) => ({
   // Initial state

@@ -12,18 +12,14 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import type { ScheduleEvent } from '@renderer/hooks/useAnalyticsData';
 
-// =============================================================================
 // Props
-// =============================================================================
 
 interface SessionScheduleProps {
   events: ScheduleEvent[];
   days: number;
 }
 
-// =============================================================================
 // Shared Helpers
-// =============================================================================
 
 function isSameDay(a: Date, b: Date): boolean {
   return (
@@ -44,9 +40,7 @@ function formatHourLabel(h: number): string {
   return `${h - 12} PM`;
 }
 
-// =============================================================================
 // Positioned Event (DayView)
-// =============================================================================
 
 interface PositionedEvent {
   event: ScheduleEvent;
@@ -89,9 +83,7 @@ function resolveOverlaps(events: PositionedEvent[]): PositionedEvent[] {
   return sorted;
 }
 
-// =============================================================================
 // DayView Event Block
-// =============================================================================
 
 const DayEventBlock = ({
   pe,
@@ -127,9 +119,7 @@ const DayEventBlock = ({
   );
 };
 
-// =============================================================================
 // DayView Component
-// =============================================================================
 
 interface DayViewProps {
   events: ScheduleEvent[];
@@ -349,9 +339,7 @@ const DayView = ({ events, isSingleDay }: Readonly<DayViewProps>): React.JSX.Ele
   );
 };
 
-// =============================================================================
 // MonthView Component
-// =============================================================================
 
 interface MonthViewProps {
   events: ScheduleEvent[];
@@ -361,9 +349,7 @@ interface MonthViewProps {
 const MAX_EVENTS_PER_DAY = 3;
 const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-// =============================================================================
 // MonthView Day Cell (extracted to reduce nesting depth)
-// =============================================================================
 
 interface MonthDayCellProps {
   date: Date;
@@ -563,9 +549,7 @@ const MonthView = ({ events, monthCount }: Readonly<MonthViewProps>): React.JSX.
   );
 };
 
-// =============================================================================
 // Main Component
-// =============================================================================
 
 export const SessionSchedule = ({
   events,
