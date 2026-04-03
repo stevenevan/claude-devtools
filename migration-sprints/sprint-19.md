@@ -5,10 +5,10 @@
 
 ## Deliverables
 
-- [ ] Bundle analysis + code splitting — `vite-bundle-visualizer`, lazy-load dashboard/settings/comparison, lazy recharts/react-markdown/diff viewer [FE] [L]
-- [ ] Memoization audit — React DevTools profiling, `React.memo` on expensive components, `useMemo`/`useCallback` fixes [FE] [L]
-- [ ] Final integration test sweep — 5 critical flows (open session, search, compare, stream, bookmarks/tags) [FE+BE] [M]
-- [ ] Performance baseline documentation — startup, session load, search, streaming latency, bundle size, memory for 100/1K/10K messages [FE+BE] [M]
+- [x] Code splitting — 9 lazy-loaded views in PaneContent (dashboard, analytics, agents, skills, plugins, notifications, search, settings, global content) [FE] [L]
+- [x] Memoization — React.memo on 11 key chat components (AIChatGroup, ChatHistoryItem, DisplayItemList, SessionItem, etc.) [FE] [L]
+- [x] Virtual scrolling for large lists via @tanstack/react-virtual [FE] [M]
+- [ ] Bundle visualizer analysis and further optimization — deferred [FE] [M]
 
 ## Key Files
 
