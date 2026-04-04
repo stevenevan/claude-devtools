@@ -9,14 +9,17 @@ import { TabbedLayout } from './components/layout/TabbedLayout';
 import { TooltipProvider } from './components/ui/tooltip';
 import { useTheme } from './hooks/useTheme';
 import { initializeNotificationListeners, useStore } from './store';
+import { useShallow } from 'zustand/react/shallow';
 
 export const App = (): React.JSX.Element => {
   useTheme();
 
-  const { shortcutCheatSheetOpen, toggleShortcutCheatSheet } = useStore((s) => ({
-    shortcutCheatSheetOpen: s.shortcutCheatSheetOpen,
-    toggleShortcutCheatSheet: s.toggleShortcutCheatSheet,
-  }));
+  const { shortcutCheatSheetOpen, toggleShortcutCheatSheet } = useStore(
+    useShallow((s) => ({
+      shortcutCheatSheetOpen: s.shortcutCheatSheetOpen,
+      toggleShortcutCheatSheet: s.toggleShortcutCheatSheet,
+    }))
+  );
 
   // Dismiss splash screen once React is ready
   useEffect(() => {

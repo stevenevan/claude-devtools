@@ -12,6 +12,7 @@
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Loader2, Monitor, Wifi, WifiOff } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 
 interface ConnectionStatusBadgeProps {
   contextId: string;
@@ -22,10 +23,12 @@ export const ConnectionStatusBadge = ({
   contextId,
   className,
 }: Readonly<ConnectionStatusBadgeProps>): React.JSX.Element => {
-  const { connectionState, connectedHost } = useStore((s) => ({
-    connectionState: s.connectionState,
-    connectedHost: s.connectedHost,
-  }));
+  const { connectionState, connectedHost } = useStore(
+    useShallow((s) => ({
+      connectionState: s.connectionState,
+      connectedHost: s.connectedHost,
+    }))
+  );
 
   // Local context always shows Monitor icon
   if (contextId === 'local') {
