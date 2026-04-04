@@ -7,7 +7,6 @@ use crate::types::messages::{ParsedMessage, ParsedMessageContent, SystemEventDat
 
 use super::tool_extraction::{extract_tool_calls, extract_tool_results};
 
-/// Known message types.
 const KNOWN_TYPES: &[&str] = &[
     "user",
     "assistant",
@@ -18,7 +17,6 @@ const KNOWN_TYPES: &[&str] = &[
     "progress",
 ];
 
-/// Parse a single raw JSONL entry into a ParsedMessage.
 /// Returns None for entries without uuid or unknown types.
 pub fn parse_entry(entry: &RawJsonlEntry) -> Option<ParsedMessage> {
     if !KNOWN_TYPES.contains(&entry.entry_type.as_str()) {

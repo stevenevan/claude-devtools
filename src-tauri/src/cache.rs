@@ -24,8 +24,6 @@ pub struct IncrementalState {
     pub metadata: SessionFileMetadata,
 }
 
-/// Thread-safe LRU cache for parsed sessions.
-/// Matching the TypeScript DataCache: 50 entries, 10-min TTL.
 pub struct SessionCache {
     inner: LruCache<String, CacheEntry>,
     ttl: Duration,
@@ -42,7 +40,6 @@ impl SessionCache {
         }
     }
 
-    /// Get a cached session if it exists and hasn't expired.
     pub fn get(&mut self, key: &str) -> Option<&ParsedSession> {
         let entry = self.inner.get(key)?;
         if entry.inserted_at.elapsed() > self.ttl {
@@ -53,7 +50,6 @@ impl SessionCache {
         self.inner.get(key).map(|e| &e.value)
     }
 
-    /// Insert a parsed session into the cache.
     pub fn insert(&mut self, key: String, value: ParsedSession) {
         self.inner.put(
             key,
@@ -64,17 +60,14 @@ impl SessionCache {
         );
     }
 
-    /// Get incremental parsing state for a session.
     pub fn get_incremental(&self, key: &str) -> Option<&IncrementalState> {
         self.incremental.get(key)
     }
 
-    /// Update incremental parsing state for a session.
     pub fn set_incremental(&mut self, key: String, state: IncrementalState) {
         self.incremental.insert(key, state);
     }
 
-    /// Remove incremental state (e.g., when session cache entry is evicted).
     pub fn remove_incremental(&mut self, key: &str) {
         self.incremental.remove(key);
     }

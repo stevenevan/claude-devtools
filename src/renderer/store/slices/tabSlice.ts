@@ -28,10 +28,7 @@ import type { PaneLayout } from '@renderer/types/panes';
 import type { OpenTabOptions, Tab, TabInput, TabNavigationRequest } from '@renderer/types/tabs';
 import type { StateCreator } from 'zustand';
 
-// Slice Interface
-
 export interface TabSlice {
-  // State (synced from focused pane for backward compat)
   openTabs: Tab[];
   activeTabId: string | null;
   selectedTabIds: string[];
@@ -107,8 +104,6 @@ function updateTabInLayout(
     tabs: pane.tabs.map((t) => (t.id === tabId ? updater(t) : t)),
   });
 }
-
-// Slice Creator
 
 export const createTabSlice: StateCreator<AppState, [], [], TabSlice> = (set, get) => ({
   // Initial state (synced from focused pane)

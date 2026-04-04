@@ -1,4 +1,3 @@
-/// Extract semantic steps from AI chunk responses.
 /// Steps: thinking, tool_call, tool_result, output, subagent, interruption.
 
 use crate::types::chunks::{Process, SemanticStep, SemanticStepContent, SemanticStepTokens};

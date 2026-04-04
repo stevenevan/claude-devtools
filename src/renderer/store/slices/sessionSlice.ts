@@ -17,10 +17,7 @@ const logger = createLogger('Store:session');
  */
 const projectRefreshGeneration = new Map<string, number>();
 
-// Slice Interface
-
 export interface SessionSlice {
-  // State
   sessions: Session[];
   selectedSessionId: string | null;
   sessionsLoading: boolean;
@@ -41,7 +38,6 @@ export interface SessionSlice {
   // Sort mode
   sessionSortMode: SessionSortMode;
 
-  // Actions
   fetchSessions: (projectId: string) => Promise<void>;
   fetchSessionsInitial: (projectId: string) => Promise<void>;
   fetchSessionsMore: () => Promise<void>;
@@ -76,10 +72,7 @@ export interface SessionSlice {
   pinMultipleSessions: (sessionIds: string[]) => Promise<void>;
 }
 
-// Slice Creator
-
 export const createSessionSlice: StateCreator<AppState, [], [], SessionSlice> = (set, get) => ({
-  // Initial state
   sessions: [],
   selectedSessionId: null,
   sessionsLoading: false,

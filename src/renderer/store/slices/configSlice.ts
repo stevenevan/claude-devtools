@@ -11,26 +11,19 @@ import type { StateCreator } from 'zustand';
 
 const logger = createLogger('Store:config');
 
-// Slice Interface
-
 export interface ConfigSlice {
-  // State
   appConfig: AppConfig | null;
   configLoading: boolean;
   configError: string | null;
   pendingSettingsSection: string | null;
 
-  // Actions
   fetchConfig: () => Promise<void>;
   updateConfig: (section: string, data: Record<string, unknown>) => Promise<void>;
   openSettingsTab: (section?: string) => void;
   clearPendingSettingsSection: () => void;
 }
 
-// Slice Creator
-
 export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (set, get) => ({
-  // Initial state
   appConfig: null,
   configLoading: false,
   configError: null,

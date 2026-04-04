@@ -13,10 +13,7 @@ import type { StateCreator } from 'zustand';
 
 const logger = createLogger('Store:repository');
 
-// Slice Interface
-
 export interface RepositorySlice {
-  // State
   repositoryGroups: RepositoryGroup[];
   selectedRepositoryId: string | null;
   selectedWorktreeId: string | null;
@@ -24,20 +21,16 @@ export interface RepositorySlice {
   repositoryGroupsError: string | null;
   viewMode: 'flat' | 'grouped';
 
-  // Actions
   fetchRepositoryGroups: () => Promise<void>;
   selectRepository: (repositoryId: string) => void;
   selectWorktree: (worktreeId: string) => void;
   setViewMode: (mode: 'flat' | 'grouped') => void;
 }
 
-// Slice Creator
-
 export const createRepositorySlice: StateCreator<AppState, [], [], RepositorySlice> = (
   set,
   get
 ) => ({
-  // Initial state
   repositoryGroups: [],
   selectedRepositoryId: null,
   selectedWorktreeId: null,

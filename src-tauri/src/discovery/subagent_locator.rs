@@ -6,7 +6,6 @@
 
 use std::path::Path;
 
-/// Check if a session has subagent files.
 pub fn has_subagents(projects_dir: &Path, project_id: &str, session_id: &str) -> bool {
     let base_dir = super::path_decoder::extract_base_dir(project_id);
 

@@ -13,7 +13,6 @@ interface SessionSummaryBarProps {
   tabId?: string;
 }
 
-/** Format cost to a readable string. */
 function formatCost(cost: number | undefined): string {
   if (cost === undefined || cost === null) return '--';
   if (cost < 0.001) return '<$0.001';
@@ -22,7 +21,6 @@ function formatCost(cost: number | undefined): string {
   return `$${cost.toFixed(2)}`;
 }
 
-/** Get a short display name for the model. */
 function shortModelName(model: string | undefined): string {
   if (!model) return '';
   const info = parseModelString(model);

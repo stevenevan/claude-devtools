@@ -24,7 +24,6 @@ pub struct ToolResultInfo {
 
 // Map Building
 
-/// Builds a map of tool_use_id → ToolUseInfo from assistant messages.
 pub fn build_tool_use_map(messages: &[ParsedMessage]) -> HashMap<String, ToolUseInfo> {
     let mut map = HashMap::new();
     for msg in messages {
@@ -54,7 +53,6 @@ pub fn build_tool_use_map(messages: &[ParsedMessage]) -> HashMap<String, ToolUse
     map
 }
 
-/// Builds a map of tool_use_id → ToolResultInfo from messages.
 pub fn build_tool_result_map(messages: &[ParsedMessage]) -> HashMap<String, ToolResultInfo> {
     let mut map = HashMap::new();
     for msg in messages {
@@ -168,7 +166,6 @@ struct ExtractedToolResult {
     tool_name: Option<String>,
 }
 
-/// Extract tool results from a message for trigger matching.
 fn extract_tool_results(msg: &ParsedMessage) -> Vec<ExtractedToolResult> {
     let mut results = Vec::new();
 

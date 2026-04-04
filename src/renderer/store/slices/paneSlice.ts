@@ -21,10 +21,7 @@ import type { PaneLayout } from '@renderer/types/panes';
 import type { Tab } from '@renderer/types/tabs';
 import type { StateCreator } from 'zustand';
 
-// Slice Interface
-
 export interface PaneSlice {
-  // State
   paneLayout: PaneLayout;
 
   // Pane lifecycle
@@ -70,8 +67,6 @@ function syncRootState(layout: PaneLayout): Record<string, unknown> {
     selectedTabIds: synced.selectedTabIds,
   };
 }
-
-// Slice Creator
 
 export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, get) => ({
   // Initial state: single pane (populated by tabSlice init or first openTab)

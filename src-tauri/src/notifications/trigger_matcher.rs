@@ -6,11 +6,8 @@ use lru::LruCache;
 use regex::Regex;
 use serde_json::Value;
 
-// Regex Cache
-
 const MAX_CACHE_SIZE: usize = 500;
 
-/// Thread-safe regex cache.
 static REGEX_CACHE: Mutex<Option<LruCache<String, Option<Regex>>>> = Mutex::new(None);
 
 fn with_cache<F, R>(f: F) -> R

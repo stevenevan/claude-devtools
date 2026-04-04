@@ -5,8 +5,6 @@
 import type { AppState } from '../types';
 import type { StateCreator } from 'zustand';
 
-// Types
-
 /** Top-level navigation sections in the Activity Bar. */
 export type ActivityView =
   | 'projects'
@@ -18,16 +16,12 @@ export type ActivityView =
   | 'notifications'
   | 'search';
 
-// Slice Interface
-
 export interface UISlice {
-  // State
   commandPaletteOpen: boolean;
   sidebarCollapsed: boolean;
   activeActivity: ActivityView;
   shortcutCheatSheetOpen: boolean;
 
-  // Actions
   openCommandPalette: () => void;
   closeCommandPalette: () => void;
   toggleSidebar: () => void;
@@ -35,10 +29,7 @@ export interface UISlice {
   toggleShortcutCheatSheet: () => void;
 }
 
-// Slice Creator
-
 export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => ({
-  // Initial state
   commandPaletteOpen: false,
   sidebarCollapsed: false,
   activeActivity: 'projects',

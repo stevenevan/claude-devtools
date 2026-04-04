@@ -24,7 +24,6 @@ pub struct LineParseResult {
     pub metadata: SessionFileMetadata,
 }
 
-/// Parse a single JSONL line into an optional message and metadata update.
 /// This is the shared core used by both full and incremental parsing.
 pub fn parse_jsonl_line(line: &str, metadata: &mut SessionFileMetadata) -> Option<ParsedMessage> {
     if line.trim().is_empty() {
@@ -54,7 +53,6 @@ pub fn parse_jsonl_line(line: &str, metadata: &mut SessionFileMetadata) -> Optio
     }
 }
 
-/// Parse a JSONL session file into messages and session metadata.
 /// Streams line-by-line to avoid loading the entire file into memory.
 pub fn parse_jsonl_file(file_path: &Path) -> Result<(Vec<ParsedMessage>, SessionFileMetadata), String> {
     if !file_path.exists() {
@@ -142,7 +140,6 @@ pub fn parse_jsonl_incremental(
     Ok((messages, metadata, current_offset))
 }
 
-/// Process parsed messages into a full ParsedSession with categorized fields.
 pub fn process_messages(messages: Vec<ParsedMessage>, metadata: SessionFileMetadata) -> ParsedSession {
     let metrics = calculate_metrics(&messages);
     let task_calls = get_task_calls(&messages);
@@ -202,7 +199,6 @@ pub fn process_messages(messages: Vec<ParsedMessage>, metadata: SessionFileMetad
     }
 }
 
-/// Extract all Task tool calls from messages.
 fn get_task_calls(messages: &[ParsedMessage]) -> Vec<ToolCall> {
     messages
         .iter()
@@ -210,7 +206,6 @@ fn get_task_calls(messages: &[ParsedMessage]) -> Vec<ToolCall> {
         .collect()
 }
 
-/// Parse a session file and return a fully processed ParsedSession.
 pub fn parse_session_file(file_path: &Path) -> Result<ParsedSession, String> {
     let (messages, metadata) = parse_jsonl_file(file_path)?;
     Ok(process_messages(messages, metadata))

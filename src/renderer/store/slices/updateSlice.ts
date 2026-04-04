@@ -10,10 +10,7 @@ import type { StateCreator } from 'zustand';
 
 const logger = createLogger('Store:update');
 
-// Slice Interface
-
 export interface UpdateSlice {
-  // State
   updateStatus:
     | 'idle'
     | 'checking'
@@ -29,7 +26,6 @@ export interface UpdateSlice {
   showUpdateDialog: boolean;
   showUpdateBanner: boolean;
 
-  // Actions
   checkForUpdates: () => void;
   downloadUpdate: () => void;
   installUpdate: () => void;
@@ -37,10 +33,7 @@ export interface UpdateSlice {
   dismissUpdateBanner: () => void;
 }
 
-// Slice Creator
-
 export const createUpdateSlice: StateCreator<AppState, [], [], UpdateSlice> = (set) => ({
-  // Initial state
   updateStatus: 'idle',
   availableVersion: null,
   releaseNotes: null,

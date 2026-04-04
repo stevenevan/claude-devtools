@@ -68,7 +68,6 @@ export type {
 
 // Session Sort Mode
 
-/** Sort mode for session list in sidebar */
 export type SessionSortMode = 'recent' | 'most-context';
 
 // Renderer-Specific Type Guards
@@ -83,37 +82,22 @@ import type {
   ParsedMessage,
 } from '@shared/types';
 
-/**
- * Type guard: Check if message is an assistant message.
- */
 export function isAssistantMessage(msg: ParsedMessage): boolean {
   return msg.type === 'assistant';
 }
 
-/**
- * Type guard to check if a chunk is an EnhancedUserChunk.
- */
 export function isEnhancedUserChunk(chunk: Chunk | EnhancedChunk): chunk is EnhancedUserChunk {
   return 'chunkType' in chunk && chunk.chunkType === 'user' && 'rawMessages' in chunk;
 }
 
-/**
- * Type guard to check if a chunk is an EnhancedSystemChunk.
- */
 export function isEnhancedSystemChunk(chunk: Chunk | EnhancedChunk): chunk is EnhancedSystemChunk {
   return 'chunkType' in chunk && chunk.chunkType === 'system' && 'rawMessages' in chunk;
 }
 
-/**
- * Type guard to check if a chunk is an EnhancedEventChunk.
- */
 export function isEnhancedEventChunk(chunk: Chunk | EnhancedChunk): chunk is EnhancedEventChunk {
   return 'chunkType' in chunk && chunk.chunkType === 'event' && 'rawMessages' in chunk;
 }
 
-/**
- * Type guard to check if a chunk is an EnhancedCompactChunk.
- */
 export function isEnhancedCompactChunk(
   chunk: Chunk | EnhancedChunk
 ): chunk is EnhancedCompactChunk {

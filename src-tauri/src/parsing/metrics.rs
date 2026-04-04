@@ -5,7 +5,6 @@ use crate::types::messages::ParsedMessage;
 
 use super::deduplication::deduplicate_by_request_id;
 
-/// Calculate session metrics from parsed messages.
 /// Deduplicates streaming entries by requestId before summing to avoid overcounting.
 pub fn calculate_metrics(messages: &[ParsedMessage]) -> SessionMetrics {
     if messages.is_empty() {
@@ -59,7 +58,6 @@ pub fn calculate_metrics(messages: &[ParsedMessage]) -> SessionMetrics {
     }
 }
 
-/// Extract the most frequently used model from assistant messages.
 fn extract_primary_model(messages: &[ParsedMessage]) -> Option<String> {
     use std::collections::HashMap;
     let mut counts: HashMap<&str, u32> = HashMap::new();

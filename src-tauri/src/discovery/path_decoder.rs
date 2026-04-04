@@ -104,7 +104,6 @@ pub fn is_valid_encoded_path(encoded_name: &str) -> bool {
     true
 }
 
-/// Extract the base directory from a project ID.
 /// For composite IDs (`{encoded}::{hash}`), returns the encoded part.
 pub fn extract_base_dir(project_id: &str) -> &str {
     if let Some(sep) = project_id.find("::") {

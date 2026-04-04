@@ -23,19 +23,16 @@ interface BashToolViewerProps {
 const OUTPUT_PREVIEW_LINES = 30;
 const LARGE_OUTPUT_THRESHOLD = 500;
 
-/** Extract the command string from Bash tool input. */
 function getCommand(input: Record<string, unknown> | undefined): string {
   if (!input) return '';
   return (input.command as string) ?? '';
 }
 
-/** Extract description from Bash tool input. */
 function getDescription(input: Record<string, unknown> | undefined): string {
   if (!input) return '';
   return (input.description as string) ?? '';
 }
 
-/** Get output text from tool result. */
 function getOutputText(result: LinkedToolItem['result']): string {
   if (!result?.content) return '';
   const content = result.content;

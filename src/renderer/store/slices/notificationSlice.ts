@@ -15,16 +15,12 @@ import type { StateCreator } from 'zustand';
 const logger = createLogger('Store:notification');
 const NOTIFICATIONS_FETCH_LIMIT = 200;
 
-// Slice Interface
-
 export interface NotificationSlice {
-  // State
   notifications: DetectedError[];
   unreadCount: number;
   notificationsLoading: boolean;
   notificationsError: string | null;
 
-  // Actions
   fetchNotifications: () => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
   markAllNotificationsRead: (triggerName?: string) => Promise<void>;
@@ -34,13 +30,10 @@ export interface NotificationSlice {
   openNotificationsTab: () => void;
 }
 
-// Slice Creator
-
 export const createNotificationSlice: StateCreator<AppState, [], [], NotificationSlice> = (
   set,
   get
 ) => ({
-  // Initial state
   notifications: [],
   unreadCount: 0,
   notificationsLoading: false,

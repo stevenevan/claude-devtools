@@ -34,8 +34,6 @@ export interface ClaudeConfigSlice {
   fetchGlobalSettings: () => Promise<void>;
 }
 
-// Slice Creator
-
 export const createClaudeConfigSlice: StateCreator<AppState, [], [], ClaudeConfigSlice> = (
   set,
   get

@@ -1,6 +1,3 @@
-/// Build tool execution tracking from messages.
-/// Matches tool calls with their results using sourceToolUseID and toolResults.
-
 use std::collections::HashMap;
 
 use crate::types::chunks::ToolExecution;

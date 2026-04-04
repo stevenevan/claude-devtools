@@ -16,8 +16,6 @@
 import type { AppState } from '../types';
 import type { StateCreator } from 'zustand';
 
-// Types
-
 /**
  * UI state for a single tab.
  * All values are optional - defaults are applied when reading.
@@ -59,8 +57,6 @@ function createDefaultTabUIState(): TabUIState {
     focusedTurnIndex: -1,
   };
 }
-
-// Slice Interface
 
 export interface TabUISlice {
   /** Per-tab UI states: Map<tabId, TabUIState> */
@@ -118,8 +114,6 @@ export interface TabUISlice {
   /** Set the focused turn index for a tab */
   setFocusedTurnIndexForTab: (tabId: string, index: number) => void;
 }
-
-// Slice Creator
 
 export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set, get) => ({
   tabUIStates: new Map<string, TabUIState>(),

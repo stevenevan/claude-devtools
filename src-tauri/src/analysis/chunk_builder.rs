@@ -11,7 +11,6 @@ use super::chunk_factory::{
     build_user_chunk,
 };
 
-/// Build chunks from messages.
 /// Filters to main thread, classifies, and uses a state machine with AI buffer.
 pub fn build_chunks(messages: &[ParsedMessage], subagents: &[Process]) -> Vec<EnhancedChunk> {
     let mut chunks = Vec::new();
@@ -72,7 +71,6 @@ pub fn build_chunks(messages: &[ParsedMessage], subagents: &[Process]) -> Vec<En
     chunks
 }
 
-/// Build a complete SessionDetail.
 pub fn build_session_detail(
     session: Session,
     messages: Vec<ParsedMessage>,
@@ -103,7 +101,6 @@ pub struct ChunkDelta {
     pub chunks: Vec<EnhancedChunk>,
 }
 
-/// Get the chunk ID from an EnhancedChunk.
 fn chunk_id(chunk: &EnhancedChunk) -> &str {
     match chunk {
         EnhancedChunk::User(c) => &c.id,
@@ -114,7 +111,6 @@ fn chunk_id(chunk: &EnhancedChunk) -> &str {
     }
 }
 
-/// Get the count of raw_messages in a chunk (used to detect if a chunk changed).
 fn chunk_raw_count(chunk: &EnhancedChunk) -> usize {
     match chunk {
         EnhancedChunk::User(c) => c.raw_messages.len(),

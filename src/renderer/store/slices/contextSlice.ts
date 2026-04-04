@@ -17,17 +17,13 @@ import type { Pane } from '@renderer/types/panes';
 import type { ContextInfo } from '@shared/types/api';
 import type { StateCreator } from 'zustand';
 
-// Slice Interface
-
 export interface ContextSlice {
-  // State
   activeContextId: string; // 'local' initially
   isContextSwitching: boolean; // true during switch transition
   targetContextId: string | null; // context being switched to
   contextSnapshotsReady: boolean; // true after initial IndexedDB check
   availableContexts: ContextInfo[]; // list of all available contexts (local + SSH)
 
-  // Actions
   switchContext: (targetContextId: string) => Promise<void>;
   initializeContextSystem: () => Promise<void>;
   fetchAvailableContexts: () => Promise<void>;
@@ -216,10 +212,7 @@ function captureSnapshot(state: AppState, contextId: string): ContextSnapshot {
   };
 }
 
-// Slice Creator
-
 export const createContextSlice: StateCreator<AppState, [], [], ContextSlice> = (set, get) => ({
-  // Initial state
   activeContextId: 'local',
   isContextSwitching: false,
   targetContextId: null,

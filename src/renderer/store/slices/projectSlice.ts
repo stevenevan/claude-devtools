@@ -10,8 +10,6 @@ import type { AppState } from '../types';
 import type { Project, Session } from '@renderer/types/data';
 import type { StateCreator } from 'zustand';
 
-// Slice Interface
-
 export interface SessionCacheEntry {
   sessions: Session[];
   cursor: string | null;
@@ -21,22 +19,17 @@ export interface SessionCacheEntry {
 }
 
 export interface ProjectSlice {
-  // State
   projects: Project[];
   selectedProjectId: string | null;
   projectsLoading: boolean;
   projectsError: string | null;
   _sessionCache: Map<string, SessionCacheEntry>;
 
-  // Actions
   fetchProjects: () => Promise<void>;
   selectProject: (id: string) => void;
 }
 
-// Slice Creator
-
 export const createProjectSlice: StateCreator<AppState, [], [], ProjectSlice> = (set, get) => ({
-  // Initial state
   projects: [],
   selectedProjectId: null,
   projectsLoading: false,

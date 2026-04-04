@@ -5,7 +5,6 @@ use std::path::Path;
 
 use crate::types::jsonl::RawJsonlEntry;
 
-/// Check if a session file contains any non-noise (displayable) messages.
 /// Returns true on the first displayable entry found (early exit for performance).
 pub fn has_non_noise_messages(file_path: &Path) -> bool {
     let file = match std::fs::File::open(file_path) {
@@ -35,7 +34,6 @@ pub fn has_non_noise_messages(file_path: &Path) -> bool {
     false
 }
 
-/// Check if a raw JSONL entry represents displayable content.
 fn is_displayable_entry(entry: &RawJsonlEntry) -> bool {
     match entry.entry_type.as_str() {
         "assistant" => {

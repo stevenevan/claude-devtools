@@ -18,10 +18,7 @@ import type {
 } from '@shared/types';
 import type { StateCreator } from 'zustand';
 
-// Slice Interface
-
 export interface ConnectionSlice {
-  // State
   connectionMode: 'local' | 'ssh';
   connectionState: SshConnectionState;
   connectedHost: string | null;
@@ -29,7 +26,6 @@ export interface ConnectionSlice {
   sshConfigHosts: SshConfigHostEntry[];
   lastSshConfig: SshLastConnection | null;
 
-  // Actions
   connectSsh: (config: SshConnectionConfig) => Promise<void>;
   disconnectSsh: () => Promise<void>;
   testConnection: (config: SshConnectionConfig) => Promise<{ success: boolean; error?: string }>;
@@ -43,13 +39,10 @@ export interface ConnectionSlice {
   loadLastConnection: () => Promise<void>;
 }
 
-// Slice Creator
-
 export const createConnectionSlice: StateCreator<AppState, [], [], ConnectionSlice> = (
   set,
   get
 ) => ({
-  // Initial state
   connectionMode: 'local',
   connectionState: 'disconnected',
   connectedHost: null,
@@ -57,7 +50,6 @@ export const createConnectionSlice: StateCreator<AppState, [], [], ConnectionSli
   sshConfigHosts: [],
   lastSshConfig: null,
 
-  // Actions
   connectSsh: async (config: SshConnectionConfig): Promise<void> => {
     set({
       connectionState: 'connecting',

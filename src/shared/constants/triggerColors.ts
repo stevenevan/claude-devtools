@@ -41,7 +41,6 @@ const TRIGGER_COLOR_MAP = new Map<string, TriggerColorDef>(TRIGGER_COLORS.map((c
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{3,8}$/;
 
-/** Check if value is a preset color key. */
 export function isPresetColorKey(value: string | undefined): value is TriggerColorKey {
   return TRIGGER_COLOR_MAP.has(value ?? '');
 }

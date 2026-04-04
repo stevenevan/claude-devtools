@@ -74,10 +74,7 @@ function createEmptyTabSessionData(): TabSessionData {
   };
 }
 
-// Slice Interface
-
 export interface SessionDetailSlice {
-  // State
   sessionDetail: SessionDetail | null;
   sessionDetailLoading: boolean;
   sessionDetailError: string | null;
@@ -103,7 +100,6 @@ export interface SessionDetailSlice {
   // Per-tab session data (keyed by tabId)
   tabSessionData: Record<string, TabSessionData>;
 
-  // Actions
   fetchSessionDetail: (projectId: string, sessionId: string, tabId?: string) => Promise<void>;
   /** Refresh session without loading states or UI resets - for real-time updates */
   refreshSessionInPlace: (projectId: string, sessionId: string) => Promise<void>;
@@ -114,13 +110,10 @@ export interface SessionDetailSlice {
   cleanupTabSessionData: (tabId: string) => void;
 }
 
-// Slice Creator
-
 export const createSessionDetailSlice: StateCreator<AppState, [], [], SessionDetailSlice> = (
   set,
   get
 ) => ({
-  // Initial state
   sessionDetail: null,
   sessionDetailLoading: false,
   sessionDetailError: null,

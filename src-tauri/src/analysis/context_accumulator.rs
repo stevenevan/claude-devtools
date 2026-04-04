@@ -1,5 +1,3 @@
-/// Calculate context token attribution for each semantic step.
-
 use crate::types::chunks::{SemanticStep, TokenBreakdown};
 use crate::types::messages::ParsedMessage;
 

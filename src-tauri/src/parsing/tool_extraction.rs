@@ -5,7 +5,6 @@ use serde_json::Value;
 use crate::types::jsonl::ContentBlock;
 use crate::types::messages::{ParsedMessageContent, ToolCall, ToolResult};
 
-/// Extract tool calls from content blocks.
 pub fn extract_tool_calls(content: &ParsedMessageContent) -> Vec<ToolCall> {
     let blocks = match content {
         ParsedMessageContent::Text(_) => return vec![],
@@ -47,7 +46,6 @@ pub fn extract_tool_calls(content: &ParsedMessageContent) -> Vec<ToolCall> {
     tool_calls
 }
 
-/// Extract tool results from content blocks.
 pub fn extract_tool_results(content: &ParsedMessageContent) -> Vec<ToolResult> {
     let blocks = match content {
         ParsedMessageContent::Text(_) => return vec![],

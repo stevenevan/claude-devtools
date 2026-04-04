@@ -1,10 +1,5 @@
-/// Notification types — DetectedError, StoredNotification, and related structs.
-
 use serde::{Deserialize, Serialize};
 
-// DetectedError
-
-/// Represents a detected error from a Claude Code session.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DetectedError {
