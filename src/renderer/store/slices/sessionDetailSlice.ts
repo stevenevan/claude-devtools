@@ -183,7 +183,6 @@ export const createSessionDetailSlice: StateCreator<AppState, [], [], SessionDet
           ? transformChunksToConversation(enhancedChunks, detail.processes, isOngoing)
           : null;
 
-      // Initialize visibleAIGroupId to first AI Group if available
       const firstAIItem = conversation?.items?.find((item) => item.type === 'ai');
       const firstAIGroupId = firstAIItem?.type === 'ai' ? firstAIItem.group.id : null;
       const firstAIGroup = firstAIItem?.type === 'ai' ? firstAIItem.group : null;

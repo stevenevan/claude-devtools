@@ -419,7 +419,6 @@ export function initializeNotificationListeners(): () => void {
     }
   }
 
-  // Return cleanup function
   return () => {
     for (const timer of pendingSessionRefreshTimers.values()) {
       clearTimeout(timer);

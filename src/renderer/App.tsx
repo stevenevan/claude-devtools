@@ -11,7 +11,6 @@ import { useTheme } from './hooks/useTheme';
 import { initializeNotificationListeners, useStore } from './store';
 
 export const App = (): React.JSX.Element => {
-  // Initialize theme on app load
   useTheme();
 
   const { shortcutCheatSheetOpen, toggleShortcutCheatSheet } = useStore((s) => ({
@@ -28,7 +27,6 @@ export const App = (): React.JSX.Element => {
     }
   }, []);
 
-  // Initialize context system (before notification listeners)
   useEffect(() => {
     void useStore.getState().initializeContextSystem();
   }, []);
@@ -42,7 +40,6 @@ export const App = (): React.JSX.Element => {
     return cleanup;
   }, []);
 
-  // Initialize IPC event listeners (notifications, file changes)
   useEffect(() => {
     const cleanup = initializeNotificationListeners();
     return cleanup;

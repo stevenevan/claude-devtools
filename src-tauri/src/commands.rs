@@ -889,7 +889,6 @@ pub fn parse_session(
 ) -> Result<ParsedSession, String> {
     let cache_key = format!("{project_id}/{session_id}");
 
-    // Check cache
     {
         let mut cache = cache.lock().map_err(|e| e.to_string())?;
         if let Some(cached) = cache.get(&cache_key) {

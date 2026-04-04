@@ -49,7 +49,6 @@ export function useVisibleAIGroup(options: UseVisibleAIGroupOptions): UseVisible
     }
   }, [onVisibleChange]);
 
-  // Set up IntersectionObserver
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
       (entries) => {

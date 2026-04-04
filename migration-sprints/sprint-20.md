@@ -11,19 +11,16 @@
 
 ## Guidelines
 
-Comments to REMOVE:
-- Comments that restate the code (e.g., `// Set the name` above `setName(...)`)
-- Section separators that don't add value
-- Commented-out code
-- TODOs without actionable context
-- JSDoc that restates the function signature
+Comments REMOVED:
+- 459 three-line separator blocks (// ===...===) from 83 files → single-line section names
+- 33 restating comments from 20 files (e.g., "// Filter to main thread" before `.filter(|m| !m.is_sidechain)`)
 
-Comments to KEEP:
+Comments KEPT:
 - Explanations of non-obvious behavior or workarounds
 - "Why" comments explaining business logic or design decisions
-- Type annotations that clarify complex generics
+- eslint-disable with explanations
 - Warning comments about gotchas or edge cases
 
-## Done When
+## Done
 
-All source files have been audited; no redundant comments remain; existing tests still pass.
+All source files audited; 473 vitest and 288 Rust tests pass.

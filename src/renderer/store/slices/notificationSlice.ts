@@ -205,7 +205,6 @@ export const createNotificationSlice: StateCreator<AppState, [], [], Notificatio
     // Mark the notification as read
     void state.markNotificationRead(error.id);
 
-    // Create the navigation request with a fresh nonce
     const navRequest = createErrorNavigationRequest(
       {
         errorId: error.id,

@@ -117,7 +117,6 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
     const tab = sourcePane.tabs.find((t) => t.id === tabId);
     if (!tab) return;
 
-    // Remove tab from source pane
     const newSourceTabs = sourcePane.tabs.filter((t) => t.id !== tabId);
     let newSourceActiveTabId = sourcePane.activeTabId;
     if (sourcePane.activeTabId === tabId) {
@@ -133,7 +132,6 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
       selectedTabIds: sourcePane.selectedTabIds.filter((id) => id !== tabId),
     };
 
-    // Create new pane with the tab
     const newPaneId = crypto.randomUUID();
     const newPane = {
       ...createEmptyPane(newPaneId),
@@ -141,7 +139,6 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
       activeTabId: tab.id,
     };
 
-    // Update layout
     let newLayout = updatePane(paneLayout, updatedSource);
 
     // If source pane is now empty, remove it

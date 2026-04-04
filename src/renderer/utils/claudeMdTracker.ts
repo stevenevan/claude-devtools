@@ -31,7 +31,6 @@ const SOURCE_PROJECT_MEMORY: ClaudeMdSource = 'project-memory';
  * Uses a simple hash-like approach for readability.
  */
 export function generateInjectionId(path: string): string {
-  // Create a simple hash from the path
   let hash = 0;
   for (let i = 0; i < path.length; i++) {
     const char = path.charCodeAt(i);
@@ -72,7 +71,6 @@ function joinPaths(base: string, relative: string): string {
     return relative;
   }
 
-  // Remove trailing slash from base if present
   const cleanBase = trimTrailingSeparator(base);
 
   // Handle @ prefix (file mention marker) - strip it if present
@@ -280,7 +278,6 @@ export function detectClaudeMdFromFilePath(filePath: string, projectRoot: string
 
   // Walk up to project root (inclusive)
   while (currentDir && isAtOrAbove(projectRoot, currentDir)) {
-    // Add potential CLAUDE.md path for this directory
     const claudeMdPath = `${currentDir}${sep}${CLAUDE_MD_FILENAME}`;
     claudeMdPaths.push(claudeMdPath);
 

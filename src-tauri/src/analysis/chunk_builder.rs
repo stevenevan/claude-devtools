@@ -16,7 +16,6 @@ use super::chunk_factory::{
 pub fn build_chunks(messages: &[ParsedMessage], subagents: &[Process]) -> Vec<EnhancedChunk> {
     let mut chunks = Vec::new();
 
-    // Filter to main thread messages
     let main_messages: Vec<&ParsedMessage> = messages.iter().filter(|m| !m.is_sidechain).collect();
 
     let mut ai_buffer: Vec<ParsedMessage> = Vec::new();

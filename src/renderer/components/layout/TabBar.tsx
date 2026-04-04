@@ -78,7 +78,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
   // Track last clicked tab for Shift range selection
   const lastClickedTabIdRef = useRef<string | null>(null);
 
-  // Get the active tab
   const activeTab = openTabs.find((tab) => tab.id === activeTabId);
 
   // Refs for auto-scrolling to active tab

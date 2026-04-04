@@ -164,7 +164,6 @@ export const createTabSlice: StateCreator<AppState, [], [], TabSlice> = (set, ge
       }
     }
 
-    // Create new tab with generated id and timestamp
     const newTab: Tab = {
       ...tab,
       id: crypto.randomUUID(),

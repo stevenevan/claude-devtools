@@ -21,7 +21,6 @@ const SystemChatGroupInner = ({
 }: Readonly<SystemChatGroupProps>): React.JSX.Element => {
   const { commandOutput, timestamp } = systemGroup;
 
-  // Clean ANSI escape codes from output
   const cleanOutput = commandOutput.replace(ANSI_ESCAPE_REGEX, '');
 
   return (

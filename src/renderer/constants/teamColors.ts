@@ -58,7 +58,6 @@ export function getSubagentTypeColorSet(
 export function getTeamColorSet(colorName: string): TeamColorSet {
   if (!colorName) return DEFAULT_COLOR;
 
-  // Check named colors
   const named = TEAMMATE_COLORS[colorName.toLowerCase()];
   if (named) return named;
 

@@ -98,7 +98,6 @@ export function sanitizeDisplayContent(content: string): string {
     }
   }
 
-  // Remove noise tags
   let sanitized = content;
   for (const pattern of NOISE_TAG_PATTERNS) {
     sanitized = sanitized.replace(pattern, '');

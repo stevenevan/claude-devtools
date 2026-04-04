@@ -134,7 +134,6 @@ export const createConversationSlice: StateCreator<AppState, [], [], Conversatio
   searchCurrentDisplayItemId: null,
   searchCurrentSubagentItemId: null,
 
-  // Set expansion level for a specific AI Group
   setAIGroupExpansion: (aiGroupId: string, level: AIGroupExpansionLevel) => {
     const state = get();
     const newLevels = new Map(state.aiGroupExpansionLevels);

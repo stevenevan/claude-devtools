@@ -53,7 +53,6 @@ export const LiveMetricsBar = ({
 }: Readonly<LiveMetricsBarProps>): React.JSX.Element | null => {
   const [, setTick] = useState(0);
 
-  // Update elapsed time every second while streaming
   useEffect(() => {
     if (!isStreaming) return;
     const interval = setInterval(() => setTick((t) => t + 1), 1000);

@@ -247,7 +247,6 @@ export const DateGroupedSessions = ({ sidebarFilters }: DateGroupedSessionsProps
     [virtualItems]
   );
 
-  // Set up virtualizer
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual API limitation, not fixable in user code
   const rowVirtualizer = useVirtualizer({
     count: virtualItems.length,
@@ -256,7 +255,6 @@ export const DateGroupedSessions = ({ sidebarFilters }: DateGroupedSessionsProps
     overscan: OVERSCAN,
   });
 
-  // Get virtual items for dependency tracking
   const virtualRows = rowVirtualizer.getVirtualItems();
   const virtualRowsLength = virtualRows.length;
 

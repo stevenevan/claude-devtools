@@ -33,7 +33,6 @@ export const CompactBoundary = ({
   const { timestamp, message } = compactGroup;
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Extract content from message
   const getCompactContent = (): string => {
     if (!message?.content) return '';
 

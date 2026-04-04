@@ -75,10 +75,8 @@ export function useTheme(): {
     }
   }, [appConfig, fetchConfig]);
 
-  // Get configured theme
   const configuredTheme: Theme = appConfig?.general?.theme ?? 'dark';
 
-  // Get system theme preference
   const getSystemTheme = useCallback((): ResolvedTheme => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }, []);
@@ -115,10 +113,8 @@ export function useTheme(): {
   useEffect(() => {
     const root = document.documentElement;
 
-    // Remove existing theme and preset classes
     root.classList.remove('dark', 'light', 'theme-nord', 'theme-solarized', 'theme-monokai', 'theme-high-contrast');
 
-    // Add theme class
     root.classList.add(resolvedTheme);
 
     // Add preset class (only for dark mode)

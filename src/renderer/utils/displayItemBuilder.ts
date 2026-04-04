@@ -215,7 +215,6 @@ export function buildDisplayItems(
     }
   }
 
-  // Add slashes as display items
   if (responses) {
     const slashes = extractSlashes(responses, precedingSlash);
     for (const slash of slashes) {
@@ -313,7 +312,6 @@ export function buildDisplayItemsFromMessages(
     }
   >();
 
-  // Map to collect skill instructions by source tool use ID
   // Skill tools have follow-up isMeta:true messages with instructions starting with "Base directory for this skill:"
   const skillInstructionsById = new Map<string, string>();
 
@@ -442,7 +440,6 @@ export function buildDisplayItemsFromMessages(
       // Process assistant message content blocks
       for (const block of msg.content) {
         if (block.type === 'thinking' && block.thinking) {
-          // Add thinking block
           displayItems.push({
             type: 'thinking',
             content: block.thinking,
@@ -460,7 +457,6 @@ export function buildDisplayItemsFromMessages(
             sourceModel: msg.model,
           });
         } else if (block.type === 'text' && block.text) {
-          // Add text output
           displayItems.push({
             type: 'output',
             content: block.text,
@@ -554,7 +550,6 @@ export function buildDisplayItemsFromMessages(
     });
   }
 
-  // Add subagents as display items
   for (const subagent of subagents) {
     displayItems.push({
       type: 'subagent',
@@ -562,7 +557,6 @@ export function buildDisplayItemsFromMessages(
     });
   }
 
-  // Add slashes as display items
   const slashes = extractSlashes(messages);
   for (const slash of slashes) {
     displayItems.push({
