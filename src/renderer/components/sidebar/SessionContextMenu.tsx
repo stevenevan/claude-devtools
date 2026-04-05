@@ -14,7 +14,9 @@ import {
 import { useClipboard } from '@renderer/hooks/mantine';
 import { MAX_PANES } from '@renderer/types/panes';
 import { formatShortcut } from '@renderer/utils/stringUtils';
-import { ArrowLeftRight, Check, ClipboardCopy, Eye, EyeOff, Pin, PinOff, Terminal } from 'lucide-react';
+import { ArrowLeftRight, Check, ClipboardCopy, Eye, EyeOff, Pin, PinOff, Tag, Terminal } from 'lucide-react';
+
+import { SessionTagEditor } from './SessionTagEditor';
 
 interface SessionContextMenuProps {
   sessionId: string;
@@ -80,6 +82,16 @@ export const SessionContextMenu = ({
           </ContextMenuItem>
         </>
       )}
+
+      <ContextMenuSeparator />
+
+      <div className="px-2 py-1.5">
+        <div className="text-muted-foreground mb-1 flex items-center gap-1 text-[10px] font-medium">
+          <Tag className="size-2.5" />
+          Tags
+        </div>
+        <SessionTagEditor sessionId={sessionId} />
+      </div>
 
       <ContextMenuSeparator />
 

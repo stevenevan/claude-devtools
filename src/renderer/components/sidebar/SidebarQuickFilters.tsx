@@ -5,14 +5,15 @@
 
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
-import { Activity, GitBranch } from 'lucide-react';
+import { Activity, Bookmark, GitBranch } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
-export type SidebarFilter = 'ongoing' | 'subagents';
+export type SidebarFilter = 'ongoing' | 'subagents' | 'bookmarked';
 
 const FILTERS: { value: SidebarFilter; label: string; icon: React.ElementType }[] = [
   { value: 'ongoing', label: 'Ongoing', icon: Activity },
   { value: 'subagents', label: 'Subagents', icon: GitBranch },
+  { value: 'bookmarked', label: 'Bookmarked', icon: Bookmark },
 ];
 
 interface SidebarQuickFiltersProps {

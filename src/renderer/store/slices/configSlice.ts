@@ -11,16 +11,43 @@ import type { StateCreator } from 'zustand';
 
 const logger = createLogger('Store:config');
 
+export interface BookmarkEntry {
+  id: string;
+  sessionId: string;
+  projectId: string;
+  groupId: string;
+  note?: string;
+  createdAt: number;
+}
+
 export interface ConfigSlice {
   appConfig: AppConfig | null;
   configLoading: boolean;
   configError: string | null;
   pendingSettingsSection: string | null;
 
+  // Bookmark state
+  bookmarks: BookmarkEntry[];
+  bookmarksLoading: boolean;
+
+  // Tag state
+  sessionTags: Map<string, string[]>;
+
   fetchConfig: () => Promise<void>;
   updateConfig: (section: string, data: Record<string, unknown>) => Promise<void>;
   openSettingsTab: (section?: string) => void;
   clearPendingSettingsSection: () => void;
+
+  // Bookmark actions
+  fetchBookmarks: () => Promise<void>;
+  toggleBookmark: (sessionId: string, projectId: string, groupId: string) => Promise<void>;
+  removeBookmark: (bookmarkId: string) => Promise<void>;
+  isGroupBookmarked: (groupId: string) => boolean;
+
+  // Tag actions
+  fetchSessionTags: (sessionId: string) => Promise<void>;
+  setSessionTags: (sessionId: string, tags: string[]) => Promise<void>;
+  getSessionTags: (sessionId: string) => string[];
 }
 
 export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (set, get) => ({
@@ -28,6 +55,9 @@ export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (s
   configLoading: false,
   configError: null,
   pendingSettingsSection: null,
+  bookmarks: [],
+  bookmarksLoading: false,
+  sessionTags: new Map(),
 
   // Fetch app configuration from main process
   fetchConfig: async () => {
@@ -86,5 +116,75 @@ export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (s
 
   clearPendingSettingsSection: () => {
     set({ pendingSettingsSection: null });
+  },
+
+  // Bookmark actions
+  fetchBookmarks: async () => {
+    set({ bookmarksLoading: true });
+    try {
+      const bookmarks = await api.config.getBookmarks();
+      set({ bookmarks, bookmarksLoading: false });
+    } catch (error) {
+      logger.error('Failed to fetch bookmarks:', error);
+      set({ bookmarksLoading: false });
+    }
+  },
+
+  toggleBookmark: async (sessionId: string, projectId: string, groupId: string) => {
+    const existing = get().bookmarks.find(
+      (b) => b.groupId === groupId && b.sessionId === sessionId
+    );
+    try {
+      if (existing) {
+        await api.config.removeBookmark(existing.id);
+        set({ bookmarks: get().bookmarks.filter((b) => b.id !== existing.id) });
+      } else {
+        await api.config.addBookmark(sessionId, projectId, groupId);
+        const bookmarks = await api.config.getBookmarks();
+        set({ bookmarks });
+      }
+    } catch (error) {
+      logger.error('Failed to toggle bookmark:', error);
+    }
+  },
+
+  removeBookmark: async (bookmarkId: string) => {
+    try {
+      await api.config.removeBookmark(bookmarkId);
+      set({ bookmarks: get().bookmarks.filter((b) => b.id !== bookmarkId) });
+    } catch (error) {
+      logger.error('Failed to remove bookmark:', error);
+    }
+  },
+
+  isGroupBookmarked: (groupId: string) => {
+    return get().bookmarks.some((b) => b.groupId === groupId);
+  },
+
+  // Tag actions
+  fetchSessionTags: async (sessionId: string) => {
+    try {
+      const tags = await api.config.getSessionTags(sessionId);
+      const newMap = new Map(get().sessionTags);
+      newMap.set(sessionId, tags);
+      set({ sessionTags: newMap });
+    } catch (error) {
+      logger.error('Failed to fetch session tags:', error);
+    }
+  },
+
+  setSessionTags: async (sessionId: string, tags: string[]) => {
+    try {
+      await api.config.setSessionTags(sessionId, tags);
+      const newMap = new Map(get().sessionTags);
+      newMap.set(sessionId, tags);
+      set({ sessionTags: newMap });
+    } catch (error) {
+      logger.error('Failed to set session tags:', error);
+    }
+  },
+
+  getSessionTags: (sessionId: string) => {
+    return get().sessionTags.get(sessionId) ?? [];
   },
 });

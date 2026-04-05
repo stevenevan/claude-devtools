@@ -121,15 +121,22 @@ export const DateGroupedSessions = ({ sidebarFilters }: DateGroupedSessionsProps
     return sessions.filter((s) => !hiddenSet.has(s.id));
   }, [sessions, hiddenSet, showHiddenSessions]);
 
+  const bookmarks = useStore((s) => s.bookmarks);
+  const bookmarkedSessionIds = useMemo(
+    () => new Set(bookmarks.map((b) => b.sessionId)),
+    [bookmarks]
+  );
+
   // Apply sidebar quick filters
   const filteredSessions = useMemo(() => {
     if (!sidebarFilters || sidebarFilters.size === 0) return visibleSessions;
     return visibleSessions.filter((s) => {
       if (sidebarFilters.has('ongoing') && !s.isOngoing) return false;
       if (sidebarFilters.has('subagents') && !s.hasSubagents) return false;
+      if (sidebarFilters.has('bookmarked') && !bookmarkedSessionIds.has(s.id)) return false;
       return true;
     });
-  }, [visibleSessions, sidebarFilters]);
+  }, [visibleSessions, sidebarFilters, bookmarkedSessionIds]);
 
   // Separate pinned sessions from unpinned
   const { pinned: pinnedSessions, unpinned: unpinnedSessions } = useMemo(

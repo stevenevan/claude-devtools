@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import { api } from '@renderer/api';
 import { useTabUI } from '@renderer/hooks/useTabUI';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -9,7 +8,7 @@ import { extractSlashInfo, isCommandContent } from '@shared/utils/contentSanitiz
 import { getModelColorClass } from '@shared/utils/modelParser';
 import { estimateTokens } from '@shared/utils/tokenFormatting';
 import { format } from 'date-fns';
-import { Bookmark, Bot, ChevronDown, Clock, Copy } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Bot, ChevronDown, Clock, Copy } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { TokenUsageDisplay } from '../common/TokenUsageDisplay';
@@ -77,6 +76,37 @@ function formatDuration(ms: number): string {
   }
   return `${minutes}m ${remainingSeconds}s`;
 }
+
+/**
+ * Bookmark toggle button for AI groups.
+ * Shows filled icon when bookmarked, toggles add/remove on click.
+ */
+const BookmarkToggle = ({ groupId }: Readonly<{ groupId: string }>): React.JSX.Element => {
+  const isBookmarked = useStore((s) => s.bookmarks.some((b) => b.groupId === groupId));
+  const toggleBookmark = useStore((s) => s.toggleBookmark);
+  const sessionId = useStore((s) => s.selectedSessionId);
+  const projectId = useStore((s) => s.selectedProjectId);
+
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        if (sessionId && projectId) {
+          void toggleBookmark(sessionId, projectId, groupId);
+        }
+      }}
+      className={cn(
+        'shrink-0 transition-opacity',
+        isBookmarked
+          ? 'text-amber-400 opacity-100'
+          : 'text-muted-foreground hover:text-amber-400 opacity-0 group-hover:opacity-100'
+      )}
+      title={isBookmarked ? 'Remove bookmark' : 'Bookmark this turn'}
+    >
+      {isBookmarked ? <BookmarkCheck className="size-3.5" /> : <Bookmark className="size-3.5" />}
+    </button>
+  );
+};
 
 interface AIChatGroupProps {
   aiGroup: AIGroup;
@@ -507,21 +537,8 @@ const AIChatGroupInner = ({
               <Copy className="size-3.5" />
             </button>
 
-            {/* Bookmark button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                const sessionId = useStore.getState().selectedSessionId;
-                const projectId = useStore.getState().selectedProjectId;
-                if (sessionId && projectId) {
-                  void api.config.addBookmark(sessionId, projectId, aiGroup.id);
-                }
-              }}
-              className="text-muted-foreground hover:text-amber-400 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
-              title="Bookmark this turn"
-            >
-              <Bookmark className="size-3.5" />
-            </button>
+            {/* Bookmark toggle */}
+            <BookmarkToggle groupId={aiGroup.id} />
           </div>
         </div>
       )}
