@@ -3,7 +3,7 @@
  * Shows metrics, tool usage, and conversation differences.
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { api } from '@renderer/api';
 import { cn } from '@renderer/lib/utils';
@@ -11,16 +11,21 @@ import { formatDuration, formatTokensCompact } from '@renderer/utils/formatters'
 import { parseModelString } from '@shared/utils/modelParser';
 import {
   ArrowLeftRight,
+  ChevronDown,
+  ChevronUp,
   Clock,
   DollarSign,
   Hash,
   Layers,
   Loader2,
+  MessageSquare,
   Wrench,
   Zap,
 } from 'lucide-react';
 
-import type { SessionDetail } from '@shared/types/chunks';
+import { Button } from '../ui/button';
+
+import type { Chunk, SessionDetail } from '@shared/types/chunks';
 import type { Tab } from '@renderer/types/tabs';
 
 interface SessionComparisonProps {
@@ -168,6 +173,224 @@ export const SessionComparison = ({ tab }: Readonly<SessionComparisonProps>): Re
             </div>
           </div>
         )}
+        {/* Conversation Diff */}
+        <ConversationDiff leftDetail={leftDetail} rightDetail={rightDetail} />
+      </div>
+    </div>
+  );
+};
+
+// Conversation Diff Types
+
+interface TurnSummary {
+  index: number;
+  userText: string;
+  aiSummary: string;
+  toolCount: number;
+}
+
+/** Extract turn summaries (user message + AI response summary) from chunks. */
+function extractTurns(detail: SessionDetail): TurnSummary[] {
+  const turns: TurnSummary[] = [];
+  const chunks = detail.chunks;
+  let turnIndex = 0;
+
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    if (chunk.chunkType !== 'user') continue;
+
+    const userText =
+      typeof chunk.userMessage.content === 'string'
+        ? chunk.userMessage.content.slice(0, 200)
+        : '[complex content]';
+
+    // Find the following AI chunk
+    const nextChunk: Chunk | undefined = chunks[i + 1];
+    let aiSummary = '';
+    let toolCount = 0;
+
+    if (nextChunk?.chunkType === 'ai') {
+      toolCount = nextChunk.toolExecutions.length;
+      // Get last text output from responses
+      for (let j = nextChunk.responses.length - 1; j >= 0; j--) {
+        const resp = nextChunk.responses[j];
+        if (resp.type === 'assistant' && Array.isArray(resp.content)) {
+          const textBlock = resp.content.find(
+            (b: { type: string }) => b.type === 'text'
+          ) as { text?: string } | undefined;
+          if (textBlock?.text) {
+            aiSummary = textBlock.text.slice(0, 200);
+            break;
+          }
+        }
+      }
+    }
+
+    turns.push({ index: turnIndex++, userText, aiSummary, toolCount });
+  }
+
+  return turns;
+}
+
+/** Check if two strings are meaningfully different. */
+function isDivergent(a: string, b: string): boolean {
+  if (a === b) return false;
+  // Normalize whitespace for comparison
+  const norm = (s: string): string => s.replace(/\s+/g, ' ').trim();
+  return norm(a) !== norm(b);
+}
+
+interface ConversationDiffProps {
+  leftDetail: SessionDetail;
+  rightDetail: SessionDetail;
+}
+
+const ConversationDiff = ({
+  leftDetail,
+  rightDetail,
+}: Readonly<ConversationDiffProps>): React.JSX.Element => {
+  const leftTurns = useMemo(() => extractTurns(leftDetail), [leftDetail]);
+  const rightTurns = useMemo(() => extractTurns(rightDetail), [rightDetail]);
+
+  const maxTurns = Math.max(leftTurns.length, rightTurns.length);
+
+  // Find divergent turn indices
+  const divergentIndices = useMemo(() => {
+    const indices: number[] = [];
+    for (let i = 0; i < maxTurns; i++) {
+      const left = leftTurns[i];
+      const right = rightTurns[i];
+      if (!left || !right) {
+        indices.push(i);
+      } else if (isDivergent(left.userText, right.userText)) {
+        indices.push(i);
+      }
+    }
+    return indices;
+  }, [leftTurns, rightTurns, maxTurns]);
+
+  const [currentDivergenceIdx, setCurrentDivergenceIdx] = useState(0);
+  const turnRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+
+  const scrollToDivergence = useCallback(
+    (idx: number) => {
+      const turnIndex = divergentIndices[idx];
+      if (turnIndex == null) return;
+      const el = turnRefs.current.get(turnIndex);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setCurrentDivergenceIdx(idx);
+    },
+    [divergentIndices]
+  );
+
+  if (maxTurns === 0) return <></>;
+
+  return (
+    <div className="border-border mt-6 rounded-lg border p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
+          Conversation ({maxTurns} turns)
+        </h2>
+        {divergentIndices.length > 0 && (
+          <div className="flex items-center gap-1">
+            <span className="text-muted-foreground text-[10px]">
+              {divergentIndices.length} divergence{divergentIndices.length !== 1 && 's'}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              onClick={() =>
+                scrollToDivergence(
+                  (currentDivergenceIdx - 1 + divergentIndices.length) % divergentIndices.length
+                )
+              }
+              title="Previous divergence"
+            >
+              <ChevronUp className="size-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              onClick={() =>
+                scrollToDivergence((currentDivergenceIdx + 1) % divergentIndices.length)
+              }
+              title="Next divergence"
+            >
+              <ChevronDown className="size-3" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        {Array.from({ length: maxTurns }).map((_, i) => {
+          const left = leftTurns[i];
+          const right = rightTurns[i];
+          const hasDivergence =
+            !left || !right || isDivergent(left?.userText ?? '', right?.userText ?? '');
+
+          return (
+            <div
+              key={i}
+              ref={(el) => {
+                if (el) turnRefs.current.set(i, el);
+              }}
+              className={cn(
+                'flex gap-3 rounded-sm border px-3 py-2',
+                hasDivergence
+                  ? 'border-amber-500/30 bg-amber-500/5'
+                  : 'border-border'
+              )}
+            >
+              {/* Turn number */}
+              <div className="text-muted-foreground flex shrink-0 items-start pt-0.5 text-[10px] tabular-nums">
+                <MessageSquare className="mr-1 size-3" />
+                {i + 1}
+              </div>
+
+              {/* Left session */}
+              <div className="min-w-0 flex-1">
+                {left ? (
+                  <>
+                    <div className="text-foreground mb-0.5 text-[11px] leading-snug">
+                      {left.userText}
+                    </div>
+                    <div className="text-muted-foreground text-[10px]">
+                      {left.toolCount > 0 && `${left.toolCount} tools · `}
+                      {left.aiSummary
+                        ? left.aiSummary.slice(0, 80) + (left.aiSummary.length > 80 ? '...' : '')
+                        : 'No response'}
+                    </div>
+                  </>
+                ) : (
+                  <span className="text-muted-foreground/50 text-[10px] italic">—</span>
+                )}
+              </div>
+
+              {/* Divider */}
+              <div className="border-border w-px self-stretch border-l" />
+
+              {/* Right session */}
+              <div className="min-w-0 flex-1">
+                {right ? (
+                  <>
+                    <div className="text-foreground mb-0.5 text-[11px] leading-snug">
+                      {right.userText}
+                    </div>
+                    <div className="text-muted-foreground text-[10px]">
+                      {right.toolCount > 0 && `${right.toolCount} tools · `}
+                      {right.aiSummary
+                        ? right.aiSummary.slice(0, 80) + (right.aiSummary.length > 80 ? '...' : '')
+                        : 'No response'}
+                    </div>
+                  </>
+                ) : (
+                  <span className="text-muted-foreground/50 text-[10px] italic">—</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
