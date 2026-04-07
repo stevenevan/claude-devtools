@@ -6,6 +6,7 @@
 import { useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';
+import { useStore } from '@renderer/store';
 import { formatDuration, formatTokensCompact } from '@renderer/utils/formatters';
 import { parseModelString } from '@shared/utils/modelParser';
 import {
@@ -13,6 +14,7 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
+  ExternalLink,
   Loader2,
   Users,
 } from 'lucide-react';
@@ -30,6 +32,9 @@ interface TreeNodeProps {
 
 const TreeNode = ({ process }: Readonly<TreeNodeProps>): React.JSX.Element => {
   const [isOpen, setIsOpen] = useState(true);
+  const drillDownSubagent = useStore((s) => s.drillDownSubagent);
+  const selectedProjectId = useStore((s) => s.selectedProjectId);
+  const selectedSessionId = useStore((s) => s.selectedSessionId);
   const isOngoing = process.isOngoing ?? false;
   const model = process.metrics.model ? parseModelString(process.metrics.model) : null;
   const description = process.description || process.subagentType || process.id;
@@ -79,9 +84,29 @@ const TreeNode = ({ process }: Readonly<TreeNodeProps>): React.JSX.Element => {
         </span>
       </button>
 
-      {isOpen && process.isParallel && (
-        <div className="text-muted-foreground/50 pl-8 text-[10px] italic">
-          Ran in parallel
+      {isOpen && (
+        <div className="flex items-center gap-2 pl-8">
+          {process.isParallel && (
+            <span className="text-muted-foreground/50 text-[10px] italic">Ran in parallel</span>
+          )}
+          {selectedProjectId && selectedSessionId && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                void drillDownSubagent(
+                  selectedProjectId,
+                  selectedSessionId,
+                  process.id,
+                  description
+                );
+              }}
+              className="text-muted-foreground hover:text-foreground flex items-center gap-0.5 text-[10px] transition-colors"
+              title="View subagent details"
+            >
+              <ExternalLink className="size-2.5" />
+              Details
+            </button>
+          )}
         </div>
       )}
     </div>

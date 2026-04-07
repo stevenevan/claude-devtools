@@ -9,6 +9,8 @@ import { useStore } from '@renderer/store';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
+import { SubagentDetailPanel } from '../chat/SubagentDetailPanel';
+
 import { MiddlePanel } from './MiddlePanel';
 
 import type { Tab } from '@renderer/types/tabs';
@@ -93,8 +95,9 @@ export const SessionTabContent = ({
   }
 
   return (
-    <div className="bg-background flex min-w-0 flex-1 flex-col overflow-hidden">
+    <div className="bg-background relative flex min-w-0 flex-1 flex-col overflow-hidden">
       <MiddlePanel tabId={tab.id} />
+      <SubagentDetailPanel />
     </div>
   );
 };
