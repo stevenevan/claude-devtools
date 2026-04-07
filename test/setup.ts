@@ -3,6 +3,8 @@
  * Runs before each test file.
  */
 
+import '@testing-library/jest-dom';
+import { cleanup } from '@testing-library/react';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 
 // Mock process.env for tests that need home directory
@@ -37,6 +39,7 @@ afterEach(() => {
   const unexpectedErrors = errorSpy.mock.calls.map(formatConsoleCall);
   const unexpectedWarnings = warnSpy.mock.calls.map(formatConsoleCall);
 
+  cleanup();
   errorSpy.mockRestore();
   warnSpy.mockRestore();
 
