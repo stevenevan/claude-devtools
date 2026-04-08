@@ -52,3 +52,6 @@ temp/
 
 eslint-fix/
 remotion/*
+
+# Bundle analysis
+stats.html

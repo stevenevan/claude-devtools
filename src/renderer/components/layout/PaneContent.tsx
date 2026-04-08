@@ -7,8 +7,9 @@ import { Loader2 } from 'lucide-react';
 
 import { ErrorBoundary } from '../common/ErrorBoundary';
 
-import { SessionComparison } from '../chat/SessionComparison';
 import { SessionTabContent } from './SessionTabContent';
+
+const SessionComparison = React.lazy(() => import('../chat/SessionComparison').then((m) => ({ default: m.SessionComparison })));
 
 // Lazy-load non-critical views for faster initial load
 const DashboardView = React.lazy(() => import('../dashboard/DashboardView').then((m) => ({ default: m.DashboardView })));
@@ -97,7 +98,11 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
                   <SessionTabContent tab={tab} isActive={isActive} />
                 </TabUIProvider>
               )}
-              {tab.type === 'comparison' && <SessionComparison tab={tab} />}
+              {tab.type === 'comparison' && (
+                <Suspense fallback={<LazyFallback />}>
+                  <SessionComparison tab={tab} />
+                </Suspense>
+              )}
             </ErrorBoundary>
           </div>
         );
