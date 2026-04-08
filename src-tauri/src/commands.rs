@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 use serde_json::Value;
 
 use crate::analysis::chunk_builder;
+use crate::analysis::tool_linking;
 use crate::cache::SessionCache;
 use crate::discovery::{
     ongoing_detector, path_decoder, project_scanner, session_lister, subagent_resolver,
@@ -1202,4 +1203,18 @@ pub fn get_session_detail_incremental(
         parsed.messages,
         subagents,
     ))
+}
+
+// ---------------------------------------------------------------------------
+// Tool Linking (Sprint 28)
+// ---------------------------------------------------------------------------
+
+/// Link tool calls to their results in Rust.
+#[tauri::command]
+pub fn link_tool_calls(
+    steps: Vec<crate::types::chunks::SemanticStep>,
+    responses: Option<Vec<tool_linking::ParsedMessageInput>>,
+) -> Result<std::collections::HashMap<String, tool_linking::LinkedToolItem>, String> {
+    let responses_ref = responses.as_deref();
+    Ok(tool_linking::link_tool_calls_to_results(&steps, responses_ref))
 }
