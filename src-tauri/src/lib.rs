@@ -115,6 +115,8 @@ pub fn run() {
             ssh::commands::ssh_save_last_connection,
             ssh::commands::ssh_get_last_connection,
             commands::link_tool_calls,
+            commands::count_tokens,
+            commands::count_tokens_batch,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

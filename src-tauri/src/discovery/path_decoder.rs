@@ -113,6 +113,52 @@ pub fn extract_base_dir(project_id: &str) -> &str {
     }
 }
 
+// Reversible Encoding (Sprint 29)
+
+/// Encode a path reversibly using percent-encoding for dashes.
+/// Roundtrip: `decode_path_reversible(encode_path_reversible(p)) == p` for any valid path.
+pub fn encode_path_reversible(absolute_path: &str) -> String {
+    if absolute_path.is_empty() {
+        return String::new();
+    }
+    // Escape % first, then -, then convert / and \ to -
+    absolute_path
+        .replace('%', "%25")
+        .replace('-', "%2D")
+        .replace('/', "-")
+        .replace('\\', "-")
+}
+
+/// Decode a reversibly-encoded path, recovering original dashes.
+pub fn decode_path_reversible(encoded: &str) -> String {
+    if encoded.is_empty() {
+        return String::new();
+    }
+    // Convert - to /, then unescape %2D to -, then %25 to %
+    encoded
+        .replace('-', "/")
+        .replace("%2D", "-")
+        .replace("%25", "%")
+}
+
+/// Check if an encoded path uses the reversible encoding scheme.
+pub fn is_reversible_encoding(encoded: &str) -> bool {
+    encoded.contains("%2D") || encoded.contains("%25")
+}
+
+/// Smart decode: auto-detects reversible vs legacy encoding.
+/// If `cwd_hint` is provided, uses that directly.
+pub fn decode_path_smart(encoded: &str, cwd_hint: Option<&str>) -> String {
+    if let Some(cwd) = cwd_hint {
+        return cwd.to_string();
+    }
+    if is_reversible_encoding(encoded) {
+        decode_path_reversible(encoded)
+    } else {
+        decode_path(encoded)
+    }
+}
+
 // Path Construction
 
 pub fn build_todo_path(claude_base: &Path, session_id: &str) -> PathBuf {
@@ -307,5 +353,81 @@ mod tests {
     fn test_extract_project_name_no_hint_single_dash() {
         // "-" decodes to empty segments — falls back to encoded name
         assert_eq!(extract_project_name("-", None), "-");
+    }
+
+    // =========================================================================
+    // Reversible encoding (Sprint 29)
+    // =========================================================================
+
+    #[test]
+    fn test_reversible_roundtrip_with_dashes() {
+        let original = "/Users/name/my-project";
+        let encoded = encode_path_reversible(original);
+        let decoded = decode_path_reversible(&encoded);
+        assert_eq!(decoded, original);
+    }
+
+    #[test]
+    fn test_reversible_roundtrip_without_dashes() {
+        let original = "/Users/name/project";
+        let encoded = encode_path_reversible(original);
+        let decoded = decode_path_reversible(&encoded);
+        assert_eq!(decoded, original);
+    }
+
+    #[test]
+    fn test_reversible_roundtrip_empty() {
+        assert_eq!(encode_path_reversible(""), "");
+        assert_eq!(decode_path_reversible(""), "");
+    }
+
+    #[test]
+    fn test_reversible_roundtrip_deep_nesting_with_dashes() {
+        let original = "/Users/name/my-project/sub-dir/file-name.ts";
+        let encoded = encode_path_reversible(original);
+        let decoded = decode_path_reversible(&encoded);
+        assert_eq!(decoded, original);
+    }
+
+    #[test]
+    fn test_reversible_roundtrip_percent_in_path() {
+        let original = "/Users/name/100%done";
+        let encoded = encode_path_reversible(original);
+        let decoded = decode_path_reversible(&encoded);
+        assert_eq!(decoded, original);
+    }
+
+    #[test]
+    fn test_is_reversible_encoding_detection() {
+        let reversible = encode_path_reversible("/Users/name/my-project");
+        assert!(is_reversible_encoding(&reversible));
+
+        let legacy = encode_path("/Users/name/project");
+        assert!(!is_reversible_encoding(&legacy));
+    }
+
+    #[test]
+    fn test_decode_path_smart_uses_hint() {
+        assert_eq!(
+            decode_path_smart("-Users-name-my-project", Some("/Users/name/my-project")),
+            "/Users/name/my-project"
+        );
+    }
+
+    #[test]
+    fn test_decode_path_smart_detects_reversible() {
+        let encoded = encode_path_reversible("/Users/name/my-project");
+        assert_eq!(
+            decode_path_smart(&encoded, None),
+            "/Users/name/my-project"
+        );
+    }
+
+    #[test]
+    fn test_decode_path_smart_falls_back_to_legacy() {
+        assert_eq!(
+            decode_path_smart("-Users-name-project", None),
+            "/Users/name/project"
+        );
     }
 }

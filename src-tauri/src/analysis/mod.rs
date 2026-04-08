@@ -6,5 +6,6 @@ pub mod process_linker;
 pub mod semantic_step_extractor;
 pub mod semantic_step_grouper;
 pub mod timeline_gap_filling;
+pub mod tokenizer;
 pub mod tool_execution_builder;
 pub mod tool_linking;

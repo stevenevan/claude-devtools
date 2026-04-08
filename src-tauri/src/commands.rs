@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 use serde_json::Value;
 
 use crate::analysis::chunk_builder;
+use crate::analysis::tokenizer;
 use crate::analysis::tool_linking;
 use crate::cache::SessionCache;
 use crate::discovery::{
@@ -1217,4 +1218,20 @@ pub fn link_tool_calls(
 ) -> Result<std::collections::HashMap<String, tool_linking::LinkedToolItem>, String> {
     let responses_ref = responses.as_deref();
     Ok(tool_linking::link_tool_calls_to_results(&steps, responses_ref))
+}
+
+// ---------------------------------------------------------------------------
+// Tokenizer (Sprint 29)
+// ---------------------------------------------------------------------------
+
+/// Count tokens in a string using tiktoken cl100k_base.
+#[tauri::command]
+pub fn count_tokens(text: String) -> Result<usize, String> {
+    Ok(tokenizer::count_tokens(&text))
+}
+
+/// Count tokens for multiple strings in a batch.
+#[tauri::command]
+pub fn count_tokens_batch(texts: Vec<String>) -> Result<Vec<usize>, String> {
+    Ok(tokenizer::count_tokens_batch(&texts))
 }
