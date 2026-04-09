@@ -7,6 +7,7 @@ import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 
+
 // Mock process.env for tests that need home directory
 vi.stubGlobal('process', {
   ...process,
