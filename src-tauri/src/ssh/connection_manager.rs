@@ -8,6 +8,7 @@ use russh_sftp::client::SftpSession;
 
 use super::agent_discovery;
 use super::config_parser;
+use super::retry::{is_transient_error, RetryConfig, RetryState};
 use super::types::{SshConfigHostEntry, SshConnectionConfig, SshConnectionStatus};
 
 // SSH Client Handler (required by russh)
@@ -57,11 +58,12 @@ impl SshState {
                 host: Some(conn.host.clone()),
                 error: None,
                 remote_projects_path: Some(conn.remote_projects_path.clone()),
+                retry_attempt: None,
+                max_retries: None,
             },
             None => SshConnectionStatus::disconnected(),
         }
     }
-
 }
 
 // Connect
@@ -93,7 +95,7 @@ pub async fn connect(config: &SshConnectionConfig) -> Result<SshConnection, Stri
 
     // Build russh config
     let russh_config = Arc::new(client::Config {
-        inactivity_timeout: Some(std::time::Duration::from_secs(30)),
+        inactivity_timeout: Some(std::time::Duration::from_secs(120)),
         ..Default::default()
     });
 
@@ -149,6 +151,37 @@ pub async fn test_connection(
     // Connection succeeded, drop it
     drop(conn);
     Ok(())
+}
+
+/// Connect with exponential backoff retry for transient errors.
+/// Calls `on_retry` before each retry delay so the caller can emit status events.
+pub async fn connect_with_retry<F>(
+    config: &SshConnectionConfig,
+    retry_config: &RetryConfig,
+    mut on_retry: F,
+) -> Result<SshConnection, String>
+where
+    F: FnMut(u32, u32, &str),
+{
+    let mut state = RetryState::default();
+
+    loop {
+        match connect(config).await {
+            Ok(conn) => return Ok(conn),
+            Err(e) => {
+                if !is_transient_error(&e) || !state.can_retry(retry_config) {
+                    return Err(e);
+                }
+
+                let delay = state.next_delay(retry_config);
+                state.advance(e.clone());
+
+                on_retry(state.attempt, retry_config.max_retries, &e);
+
+                tokio::time::sleep(delay).await;
+            }
+        }
+    }
 }
 
 // Authentication

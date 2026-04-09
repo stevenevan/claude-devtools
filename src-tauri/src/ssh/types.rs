@@ -22,6 +22,10 @@ pub struct SshConnectionStatus {
     pub host: Option<String>,
     pub error: Option<String>,
     pub remote_projects_path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub retry_attempt: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_retries: Option<u32>,
 }
 
 impl SshConnectionStatus {
@@ -31,6 +35,8 @@ impl SshConnectionStatus {
             host: None,
             error: None,
             remote_projects_path: None,
+            retry_attempt: None,
+            max_retries: None,
         }
     }
 }

@@ -4,5 +4,6 @@ pub mod agent_discovery;
 pub mod commands;
 pub mod config_parser;
 pub mod connection_manager;
+pub mod retry;
 pub mod sftp_provider;
 pub mod types;

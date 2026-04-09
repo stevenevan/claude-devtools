@@ -11,7 +11,7 @@
 
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
-import { Loader2, Monitor, Wifi, WifiOff } from 'lucide-react';
+import { Loader2, Monitor, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 interface ConnectionStatusBadgeProps {
@@ -47,6 +47,8 @@ export const ConnectionStatusBadge = ({
       return <Wifi className={cn('size-3.5 text-green-400', className)} />;
     case 'connecting':
       return <Loader2 className={cn('text-muted-foreground size-3.5 animate-spin', className)} />;
+    case 'retrying':
+      return <RefreshCw className={cn('size-3.5 animate-spin text-amber-400', className)} />;
     case 'disconnected':
       return <WifiOff className={cn('text-muted-foreground size-3.5', className)} />;
     case 'error':

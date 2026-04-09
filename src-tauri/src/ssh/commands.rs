@@ -6,6 +6,7 @@ use tauri::Emitter;
 
 use super::config_parser;
 use super::connection_manager;
+use super::retry::RetryConfig;
 use super::types::{
     SshConfigHostEntry, SshConnectionConfig, SshConnectionStatus, SshLastConnection,
 };
@@ -50,13 +51,33 @@ pub async fn ssh_connect(
         },
     );
 
-    match connection_manager::connect(&config).await {
+    let retry_config = RetryConfig::default();
+    let host_for_retry = config.host.clone();
+    let app_for_retry = app.clone();
+
+    match connection_manager::connect_with_retry(&config, &retry_config, |attempt, max, error| {
+        let _ = app_for_retry.emit(
+            "ssh-status",
+            SshConnectionStatus {
+                state: "retrying".to_string(),
+                host: Some(host_for_retry.clone()),
+                error: Some(error.to_string()),
+                remote_projects_path: None,
+                retry_attempt: Some(attempt),
+                max_retries: Some(max),
+            },
+        );
+    })
+    .await
+    {
         Ok(conn) => {
             let status = SshConnectionStatus {
                 state: "connected".to_string(),
                 host: Some(config.host.clone()),
                 error: None,
                 remote_projects_path: Some(conn.remote_projects_path.clone()),
+                retry_attempt: None,
+                max_retries: None,
             };
             let _ = app.emit("ssh-status", &status);
 
@@ -71,6 +92,8 @@ pub async fn ssh_connect(
                 host: Some(config.host.clone()),
                 error: Some(e.clone()),
                 remote_projects_path: None,
+                retry_attempt: None,
+                max_retries: None,
             };
             let _ = app.emit("ssh-status", &status);
             Err(e)
