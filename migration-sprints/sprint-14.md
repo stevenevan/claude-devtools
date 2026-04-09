@@ -1,20 +1,21 @@
-# Sprint 14 (Week 27: Jun 29 - Jul 5)
+# Sprint 14 (Week 27: Jun 29 – Jul 5)
 
-**Phase**: 4 - Feature Completeness
-**Theme**: Session Comparison — Diff & Metrics
+**Phase**: 4 – Advanced Features & Polish
+**Theme**: Dashboard State Persistence
 
 ## Deliverables
 
-- [x] Comparison metrics panel — already shows tokens/cost/duration/messages/model side-by-side [FE] [M]
-- [x] Tool usage comparison — all tool names with counts per session [FE] [M]
-- [ ] Diff visualization (divergence highlighting) — deferred (requires chunk alignment algorithm) [FE] [L]
-- [ ] Comparison navigation (next/prev divergence) — deferred [FE] [M]
+- [x] Zustand `persist` middleware with `localStorage` backend in `store/index.ts` [FE] [M]
+- [x] Persist pane layout — open tabs, active tab per pane, split views, width fractions [FE] [M]
+- [x] Persist UI preferences — sidebar collapsed, active activity, view mode, sidebar width [FE] [S]
+- [x] `partialize` to strip transient fields (loading flags, errors, scroll positions, Maps, Sets) [FE] [M]
+- [x] `onRehydrateStorage` callback to sync root-level state and fetch active session detail on startup [FE] [M]
 
 ## Key Files
 
-- `src/renderer/components/` (ComparisonView.tsx and sub-components)
-- `src/renderer/hooks/useKeyboardShortcuts.ts` (new shortcuts)
+- `src/renderer/store/index.ts`
+- `src/renderer/store/types.ts`
 
 ## Done When
 
-Divergence points highlighted; metrics show correct deltas; "Next difference" works; 10+ tests.
+App restart restores open tabs, pane layout, sidebar state, and active activity; session data re-fetches on rehydration.
