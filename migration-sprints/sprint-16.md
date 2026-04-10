@@ -1,22 +1,23 @@
-# Sprint 16 (Week 29: Jul 13 - Jul 19)
+# Sprint 16 (Week 29: Jul 13 – Jul 19)
 
-**Phase**: 4 - Feature Completeness
-**Theme**: Dashboard Persistence + Todo + Quick Filters
+**Phase**: 4 – Advanced Features & Polish
+**Theme**: Enhanced Subagent Navigation
 
 ## Deliverables
 
-- [x] Todo panel already implemented — sync with watcher, completion status, pending count badge [FE] [M]
-- [x] Quick filters already implemented in SidebarQuickFilters.tsx [FE] [M]
-- [ ] Dashboard state persistence (IndexedDB) — deferred [FE] [M]
-- [ ] Expanded filter criteria (model, duration range, etc.) — deferred [FE] [L]
+- [x] `SubagentDetailPanel` — full-screen overlay with semantic step groups, search/filter, metrics [FE] [L]
+- [x] Drill-down from `SubagentTreeView` "Details" button triggering `drillDownSubagent()` action [FE] [M]
+- [x] Search/filter within subagent detail — filter by tool name, description, output text [FE] [M]
+- [x] Breadcrumb navigation for nested subagent drill-down stack with click-to-pop [FE] [S]
+- [x] Panel mounted as z-40 overlay in `SessionTabContent` [FE] [S]
 
 ## Key Files
 
-- `src/renderer/components/dashboard/DashboardView.tsx`
-- `src/renderer/components/dashboard/AnalyticsDashboard.tsx`
-- `src/renderer/utils/contextStorage.ts` (IndexedDB pattern to reuse)
-- `src/renderer/components/sidebar/SidebarQuickFilters.tsx`
+- `src/renderer/components/chat/SubagentDetailPanel.tsx`
+- `src/renderer/components/chat/SubagentTreeView.tsx`
+- `src/renderer/components/layout/SessionTabContent.tsx`
+- `src/renderer/store/slices/subagentSlice.ts`
 
 ## Done When
 
-Dashboard remembers state across restarts; todos update within 2s; 6 new filter criteria; 15+ tests.
+Clicking "Details" on a subagent opens searchable overlay with step groups and breadcrumb navigation for nested drill-down.
