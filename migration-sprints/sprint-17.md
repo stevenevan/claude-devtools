@@ -1,22 +1,20 @@
-# Sprint 17 (Week 30: Jul 20 - Jul 26)
+# Sprint 17 (Week 30: Jul 20 – Jul 26)
 
-**Phase**: 5 - Polish & Accessibility
-**Theme**: Error Handling & User Feedback
+**Phase**: 4 – Advanced Features & Polish
+**Theme**: Comparison Diff Visualization
 
 ## Deliverables
 
-- [x] Error boundaries — added section-level boundaries in PaneContent for global + per-tab content [FE] [M]
-- [x] ErrorBoundary component with "Try Again" and "Reload App" actions — already existed [FE] [M]
-- [x] Sonner toast system available via `sonner.tsx` component [FE] [M]
-- [ ] SSH retry/error recovery — deferred (requires connection testing) [BE+FE] [L]
+- [x] `ConversationDiff` component within `SessionComparison` — side-by-side turn comparison [FE] [L]
+- [x] `extractTurns()` — walk chunks to pair user messages with following AI response summaries [FE] [M]
+- [x] `isDivergent()` — normalized whitespace comparison for detecting conversation divergences [FE] [S]
+- [x] Divergence navigation (prev/next buttons) with `scrollIntoView` and index tracking [FE] [M]
+- [x] Visual highlighting — amber border/background on divergent turns, dash placeholders for missing turns [FE] [S]
 
 ## Key Files
 
-- `src/renderer/components/common/ErrorBoundary.tsx`
-- `src-tauri/src/ssh/connection_manager.rs`
-- `src-tauri/src/ssh/commands.rs`
-- `src/renderer/store/slices/connectionSlice.ts`
+- `src/renderer/components/chat/SessionComparison.tsx`
 
 ## Done When
 
-No error goes only to console; error boundaries catch failures in all 4 sections; SSH reconnects after transient failures.
+Session comparison shows turn-by-turn diff with amber divergence highlights and prev/next navigation.
