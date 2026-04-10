@@ -1,22 +1,24 @@
-# Sprint 15 (Week 28: Jul 6 - Jul 12)
+# Sprint 15 (Week 28: Jul 6 – Jul 12)
 
-**Phase**: 4 - Feature Completeness
-**Theme**: Bookmarks, Tags & Subagent Navigation
+**Phase**: 4 – Advanced Features & Polish
+**Theme**: Bookmark/Tag UI
 
 ## Deliverables
 
-- [x] "Compare with Current Session" context menu action in sidebar [FE] [M]
-- [x] Backend bookmark/tag commands already wired in tauriClient.ts [FE] [M]
-- [ ] Bookmark/tag UI — header button, tag editor, sidebar filter — deferred [FE] [L]
-- [ ] Enhanced subagent navigation — deferred [FE] [L]
+- [x] `BookmarkToggle` on `AIChatGroup` header — filled/unfilled icon toggle with `toggleBookmark` action [FE] [M]
+- [x] `SessionTagEditor` — inline tag chips with add/remove, keyboard navigation, autocomplete from existing tags [FE] [L]
+- [x] Tags section in `SessionContextMenu` right-click menu [FE] [S]
+- [x] "Bookmarked" quick filter in `SidebarQuickFilters` [FE] [S]
+- [x] `BookmarksPanel` — list view of all bookmarked AI groups across sessions [FE] [M]
 
 ## Key Files
 
-- `src/renderer/store/slices/subagentSlice.ts`
+- `src/renderer/components/chat/AIChatGroup.tsx`
+- `src/renderer/components/sidebar/SessionTagEditor.tsx`
+- `src/renderer/components/sidebar/BookmarksPanel.tsx`
 - `src/renderer/components/sidebar/SidebarQuickFilters.tsx`
-- `src/renderer/api/tauriClient.ts` (bookmark/tag API calls)
-- `src-tauri/src/config/commands.rs` (existing: config_add_bookmark, config_set_session_tags)
+- `src/renderer/components/sidebar/SessionContextMenu.tsx`
 
 ## Done When
 
-Bookmark/tag sessions; filter by them in sidebar; subagent breadcrumbs navigate nested hierarchies; connected to Rust backend.
+Bookmark toggle works on AI groups; session tags editable via context menu; "Bookmarked" filter narrows session list.
