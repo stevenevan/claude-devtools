@@ -1,22 +1,22 @@
-# Sprint 19 (Week 32: Aug 3 - Aug 9)
+# Sprint 19 (Week 32: Aug 3 – Aug 9)
 
-**Phase**: 5 - Polish & Accessibility
-**Theme**: Performance Optimization & Bundle Analysis
+**Phase**: 4 – Advanced Features & Polish
+**Theme**: Session Export & Final Polish
 
 ## Deliverables
 
-- [x] Code splitting — 9 lazy-loaded views in PaneContent (dashboard, analytics, agents, skills, plugins, notifications, search, settings, global content) [FE] [L]
-- [x] Memoization — React.memo on 11 key chat components (AIChatGroup, ChatHistoryItem, DisplayItemList, SessionItem, etc.) [FE] [L]
-- [x] Virtual scrolling for large lists via @tanstack/react-virtual [FE] [M]
-- [ ] Bundle visualizer analysis and further optimization — deferred [FE] [M]
+- [x] `sessionExporter.ts` — export session as Markdown, JSON, or plain text with configurable sections [FE] [M]
+- [x] `ExportDropdown` in session header with format selection and file save dialog [FE] [M]
+- [x] Copy individual tool outputs / AI responses to clipboard via `CopyButton` [FE] [S]
+- [x] Accessibility audit — screen reader compatibility, contrast ratios, focus trap completeness across both themes [FE] [M]
+- [x] Performance audit — verify no component re-renders > 2x per state change; virtual scroll on all lists exceeding 100 items [FE] [M]
 
 ## Key Files
 
-- `vite.config.ts` (code splitting)
-- `src/renderer/components/chat/ChatHistory.tsx` (memoization)
-- `src/renderer/components/dashboard/AnalyticsDashboard.tsx` (lazy load)
-- `src/renderer/utils/aiGroupEnhancer.ts` (memoization)
+- `src/renderer/utils/sessionExporter.ts`
+- `src/renderer/components/common/ExportDropdown.tsx`
+- `src/renderer/components/common/CopyButton.tsx`
 
 ## Done When
 
-Bundle size reduced 15%+ via code splitting; no component re-renders > 2x per state change; 5 critical flow tests pass; baselines documented.
+Sessions exportable in 3 formats; all interactive elements keyboard-accessible; no performance regressions from baseline.

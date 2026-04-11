@@ -47,7 +47,12 @@ export const SubagentDetailPanel = (): React.JSX.Element | null => {
   if (!isOpen) return null;
 
   return (
-    <div className="bg-surface absolute inset-0 z-40 flex flex-col">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Subagent detail"
+      className="bg-surface absolute inset-0 z-40 flex flex-col"
+    >
       {/* Header */}
       <div className="border-border flex items-center gap-2 border-b px-4 py-2">
         {/* Breadcrumb */}
@@ -91,14 +96,14 @@ export const SubagentDetailPanel = (): React.JSX.Element | null => {
             className="text-foreground placeholder:text-muted-foreground w-32 bg-transparent text-xs outline-hidden"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery('')}>
+            <button onClick={() => setSearchQuery('')} aria-label="Clear filter">
               <X className="text-muted-foreground size-3" />
             </button>
           )}
         </div>
 
         {/* Close */}
-        <Button variant="ghost" size="icon-xs" onClick={closeSubagentModal} title="Close">
+        <Button variant="ghost" size="icon-xs" onClick={closeSubagentModal} title="Close" aria-label="Close subagent panel">
           <X className="size-3.5" />
         </Button>
       </div>

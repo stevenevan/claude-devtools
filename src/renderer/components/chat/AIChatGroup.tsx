@@ -82,7 +82,9 @@ function formatDuration(ms: number): string {
  * Shows filled icon when bookmarked, toggles add/remove on click.
  */
 const BookmarkToggle = ({ groupId }: Readonly<{ groupId: string }>): React.JSX.Element => {
-  const isBookmarked = useStore((s) => s.bookmarks.some((b) => b.groupId === groupId));
+  const isBookmarked = useStore(
+    useCallback((s) => s.bookmarks.some((b) => b.groupId === groupId), [groupId])
+  );
   const toggleBookmark = useStore((s) => s.toggleBookmark);
   const sessionId = useStore((s) => s.selectedSessionId);
   const projectId = useStore((s) => s.selectedProjectId);
@@ -427,6 +429,8 @@ const AIChatGroupInner = ({
           <div
             role="button"
             tabIndex={0}
+            aria-expanded={isExpanded}
+            aria-label="Toggle AI response details"
             className="group flex min-w-0 flex-1 cursor-pointer items-center gap-2 overflow-hidden"
             onClick={() => toggleAIGroupExpansion(aiGroup.id)}
             onKeyDown={(e) => {

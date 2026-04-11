@@ -62,7 +62,7 @@ export const TodoPanel = ({ todoData, onClose }: Readonly<TodoPanelProps>): Reac
             {completedCount}/{totalCount}
           </span>
         </div>
-        <Button variant="ghost" size="icon-xs" onClick={onClose}>
+        <Button variant="ghost" size="icon-xs" onClick={onClose} title="Close" aria-label="Close tasks panel">
           <X className="size-3.5" />
         </Button>
       </div>

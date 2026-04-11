@@ -269,7 +269,7 @@ export const CommandPalette = (): React.JSX.Element | null => {
             }}
           />
           {loading && <Loader2 className="text-muted-foreground size-4 shrink-0 animate-spin" />}
-          <Button variant="ghost" size="icon-xs" onClick={closeCommandPalette}>
+          <Button variant="ghost" size="icon-xs" onClick={closeCommandPalette} title="Close" aria-label="Close search palette">
             <X className="size-4" />
           </Button>
         </div>
