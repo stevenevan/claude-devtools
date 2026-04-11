@@ -132,6 +132,25 @@ export class TauriAPIClient implements ElectronAPI {
       maxCreatedAt: filters.maxCreatedAt ?? null,
     });
 
+  searchSessionContent = (
+    projectId: string,
+    sessionId: string,
+    query: string,
+    isRegex?: boolean,
+    caseSensitive?: boolean,
+    cursor?: number,
+    pageSize?: number
+  ): Promise<import('@shared/types/domain').ContentSearchResult> =>
+    invoke<import('@shared/types/domain').ContentSearchResult>('search_session_content', {
+      projectId,
+      sessionId,
+      query,
+      isRegex: isRegex ?? false,
+      caseSensitive: caseSensitive ?? false,
+      cursor: cursor ?? null,
+      pageSize: pageSize ?? null,
+    });
+
   getSessionDetail = async (
     projectId: string,
     sessionId: string

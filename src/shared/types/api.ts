@@ -10,6 +10,7 @@ import type {
   PaginatedSessionsResult,
   Project,
   RepositoryGroup,
+  ContentSearchResult,
   FilteredSearchResponse,
   SearchFilters,
   SearchSessionsResult,
@@ -355,6 +356,16 @@ export interface ElectronAPI {
   searchAllProjects: (query: string, maxResults?: number) => Promise<SearchSessionsResult>;
   /** Search sessions with optional filters (date range, status, text query). */
   searchSessionsFiltered: (filters: SearchFilters, maxResults?: number) => Promise<FilteredSearchResponse>;
+  /** Full-text search within a session's parsed chunks (Rust backend). */
+  searchSessionContent: (
+    projectId: string,
+    sessionId: string,
+    query: string,
+    isRegex?: boolean,
+    caseSensitive?: boolean,
+    cursor?: number,
+    pageSize?: number
+  ) => Promise<ContentSearchResult>;
   getSessionDetail: (projectId: string, sessionId: string) => Promise<SessionDetail | null>;
   /** Incrementally refresh a session — only re-parses new JSONL lines since last read. */
   getSessionDetailIncremental: (projectId: string, sessionId: string) => Promise<SessionDetail | null>;

@@ -2,17 +2,25 @@
  * Conversation slice - manages expansion states, chart mode, search, and detail popover.
  */
 
+import { api } from '@renderer/api';
 import { findLastOutput } from '@renderer/utils/aiGroupEnhancer';
 
 import type { AppState, SearchMatch } from '../types';
 import type { AIGroupExpansionLevel } from '@renderer/types/groups';
 import type { SessionConversation } from '@renderer/types/groups';
+import type { ContentSearchMatch } from '@shared/types/domain';
 import type { StateCreator } from 'zustand';
 
 type DetailItemType = 'thinking' | 'text' | 'linked-tool' | 'subagent';
 
 /** Maximum number of search matches to track. Beyond this, results are capped. */
 const MAX_SEARCH_MATCHES = 500;
+
+/** Sessions with more items than this threshold route search to Rust backend. */
+const RUST_SEARCH_THRESHOLD = 200;
+
+/** Counter to discard stale async search results. */
+let searchIdCounter = 0;
 
 const isSearchDebugEnabled = (): boolean => {
   if (typeof window === 'undefined') return false;
@@ -54,6 +62,8 @@ export interface ConversationSlice {
   searchResultsCapped: boolean;
   /** Item IDs that contain at least one search match — used by components to skip re-renders */
   searchMatchItemIds: Set<string>;
+  /** Whether regex mode is active for search */
+  searchIsRegex: boolean;
 
   // Auto-expand state for search results
   /** AI group IDs that should be expanded to show search results */
@@ -85,6 +95,7 @@ export interface ConversationSlice {
 
   // Search actions
   setSearchQuery: (query: string, conversationOverride?: SessionConversation | null) => void;
+  setSearchIsRegex: (isRegex: boolean) => void;
   /** Canonicalize search matches from currently rendered mark elements (DOM order) */
   syncSearchMatchesWithRendered: (
     renderedMatches: { itemId: string; matchIndexInItem: number }[]
@@ -97,6 +108,137 @@ export interface ConversationSlice {
   previousSearchResult: () => void;
   /** Expand AI groups and subagents needed to show the current search result */
   expandForCurrentSearchResult: () => void;
+}
+
+/** Map Rust ContentSearchMatch to the store's SearchMatch type. */
+function mapRustMatchesToStoreMatches(rustMatches: ContentSearchMatch[]): SearchMatch[] {
+  // Group matches by chunkId to compute per-item match indices
+  const matchCountByChunk = new Map<string, number>();
+  return rustMatches.map((rm, globalIndex) => {
+    const count = matchCountByChunk.get(rm.chunkId) ?? 0;
+    matchCountByChunk.set(rm.chunkId, count + 1);
+    return {
+      itemId: rm.chunkId,
+      itemType: rm.chunkType === 'user' ? ('user' as const) : ('ai' as const),
+      matchIndexInItem: count,
+      globalIndex,
+      displayItemId: rm.source === 'aiText' ? 'lastOutput' : undefined,
+    };
+  });
+}
+
+/**
+ * Perform JS-side search (for small sessions or Rust fallback).
+ * Supports both plain text and regex modes.
+ */
+function performJsSearch(
+  query: string,
+  conversation: SessionConversation,
+  isRegex: boolean,
+  set: (partial: Partial<ConversationSlice>) => void
+): void {
+  const matches: SearchMatch[] = [];
+  let globalIndex = 0;
+  let capped = false;
+
+  // Build a matcher function based on mode
+  let findMatches: (text: string) => number;
+  if (isRegex) {
+    try {
+      const re = new RegExp(query, 'gi');
+      findMatches = (text: string) => {
+        re.lastIndex = 0;
+        let count = 0;
+        while (re.exec(text) !== null) {
+          count++;
+          if (count > MAX_SEARCH_MATCHES) break;
+        }
+        return count;
+      };
+    } catch {
+      // Invalid regex — return no results
+      set({
+        searchQuery: query,
+        searchResultCount: 0,
+        currentSearchIndex: -1,
+        searchMatches: [],
+        searchResultsCapped: false,
+        searchMatchItemIds: new Set(),
+      });
+      return;
+    }
+  } else {
+    const lowerQuery = query.toLowerCase();
+    findMatches = (text: string) => {
+      const lowerText = text.toLowerCase();
+      let count = 0;
+      let pos = 0;
+      while ((pos = lowerText.indexOf(lowerQuery, pos)) !== -1) {
+        count++;
+        pos += lowerQuery.length;
+        if (count > MAX_SEARCH_MATCHES) break;
+      }
+      return count;
+    };
+  }
+
+  const addMatches = (
+    text: string,
+    itemId: string,
+    itemType: 'user' | 'ai',
+    displayItemId?: string
+  ): void => {
+    if (capped) return;
+    const count = findMatches(text);
+    for (let i = 0; i < count; i++) {
+      if (matches.length >= MAX_SEARCH_MATCHES) {
+        capped = true;
+        return;
+      }
+      matches.push({
+        itemId,
+        itemType,
+        matchIndexInItem: i,
+        globalIndex,
+        displayItemId,
+      });
+      globalIndex++;
+    }
+  };
+
+  for (const item of conversation.items) {
+    if (capped) break;
+    if (item.type === 'user') {
+      const text = item.group.content.rawText ?? item.group.content.text ?? '';
+      addMatches(text, item.group.id, 'user');
+    } else if (item.type === 'ai') {
+      const aiGroup = item.group;
+      const itemId = aiGroup.id;
+      const lastOutput = findLastOutput(aiGroup.steps, aiGroup.isOngoing ?? false);
+
+      if (lastOutput?.type === 'text' && lastOutput.text) {
+        addMatches(lastOutput.text, itemId, 'ai', 'lastOutput');
+      }
+    }
+  }
+
+  if (isSearchDebugEnabled()) {
+    console.info('[search] js', { query, isRegex, matches: matches.length });
+  }
+
+  const matchItemIds = new Set<string>();
+  for (const match of matches) {
+    matchItemIds.add(match.itemId);
+  }
+
+  set({
+    searchQuery: query,
+    searchResultCount: matches.length,
+    currentSearchIndex: matches.length > 0 ? 0 : -1,
+    searchMatches: matches,
+    searchResultsCapped: capped,
+    searchMatchItemIds: matchItemIds,
+  });
 }
 
 export const createConversationSlice: StateCreator<AppState, [], [], ConversationSlice> = (
@@ -120,6 +262,7 @@ export const createConversationSlice: StateCreator<AppState, [], [], Conversatio
   searchMatches: [],
   searchResultsCapped: false,
   searchMatchItemIds: new Set(),
+  searchIsRegex: false,
 
   // Auto-expand state for search results (initial values)
   searchExpandedAIGroupIds: new Set(),
@@ -203,6 +346,15 @@ export const createConversationSlice: StateCreator<AppState, [], [], Conversatio
 
   // Search actions
 
+  setSearchIsRegex: (isRegex: boolean) => {
+    set({ searchIsRegex: isRegex });
+    // Re-run search with new mode if there's an active query
+    const state = get();
+    if (state.searchQuery.trim()) {
+      state.setSearchQuery(state.searchQuery);
+    }
+  },
+
   setSearchQuery: (query: string, conversationOverride?: SessionConversation | null) => {
     const conversation = conversationOverride ?? get().conversation;
 
@@ -223,90 +375,68 @@ export const createConversationSlice: StateCreator<AppState, [], [], Conversatio
       return;
     }
 
-    // Build search matches by scanning conversation.
-    // Plain indexOf search — no markdown parsing. Match counts may differ
-    // slightly from rendered highlights; syncSearchMatchesWithRendered corrects this.
-    const matches: SearchMatch[] = [];
-    const lowerQuery = query.toLowerCase();
-    let globalIndex = 0;
-    let capped = false;
+    const { searchIsRegex } = get();
 
-    // Count occurrences of lowerQuery in text using plain indexOf
-    const addPlainTextMatches = (
-      text: string,
-      itemId: string,
-      itemType: 'user' | 'ai',
-      displayItemId?: string
-    ): void => {
-      if (capped) return;
-      const lowerText = text.toLowerCase();
-      let pos = 0;
-      let matchIndexInItem = 0;
-      while ((pos = lowerText.indexOf(lowerQuery, pos)) !== -1) {
-        if (matches.length >= MAX_SEARCH_MATCHES) {
-          capped = true;
-          return;
-        }
-        matches.push({
-          itemId,
-          itemType,
-          matchIndexInItem,
-          globalIndex,
-          displayItemId,
+    // Route large sessions to Rust backend for better performance
+    const shouldUseRust = conversation.items.length > RUST_SEARCH_THRESHOLD;
+
+    if (shouldUseRust) {
+      const state = get();
+      const projectId = state.selectedProjectId;
+      const sessionId = state.selectedSessionId;
+
+      if (!projectId || !sessionId) {
+        // Fall through to JS search if no project/session context
+        performJsSearch(query, conversation, searchIsRegex, set);
+        return;
+      }
+
+      // Set query immediately for UI responsiveness
+      set({ searchQuery: query });
+
+      // Async Rust search with stale-result protection
+      const currentSearchId = ++searchIdCounter;
+
+      api
+        .searchSessionContent(projectId, sessionId, query, searchIsRegex, false, undefined, MAX_SEARCH_MATCHES)
+        .then((result) => {
+          // Discard stale results
+          if (currentSearchId !== searchIdCounter) return;
+
+          const matches = mapRustMatchesToStoreMatches(result.matches);
+          const matchItemIds = new Set<string>();
+          for (const match of matches) {
+            matchItemIds.add(match.itemId);
+          }
+
+          if (isSearchDebugEnabled()) {
+            console.info('[search] rust', {
+              query,
+              total: result.totalMatches,
+              returned: matches.length,
+              hasMore: result.hasMore,
+              chunksSearched: result.chunksSearched,
+            });
+          }
+
+          set({
+            searchResultCount: matches.length,
+            currentSearchIndex: matches.length > 0 ? 0 : -1,
+            searchMatches: matches,
+            searchResultsCapped: result.hasMore,
+            searchMatchItemIds: matchItemIds,
+          });
+        })
+        .catch((err) => {
+          if (currentSearchId !== searchIdCounter) return;
+          console.error('[search] Rust search failed, falling back to JS:', err);
+          performJsSearch(query, conversation, searchIsRegex, set);
         });
-        matchIndexInItem++;
-        globalIndex++;
-        pos += lowerQuery.length;
-      }
-    };
-
-    for (const item of conversation.items) {
-      if (capped) break;
-      if (item.type === 'user') {
-        const text = item.group.content.rawText ?? item.group.content.text ?? '';
-        addPlainTextMatches(text, item.group.id, 'user');
-      } else if (item.type === 'ai') {
-        const aiGroup = item.group;
-        const itemId = aiGroup.id;
-        const lastOutput = findLastOutput(aiGroup.steps, aiGroup.isOngoing ?? false);
-
-        if (lastOutput?.type === 'text' && lastOutput.text) {
-          addPlainTextMatches(lastOutput.text, itemId, 'ai', 'lastOutput');
-        }
-      }
+      return;
     }
 
-    if (isSearchDebugEnabled()) {
-      const sample = matches.slice(0, 10).map((match) => ({
-        itemId: match.itemId,
-        itemType: match.itemType,
-        matchIndexInItem: match.matchIndexInItem,
-        globalIndex: match.globalIndex,
-      }));
-      const counts = matches.reduce<Record<string, number>>((acc, match) => {
-        acc[`${match.itemType}:${match.itemId}`] =
-          (acc[`${match.itemType}:${match.itemId}`] ?? 0) + 1;
-        return acc;
-      }, {});
-      console.info('[search] query', query, 'matches', matches.length);
-      console.info('[search] counts', counts);
-      console.info('[search] sample', sample);
-    }
-
-    // Build set of item IDs that have matches — components use this to skip re-renders
-    const matchItemIds = new Set<string>();
-    for (const match of matches) {
-      matchItemIds.add(match.itemId);
-    }
-
-    set({
-      searchQuery: query,
-      searchResultCount: matches.length,
-      currentSearchIndex: matches.length > 0 ? 0 : -1,
-      searchMatches: matches,
-      searchResultsCapped: capped,
-      searchMatchItemIds: matchItemIds,
-    });
+    // JS-side search for small sessions
+    performJsSearch(query, conversation, searchIsRegex, set);
   },
 
   syncSearchMatchesWithRendered: (renderedMatches) => {
@@ -408,6 +538,7 @@ export const createConversationSlice: StateCreator<AppState, [], [], Conversatio
   },
 
   hideSearch: () => {
+    searchIdCounter++; // Invalidate any pending async search
     set({
       searchVisible: false,
       searchQuery: '',

@@ -1,21 +1,22 @@
-# Sprint 18 (Week 31: Jul 27 - Aug 2)
+# Sprint 18 (Week 31: Jul 27 – Aug 2)
 
-**Phase**: 5 - Polish & Accessibility
-**Theme**: Accessibility Audit & Remediation
+**Phase**: 4 – Advanced Features & Polish
+**Theme**: In-Session Content Search Backend
 
 ## Deliverables
 
-- [x] ARIA attributes across 37 component files (75 occurrences) — role, aria-label, aria-live [FE] [L]
-- [x] Focus-visible indicators in 22 UI component files [FE] [M]
-- [x] Keyboard shortcuts with useKeyboardShortcuts (10+ shortcuts, scope isolation) [FE] [L]
-- [ ] Automated a11y testing with axe-core — deferred (requires @testing-library/react) [FE] [M]
+- [x] Rust command `search_session_content` — full-text search within parsed session chunks [BE] [L]
+- [x] Match position tracking — chunk index, content block offset, character offset for scroll-to-match [BE] [M]
+- [x] Regex support in session content search via the `regex` crate [BE] [M]
+- [x] Search pagination — cursor-based with configurable page size for large result sets [BE] [M]
+- [x] Frontend integration: `SearchBar` routes large sessions to Rust backend, falls back to JS for small sessions [FE] [M]
 
 ## Key Files
 
-- All interactive components across `src/renderer/components/`
-- `src/renderer/index.css` (contrast, focus styles)
-- `test/` (new a11y test suite)
+- `src-tauri/src/commands.rs`
+- `src/renderer/components/search/SearchBar.tsx`
+- `src/renderer/store/slices/conversationSlice.ts`
 
 ## Done When
 
-All elements keyboard-accessible; axe-core zero critical/serious violations; WCAG AA contrast in both themes; 20+ components with a11y tests.
+50,000-line session search completes in under 100ms via Rust; pagination works beyond 500 results; regex supported.

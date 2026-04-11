@@ -715,6 +715,45 @@ pub fn search_sessions_filtered(
     }))
 }
 
+/// Full-text search within a session's parsed chunks.
+#[tauri::command]
+pub fn search_session_content(
+    project_id: String,
+    session_id: String,
+    query: String,
+    is_regex: Option<bool>,
+    case_sensitive: Option<bool>,
+    cursor: Option<usize>,
+    page_size: Option<usize>,
+    cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+) -> Result<crate::types::search::ContentSearchResult, String> {
+    // Parse session (with cache) — same pattern as get_session_detail
+    let cache_key = format!("{project_id}/{session_id}");
+    let parsed = {
+        let mut cache = cache.lock().map_err(|e| e.to_string())?;
+        if let Some(cached) = cache.get(&cache_key) {
+            cached.clone()
+        } else {
+            let file_path = resolve_session_path(&project_id, &session_id)?;
+            let session = session_parser::parse_session_file(&file_path)?;
+            cache.insert(cache_key, session.clone());
+            session
+        }
+    };
+
+    // Build chunks (without subagent resolution — not needed for search)
+    let chunks = chunk_builder::build_chunks(&parsed.messages, &[]);
+
+    crate::analysis::content_search::search_chunks(
+        &chunks,
+        &query,
+        is_regex.unwrap_or(false),
+        case_sensitive.unwrap_or(false),
+        cursor,
+        page_size,
+    )
+}
+
 /// Get waterfall data for a session (reuses session detail).
 #[tauri::command]
 pub fn get_waterfall_data(

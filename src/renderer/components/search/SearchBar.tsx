@@ -12,7 +12,7 @@ import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
 import { useDebouncedCallback } from '@renderer/hooks/mantine';
 import { useStore } from '@renderer/store';
-import { ChevronDown, ChevronUp, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Regex, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -28,8 +28,10 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
     searchResultCount,
     currentSearchIndex,
     searchResultsCapped,
+    searchIsRegex,
     conversation,
     setSearchQuery,
+    setSearchIsRegex,
     hideSearch,
     nextSearchResult,
     previousSearchResult,
@@ -40,10 +42,12 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
       searchResultCount: s.searchResultCount,
       currentSearchIndex: s.currentSearchIndex,
       searchResultsCapped: s.searchResultsCapped,
+      searchIsRegex: s.searchIsRegex,
       conversation: tabId
         ? (s.tabSessionData[tabId]?.conversation ?? s.conversation)
         : s.conversation,
       setSearchQuery: s.setSearchQuery,
+      setSearchIsRegex: s.setSearchIsRegex,
       hideSearch: s.hideSearch,
       nextSearchResult: s.nextSearchResult,
       previousSearchResult: s.previousSearchResult,
@@ -127,6 +131,16 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
         placeholder="Find in conversation..."
         className="w-48"
       />
+
+      <Button
+        variant="ghost"
+        size="icon-xs"
+        onClick={() => setSearchIsRegex(!searchIsRegex)}
+        className={searchIsRegex ? 'bg-accent text-accent-foreground' : ''}
+        title="Toggle regex search"
+      >
+        <Regex className="size-4" />
+      </Button>
 
       {searchQuery && (
         <span className="text-muted-foreground text-xs whitespace-nowrap">

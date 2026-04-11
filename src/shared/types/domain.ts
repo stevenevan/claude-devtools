@@ -295,6 +295,49 @@ export interface FilteredSearchResponse {
   query?: string;
 }
 
+// In-Session Content Search Types
+
+export interface ContentSearchParams {
+  projectId: string;
+  sessionId: string;
+  query: string;
+  isRegex?: boolean;
+  caseSensitive?: boolean;
+  cursor?: number;
+  pageSize?: number;
+}
+
+export type ContentMatchSource =
+  | 'userMessage'
+  | 'aiText'
+  | 'aiThinking'
+  | 'toolCallName'
+  | 'toolCallInput'
+  | 'toolResultContent'
+  | 'systemText';
+
+export interface ContentSearchMatch {
+  chunkIndex: number;
+  chunkId: string;
+  chunkType: string;
+  source: ContentMatchSource;
+  contentBlockIndex: number;
+  charOffset: number;
+  matchLength: number;
+  contextSnippet: string;
+  matchedText: string;
+}
+
+export interface ContentSearchResult {
+  matches: ContentSearchMatch[];
+  totalMatches: number;
+  nextCursor: number | null;
+  hasMore: boolean;
+  query: string;
+  isRegex: boolean;
+  chunksSearched: number;
+}
+
 // Pagination Types
 
 /**
