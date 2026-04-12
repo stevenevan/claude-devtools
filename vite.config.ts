@@ -8,21 +8,14 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
-import { visualizer } from 'rollup-plugin-visualizer'
+import { analyzer } from 'vite-bundle-analyzer'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [
     tailwindcss(),
     react(),
-    process.env.ANALYZE === 'true' &&
-      visualizer({
-        filename: 'stats.html',
-        open: true,
-        gzipSize: true,
-        brotliSize: true,
-        template: 'treemap',
-      }),
+    process.env.ANALYZE === 'true' && analyzer(),
   ].filter(Boolean),
   resolve: {
     alias: {
