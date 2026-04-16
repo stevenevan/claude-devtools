@@ -235,7 +235,12 @@ export interface ContextInfo {
 /**
  * SSH connection state.
  */
-export type SshConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
+export type SshConnectionState =
+  | 'disconnected'
+  | 'connecting'
+  | 'retrying'
+  | 'connected'
+  | 'error';
 
 /**
  * SSH authentication method.
