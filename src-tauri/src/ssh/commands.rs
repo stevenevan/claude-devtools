@@ -48,6 +48,8 @@ pub async fn ssh_connect(
             host: Some(config.host.clone()),
             error: None,
             remote_projects_path: None,
+            retry_attempt: None,
+            max_retries: None,
         },
     );
 
