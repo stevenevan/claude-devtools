@@ -5,11 +5,26 @@
 
 import React, { useState } from 'react';
 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@renderer/components/ui/collapsible';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 import { MAX_DAYS, useAnalyticsData } from '@renderer/hooks/useAnalyticsData';
 import { cn } from '@renderer/lib/utils';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
-import { Activity, Clock, Cpu, DollarSign, TrendingUp, Zap } from 'lucide-react';
+import {
+  Activity,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Cpu,
+  DollarSign,
+  TrendingUp,
+  Wrench,
+  Zap,
+} from 'lucide-react';
 import {
   Bar,
   BarChart,
@@ -25,6 +40,7 @@ import {
 } from 'recharts';
 
 import { SessionSchedule } from './SessionSchedule';
+import { ToolAnalyticsPanel } from './ToolAnalyticsPanel';
 
 // Stat Card
 
@@ -326,6 +342,7 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
     days,
     setDays,
   } = useAnalyticsData();
+  const [toolAnalyticsOpen, setToolAnalyticsOpen] = useState(false);
 
   // Peak bucket
   const peakBucket =
@@ -633,6 +650,37 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
             <TopSessions sessions={topSessions} />
           </ChartSection>
         </div>
+
+        {/* Tool Usage Analytics */}
+        <Collapsible
+          open={toolAnalyticsOpen}
+          onOpenChange={setToolAnalyticsOpen}
+          className="mb-6"
+        >
+          <CollapsibleTrigger
+            className={cn(
+              'flex w-full items-center justify-between rounded-xs border border-border bg-background/50 px-4 py-3 text-left transition-colors hover:bg-card'
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <Wrench className="text-text-muted size-4" />
+              <div>
+                <h3 className="text-text text-sm font-medium">Tool Usage Analytics</h3>
+                <p className="text-text-muted mt-0.5 text-[10px]">
+                  Per-tool call count, error rate, duration, median token cost
+                </p>
+              </div>
+            </div>
+            {toolAnalyticsOpen ? (
+              <ChevronDown className="text-text-muted size-4" />
+            ) : (
+              <ChevronRight className="text-text-muted size-4" />
+            )}
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2">
+            <ToolAnalyticsPanel days={days} />
+          </CollapsibleContent>
+        </Collapsible>
 
         {/* Session Schedule / Timeline */}
         <ChartSection
