@@ -18,6 +18,7 @@ import type {
   SessionMetrics,
   SessionsByIdsOptions,
   SessionsPaginationOptions,
+  ToolAnalyticsResponse,
 } from './domain';
 import type {
   AppConfig,
@@ -376,6 +377,7 @@ export interface ElectronAPI {
   getSessionDetailIncremental: (projectId: string, sessionId: string) => Promise<SessionDetail | null>;
   getSessionMetrics: (projectId: string, sessionId: string) => Promise<SessionMetrics | null>;
   getAnalytics: (days: number) => Promise<AnalyticsResponse>;
+  getToolAnalytics: (projectId: string, days: number) => Promise<ToolAnalyticsResponse>;
   getWaterfallData: (projectId: string, sessionId: string) => Promise<WaterfallData | null>;
   getSubagentDetail: (
     projectId: string,

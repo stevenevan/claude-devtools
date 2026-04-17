@@ -84,6 +84,8 @@ pub struct AnalyticsResponse {
     pub avg_tokens_per_session: u64,
     pub avg_cost_per_session: f64,
     pub granularity: BucketGranularity,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub tool_summary: Option<crate::analysis::tool_analytics::ToolAnalyticsResponse>,
 }
 
 // Cost estimation (pricing from litellm model_prices_and_context_window.json)
@@ -826,6 +828,7 @@ pub fn compute_analytics(
         avg_tokens_per_session: avg_tokens,
         avg_cost_per_session: avg_cost,
         granularity,
+        tool_summary: None,
     })
 }
 

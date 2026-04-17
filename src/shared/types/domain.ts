@@ -451,6 +451,24 @@ export interface TopSessionEntry {
 
 export type BucketGranularity = 'hourly' | 'daily' | 'weekly' | 'monthly';
 
+export interface ToolUsageSummary {
+  toolName: string;
+  callCount: number;
+  successCount: number;
+  errorCount: number;
+  successRate: number;
+  errorRate: number;
+  avgDurationMs: number;
+  medianTokenCost: number;
+}
+
+export interface ToolAnalyticsResponse {
+  tools: ToolUsageSummary[];
+  totalCalls: number;
+  totalErrors: number;
+  scannedSessions: number;
+}
+
 export interface AnalyticsResponse {
   timeBuckets: TimeBucketUsage[];
   projectUsage: ProjectUsageEntry[];
@@ -463,4 +481,5 @@ export interface AnalyticsResponse {
   avgTokensPerSession: number;
   avgCostPerSession: number;
   granularity: BucketGranularity;
+  toolSummary?: ToolAnalyticsResponse;
 }
