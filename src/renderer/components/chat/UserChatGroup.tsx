@@ -12,6 +12,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { CopyButton } from '../common/CopyButton';
 
+import { AnnotationBadge } from './AnnotationBadge';
 import {
   createSearchContext,
   EMPTY_SEARCH_MATCHES,
@@ -348,7 +349,8 @@ const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): React.
     <div className="flex justify-end">
       <div className="max-w-[85%] space-y-2">
         {/* Header - right aligned with improved hierarchy */}
-        <div className="flex items-center justify-end gap-1.5">
+        <div className="group flex items-center justify-end gap-1.5">
+          <AnnotationBadge targetId={groupId} />
           <span className="text-muted-foreground text-[10px]">
             {format(timestamp, 'h:mm:ss a')}
           </span>

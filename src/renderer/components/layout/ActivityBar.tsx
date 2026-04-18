@@ -9,7 +9,16 @@ import {
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatShortcut } from '@renderer/utils/stringUtils';
-import { BarChart3, Bell, Bot, FolderGit2, Puzzle, Settings, Sparkles } from 'lucide-react';
+import {
+  BarChart3,
+  Bell,
+  Bot,
+  FolderGit2,
+  MessageSquareText,
+  Puzzle,
+  Settings,
+  Sparkles,
+} from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import type { ActivityView } from '@renderer/store/slices/uiSlice';
@@ -137,6 +146,14 @@ export const ActivityBar = (): React.JSX.Element => {
             activity="plugins"
             isActive={activeActivity === 'plugins'}
             onClick={() => setActiveActivity('plugins')}
+          />
+          <ActivityBarItem
+            icon={MessageSquareText}
+            label="Annotations"
+            shortcut="6"
+            activity="annotations"
+            isActive={activeActivity === 'annotations'}
+            onClick={() => setActiveActivity('annotations')}
           />
         </div>
 

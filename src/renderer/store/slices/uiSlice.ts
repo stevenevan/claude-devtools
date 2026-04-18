@@ -12,6 +12,7 @@ export type ActivityView =
   | 'agents'
   | 'skills'
   | 'plugins'
+  | 'annotations'
   | 'settings'
   | 'notifications'
   | 'search';

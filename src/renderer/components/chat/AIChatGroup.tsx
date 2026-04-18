@@ -13,6 +13,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { TokenUsageDisplay } from '../common/TokenUsageDisplay';
 
+import { AnnotationBadge } from './AnnotationBadge';
 import { ContextBadge } from './ContextBadge';
 import { DisplayItemList } from './DisplayItemList';
 import { LastOutputDisplay } from './LastOutputDisplay';
@@ -540,6 +541,9 @@ const AIChatGroupInner = ({
             >
               <Copy className="size-3.5" />
             </button>
+
+            {/* Annotation badge */}
+            <AnnotationBadge targetId={aiGroup.id} />
 
             {/* Bookmark toggle */}
             <BookmarkToggle groupId={aiGroup.id} />

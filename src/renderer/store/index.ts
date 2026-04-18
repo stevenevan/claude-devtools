@@ -280,6 +280,7 @@ export function initializeNotificationListeners(): () => void {
   // Fetch after listeners are attached so startup events do not get overwritten by a stale response.
   void useStore.getState().fetchNotifications();
   void useStore.getState().fetchBookmarks();
+  void useStore.getState().fetchAnnotations();
 
   /**
    * Check if a session is visible in any pane (not just the focused pane's active tab).
