@@ -6,6 +6,7 @@ import { api } from '@renderer/api';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { createAnnotationSlice } from './slices/annotationSlice';
 import { createClaudeConfigSlice } from './slices/claudeConfigSlice';
 import { createConfigSlice } from './slices/configSlice';
 import { createConnectionSlice } from './slices/connectionSlice';
@@ -74,6 +75,7 @@ export const useStore = create<AppState>()(
       ...createConnectionSlice(...args),
       ...createContextSlice(...args),
       ...createUpdateSlice(...args),
+      ...createAnnotationSlice(...args),
     }),
     {
       name: 'claude-devtools-store',

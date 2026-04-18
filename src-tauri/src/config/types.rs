@@ -98,6 +98,22 @@ pub struct SessionsConfig {
     pub bookmarks: Vec<BookmarkEntry>,
     #[serde(default)]
     pub session_tags: HashMap<String, Vec<String>>,
+    #[serde(default)]
+    pub annotations: Vec<AnnotationEntry>,
+}
+
+/// Inline annotation anchored to a specific display target (AI group, turn, item) in a session.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AnnotationEntry {
+    pub id: String,
+    pub session_id: String,
+    pub project_id: String,
+    pub target_id: String,
+    pub text: String,
+    pub color: String,
+    pub created_at: f64,
+    pub updated_at: f64,
 }
 
 /// A bookmark on a specific AI group within a session.
@@ -244,6 +260,7 @@ impl Default for SessionsConfig {
             hidden_sessions: HashMap::new(),
             bookmarks: vec![],
             session_tags: HashMap::new(),
+            annotations: vec![],
         }
     }
 }

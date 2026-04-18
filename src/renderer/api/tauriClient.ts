@@ -44,6 +44,7 @@ function reviveDates<T>(obj: T): T {
 
 import type {
   AnalyticsResponse,
+  AnnotationEntry,
   AppConfig,
   ClaudeMdFileInfo,
   ClaudeRootFolderSelection,
@@ -358,6 +359,23 @@ export class TauriAPIClient implements ElectronAPI {
       invoke('config_set_session_tags', { sessionId, tags }),
     getSessionTags: (sessionId: string) =>
       invoke<string[]>('config_get_session_tags', { sessionId }),
+    addAnnotation: ({ sessionId, projectId, targetId, text, color }) =>
+      invoke<AnnotationEntry>('config_add_annotation', {
+        sessionId,
+        projectId,
+        targetId,
+        text,
+        color,
+      }),
+    updateAnnotation: (annotationId, patch) =>
+      invoke<boolean>('config_update_annotation', {
+        annotationId,
+        text: patch.text ?? null,
+        color: patch.color ?? null,
+      }),
+    removeAnnotation: (annotationId) =>
+      invoke('config_remove_annotation', { annotationId }),
+    getAnnotations: () => invoke<AnnotationEntry[]>('config_get_annotations'),
 
     // Native: folder selection dialogs via Tauri plugin
     selectFolders: async (): Promise<string[]> => {

@@ -31,6 +31,15 @@ impl ConfigState {
         }
     }
 
+    #[cfg(test)]
+    pub fn new_with_path(config_path: PathBuf) -> Self {
+        let config = load_config_from_disk(&config_path);
+        Self {
+            config,
+            config_path,
+        }
+    }
+
     // =========================================================================
     // Config Access
     // =========================================================================
@@ -415,6 +424,54 @@ impl ConfigState {
     }
 
     // =========================================================================
+    // Annotations
+    // =========================================================================
+
+    pub fn add_annotation(&mut self, entry: super::types::AnnotationEntry) {
+        self.config.sessions.annotations.push(entry);
+        self.save_config();
+    }
+
+    pub fn update_annotation(
+        &mut self,
+        annotation_id: &str,
+        text: Option<String>,
+        color: Option<String>,
+        updated_at: f64,
+    ) -> bool {
+        let Some(entry) = self
+            .config
+            .sessions
+            .annotations
+            .iter_mut()
+            .find(|a| a.id == annotation_id)
+        else {
+            return false;
+        };
+        if let Some(t) = text {
+            entry.text = t;
+        }
+        if let Some(c) = color {
+            entry.color = c;
+        }
+        entry.updated_at = updated_at;
+        self.save_config();
+        true
+    }
+
+    pub fn remove_annotation(&mut self, annotation_id: &str) {
+        self.config
+            .sessions
+            .annotations
+            .retain(|a| a.id != annotation_id);
+        self.save_config();
+    }
+
+    pub fn get_annotations(&self) -> &[super::types::AnnotationEntry] {
+        &self.config.sessions.annotations
+    }
+
+    // =========================================================================
     // Session Tags
     // =========================================================================
 
@@ -651,5 +708,50 @@ fn merge_trigger_updates(trigger: &mut NotificationTrigger, obj: &serde_json::Ma
     }
     if let Some(v) = obj.get("color") {
         trigger.color = v.as_str().map(|s| s.to_string());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::types::AnnotationEntry;
+    use super::*;
+
+    fn temp_config() -> ConfigState {
+        let tmp = std::env::temp_dir()
+            .join(format!("cd-cfg-{}-{}", std::process::id(), now_millis() as u64));
+        std::fs::create_dir_all(&tmp).unwrap();
+        ConfigState::new_with_path(tmp.join("config.json"))
+    }
+
+    #[test]
+    fn annotation_crud_roundtrip() {
+        let mut state = temp_config();
+        assert!(state.get_annotations().is_empty());
+
+        let entry = AnnotationEntry {
+            id: "a1".to_string(),
+            session_id: "s1".to_string(),
+            project_id: "p1".to_string(),
+            target_id: "t1".to_string(),
+            text: "first".to_string(),
+            color: "blue".to_string(),
+            created_at: 1.0,
+            updated_at: 1.0,
+        };
+        state.add_annotation(entry.clone());
+        assert_eq!(state.get_annotations().len(), 1);
+        assert_eq!(state.get_annotations()[0].text, "first");
+
+        let updated =
+            state.update_annotation("a1", Some("second".to_string()), Some("red".to_string()), 2.0);
+        assert!(updated);
+        assert_eq!(state.get_annotations()[0].text, "second");
+        assert_eq!(state.get_annotations()[0].color, "red");
+        assert_eq!(state.get_annotations()[0].updated_at, 2.0);
+
+        assert!(!state.update_annotation("missing", Some("x".into()), None, 3.0));
+
+        state.remove_annotation("a1");
+        assert!(state.get_annotations().is_empty());
     }
 }

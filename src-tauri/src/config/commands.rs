@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use serde_json::Value;
 
 use super::manager::ConfigState;
-use super::types::{AppConfig, BookmarkEntry, ClaudeRootInfo, NotificationTrigger};
+use super::types::{AnnotationEntry, AppConfig, BookmarkEntry, ClaudeRootInfo, NotificationTrigger};
 
 type ConfigMutex = Arc<Mutex<ConfigState>>;
 
@@ -262,6 +262,70 @@ pub fn config_get_bookmarks(
 ) -> Result<Vec<BookmarkEntry>, String> {
     let state = config.lock().map_err(|e| e.to_string())?;
     Ok(state.get_bookmarks().to_vec())
+}
+
+// Annotations
+
+fn now_ms() -> f64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs_f64()
+        * 1000.0
+}
+
+#[tauri::command]
+pub fn config_add_annotation(
+    session_id: String,
+    project_id: String,
+    target_id: String,
+    text: String,
+    color: String,
+    config: tauri::State<'_, ConfigMutex>,
+) -> Result<AnnotationEntry, String> {
+    let mut state = config.lock().map_err(|e| e.to_string())?;
+    let now = now_ms();
+    let entry = AnnotationEntry {
+        id: uuid::Uuid::new_v4().to_string(),
+        session_id,
+        project_id,
+        target_id,
+        text,
+        color,
+        created_at: now,
+        updated_at: now,
+    };
+    state.add_annotation(entry.clone());
+    Ok(entry)
+}
+
+#[tauri::command]
+pub fn config_update_annotation(
+    annotation_id: String,
+    text: Option<String>,
+    color: Option<String>,
+    config: tauri::State<'_, ConfigMutex>,
+) -> Result<bool, String> {
+    let mut state = config.lock().map_err(|e| e.to_string())?;
+    Ok(state.update_annotation(&annotation_id, text, color, now_ms()))
+}
+
+#[tauri::command]
+pub fn config_remove_annotation(
+    annotation_id: String,
+    config: tauri::State<'_, ConfigMutex>,
+) -> Result<(), String> {
+    let mut state = config.lock().map_err(|e| e.to_string())?;
+    state.remove_annotation(&annotation_id);
+    Ok(())
+}
+
+#[tauri::command]
+pub fn config_get_annotations(
+    config: tauri::State<'_, ConfigMutex>,
+) -> Result<Vec<AnnotationEntry>, String> {
+    let state = config.lock().map_err(|e| e.to_string())?;
+    Ok(state.get_annotations().to_vec())
 }
 
 // Session Tags

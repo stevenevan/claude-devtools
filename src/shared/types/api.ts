@@ -148,6 +148,34 @@ export interface ConfigAPI {
   setSessionTags: (sessionId: string, tags: string[]) => Promise<void>;
   /** Get tags for a session */
   getSessionTags: (sessionId: string) => Promise<string[]>;
+  /** Add an inline annotation anchored to a display target within a session */
+  addAnnotation: (input: {
+    sessionId: string;
+    projectId: string;
+    targetId: string;
+    text: string;
+    color: string;
+  }) => Promise<AnnotationEntry>;
+  /** Update an annotation's text or color */
+  updateAnnotation: (
+    annotationId: string,
+    patch: { text?: string; color?: string }
+  ) => Promise<boolean>;
+  /** Remove an annotation by ID */
+  removeAnnotation: (annotationId: string) => Promise<void>;
+  /** Get all annotations */
+  getAnnotations: () => Promise<AnnotationEntry[]>;
+}
+
+export interface AnnotationEntry {
+  id: string;
+  sessionId: string;
+  projectId: string;
+  targetId: string;
+  text: string;
+  color: string;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface ClaudeRootInfo {
