@@ -260,9 +260,7 @@ const ConversationDiff = ({
     for (let i = 0; i < maxTurns; i++) {
       const left = leftTurns[i];
       const right = rightTurns[i];
-      if (!left || !right) {
-        indices.push(i);
-      } else if (isDivergent(left.userText, right.userText)) {
+      if (!left || !right || isDivergent(left.userText, right.userText)) {
         indices.push(i);
       }
     }

@@ -113,24 +113,28 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Root: ({ className, rootRef, ...props }) => {
-          return <div data-slot="calendar" ref={rootRef} className={cn(className)} {...props} />;
-        },
-        Chevron: ({ className, orientation, ...props }) => {
-          if (orientation === 'left') {
-            return <RiArrowLeftSLine className={cn('size-4', className)} {...props} />;
-          }
-
-          if (orientation === 'right') {
-            return <RiArrowRightSLine className={cn('size-4', className)} {...props} />;
-          }
-
-          return <RiArrowDownSLine className={cn('size-4', className)} {...props} />;
-        },
-        DayButton: ({ ...props }) => <CalendarDayButton locale={locale} {...props} />,
-        WeekNumber: ({ children, ...props }) => {
+        Root: ({ className: rootClass, rootRef, ...rootProps }) => {
           return (
-            <td {...props}>
+            <div data-slot="calendar" ref={rootRef} className={cn(rootClass)} {...rootProps} />
+          );
+        },
+        Chevron: ({ className: chevronClass, orientation, ...chevronProps }) => {
+          if (orientation === 'left') {
+            return (
+              <RiArrowLeftSLine className={cn('size-4', chevronClass)} {...chevronProps} />
+            );
+          }
+          if (orientation === 'right') {
+            return (
+              <RiArrowRightSLine className={cn('size-4', chevronClass)} {...chevronProps} />
+            );
+          }
+          return <RiArrowDownSLine className={cn('size-4', chevronClass)} {...chevronProps} />;
+        },
+        DayButton: (dayProps) => <CalendarDayButton locale={locale} {...dayProps} />,
+        WeekNumber: ({ children, ...weekProps }) => {
+          return (
+            <td {...weekProps}>
               <div className="flex size-(--cell-size) items-center justify-center text-center">
                 {children}
               </div>

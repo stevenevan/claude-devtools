@@ -4,7 +4,7 @@ type EventType = MouseEvent | TouchEvent;
 
 const DEFAULT_EVENTS = ['mousedown', 'touchstart'];
 
-export function useClickOutside<T extends HTMLElement = any>(
+export function useClickOutside<T extends HTMLElement = HTMLElement>(
   callback: (event: EventType) => void,
   events?: string[] | null,
   nodes?: (HTMLElement | null)[]
@@ -19,7 +19,9 @@ export function useClickOutside<T extends HTMLElement = any>(
         const shouldIgnore =
           !document.body.contains(target as Node) && (target as Element)?.tagName !== 'HTML';
         const shouldTrigger = nodes.every((node) => !!node && !event.composedPath().includes(node));
-        shouldTrigger && !shouldIgnore && callback(event as EventType);
+        if (shouldTrigger && !shouldIgnore) {
+          callback(event as EventType);
+        }
       } else if (ref.current && !ref.current.contains(target as Node)) {
         callback(event as EventType);
       }
@@ -30,7 +32,7 @@ export function useClickOutside<T extends HTMLElement = any>(
     return () => {
       eventsList.forEach((fn) => document.removeEventListener(fn, listener));
     };
-  }, [ref, callback, nodes]);
+  }, [ref, callback, nodes, eventsList]);
 
   return ref;
 }

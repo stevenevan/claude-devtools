@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import { api } from '@renderer/api';
 import { useTabUI } from '@renderer/hooks/useTabUI';
-import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { createLogger } from '@shared/utils/logger';
 import { format } from 'date-fns';
@@ -390,7 +389,7 @@ const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): React.
                   {img.data ? (
                     <img
                       src={`data:${img.mediaType};base64,${img.data}`}
-                      alt="User attached image"
+                      alt="Attached by user"
                       className="max-h-64 max-w-full object-contain"
                       loading="lazy"
                     />

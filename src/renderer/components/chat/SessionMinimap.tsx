@@ -136,7 +136,7 @@ export const SessionMinimap = ({
     >
       {/* Item bars */}
       <div className="flex h-full flex-col gap-px py-1">
-        {items.map((item, i) => {
+        {items.map((item) => {
           const weight = getItemWeight(item);
           const heightPct = (weight / totalWeight) * 100;
           return (

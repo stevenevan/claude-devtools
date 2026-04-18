@@ -179,7 +179,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     return { allContextInjections: injections, lastAiGroupTotalTokens: totalTokens };
   }, [sessionContextStats, conversation, selectedContextPhase, sessionPhaseInfo]);
 
-  // Todo data
+  // Task list data
   const todoData = sessionDetail?.session?.todoData;
   const hasTodoData = todoData != null && Array.isArray(todoData) && todoData.length > 0;
   const todoPendingCount = hasTodoData ? countPendingTodos(todoData) : 0;
@@ -432,7 +432,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
 
       const targetItemIndex = aiGroupIndices[nextIdx];
       const targetItem = conversation.items[targetItemIndex];
-      if (!targetItem || targetItem.type !== 'ai') return;
+      if (targetItem?.type !== 'ai') return;
 
       useStore.getState().setFocusedTurnIndexForTab(effectiveTabId ?? '', targetItemIndex);
 
@@ -998,7 +998,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
           />
         )}
 
-        {/* Todo panel sidebar */}
+        {/* Task list panel sidebar */}
         {isTodoPanelVisible && hasTodoData && (
           <div className="w-72 shrink-0 border-l border-border">
             <TodoPanel

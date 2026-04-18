@@ -11,8 +11,8 @@ import { useStore } from '@renderer/store';
 import type { RepositoryDropdownItem } from './useSettingsConfig';
 import type { AppConfig, NotificationTrigger } from '@renderer/types/data';
 
-// Get the setState function from the store to update appConfig globally
-const setStoreState = useStore.setState;
+// Get the setState function from the store to update appConfig globally.
+const setStoreState = useStore.setState.bind(useStore);
 
 interface UseSettingsHandlersProps {
   config: AppConfig | null;

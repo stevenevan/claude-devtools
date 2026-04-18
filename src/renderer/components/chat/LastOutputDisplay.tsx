@@ -9,7 +9,6 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { CopyButton } from '../common/CopyButton';
 import { LiveActivityBar } from '../common/LiveActivityBar';
-import { OngoingBanner } from '../common/OngoingIndicator';
 
 import { createMarkdownComponents, markdownComponents } from './markdownComponents';
 import { createSearchContext, EMPTY_SEARCH_MATCHES } from './searchHighlightUtils';

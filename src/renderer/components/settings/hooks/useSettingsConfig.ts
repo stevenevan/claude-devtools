@@ -11,8 +11,9 @@ import { useShallow } from 'zustand/react/shallow';
 
 import type { AppConfig } from '@renderer/types/data';
 
-// Get the setState function from the store to update appConfig globally
-const setStoreState = useStore.setState;
+// Get the setState function from the store to update appConfig globally.
+// Zustand's setState is a plain function that doesn't use `this`; binding keeps oxlint happy.
+const setStoreState = useStore.setState.bind(useStore);
 
 /** Repository item for ignored repositories list */
 export interface RepositoryDropdownItem {

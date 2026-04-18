@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -144,10 +144,9 @@ const SubagentContent = ({
         g.steps.some(
           (s) =>
             s.type.toLowerCase().includes(query) ||
-            (s.content.toolName && s.content.toolName.toLowerCase().includes(query)) ||
-            (s.content.outputText && s.content.outputText.toLowerCase().includes(query)) ||
-            (s.content.subagentDescription &&
-              s.content.subagentDescription.toLowerCase().includes(query))
+            s.content.toolName?.toLowerCase().includes(query) ||
+            s.content.outputText?.toLowerCase().includes(query) ||
+            s.content.subagentDescription?.toLowerCase().includes(query)
         )
     );
   }, [detail.semanticStepGroups, query]);
@@ -234,7 +233,7 @@ const SemanticGroupCard = ({
               <span className="text-text-secondary">{formatStepLabel(step)}</span>
               {step.content.outputText && (
                 <span className="text-muted-foreground ml-1.5 truncate">
-                  — {(step.content.outputText as string).slice(0, 100)}
+                  — {step.content.outputText.slice(0, 100)}
                 </span>
               )}
             </div>

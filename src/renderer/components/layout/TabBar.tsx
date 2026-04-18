@@ -29,7 +29,6 @@ interface TabBarProps {
 export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
   const {
     pane,
-    isFocused,
     paneCount,
     setActiveTab,
     closeTab,
@@ -47,7 +46,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
   } = useStore(
     useShallow((s) => ({
       pane: s.paneLayout.panes.find((p) => p.id === paneId),
-      isFocused: s.paneLayout.focusedPaneId === paneId,
       paneCount: s.paneLayout.panes.length,
       setActiveTab: s.setActiveTab,
       closeTab: s.closeTab,

@@ -357,19 +357,23 @@ export const ConnectionSection = (): React.JSX.Element => {
           </div>
 
           <div>
-            <label className="text-muted-foreground mb-1 block text-xs">Authentication</label>
-            <Select value={authMethod} onValueChange={(v) => setAuthMethod(v!)}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {authMethodOptions.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {/* Select renders its own accessible button; label wraps it semantically. */}
+            {/* oxlint-disable-next-line jsx-a11y/label-has-associated-control */}
+            <label className="text-muted-foreground mb-1 block text-xs">
+              Authentication
+              <Select value={authMethod} onValueChange={(v) => setAuthMethod(v!)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {authMethodOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </label>
           </div>
 
           {authMethod === 'privateKey' && (

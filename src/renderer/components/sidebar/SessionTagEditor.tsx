@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Tag, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';

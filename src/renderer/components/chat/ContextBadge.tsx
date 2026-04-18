@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
-import { Separator } from '@renderer/components/ui/separator';
 import { cn } from '@renderer/lib/utils';
 import { resolveAbsolutePath, shortenDisplayPath } from '@renderer/utils/pathDisplay';
 import { formatTokensCompact as formatTokens } from '@shared/utils/tokenFormatting';

@@ -29,7 +29,7 @@ export function useClipboard(
       navigator.clipboard
         .writeText(value)
         .then(() => handleCopyResult(true))
-        .catch((err) => setError(err));
+        .catch((err: unknown) => setError(err instanceof Error ? err : new Error(String(err))));
     } else {
       setError(new Error('useClipboard: navigator.clipboard is not supported'));
     }

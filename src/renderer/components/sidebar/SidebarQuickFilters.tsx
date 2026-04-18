@@ -4,9 +4,7 @@
  */
 
 import { cn } from '@renderer/lib/utils';
-import { useStore } from '@renderer/store';
 import { Activity, Bookmark, GitBranch } from 'lucide-react';
-import { useShallow } from 'zustand/react/shallow';
 
 export type SidebarFilter = 'ongoing' | 'subagents' | 'bookmarked';
 

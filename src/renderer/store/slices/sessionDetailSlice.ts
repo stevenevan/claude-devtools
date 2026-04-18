@@ -513,10 +513,10 @@ export const createSessionDetailSlice: StateCreator<AppState, [], [], SessionDet
       // Compare chunk count and last chunk ID as a cheap fingerprint.
       const prevDetail = get().sessionDetail;
       if (
-        prevDetail &&
-        detail.chunks.length === prevDetail.chunks.length &&
         detail.chunks.length > 0 &&
-        detail.chunks[detail.chunks.length - 1]?.id === prevDetail.chunks[prevDetail.chunks.length - 1]?.id &&
+        detail.chunks.length === prevDetail?.chunks.length &&
+        detail.chunks[detail.chunks.length - 1]?.id ===
+          prevDetail.chunks[prevDetail.chunks.length - 1]?.id &&
         detail.session?.isOngoing === prevDetail.session?.isOngoing
       ) {
         return;

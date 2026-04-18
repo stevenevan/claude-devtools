@@ -8,10 +8,13 @@ export interface UseDebouncedCallbackOptions {
   leading?: boolean;
 }
 
+// Generic over any callable so consumers can pass arbitrary signatures.
+// oxlint-disable-next-line typescript-eslint/no-explicit-any -- mantine-derived hook; generic must accept any callable
 export type UseDebouncedCallbackReturnValue<T extends (...args: any[]) => any> = ((
   ...args: Parameters<T>
 ) => void) & { flush: () => void; cancel: () => void };
 
+// oxlint-disable-next-line typescript-eslint/no-explicit-any -- mantine-derived hook; generic must accept any callable
 export function useDebouncedCallback<T extends (...args: any[]) => any>(
   callback: T,
   options: number | UseDebouncedCallbackOptions
@@ -38,57 +41,29 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
           currentCallback._isFirstCall = true;
         }
 
-        if (leading && isFirstCall) {
-          handleCallback(...args);
-
-          const flush = () => {
-            if (debounceTimerRef.current !== 0) {
-              clearTimeoutAndLeadingRef();
-              handleCallback(...args);
-            }
-          };
-
-          const cancel = () => {
-            clearTimeoutAndLeadingRef();
-          };
-
-          currentCallback.flush = flush;
-          currentCallback.cancel = cancel;
-          debounceTimerRef.current = window.setTimeout(() => clearTimeoutAndLeadingRef(), delay);
-          return;
-        }
-
-        if (leading && !isFirstCall) {
-          const flush = () => {
-            if (debounceTimerRef.current !== 0) {
-              clearTimeoutAndLeadingRef();
-              handleCallback(...args);
-            }
-          };
-
-          const cancel = () => {
-            clearTimeoutAndLeadingRef();
-          };
-
-          currentCallback.flush = flush;
-          currentCallback.cancel = cancel;
-          debounceTimerRef.current = window.setTimeout(() => clearTimeoutAndLeadingRef(), delay);
-          return;
-        }
-
         const flush = () => {
           if (debounceTimerRef.current !== 0) {
             clearTimeoutAndLeadingRef();
             handleCallback(...args);
           }
         };
-
         const cancel = () => {
           clearTimeoutAndLeadingRef();
         };
-
         currentCallback.flush = flush;
         currentCallback.cancel = cancel;
+
+        if (leading && isFirstCall) {
+          handleCallback(...args);
+          debounceTimerRef.current = window.setTimeout(() => clearTimeoutAndLeadingRef(), delay);
+          return;
+        }
+
+        if (leading && !isFirstCall) {
+          debounceTimerRef.current = window.setTimeout(() => clearTimeoutAndLeadingRef(), delay);
+          return;
+        }
+
         debounceTimerRef.current = window.setTimeout(flush, delay);
       },
       {

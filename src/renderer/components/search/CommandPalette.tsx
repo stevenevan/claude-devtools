@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
-import type { RepositoryGroup, SearchResult } from '@renderer/types/data';
+import type { SearchResult } from '@renderer/types/data';
 
 const logger = createLogger('Component:CommandPalette');
 
@@ -195,8 +195,6 @@ export const CommandPalette = (): React.JSX.Element | null => {
     },
     [closeCommandPalette]
   );
-
-  const resultsCount = searchMode === 'projects' ? filteredProjects.length : sessionResults.length;
 
   return (
     <CommandDialog

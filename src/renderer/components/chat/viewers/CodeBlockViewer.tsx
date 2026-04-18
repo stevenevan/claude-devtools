@@ -3,10 +3,7 @@ import React, { useMemo } from 'react';
 import { useClipboard } from '@renderer/hooks/mantine';
 import { cn } from '@renderer/lib/utils';
 import { getBaseName } from '@renderer/utils/pathUtils';
-import { createLogger } from '@shared/utils/logger';
 import { Check, Copy, FileCode } from 'lucide-react';
-
-const logger = createLogger('Component:CodeBlockViewer');
 
 import { highlightLine } from './syntaxHighlighter';
 

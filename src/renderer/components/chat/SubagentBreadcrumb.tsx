@@ -3,7 +3,6 @@
  * Displays: Main Session > Task "description" > Subagent ID
  */
 
-import { getTeamColorSet } from '@renderer/constants/teamColors';
 import { cn } from '@renderer/lib/utils';
 import { ChevronRight, Home } from 'lucide-react';
 

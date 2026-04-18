@@ -43,11 +43,6 @@ function getOutputText(result: LinkedToolItem['result']): string {
   return String(content);
 }
 
-/** Detect if the output looks like an error (non-zero exit code indicator). */
-function hasErrorIndicator(output: string): boolean {
-  return /exit code [1-9]|Exit status: [1-9]|error:/i.test(output);
-}
-
 export const BashToolViewer: React.FC<BashToolViewerProps> = ({ linkedTool }) => {
   const [showFullOutput, setShowFullOutput] = React.useState(false);
 

@@ -68,9 +68,10 @@ import type {
   SessionMetrics,
   SessionsByIdsOptions,
   SessionsPaginationOptions,
+  ContentSearchResult,
+  SearchFilters,
   SshAPI,
   SshConfigHostEntry,
-  SshConnectionConfig,
   SshConnectionStatus,
   SshLastConnection,
   SubagentDetail,
@@ -122,7 +123,7 @@ export class TauriAPIClient implements ElectronAPI {
     invoke<SearchSessionsResult>('search_all_projects', { query, maxResults });
 
   searchSessionsFiltered = (
-    filters: import('@shared/types/domain').SearchFilters,
+    filters: SearchFilters,
     maxResults?: number
   ): Promise<FilteredSearchResponse> =>
     invoke<FilteredSearchResponse>('search_sessions_filtered', {
@@ -141,8 +142,8 @@ export class TauriAPIClient implements ElectronAPI {
     caseSensitive?: boolean,
     cursor?: number,
     pageSize?: number
-  ): Promise<import('@shared/types/domain').ContentSearchResult> =>
-    invoke<import('@shared/types/domain').ContentSearchResult>('search_session_content', {
+  ): Promise<ContentSearchResult> =>
+    invoke<ContentSearchResult>('search_session_content', {
       projectId,
       sessionId,
       query,
@@ -277,7 +278,7 @@ export class TauriAPIClient implements ElectronAPI {
     getUnreadCount: () => invoke<number>('notifications_get_unread_count'),
     onNew: (callback) => {
       let unlisten: UnlistenFn | null = null;
-      listen('notification:new', (event) => {
+      void listen('notification:new', (event) => {
         callback(null, event.payload);
       }).then((fn) => {
         unlisten = fn;
@@ -288,9 +289,12 @@ export class TauriAPIClient implements ElectronAPI {
     },
     onUpdated: (callback) => {
       let unlisten: UnlistenFn | null = null;
-      listen<{ total: number; unreadCount: number }>('notification:updated', (event) => {
-        callback(null, event.payload);
-      }).then((fn) => {
+      void listen<{ total: number; unreadCount: number }>(
+        'notification:updated',
+        (event) => {
+          callback(null, event.payload);
+        }
+      ).then((fn) => {
         unlisten = fn;
       });
       return () => {
@@ -299,7 +303,7 @@ export class TauriAPIClient implements ElectronAPI {
     },
     onClicked: (callback) => {
       let unlisten: UnlistenFn | null = null;
-      listen('notification:clicked', (event) => {
+      void listen('notification:clicked', (event) => {
         callback(null, event.payload);
       }).then((fn) => {
         unlisten = fn;
@@ -362,7 +366,7 @@ export class TauriAPIClient implements ElectronAPI {
       return Array.isArray(result) ? result : [result];
     },
     selectClaudeRootFolder: async (): Promise<ClaudeRootFolderSelection | null> => {
-      const result = await open({ directory: true, multiple: false });
+      const result = (await open({ directory: true, multiple: false })) as string | string[] | null;
       if (!result) return null;
       const path = Array.isArray(result) ? result[0] : result;
       return {
@@ -394,12 +398,12 @@ export class TauriAPIClient implements ElectronAPI {
   };
 
   // ---------------------------------------------------------------------------
-  // File/todo change events — native Tauri events from Rust watcher
+  // File/task change events — native Tauri events from Rust watcher
   // ---------------------------------------------------------------------------
 
   onFileChange = (callback: (event: FileChangeEvent) => void): (() => void) => {
     let unlisten: UnlistenFn | null = null;
-    listen<FileChangeEvent>('file-change', (tauriEvent) => {
+    void listen<FileChangeEvent>('file-change', (tauriEvent) => {
       callback(tauriEvent.payload);
     }).then((fn) => {
       unlisten = fn;
@@ -411,7 +415,7 @@ export class TauriAPIClient implements ElectronAPI {
 
   onTodoChange = (callback: (event: FileChangeEvent) => void): (() => void) => {
     let unlisten: UnlistenFn | null = null;
-    listen<FileChangeEvent>('todo-change', (tauriEvent) => {
+    void listen<FileChangeEvent>('todo-change', (tauriEvent) => {
       callback(tauriEvent.payload);
     }).then((fn) => {
       unlisten = fn;
@@ -506,7 +510,7 @@ export class TauriAPIClient implements ElectronAPI {
     getLastConnection: () => invoke<SshLastConnection | null>('ssh_get_last_connection'),
     onStatus: (callback) => {
       let unlisten: UnlistenFn | null = null;
-      listen<SshConnectionStatus>('ssh-status', (event) => {
+      void listen<SshConnectionStatus>('ssh-status', (event) => {
         callback(null, event.payload);
       }).then((fn) => {
         unlisten = fn;

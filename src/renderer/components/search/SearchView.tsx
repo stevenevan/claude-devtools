@@ -11,7 +11,6 @@ import { api } from '@renderer/api';
 import { useStore } from '@renderer/store';
 import { cn } from '@renderer/lib/utils';
 import {
-  Calendar,
   Clock,
   Filter,
   GitBranch,
