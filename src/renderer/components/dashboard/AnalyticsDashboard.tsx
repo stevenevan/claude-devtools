@@ -39,6 +39,7 @@ import {
   YAxis,
 } from 'recharts';
 
+import { CostTrendChart } from './CostTrendChart';
 import { SessionSchedule } from './SessionSchedule';
 import { ToolAnalyticsPanel } from './ToolAnalyticsPanel';
 
@@ -509,32 +510,13 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
           </ResponsiveContainer>
         </ChartSection>
 
-        {/* Cost Over Time */}
+        {/* Cost trend */}
         <ChartSection
-          title={`Cost per ${bucketNoun.charAt(0).toUpperCase() + bucketNoun.slice(1)}`}
-          subtitle={`Estimated cost in USD per ${bucketNoun}`}
+          title="Cost Trend"
+          subtitle="Week-over-week spend with per-period breakdown"
           className="mb-6"
         >
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={timeBuckets} barCategoryGap="15%">
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis
-                dataKey="label"
-                tick={{ fontSize: 10, fill: '#71717a' }}
-                axisLine={{ stroke: 'rgba(255,255,255,0.06)' }}
-                tickLine={false}
-                interval={xAxisInterval}
-              />
-              <YAxis
-                tick={{ fontSize: 10, fill: '#71717a' }}
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(v: number) => `$${v.toFixed(2)}`}
-              />
-              <Tooltip content={<CustomBarTooltip />} />
-              <Bar dataKey="costUsd" name="Cost" fill="#10b981" radius={[2, 2, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <CostTrendChart buckets={timeBuckets} bucketNoun={bucketNoun} />
         </ChartSection>
 
         {/* Three-column: Project pie + Model pie + Top Sessions */}
