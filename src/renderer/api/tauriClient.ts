@@ -77,6 +77,7 @@ import type {
   SshLastConnection,
   SubagentDetail,
   ToolAnalyticsResponse,
+  ErrorHotspotsResponse,
   TriggerTestResult,
   UpdaterAPI,
   WaterfallData,
@@ -178,6 +179,17 @@ export class TauriAPIClient implements ElectronAPI {
 
   getToolAnalytics = (projectId: string, days: number): Promise<ToolAnalyticsResponse> =>
     invoke<ToolAnalyticsResponse>('get_tool_analytics', { projectId, days });
+
+  getErrorHotspots = (
+    projectId: string,
+    days: number,
+    minOccurrences: number
+  ): Promise<ErrorHotspotsResponse> =>
+    invoke<ErrorHotspotsResponse>('get_error_hotspots', {
+      projectId,
+      days,
+      minOccurrences,
+    });
 
   getWaterfallData = async (
     projectId: string,

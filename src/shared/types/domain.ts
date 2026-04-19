@@ -469,6 +469,20 @@ export interface ToolAnalyticsResponse {
   scannedSessions: number;
 }
 
+export interface RepeatedToolError {
+  toolName: string;
+  errorPrefix: string;
+  occurrences: number;
+  sessionCount: number;
+  sessionIds: string[];
+  lastSeenMs: number;
+}
+
+export interface ErrorHotspotsResponse {
+  repeatedErrors: RepeatedToolError[];
+  scannedSessions: number;
+}
+
 export interface AnalyticsResponse {
   timeBuckets: TimeBucketUsage[];
   projectUsage: ProjectUsageEntry[];

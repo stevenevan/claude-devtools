@@ -19,6 +19,7 @@ import type {
   SessionsByIdsOptions,
   SessionsPaginationOptions,
   ToolAnalyticsResponse,
+  ErrorHotspotsResponse,
 } from './domain';
 import type {
   AppConfig,
@@ -406,6 +407,11 @@ export interface ElectronAPI {
   getSessionMetrics: (projectId: string, sessionId: string) => Promise<SessionMetrics | null>;
   getAnalytics: (days: number) => Promise<AnalyticsResponse>;
   getToolAnalytics: (projectId: string, days: number) => Promise<ToolAnalyticsResponse>;
+  getErrorHotspots: (
+    projectId: string,
+    days: number,
+    minOccurrences: number
+  ) => Promise<ErrorHotspotsResponse>;
   getWaterfallData: (projectId: string, sessionId: string) => Promise<WaterfallData | null>;
   getSubagentDetail: (
     projectId: string,

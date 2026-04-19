@@ -2,6 +2,7 @@ pub mod chunk_builder;
 pub mod chunk_factory;
 pub mod commands;
 pub mod content_search;
+pub mod error_hotspots;
 pub mod context_accumulator;
 pub mod context_tracker;
 pub mod process_linker;

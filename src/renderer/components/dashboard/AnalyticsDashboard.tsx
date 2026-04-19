@@ -40,6 +40,7 @@ import {
 } from 'recharts';
 
 import { CostTrendChart } from './CostTrendChart';
+import { ErrorHotspotsPanel } from './ErrorHotspotsPanel';
 import { SessionSchedule } from './SessionSchedule';
 import { ToolAnalyticsPanel } from './ToolAnalyticsPanel';
 
@@ -663,6 +664,11 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
             <ToolAnalyticsPanel days={days} />
           </CollapsibleContent>
         </Collapsible>
+
+        {/* Error hotspots */}
+        <div className="mb-6">
+          <ErrorHotspotsPanel days={days} />
+        </div>
 
         {/* Session Schedule / Timeline */}
         <ChartSection
