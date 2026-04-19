@@ -22,12 +22,14 @@ export interface UISlice {
   sidebarCollapsed: boolean;
   activeActivity: ActivityView;
   shortcutCheatSheetOpen: boolean;
+  helpPanelOpen: boolean;
 
   openCommandPalette: () => void;
   closeCommandPalette: () => void;
   toggleSidebar: () => void;
   setActiveActivity: (activity: ActivityView) => void;
   toggleShortcutCheatSheet: () => void;
+  setHelpPanelOpen: (open: boolean) => void;
 }
 
 export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => ({
@@ -35,6 +37,7 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => (
   sidebarCollapsed: false,
   activeActivity: 'projects',
   shortcutCheatSheetOpen: false,
+  helpPanelOpen: false,
 
   // Command palette actions
   openCommandPalette: () => {
@@ -64,5 +67,9 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => (
 
   toggleShortcutCheatSheet: () => {
     set((state) => ({ shortcutCheatSheetOpen: !state.shortcutCheatSheetOpen }));
+  },
+
+  setHelpPanelOpen: (open) => {
+    set({ helpPanelOpen: open });
   },
 });

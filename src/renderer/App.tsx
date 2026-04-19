@@ -4,6 +4,7 @@ import { api } from './api';
 import { ConfirmDialog } from './components/common/ConfirmDialog';
 import { ContextSwitchOverlay } from './components/common/ContextSwitchOverlay';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { HelpPanel } from './components/common/HelpPanel';
 import { ShortcutCheatSheet } from './components/common/ShortcutCheatSheet';
 import { TabbedLayout } from './components/layout/TabbedLayout';
 import { TooltipProvider } from './components/ui/tooltip';
@@ -14,10 +15,17 @@ import { useShallow } from 'zustand/react/shallow';
 export const App = (): React.JSX.Element => {
   useTheme();
 
-  const { shortcutCheatSheetOpen, toggleShortcutCheatSheet } = useStore(
+  const {
+    shortcutCheatSheetOpen,
+    toggleShortcutCheatSheet,
+    helpPanelOpen,
+    setHelpPanelOpen,
+  } = useStore(
     useShallow((s) => ({
       shortcutCheatSheetOpen: s.shortcutCheatSheetOpen,
       toggleShortcutCheatSheet: s.toggleShortcutCheatSheet,
+      helpPanelOpen: s.helpPanelOpen,
+      setHelpPanelOpen: s.setHelpPanelOpen,
     }))
   );
 
@@ -58,6 +66,7 @@ export const App = (): React.JSX.Element => {
           open={shortcutCheatSheetOpen}
           onClose={toggleShortcutCheatSheet}
         />
+        <HelpPanel open={helpPanelOpen} onClose={() => setHelpPanelOpen(false)} />
       </TooltipProvider>
     </ErrorBoundary>
   );

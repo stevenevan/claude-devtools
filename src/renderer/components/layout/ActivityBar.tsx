@@ -14,6 +14,7 @@ import {
   Bell,
   Bot,
   FolderGit2,
+  HelpCircle,
   MessageSquareText,
   Puzzle,
   Settings,
@@ -82,16 +83,23 @@ const ActivityBarItem = ({
 };
 
 export const ActivityBar = (): React.JSX.Element => {
-  const { activeActivity, setActiveActivity, unreadCount, openSettingsTab, openNotificationsTab } =
-    useStore(
-      useShallow((s) => ({
-        activeActivity: s.activeActivity,
-        setActiveActivity: s.setActiveActivity,
-        unreadCount: s.unreadCount,
-        openSettingsTab: s.openSettingsTab,
-        openNotificationsTab: s.openNotificationsTab,
-      }))
-    );
+  const {
+    activeActivity,
+    setActiveActivity,
+    unreadCount,
+    openSettingsTab,
+    openNotificationsTab,
+    setHelpPanelOpen,
+  } = useStore(
+    useShallow((s) => ({
+      activeActivity: s.activeActivity,
+      setActiveActivity: s.setActiveActivity,
+      unreadCount: s.unreadCount,
+      openSettingsTab: s.openSettingsTab,
+      openNotificationsTab: s.openNotificationsTab,
+      setHelpPanelOpen: s.setHelpPanelOpen,
+    }))
+  );
 
   return (
     <TooltipProvider delay={300}>
@@ -160,6 +168,13 @@ export const ActivityBar = (): React.JSX.Element => {
         <div className="flex-1" />
 
         <div className="flex flex-col items-center gap-1">
+          <ActivityBarItem
+            icon={HelpCircle}
+            label="Help"
+            activity="projects"
+            isActive={false}
+            onClick={() => setHelpPanelOpen(true)}
+          />
           <ActivityBarItem
             icon={Settings}
             label="Settings"
