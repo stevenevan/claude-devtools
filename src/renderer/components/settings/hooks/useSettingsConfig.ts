@@ -48,6 +48,9 @@ export interface SafeConfig {
     showTimestamps: boolean;
     compactMode: boolean;
     syntaxHighlighting: boolean;
+    codeBlockTheme: string;
+    showLineNumbers: boolean;
+    wordWrap: boolean;
   };
 }
 
@@ -174,6 +177,9 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
         showTimestamps: displayConfig?.display?.showTimestamps ?? true,
         compactMode: displayConfig?.display?.compactMode ?? false,
         syntaxHighlighting: displayConfig?.display?.syntaxHighlighting ?? true,
+        codeBlockTheme: displayConfig?.display?.codeBlockTheme ?? 'default',
+        showLineNumbers: displayConfig?.display?.showLineNumbers ?? true,
+        wordWrap: displayConfig?.display?.wordWrap ?? false,
       },
     }),
     [displayConfig]

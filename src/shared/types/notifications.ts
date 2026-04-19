@@ -269,6 +269,12 @@ export interface AppConfig {
     compactMode: boolean;
     /** Whether to enable syntax highlighting in code blocks */
     syntaxHighlighting: boolean;
+    /** Code block theme key */
+    codeBlockTheme: string;
+    /** Whether to show line numbers in code blocks */
+    showLineNumbers: boolean;
+    /** Whether to wrap long lines in code blocks */
+    wordWrap: boolean;
   };
   /** Session-related settings */
   sessions: {

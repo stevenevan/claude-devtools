@@ -46,6 +46,7 @@ interface SettingsHandlers {
 
   // Display handlers
   handleDisplayToggle: (key: keyof AppConfig['display'], value: boolean) => void;
+  handleCodeBlockThemeChange: (value: string) => void;
 
   // Advanced handlers
   handleResetToDefaults: () => Promise<void>;
@@ -239,6 +240,13 @@ export function useSettingsHandlers({
     [updateConfig]
   );
 
+  const handleCodeBlockThemeChange = useCallback(
+    (value: string) => {
+      void updateConfig('display', { codeBlockTheme: value });
+    },
+    [updateConfig]
+  );
+
   // Advanced handlers
   const handleResetToDefaults = useCallback(async () => {
     if (!confirm('Are you sure you want to reset all settings to defaults?')) {
@@ -294,6 +302,9 @@ export function useSettingsHandlers({
           showTimestamps: true,
           compactMode: false,
           syntaxHighlighting: true,
+          codeBlockTheme: 'default',
+          showLineNumbers: true,
+          wordWrap: false,
         },
         sessions: {
           pinnedSessions: {},
@@ -385,6 +396,7 @@ export function useSettingsHandlers({
     handleUpdateTrigger,
     handleRemoveTrigger,
     handleDisplayToggle,
+    handleCodeBlockThemeChange,
     handleResetToDefaults,
     handleExportConfig,
     handleImportConfig,

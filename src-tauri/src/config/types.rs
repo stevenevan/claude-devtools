@@ -85,6 +85,20 @@ pub struct DisplayConfig {
     pub show_timestamps: bool,
     pub compact_mode: bool,
     pub syntax_highlighting: bool,
+    #[serde(default = "default_code_block_theme")]
+    pub code_block_theme: String,
+    #[serde(default = "default_true")]
+    pub show_line_numbers: bool,
+    #[serde(default)]
+    pub word_wrap: bool,
+}
+
+fn default_code_block_theme() -> String {
+    "default".to_string()
+}
+
+fn default_true() -> bool {
+    true
 }
 
 // Sessions Config
@@ -249,6 +263,9 @@ impl Default for DisplayConfig {
             show_timestamps: true,
             compact_mode: false,
             syntax_highlighting: true,
+            code_block_theme: default_code_block_theme(),
+            show_line_numbers: true,
+            word_wrap: false,
         }
     }
 }
