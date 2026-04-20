@@ -20,10 +20,12 @@ import { formatDistanceToNow } from 'date-fns';
 import { triggerDownload } from '@renderer/utils/sessionExporter';
 import {
   Bot,
+  Copy,
   Download,
   FileText,
   FolderGit2,
   Globe,
+  HelpCircle,
   Loader2,
   MessageSquare,
   Search,
@@ -48,6 +50,7 @@ export const CommandPalette = (): React.JSX.Element | null => {
     fetchRepositoryGroups,
     selectRepository,
     sessionDetail,
+    setHelpPanelOpen,
   } = useStore(
     useShallow((s) => ({
       commandPaletteOpen: s.commandPaletteOpen,
@@ -58,6 +61,7 @@ export const CommandPalette = (): React.JSX.Element | null => {
       fetchRepositoryGroups: s.fetchRepositoryGroups,
       selectRepository: s.selectRepository,
       sessionDetail: s.sessionDetail,
+      setHelpPanelOpen: s.setHelpPanelOpen,
     }))
   );
 
@@ -401,6 +405,32 @@ export const CommandPalette = (): React.JSX.Element | null => {
               >
                 <Download className="mr-2 size-4" />
                 Export as Plain Text
+              </CommandItem>
+              {sessionDetail.session?.id && (
+                <CommandItem
+                  onSelect={() => {
+                    const id = sessionDetail.session.id;
+                    void navigator.clipboard.writeText(id);
+                    closeCommandPalette();
+                  }}
+                >
+                  <Copy className="mr-2 size-4" />
+                  Copy Session ID
+                </CommandItem>
+              )}
+            </CommandGroup>
+          )}
+
+          {query.trim() === '' && (
+            <CommandGroup heading="Quick Actions">
+              <CommandItem
+                onSelect={() => {
+                  setHelpPanelOpen(true);
+                  closeCommandPalette();
+                }}
+              >
+                <HelpCircle className="mr-2 size-4" />
+                Show Help
               </CommandItem>
             </CommandGroup>
           )}
