@@ -78,6 +78,7 @@ import type {
   SubagentDetail,
   ToolAnalyticsResponse,
   ErrorHotspotsResponse,
+  AggregatedSessionTodos,
   TriggerTestResult,
   UpdaterAPI,
   WaterfallData,
@@ -190,6 +191,9 @@ export class TauriAPIClient implements ElectronAPI {
       days,
       minOccurrences,
     });
+
+  getAllTodos = (projectIds: string[]): Promise<AggregatedSessionTodos[]> =>
+    invoke<AggregatedSessionTodos[]>('get_all_todos', { projectIds });
 
   getWaterfallData = async (
     projectId: string,

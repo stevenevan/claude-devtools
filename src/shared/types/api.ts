@@ -20,6 +20,7 @@ import type {
   SessionsPaginationOptions,
   ToolAnalyticsResponse,
   ErrorHotspotsResponse,
+  AggregatedSessionTodos,
 } from './domain';
 import type {
   AppConfig,
@@ -412,6 +413,7 @@ export interface ElectronAPI {
     days: number,
     minOccurrences: number
   ) => Promise<ErrorHotspotsResponse>;
+  getAllTodos: (projectIds: string[]) => Promise<AggregatedSessionTodos[]>;
   getWaterfallData: (projectId: string, sessionId: string) => Promise<WaterfallData | null>;
   getSubagentDetail: (
     projectId: string,

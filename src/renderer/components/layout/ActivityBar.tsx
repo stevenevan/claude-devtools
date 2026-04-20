@@ -15,6 +15,7 @@ import {
   Bot,
   FolderGit2,
   HelpCircle,
+  ListTodo,
   MessageSquareText,
   Puzzle,
   Settings,
@@ -162,6 +163,14 @@ export const ActivityBar = (): React.JSX.Element => {
             activity="annotations"
             isActive={activeActivity === 'annotations'}
             onClick={() => setActiveActivity('annotations')}
+          />
+          <ActivityBarItem
+            icon={ListTodo}
+            label="Todos"
+            shortcut="7"
+            activity="todos"
+            isActive={activeActivity === 'todos'}
+            onClick={() => setActiveActivity('todos')}
           />
         </div>
 

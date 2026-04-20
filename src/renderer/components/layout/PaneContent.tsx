@@ -18,6 +18,7 @@ const AgentsGrid = React.lazy(() => import('../dashboard/AgentsGrid').then((m) =
 const SkillsGrid = React.lazy(() => import('../dashboard/SkillsGrid').then((m) => ({ default: m.SkillsGrid })));
 const PluginsGrid = React.lazy(() => import('../dashboard/PluginsGrid').then((m) => ({ default: m.PluginsGrid })));
 const AnnotationList = React.lazy(() => import('../sidebar/AnnotationList').then((m) => ({ default: m.AnnotationList })));
+const TodosDashboard = React.lazy(() => import('../dashboard/TodosDashboard').then((m) => ({ default: m.TodosDashboard })));
 const NotificationsView = React.lazy(() => import('../notifications/NotificationsView').then((m) => ({ default: m.NotificationsView })));
 const SearchView = React.lazy(() => import('../search/SearchView').then((m) => ({ default: m.SearchView })));
 const SettingsView = React.lazy(() => import('../settings/SettingsView').then((m) => ({ default: m.SettingsView })));
@@ -49,6 +50,7 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
     activeActivity === 'skills' ||
     activeActivity === 'plugins' ||
     activeActivity === 'annotations' ||
+    activeActivity === 'todos' ||
     activeActivity === 'settings' ||
     activeActivity === 'notifications' ||
     activeActivity === 'search';
@@ -82,6 +84,7 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
                 <AnnotationList />
               </GlobalContentView>
             )}
+            {activeActivity === 'todos' && <TodosDashboard />}
             {activeActivity === 'notifications' && <NotificationsView />}
             {activeActivity === 'search' && <SearchView />}
             {activeActivity === 'settings' && <SettingsView />}

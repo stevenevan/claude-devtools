@@ -483,6 +483,13 @@ export interface ErrorHotspotsResponse {
   scannedSessions: number;
 }
 
+export interface AggregatedSessionTodos {
+  projectId: string;
+  sessionId: string;
+  updatedAt: number;
+  items: unknown;
+}
+
 export interface AnalyticsResponse {
   timeBuckets: TimeBucketUsage[];
   projectUsage: ProjectUsageEntry[];

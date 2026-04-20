@@ -3,13 +3,23 @@
  * Shows as a collapsible sidebar panel within the chat view.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { Button } from '@renderer/components/ui/button';
+import { cn } from '@renderer/lib/utils';
 import { parseTodoData } from '@renderer/types/todos';
 import { CheckCircle2, Circle, Loader2, ListTodo, X } from 'lucide-react';
 
 import type { TodoItem } from '@renderer/types/todos';
+
+type StatusFilter = 'all' | TodoItem['status'];
+
+const FILTERS: { id: StatusFilter; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'pending', label: 'Pending' },
+  { id: 'in_progress', label: 'Active' },
+  { id: 'completed', label: 'Done' },
+];
 
 interface TodoPanelProps {
   todoData: unknown;
@@ -29,9 +39,14 @@ const statusLabel: Record<TodoItem['status'], string> = {
 };
 
 export const TodoPanel = ({ todoData, onClose }: Readonly<TodoPanelProps>): React.JSX.Element => {
-  const items = useMemo(() => parseTodoData(todoData), [todoData]);
-  const completedCount = items.filter((t) => t.status === 'completed').length;
-  const totalCount = items.length;
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const allItems = useMemo(() => parseTodoData(todoData), [todoData]);
+  const completedCount = allItems.filter((t) => t.status === 'completed').length;
+  const totalCount = allItems.length;
+  const items = useMemo(
+    () => (statusFilter === 'all' ? allItems : allItems.filter((t) => t.status === statusFilter)),
+    [allItems, statusFilter]
+  );
 
   if (totalCount === 0) {
     return (
@@ -75,6 +90,25 @@ export const TodoPanel = ({ todoData, onClose }: Readonly<TodoPanelProps>): Reac
             style={{ width: `${(completedCount / totalCount) * 100}%` }}
           />
         </div>
+      </div>
+
+      {/* Status filter */}
+      <div className="flex flex-wrap gap-1 border-b border-border px-3 py-2">
+        {FILTERS.map((filter) => (
+          <button
+            key={filter.id}
+            type="button"
+            onClick={() => setStatusFilter(filter.id)}
+            className={cn(
+              'rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors',
+              statusFilter === filter.id
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border bg-background text-text-muted hover:bg-surface-raised'
+            )}
+          >
+            {filter.label}
+          </button>
+        ))}
       </div>
 
       {/* Task list */}

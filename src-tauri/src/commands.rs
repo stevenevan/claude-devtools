@@ -30,6 +30,75 @@ pub fn get_app_version() -> String {
 }
 
 // ---------------------------------------------------------------------------
+// Cross-project todos dashboard
+// ---------------------------------------------------------------------------
+
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AggregatedSessionTodos {
+    pub project_id: String,
+    pub session_id: String,
+    pub updated_at: f64,
+    pub items: serde_json::Value,
+}
+
+/// Load todo data for every session across the requested projects.
+#[tauri::command]
+pub fn get_all_todos(project_ids: Vec<String>) -> Result<Vec<AggregatedSessionTodos>, String> {
+    let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
+    let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
+    let todos_dir = claude_dir.join("todos");
+    let mut out: Vec<AggregatedSessionTodos> = Vec::new();
+
+    for project_id in &project_ids {
+        let base_id = match project_id.find("::") {
+            Some(idx) => &project_id[..idx],
+            None => project_id.as_str(),
+        };
+        let project_dir = projects_dir.join(base_id);
+        let entries = match std::fs::read_dir(&project_dir) {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+        for entry in entries.flatten() {
+            let fname = entry.file_name();
+            let fname = fname.to_string_lossy();
+            if !fname.ends_with(".jsonl") {
+                continue;
+            }
+            let session_id = fname.trim_end_matches(".jsonl").to_string();
+            let todo_path = todos_dir.join(format!("{session_id}.json"));
+            if !todo_path.exists() {
+                continue;
+            }
+            let content = match std::fs::read_to_string(&todo_path) {
+                Ok(c) => c,
+                Err(_) => continue,
+            };
+            let items: serde_json::Value = match serde_json::from_str(&content) {
+                Ok(v) => v,
+                Err(_) => continue,
+            };
+            let updated_at = std::fs::metadata(&todo_path)
+                .ok()
+                .and_then(|m| m.modified().ok())
+                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                .map(|d| d.as_secs_f64() * 1000.0)
+                .unwrap_or(0.0);
+            out.push(AggregatedSessionTodos {
+                project_id: project_id.clone(),
+                session_id,
+                updated_at,
+                items,
+            });
+        }
+    }
+
+    out.sort_by(|a, b| b.updated_at.partial_cmp(&a.updated_at).unwrap_or(std::cmp::Ordering::Equal));
+    Ok(out)
+}
+
+// ---------------------------------------------------------------------------
 // Additional Session / Data Commands (Sprint 8)
 // ---------------------------------------------------------------------------
 
