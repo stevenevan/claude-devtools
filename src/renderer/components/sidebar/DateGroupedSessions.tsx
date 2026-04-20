@@ -127,16 +127,47 @@ export const DateGroupedSessions = ({ sidebarFilters }: DateGroupedSessionsProps
     [bookmarks]
   );
 
-  // Apply sidebar quick filters
+  const activeFilters = useStore((s) => s.activeFilters);
+  const sessionTagsMap = useStore((s) => s.sessionTags);
+
+  // Apply sidebar quick filters + advanced filters
   const filteredSessions = useMemo(() => {
-    if (!sidebarFilters || sidebarFilters.size === 0) return visibleSessions;
+    const quickSet = sidebarFilters ?? new Set<SidebarFilter>();
     return visibleSessions.filter((s) => {
-      if (sidebarFilters.has('ongoing') && !s.isOngoing) return false;
-      if (sidebarFilters.has('subagents') && !s.hasSubagents) return false;
-      if (sidebarFilters.has('bookmarked') && !bookmarkedSessionIds.has(s.id)) return false;
+      if (quickSet.has('ongoing') && !s.isOngoing) return false;
+      if (quickSet.has('subagents') && !s.hasSubagents) return false;
+      if (quickSet.has('bookmarked') && !bookmarkedSessionIds.has(s.id)) return false;
+      if (activeFilters.dateMin != null && s.createdAt < activeFilters.dateMin) return false;
+      if (activeFilters.dateMax != null && s.createdAt > activeFilters.dateMax + 86_400_000)
+        return false;
+      if (
+        activeFilters.minContext != null &&
+        (s.contextConsumption ?? 0) < activeFilters.minContext
+      )
+        return false;
+      if (
+        activeFilters.maxContext != null &&
+        (s.contextConsumption ?? 0) > activeFilters.maxContext
+      )
+        return false;
+      if (
+        activeFilters.minCompactions != null &&
+        (s.compactionCount ?? 0) < activeFilters.minCompactions
+      )
+        return false;
+      if (
+        activeFilters.agentName &&
+        (s.agentName ?? '').toLowerCase() !== activeFilters.agentName.toLowerCase()
+      )
+        return false;
+      if (activeFilters.tags && activeFilters.tags.length > 0) {
+        const tags = sessionTagsMap.get(s.id) ?? [];
+        const match = activeFilters.tags.every((t) => tags.includes(t));
+        if (!match) return false;
+      }
       return true;
     });
-  }, [visibleSessions, sidebarFilters, bookmarkedSessionIds]);
+  }, [visibleSessions, sidebarFilters, bookmarkedSessionIds, activeFilters, sessionTagsMap]);
 
   // Separate pinned sessions from unpinned
   const { pinned: pinnedSessions, unpinned: unpinnedSessions } = useMemo(

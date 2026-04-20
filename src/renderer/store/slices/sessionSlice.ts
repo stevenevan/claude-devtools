@@ -17,11 +17,24 @@ const logger = createLogger('Store:session');
  */
 const projectRefreshGeneration = new Map<string, number>();
 
+export interface SessionFilterState {
+  dateMin?: number;
+  dateMax?: number;
+  minContext?: number;
+  maxContext?: number;
+  minCompactions?: number;
+  agentName?: string;
+  tags?: string[];
+}
+
 export interface SessionSlice {
   sessions: Session[];
   selectedSessionId: string | null;
   sessionsLoading: boolean;
   sessionsError: string | null;
+  activeFilters: SessionFilterState;
+  setFilter: (patch: Partial<SessionFilterState>) => void;
+  clearFilters: () => void;
   // Pagination state
   sessionsCursor: string | null;
   sessionsHasMore: boolean;
@@ -92,6 +105,14 @@ export const createSessionSlice: StateCreator<AppState, [], [], SessionSlice> = 
   sidebarMultiSelectActive: false,
   // Sort mode
   sessionSortMode: 'recent' as SessionSortMode,
+  // Advanced filters
+  activeFilters: {},
+  setFilter: (patch) => {
+    set((state) => ({ activeFilters: { ...state.activeFilters, ...patch } }));
+  },
+  clearFilters: () => {
+    set({ activeFilters: {} });
+  },
 
   // Fetch sessions for a specific project (legacy - not paginated)
   fetchSessions: async (projectId: string) => {

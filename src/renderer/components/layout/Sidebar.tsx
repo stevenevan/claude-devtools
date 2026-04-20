@@ -4,6 +4,7 @@ import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { useShallow } from 'zustand/react/shallow';
 
+import { AdvancedFilterPanel } from '../sidebar/AdvancedFilterPanel';
 import { DateGroupedSessions } from '../sidebar/DateGroupedSessions';
 import { ProjectList } from '../sidebar/ProjectList';
 import { SidebarQuickFilters, type SidebarFilter } from '../sidebar/SidebarQuickFilters';
@@ -104,7 +105,10 @@ export const Sidebar = (): React.JSX.Element | null => {
     >
       <SidebarHeader />
       {activeProjectId && (
-        <SidebarQuickFilters activeFilters={activeFilters} onToggle={handleToggleFilter} />
+        <>
+          <SidebarQuickFilters activeFilters={activeFilters} onToggle={handleToggleFilter} />
+          <AdvancedFilterPanel />
+        </>
       )}
       <div className="flex-1 overflow-hidden">
         {activeProjectId ? <DateGroupedSessions sidebarFilters={activeFilters} /> : <ProjectList />}
