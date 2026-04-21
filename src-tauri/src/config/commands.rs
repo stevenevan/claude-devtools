@@ -349,3 +349,54 @@ pub fn config_get_session_tags(
     let state = config.lock().map_err(|e| e.to_string())?;
     Ok(state.get_session_tags(&session_id))
 }
+
+// Session Groups
+
+#[tauri::command]
+pub fn config_create_group(
+    name: String,
+    config: tauri::State<'_, ConfigMutex>,
+) -> Result<bool, String> {
+    let mut state = config.lock().map_err(|e| e.to_string())?;
+    Ok(state.create_session_group(&name))
+}
+
+#[tauri::command]
+pub fn config_delete_group(
+    name: String,
+    config: tauri::State<'_, ConfigMutex>,
+) -> Result<(), String> {
+    let mut state = config.lock().map_err(|e| e.to_string())?;
+    state.delete_session_group(&name);
+    Ok(())
+}
+
+#[tauri::command]
+pub fn config_add_to_group(
+    name: String,
+    session_id: String,
+    config: tauri::State<'_, ConfigMutex>,
+) -> Result<(), String> {
+    let mut state = config.lock().map_err(|e| e.to_string())?;
+    state.add_to_session_group(&name, &session_id);
+    Ok(())
+}
+
+#[tauri::command]
+pub fn config_remove_from_group(
+    name: String,
+    session_id: String,
+    config: tauri::State<'_, ConfigMutex>,
+) -> Result<(), String> {
+    let mut state = config.lock().map_err(|e| e.to_string())?;
+    state.remove_from_session_group(&name, &session_id);
+    Ok(())
+}
+
+#[tauri::command]
+pub fn config_get_groups(
+    config: tauri::State<'_, ConfigMutex>,
+) -> Result<std::collections::HashMap<String, Vec<String>>, String> {
+    let state = config.lock().map_err(|e| e.to_string())?;
+    Ok(state.get_session_groups().clone())
+}

@@ -167,6 +167,16 @@ export interface ConfigAPI {
   removeAnnotation: (annotationId: string) => Promise<void>;
   /** Get all annotations */
   getAnnotations: () => Promise<AnnotationEntry[]>;
+  /** Create a named manual session group */
+  createGroup: (name: string) => Promise<boolean>;
+  /** Delete a manual session group by name */
+  deleteGroup: (name: string) => Promise<void>;
+  /** Add a session to a manual group */
+  addToGroup: (name: string, sessionId: string) => Promise<void>;
+  /** Remove a session from a manual group */
+  removeFromGroup: (name: string, sessionId: string) => Promise<void>;
+  /** Get all manual groups as { groupName: sessionIds[] } */
+  getGroups: () => Promise<Record<string, string[]>>;
 }
 
 export interface AnnotationEntry {

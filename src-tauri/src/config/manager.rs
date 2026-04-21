@@ -489,6 +489,51 @@ impl ConfigState {
     }
 
     // =========================================================================
+    // Session Groups
+    // =========================================================================
+
+    pub fn create_session_group(&mut self, name: &str) -> bool {
+        if self.config.sessions.session_groups.contains_key(name) {
+            return false;
+        }
+        self.config
+            .sessions
+            .session_groups
+            .insert(name.to_string(), vec![]);
+        self.save_config();
+        true
+    }
+
+    pub fn delete_session_group(&mut self, name: &str) {
+        self.config.sessions.session_groups.remove(name);
+        self.save_config();
+    }
+
+    pub fn add_to_session_group(&mut self, name: &str, session_id: &str) {
+        let entry = self
+            .config
+            .sessions
+            .session_groups
+            .entry(name.to_string())
+            .or_default();
+        if !entry.iter().any(|s| s == session_id) {
+            entry.push(session_id.to_string());
+            self.save_config();
+        }
+    }
+
+    pub fn remove_from_session_group(&mut self, name: &str, session_id: &str) {
+        if let Some(entry) = self.config.sessions.session_groups.get_mut(name) {
+            entry.retain(|s| s != session_id);
+            self.save_config();
+        }
+    }
+
+    pub fn get_session_groups(&self) -> &std::collections::HashMap<String, Vec<String>> {
+        &self.config.sessions.session_groups
+    }
+
+    // =========================================================================
     // Internal
     // =========================================================================
 

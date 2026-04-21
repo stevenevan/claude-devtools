@@ -114,6 +114,8 @@ pub struct SessionsConfig {
     pub session_tags: HashMap<String, Vec<String>>,
     #[serde(default)]
     pub annotations: Vec<AnnotationEntry>,
+    #[serde(default)]
+    pub session_groups: HashMap<String, Vec<String>>,
 }
 
 /// Inline annotation anchored to a specific display target (AI group, turn, item) in a session.
@@ -278,6 +280,7 @@ impl Default for SessionsConfig {
             bookmarks: vec![],
             session_tags: HashMap::new(),
             annotations: vec![],
+            session_groups: HashMap::new(),
         }
     }
 }

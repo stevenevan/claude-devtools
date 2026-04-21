@@ -392,6 +392,13 @@ export class TauriAPIClient implements ElectronAPI {
     removeAnnotation: (annotationId) =>
       invoke('config_remove_annotation', { annotationId }),
     getAnnotations: () => invoke<AnnotationEntry[]>('config_get_annotations'),
+    createGroup: (name: string) => invoke<boolean>('config_create_group', { name }),
+    deleteGroup: (name: string) => invoke<void>('config_delete_group', { name }),
+    addToGroup: (name: string, sessionId: string) =>
+      invoke<void>('config_add_to_group', { name, sessionId }),
+    removeFromGroup: (name: string, sessionId: string) =>
+      invoke<void>('config_remove_from_group', { name, sessionId }),
+    getGroups: () => invoke<Record<string, string[]>>('config_get_groups'),
 
     // Native: folder selection dialogs via Tauri plugin
     selectFolders: async (): Promise<string[]> => {

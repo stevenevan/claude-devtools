@@ -3,9 +3,13 @@
  * Color-coded by chunk type. Click to jump. Viewport indicator synced to scroll.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';
+import { useStore } from '@renderer/store';
+import { useShallow } from 'zustand/react/shallow';
+
+import { getAnnotationColorHex } from './AnnotationEditor';
 
 import type { ChatItem } from '@renderer/types/groups';
 
@@ -59,6 +63,24 @@ export const SessionMinimap = ({
   const minimapRef = useRef<HTMLDivElement>(null);
   const [viewportTop, setViewportTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(100);
+
+  const { bookmarks, annotations } = useStore(
+    useShallow((s) => ({
+      bookmarks: s.bookmarks,
+      annotations: s.annotations,
+    }))
+  );
+
+  const bookmarkedIds = useMemo(() => new Set(bookmarks.map((b) => b.groupId)), [bookmarks]);
+  const annotationByTarget = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const annotation of annotations) {
+      if (!map.has(annotation.targetId)) {
+        map.set(annotation.targetId, annotation.color);
+      }
+    }
+    return map;
+  }, [annotations]);
 
   // Calculate total weight for proportional heights
   const totalWeight = items.reduce((sum, item) => sum + getItemWeight(item), 0);
@@ -128,7 +150,7 @@ export const SessionMinimap = ({
     <div
       ref={minimapRef}
       className={cn(
-        'relative w-2.5 shrink-0 cursor-pointer',
+        'relative w-4 shrink-0 cursor-pointer',
         className
       )}
       onClick={handleClick}
@@ -139,12 +161,31 @@ export const SessionMinimap = ({
         {items.map((item) => {
           const weight = getItemWeight(item);
           const heightPct = (weight / totalWeight) * 100;
+          const isBookmarked = bookmarkedIds.has(item.group.id);
+          const annotationColor = annotationByTarget.get(item.group.id);
           return (
             <div
               key={item.group.id}
-              className={cn('min-h-px rounded-full', getItemColor(item))}
+              className="relative flex items-center"
               style={{ flexGrow: heightPct }}
-            />
+            >
+              <div
+                className={cn('min-h-px w-2 flex-1 rounded-full', getItemColor(item))}
+              />
+              {isBookmarked && (
+                <span
+                  aria-hidden
+                  className="absolute right-0 top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-amber-400"
+                />
+              )}
+              {annotationColor && (
+                <span
+                  aria-hidden
+                  className="absolute right-[5px] top-1/2 size-1.5 -translate-y-1/2 rounded-full"
+                  style={{ backgroundColor: getAnnotationColorHex(annotationColor) }}
+                />
+              )}
+            </div>
           );
         })}
       </div>
