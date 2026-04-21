@@ -14,6 +14,7 @@ import {
   AdvancedSection,
   ConnectionSection,
   GeneralSection,
+  KeyboardShortcutsSection,
   NotificationsSection,
   WorkspaceSection,
 } from './sections';
@@ -138,6 +139,10 @@ export const SettingsView = (): React.JSX.Element | null => {
               onUpdateTrigger={handlers.handleUpdateTrigger}
               onRemoveTrigger={handlers.handleRemoveTrigger}
             />
+          </SettingsTabContent>
+
+          <SettingsTabContent value="shortcuts" className="mt-4">
+            <KeyboardShortcutsSection />
           </SettingsTabContent>
 
           <SettingsTabContent value="advanced" className="mt-4">
