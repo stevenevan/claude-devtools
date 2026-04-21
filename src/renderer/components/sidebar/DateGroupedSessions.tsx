@@ -25,6 +25,7 @@ import {
   Loader2,
   MessageSquareOff,
   Pin,
+  Tag,
   X,
 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -81,6 +82,8 @@ export const DateGroupedSessions = ({ sidebarFilters }: DateGroupedSessionsProps
     hideMultipleSessions,
     unhideMultipleSessions,
     pinMultipleSessions,
+    setSessionTagsAction,
+    getSessionTagsAction,
   } = useStore(
     useShallow((s) => ({
       sessions: s.sessions,
@@ -105,6 +108,8 @@ export const DateGroupedSessions = ({ sidebarFilters }: DateGroupedSessionsProps
       hideMultipleSessions: s.hideMultipleSessions,
       unhideMultipleSessions: s.unhideMultipleSessions,
       pinMultipleSessions: s.pinMultipleSessions,
+      setSessionTagsAction: s.setSessionTags,
+      getSessionTagsAction: s.getSessionTags,
     }))
   );
 
@@ -348,6 +353,23 @@ export const DateGroupedSessions = ({ sidebarFilters }: DateGroupedSessionsProps
     clearSidebarSelection();
   }, [pinMultipleSessions, sidebarSelectedSessionIds, clearSidebarSelection]);
 
+  const handleBulkTag = useCallback(() => {
+    const input = window.prompt('Tag to apply to selected sessions');
+    const trimmed = input?.trim();
+    if (!trimmed) return;
+    const tasks = sidebarSelectedSessionIds.map(async (id) => {
+      const current = getSessionTagsAction(id);
+      if (current.includes(trimmed)) return;
+      await setSessionTagsAction(id, [...current, trimmed]);
+    });
+    void Promise.all(tasks).then(() => clearSidebarSelection());
+  }, [
+    sidebarSelectedSessionIds,
+    setSessionTagsAction,
+    getSessionTagsAction,
+    clearSidebarSelection,
+  ]);
+
   if (!selectedProjectId) {
     return (
       <div className="p-4">
@@ -493,6 +515,13 @@ export const DateGroupedSessions = ({ sidebarFilters }: DateGroupedSessionsProps
               title="Pin selected sessions"
             >
               <Pin className="inline-block size-3" /> Pin
+            </button>
+            <button
+              onClick={handleBulkTag}
+              className="text-muted-foreground rounded-sm px-1.5 py-0.5 text-[10px] font-medium transition-colors hover:bg-white/5"
+              title="Add tag to selected sessions"
+            >
+              <Tag className="inline-block size-3" /> Tag
             </button>
             <button
               onClick={handleBulkHide}
