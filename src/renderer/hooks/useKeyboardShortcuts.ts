@@ -114,7 +114,7 @@ export function useKeyboardShortcuts(): void {
         }
       }
 
-      // --- J/K turn navigation (no modifier needed, only in session tabs) ---
+      // --- J/K turn navigation + F flame graph (no modifier, only in session tabs) ---
       if (!isMod && !event.altKey && !event.shiftKey) {
         // Skip if an input/textarea is focused
         const tag = (event.target as HTMLElement)?.tagName;
@@ -127,6 +127,13 @@ export function useKeyboardShortcuts(): void {
             window.dispatchEvent(
               new CustomEvent('turn-navigate', { detail: { direction: event.key === 'j' ? 'next' : 'prev' } })
             );
+            return;
+          }
+        } else if (event.key === 'f') {
+          const activeTab = getActiveTab();
+          if (activeTab?.type === 'session') {
+            event.preventDefault();
+            useStore.getState().toggleFlameGraph();
             return;
           }
         }

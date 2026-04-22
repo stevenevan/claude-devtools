@@ -3,10 +3,11 @@
  * Sits between SearchBar and ChatHistory in the MiddlePanel.
  */
 
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatDuration, formatTokensCompact } from '@renderer/utils/formatters';
 import { parseModelString } from '@shared/utils/modelParser';
-import { Clock, DollarSign, Hash, Layers, Zap } from 'lucide-react';
+import { Clock, DollarSign, Flame, Hash, Layers, Zap } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 interface SessionSummaryBarProps {
@@ -29,7 +30,7 @@ function shortModelName(model: string | undefined): string {
 }
 
 export const SessionSummaryBar = ({ tabId }: Readonly<SessionSummaryBarProps>): React.JSX.Element | null => {
-  const { metrics, totalAIGroups, isOngoing } = useStore(
+  const { metrics, totalAIGroups, isOngoing, flameGraphVisible, toggleFlameGraph } = useStore(
     useShallow((s) => {
       const td = tabId ? s.tabSessionData[tabId] : null;
       const detail = td?.sessionDetail ?? s.sessionDetail;
@@ -38,6 +39,8 @@ export const SessionSummaryBar = ({ tabId }: Readonly<SessionSummaryBarProps>): 
         metrics: detail?.metrics ?? null,
         totalAIGroups: conv?.totalAIGroups ?? 0,
         isOngoing: detail?.session?.isOngoing ?? false,
+        flameGraphVisible: s.flameGraphVisible,
+        toggleFlameGraph: s.toggleFlameGraph,
       };
     })
   );
@@ -82,9 +85,25 @@ export const SessionSummaryBar = ({ tabId }: Readonly<SessionSummaryBarProps>): 
         </span>
       )}
 
+      {/* Flame graph toggle */}
+      <button
+        onClick={() => toggleFlameGraph()}
+        className={cn(
+          'ml-auto flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-[11px] transition-colors',
+          flameGraphVisible
+            ? 'bg-amber-500/20 text-amber-200'
+            : 'text-text-secondary hover:bg-surface-raised'
+        )}
+        title={flameGraphVisible ? 'Hide flame graph (f)' : 'Show flame graph (f)'}
+        aria-pressed={flameGraphVisible}
+      >
+        <Flame className="size-3" />
+        <span>Flame</span>
+      </button>
+
       {/* Ongoing dot */}
       {isOngoing && (
-        <span className="ml-auto flex items-center gap-1.5">
+        <span className="flex items-center gap-1.5">
           <span className="relative flex h-1.5 w-1.5">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />

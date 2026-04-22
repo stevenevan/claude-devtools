@@ -25,6 +25,7 @@ export interface UISlice {
   shortcutCheatSheetOpen: boolean;
   helpPanelOpen: boolean;
   contextHeatmapVisible: boolean;
+  flameGraphVisible: boolean;
 
   openCommandPalette: () => void;
   closeCommandPalette: () => void;
@@ -33,6 +34,8 @@ export interface UISlice {
   toggleShortcutCheatSheet: () => void;
   setHelpPanelOpen: (open: boolean) => void;
   toggleContextHeatmap: () => void;
+  toggleFlameGraph: () => void;
+  setFlameGraphVisible: (visible: boolean) => void;
 }
 
 const CONTEXT_HEATMAP_STORAGE_KEY = 'cdt.ui.contextHeatmapVisible';
@@ -62,6 +65,7 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => (
   shortcutCheatSheetOpen: false,
   helpPanelOpen: false,
   contextHeatmapVisible: loadContextHeatmapVisible(),
+  flameGraphVisible: false,
 
   // Command palette actions
   openCommandPalette: () => {
@@ -103,5 +107,13 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => (
       persistContextHeatmapVisible(next);
       return { contextHeatmapVisible: next };
     });
+  },
+
+  toggleFlameGraph: () => {
+    set((state) => ({ flameGraphVisible: !state.flameGraphVisible }));
+  },
+
+  setFlameGraphVisible: (visible) => {
+    set({ flameGraphVisible: visible });
   },
 });
