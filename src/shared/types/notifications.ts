@@ -315,4 +315,9 @@ export interface AppConfig {
     /** Port for the HTTP server (default 3456) */
     port: number;
   };
+  /** Spending budget thresholds (alerting wiring deferred to later sprint). */
+  budget?: {
+    dailyBudgetUsd?: number;
+    weeklyBudgetUsd?: number;
+  };
 }

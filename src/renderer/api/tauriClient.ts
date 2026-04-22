@@ -45,6 +45,7 @@ function reviveDates<T>(obj: T): T {
 import type {
   AnalyticsResponse,
   AnnotationEntry,
+  CostForecast,
   AppConfig,
   ClaudeMdFileInfo,
   ClaudeRootFolderSelection,
@@ -177,6 +178,9 @@ export class TauriAPIClient implements ElectronAPI {
 
   getAnalytics = (days: number): Promise<AnalyticsResponse> =>
     invoke<AnalyticsResponse>('get_analytics', { days });
+
+  getCostForecast = (windowDays: number): Promise<CostForecast> =>
+    invoke<CostForecast>('get_cost_forecast', { windowDays });
 
   getToolAnalytics = (projectId: string, days: number): Promise<ToolAnalyticsResponse> =>
     invoke<ToolAnalyticsResponse>('get_tool_analytics', { projectId, days });

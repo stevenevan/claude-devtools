@@ -46,6 +46,7 @@ pub fn run() {
             commands::parse_session,
             commands::parse_session_metrics,
             commands::get_analytics,
+            commands::get_cost_forecast,
             analysis::commands::get_tool_analytics,
             analysis::commands::get_error_hotspots,
             commands::get_all_todos,

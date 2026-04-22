@@ -1062,6 +1062,15 @@ pub fn get_analytics(
     crate::analytics::compute_analytics(days, &registry)
 }
 
+/// Linear-regression cost forecast over trailing `window_days` of daily totals.
+#[tauri::command]
+pub fn get_cost_forecast(
+    window_days: u32,
+    registry: tauri::State<'_, Arc<Mutex<SubprojectRegistry>>>,
+) -> Result<crate::analytics::CostForecast, String> {
+    crate::analytics::compute_cost_forecast(window_days, &registry)
+}
+
 // ---------------------------------------------------------------------------
 // Project Discovery
 // ---------------------------------------------------------------------------

@@ -39,6 +39,7 @@ import {
   YAxis,
 } from 'recharts';
 
+import { BudgetPanel } from './BudgetPanel';
 import { CostTrendChart } from './CostTrendChart';
 import { ErrorHotspotsPanel } from './ErrorHotspotsPanel';
 import { SessionSchedule } from './SessionSchedule';
@@ -510,6 +511,11 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
             </BarChart>
           </ResponsiveContainer>
         </ChartSection>
+
+        {/* Budget & forecast */}
+        <div className="mb-6">
+          <BudgetPanel />
+        </div>
 
         {/* Cost trend */}
         <ChartSection

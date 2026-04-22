@@ -504,3 +504,11 @@ export interface AnalyticsResponse {
   granularity: BucketGranularity;
   toolSummary?: ToolAnalyticsResponse;
 }
+
+export interface CostForecast {
+  projectedDailyCostUsd: number;
+  projectedWeeklyCostUsd: number;
+  trendSlopeUsdPerDay: number;
+  sampleDays: number;
+  recentDailyCosts: number[];
+}

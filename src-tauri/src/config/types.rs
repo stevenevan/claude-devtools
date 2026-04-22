@@ -16,6 +16,19 @@ pub struct AppConfig {
     pub sessions: SessionsConfig,
     pub ssh: SshPersistConfig,
     pub http_server: HttpServerConfig,
+    #[serde(default)]
+    pub budget: BudgetConfig,
+}
+
+// Budget Config — spending thresholds (no alerting in sprint 18; see roadmap).
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BudgetConfig {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub daily_budget_usd: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub weekly_budget_usd: Option<f64>,
 }
 
 // Notification Config
@@ -224,6 +237,7 @@ impl Default for AppConfig {
             sessions: SessionsConfig::default(),
             ssh: SshPersistConfig::default(),
             http_server: HttpServerConfig::default(),
+            budget: BudgetConfig::default(),
         }
     }
 }
@@ -355,6 +369,11 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         None => defaults.http_server.clone(),
     };
 
+    let budget: BudgetConfig = match obj.get("budget") {
+        Some(v) => serde_json::from_value(v.clone()).unwrap_or_default(),
+        None => defaults.budget.clone(),
+    };
+
     AppConfig {
         notifications,
         general,
@@ -362,6 +381,7 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         sessions,
         ssh,
         http_server,
+        budget,
     }
 }
 
