@@ -46,6 +46,7 @@ import type {
   AnalyticsResponse,
   AnnotationEntry,
   CostForecast,
+  ProductivityMetrics,
   AppConfig,
   ClaudeMdFileInfo,
   ClaudeRootFolderSelection,
@@ -181,6 +182,9 @@ export class TauriAPIClient implements ElectronAPI {
 
   getCostForecast = (windowDays: number): Promise<CostForecast> =>
     invoke<CostForecast>('get_cost_forecast', { windowDays });
+
+  getProductivityMetrics = (days: number): Promise<ProductivityMetrics> =>
+    invoke<ProductivityMetrics>('get_productivity_metrics', { days });
 
   getToolAnalytics = (projectId: string, days: number): Promise<ToolAnalyticsResponse> =>
     invoke<ToolAnalyticsResponse>('get_tool_analytics', { projectId, days });

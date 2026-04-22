@@ -9,6 +9,7 @@ import type {
   AnalyticsResponse,
   CostForecast,
   PaginatedSessionsResult,
+  ProductivityMetrics,
   Project,
   RepositoryGroup,
   ContentSearchResult,
@@ -419,6 +420,7 @@ export interface ElectronAPI {
   getSessionMetrics: (projectId: string, sessionId: string) => Promise<SessionMetrics | null>;
   getAnalytics: (days: number) => Promise<AnalyticsResponse>;
   getCostForecast: (windowDays: number) => Promise<CostForecast>;
+  getProductivityMetrics: (days: number) => Promise<ProductivityMetrics>;
   getToolAnalytics: (projectId: string, days: number) => Promise<ToolAnalyticsResponse>;
   getErrorHotspots: (
     projectId: string,

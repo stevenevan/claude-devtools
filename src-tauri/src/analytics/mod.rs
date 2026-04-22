@@ -5,12 +5,14 @@ mod aggregate;
 mod buckets;
 mod cost;
 mod forecasting;
+mod productivity;
 mod session_scan;
 mod types;
 
 pub use aggregate::compute_analytics;
 pub use buckets::BucketGranularity;
 pub use forecasting::{compute_cost_forecast, CostForecast};
+pub use productivity::{compute_productivity_metrics, ProductivityMetrics};
 pub use types::{
     AnalyticsResponse, ModelUsageEntry, ProjectUsageEntry, ScheduleEventEntry, TimeBucketUsage,
     TopSessionEntry,

@@ -1071,6 +1071,15 @@ pub fn get_cost_forecast(
     crate::analytics::compute_cost_forecast(window_days, &registry)
 }
 
+/// Per-day productivity metrics: sessions, active minutes, tool calls, token p50/p95.
+#[tauri::command]
+pub fn get_productivity_metrics(
+    days: u32,
+    registry: tauri::State<'_, Arc<Mutex<SubprojectRegistry>>>,
+) -> Result<crate::analytics::ProductivityMetrics, String> {
+    crate::analytics::compute_productivity_metrics(days, &registry)
+}
+
 // ---------------------------------------------------------------------------
 // Project Discovery
 // ---------------------------------------------------------------------------

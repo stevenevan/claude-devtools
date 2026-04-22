@@ -512,3 +512,27 @@ export interface CostForecast {
   sampleDays: number;
   recentDailyCosts: number[];
 }
+
+export interface ProductivityDay {
+  date: string;
+  sessionsStarted: number;
+  sessionsCompleted: number;
+  activeMs: number;
+  toolCalls: number;
+  tokensP50: number;
+  tokensP95: number;
+}
+
+export interface ProductivityTotals {
+  sessionsStarted: number;
+  sessionsCompleted: number;
+  activeMs: number;
+  toolCalls: number;
+  tokensP50: number;
+  tokensP95: number;
+}
+
+export interface ProductivityMetrics {
+  days: ProductivityDay[];
+  totals: ProductivityTotals;
+}
