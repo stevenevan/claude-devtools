@@ -18,7 +18,7 @@ export type UseDebouncedCallbackReturnValue<T extends (...args: any[]) => any> =
 export function useDebouncedCallback<T extends (...args: any[]) => any>(
   callback: T,
   options: number | UseDebouncedCallbackOptions
-) {
+): UseDebouncedCallbackReturnValue<T> {
   const { delay, flushOnUnmount, leading } =
     typeof options === 'number'
       ? { delay: options, flushOnUnmount: false, leading: false }
@@ -35,19 +35,19 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
         const isFirstCall = currentCallback._isFirstCall;
         currentCallback._isFirstCall = false;
 
-        function clearTimeoutAndLeadingRef() {
+        function clearTimeoutAndLeadingRef(): void {
           window.clearTimeout(debounceTimerRef.current);
           debounceTimerRef.current = 0;
           currentCallback._isFirstCall = true;
         }
 
-        const flush = () => {
+        const flush = (): void => {
           if (debounceTimerRef.current !== 0) {
             clearTimeoutAndLeadingRef();
             handleCallback(...args);
           }
         };
-        const cancel = () => {
+        const cancel = (): void => {
           clearTimeoutAndLeadingRef();
         };
         currentCallback.flush = flush;

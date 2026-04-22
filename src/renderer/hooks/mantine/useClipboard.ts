@@ -18,13 +18,13 @@ export function useClipboard(
   const [copied, setCopied] = useState(false);
   const [copyTimeout, setCopyTimeout] = useState<number | null>(null);
 
-  const handleCopyResult = (value: boolean) => {
+  const handleCopyResult = (value: boolean): void => {
     window.clearTimeout(copyTimeout!);
     setCopyTimeout(window.setTimeout(() => setCopied(false), options.timeout));
     setCopied(value);
   };
 
-  const copy = (value: string) => {
+  const copy = (value: string): void => {
     if ('clipboard' in navigator) {
       navigator.clipboard
         .writeText(value)
@@ -35,7 +35,7 @@ export function useClipboard(
     }
   };
 
-  const reset = () => {
+  const reset = (): void => {
     setCopied(false);
     setError(null);
     window.clearTimeout(copyTimeout!);

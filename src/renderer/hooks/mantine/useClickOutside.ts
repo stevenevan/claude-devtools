@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 
 type EventType = MouseEvent | TouchEvent;
 
@@ -8,12 +8,12 @@ export function useClickOutside<T extends HTMLElement = HTMLElement>(
   callback: (event: EventType) => void,
   events?: string[] | null,
   nodes?: (HTMLElement | null)[]
-) {
+): RefObject<T | null> {
   const ref = useRef<T>(null);
   const eventsList = events || DEFAULT_EVENTS;
 
   useEffect(() => {
-    const listener = (event: Event) => {
+    const listener = (event: Event): void => {
       const { target } = event ?? {};
       if (Array.isArray(nodes)) {
         const shouldIgnore =

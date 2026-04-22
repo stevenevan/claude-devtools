@@ -200,7 +200,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
   return (
     <div
       className={cn('flex items-center justify-between border-b border-border bg-background pr-2')}
-      {...(isDesktopMode() && isLeftmostPane ? { 'data-tauri-drag-region': true } : {})}
+      data-tauri-drag-region={isDesktopMode() && isLeftmostPane ? true : undefined}
       style={
         {
           height: `${HEADER_ROW1_HEIGHT}px`,
@@ -287,7 +287,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
           Only applied on the leftmost pane in Electron to match the TabBar drag region logic. */}
       <div
         className="flex-1 self-stretch"
-        {...(isDesktopMode() && isLeftmostPane ? { 'data-tauri-drag-region': true } : {})}
+        data-tauri-drag-region={isDesktopMode() && isLeftmostPane ? true : undefined}
         style={
           {
             WebkitAppRegion: isDesktopMode() && isLeftmostPane ? 'drag' : undefined,

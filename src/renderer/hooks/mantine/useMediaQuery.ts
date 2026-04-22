@@ -16,7 +16,7 @@ function attachMediaListener(query: MediaQueryList, callback: MediaQueryCallback
   }
 }
 
-function getInitialValue(query: string, initialValue?: boolean) {
+function getInitialValue(query: string, initialValue?: boolean): boolean {
   if (typeof initialValue === 'boolean') {
     return initialValue;
   }

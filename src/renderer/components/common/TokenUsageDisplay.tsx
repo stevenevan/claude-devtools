@@ -65,7 +65,7 @@ const SessionContextSection = ({
     (inj) => inj.category === 'user-message'
   ).length;
 
-  const pct = (n: number) =>
+  const pct = (n: number): string =>
     totalTokens > 0 ? Math.min((n / totalTokens) * 100, 100).toFixed(1) : '0.0';
 
   return (

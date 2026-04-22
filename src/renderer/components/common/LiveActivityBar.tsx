@@ -73,7 +73,7 @@ function getActivityFromStep(step: SemanticStep | null | undefined): {
 /** Truncate a file path to show just the last 2 segments. */
 function truncatePath(pathOrInput: string): string {
   // Try to extract a file path from the input preview
-  const pathMatch = /(?:\/[\w.-]+)+/.exec(pathOrInput);
+  const pathMatch = /\/[\w/.-]+/.exec(pathOrInput);
   if (pathMatch) {
     const segments = pathMatch[0].split('/').filter(Boolean);
     if (segments.length > 2) {

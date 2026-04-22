@@ -248,7 +248,7 @@ interface ConversationDiffProps {
 const ConversationDiff = ({
   leftDetail,
   rightDetail,
-}: Readonly<ConversationDiffProps>): React.JSX.Element => {
+}: Readonly<ConversationDiffProps>): React.JSX.Element | null => {
   const leftTurns = useMemo(() => extractTurns(leftDetail), [leftDetail]);
   const rightTurns = useMemo(() => extractTurns(rightDetail), [rightDetail]);
 
@@ -281,7 +281,7 @@ const ConversationDiff = ({
     [divergentIndices]
   );
 
-  if (maxTurns === 0) return <></>;
+  if (maxTurns === 0) return null;
 
   return (
     <div className="border-border mt-6 rounded-lg border p-4">

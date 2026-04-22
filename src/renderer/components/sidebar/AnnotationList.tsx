@@ -7,7 +7,7 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { MessageSquareText, Trash2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
-import { getAnnotationColorHex } from '../chat/AnnotationEditor';
+import { getAnnotationColorHex } from '../chat/annotationColors';
 
 import type { AnnotationEntry } from '@shared/types';
 

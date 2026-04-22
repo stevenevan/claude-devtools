@@ -9,7 +9,7 @@ import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { useShallow } from 'zustand/react/shallow';
 
-import { getAnnotationColorHex } from './AnnotationEditor';
+import { getAnnotationColorHex } from './annotationColors';
 
 import type { ChatItem } from '@renderer/types/groups';
 
@@ -149,11 +149,20 @@ export const SessionMinimap = ({
   return (
     <div
       ref={minimapRef}
+      role="button"
+      tabIndex={0}
+      aria-label="Session minimap navigator"
       className={cn(
         'relative w-4 shrink-0 cursor-pointer',
         className
       )}
       onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          onJumpToIndex(Math.min(items.length - 1, 0));
+        }
+      }}
       title="Click to navigate"
     >
       {/* Item bars */}

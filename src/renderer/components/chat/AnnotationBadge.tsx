@@ -6,7 +6,8 @@ import { useStore } from '@renderer/store';
 import { MessageSquarePlus, MessageSquareText } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
-import { AnnotationEditor, getAnnotationColorHex } from './AnnotationEditor';
+import { AnnotationEditor } from './AnnotationEditor';
+import { getAnnotationColorHex } from './annotationColors';
 
 interface AnnotationBadgeProps {
   targetId: string;
@@ -70,7 +71,12 @@ export const AnnotationBadge = ({
         }
       />
       <PopoverContent className="w-80 p-2" align="end">
-        <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+        <div
+          role="presentation"
+          className="space-y-2"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
           {annotations.map((annotation) =>
             editingId === annotation.id ? (
               <AnnotationEditor

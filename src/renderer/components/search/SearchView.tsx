@@ -122,7 +122,7 @@ export const SearchView = (): React.JSX.Element => {
     inputRef.current?.focus();
   }, []);
 
-  const handleResultClick = (result: FilteredSearchResult) => {
+  const handleResultClick = (result: FilteredSearchResult): void => {
     openTab({
       type: 'session',
       projectId: result.projectId,
@@ -133,7 +133,7 @@ export const SearchView = (): React.JSX.Element => {
     setActiveActivity('projects');
   };
 
-  const clearAll = () => {
+  const clearAll = (): void => {
     setQuery('');
     setDatePreset('any');
     setStatusFilter('all');

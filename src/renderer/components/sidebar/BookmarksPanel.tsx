@@ -76,11 +76,19 @@ const BookmarkItem = ({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       className={cn(
         'group flex items-center gap-2 rounded-sm px-2 py-1.5 transition-colors',
         'hover:bg-surface-raised cursor-pointer'
       )}
       onClick={onNavigate}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onNavigate();
+        }
+      }}
     >
       <MessageSquare className="text-amber-400/70 size-3.5 shrink-0" />
       <div className="min-w-0 flex-1">
