@@ -24,6 +24,7 @@ export interface UISlice {
   activeActivity: ActivityView;
   shortcutCheatSheetOpen: boolean;
   helpPanelOpen: boolean;
+  contextHeatmapVisible: boolean;
 
   openCommandPalette: () => void;
   closeCommandPalette: () => void;
@@ -31,6 +32,27 @@ export interface UISlice {
   setActiveActivity: (activity: ActivityView) => void;
   toggleShortcutCheatSheet: () => void;
   setHelpPanelOpen: (open: boolean) => void;
+  toggleContextHeatmap: () => void;
+}
+
+const CONTEXT_HEATMAP_STORAGE_KEY = 'cdt.ui.contextHeatmapVisible';
+
+function loadContextHeatmapVisible(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.localStorage.getItem(CONTEXT_HEATMAP_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function persistContextHeatmapVisible(visible: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(CONTEXT_HEATMAP_STORAGE_KEY, visible ? '1' : '0');
+  } catch {
+    /* storage unavailable */
+  }
 }
 
 export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => ({
@@ -39,6 +61,7 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => (
   activeActivity: 'projects',
   shortcutCheatSheetOpen: false,
   helpPanelOpen: false,
+  contextHeatmapVisible: loadContextHeatmapVisible(),
 
   // Command palette actions
   openCommandPalette: () => {
@@ -72,5 +95,13 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => (
 
   setHelpPanelOpen: (open) => {
     set({ helpPanelOpen: open });
+  },
+
+  toggleContextHeatmap: () => {
+    set((state) => {
+      const next = !state.contextHeatmapVisible;
+      persistContextHeatmapVisible(next);
+      return { contextHeatmapVisible: next };
+    });
   },
 });

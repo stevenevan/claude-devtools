@@ -13,6 +13,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { countPendingTodos } from '@renderer/types/todos';
 
 import { LiveMetricsBar } from '../common/LiveMetricsBar';
+import { ContextHeatmap } from './ContextHeatmap';
 import { SessionContextPanel } from './SessionContextPanel/index';
 import { SessionMinimap } from './SessionMinimap';
 import { TodoPanel } from './TodoPanel';
@@ -72,6 +73,8 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     syncSearchMatchesWithRendered,
     selectSearchMatch,
     setTabVisibleAIGroup,
+    contextHeatmapVisible,
+    toggleContextHeatmap,
   } = useStore(
     useShallow((s) => ({
       searchQuery: s.searchQuery,
@@ -84,6 +87,8 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
       syncSearchMatchesWithRendered: s.syncSearchMatchesWithRendered,
       selectSearchMatch: s.selectSearchMatch,
       setTabVisibleAIGroup: s.setTabVisibleAIGroup,
+      contextHeatmapVisible: s.contextHeatmapVisible,
+      toggleContextHeatmap: s.toggleContextHeatmap,
     }))
   );
 
@@ -849,9 +854,23 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
           className="bg-background flex-1 overflow-y-auto"
           onScroll={checkScrollButton}
         >
-          {/* Sticky toolbar buttons (Context + Tasks) */}
+          {/* Sticky toolbar buttons (Context + Tasks + Heatmap toggle) */}
           {(allContextInjections.length > 0 || hasTodoData) && (
             <div className="pointer-events-none sticky top-0 z-10 flex justify-end gap-1.5 px-4 pt-3 pb-0">
+              {sessionContextStats && sessionContextStats.size > 0 && (
+                <button
+                  onClick={() => toggleContextHeatmap()}
+                  className={cn(
+                    'pointer-events-auto flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs shadow-lg backdrop-blur-md transition-colors',
+                    contextHeatmapVisible
+                      ? 'bg-violet-500/45 text-violet-100'
+                      : 'bg-muted text-muted-foreground hover:bg-accent'
+                  )}
+                  title={contextHeatmapVisible ? 'Hide context heatmap' : 'Show context heatmap'}
+                >
+                  Heatmap
+                </button>
+              )}
               {hasTodoData && (
                 <button
                   onClick={() => setIsTodoPanelVisible(!isTodoPanelVisible)}
@@ -882,6 +901,15 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
                   Context ({allContextInjections.length})
                 </button>
               )}
+            </div>
+          )}
+          {contextHeatmapVisible && sessionContextStats && conversation.items.length > 0 && (
+            <div className="sticky top-12 z-10 mx-auto max-w-5xl px-6 pt-2 pb-1">
+              <ContextHeatmap
+                items={conversation.items}
+                statsMap={sessionContextStats}
+                onSelectTurn={(_groupId, turnIndex) => handleNavigateToTurn(turnIndex)}
+              />
             </div>
           )}
           <div
