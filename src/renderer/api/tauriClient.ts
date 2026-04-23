@@ -47,6 +47,7 @@ import type {
   AnnotationEntry,
   CostForecast,
   ProductivityMetrics,
+  SessionDurationResponse,
   AppConfig,
   ClaudeMdFileInfo,
   ClaudeRootFolderSelection,
@@ -186,6 +187,9 @@ export class TauriAPIClient implements ElectronAPI {
 
   getProductivityMetrics = (days: number): Promise<ProductivityMetrics> =>
     invoke<ProductivityMetrics>('get_productivity_metrics', { days });
+
+  getSessionDurationStats = (days: number): Promise<SessionDurationResponse> =>
+    invoke<SessionDurationResponse>('get_session_duration_stats', { days });
 
   getToolAnalytics = (projectId: string, days: number): Promise<ToolAnalyticsResponse> =>
     invoke<ToolAnalyticsResponse>('get_tool_analytics', { projectId, days });

@@ -10,6 +10,7 @@ import type {
   CostForecast,
   PaginatedSessionsResult,
   ProductivityMetrics,
+  SessionDurationResponse,
   Project,
   RepositoryGroup,
   ContentSearchResult,
@@ -422,6 +423,7 @@ export interface ElectronAPI {
   getAnalytics: (days: number) => Promise<AnalyticsResponse>;
   getCostForecast: (windowDays: number) => Promise<CostForecast>;
   getProductivityMetrics: (days: number) => Promise<ProductivityMetrics>;
+  getSessionDurationStats: (days: number) => Promise<SessionDurationResponse>;
   getToolAnalytics: (projectId: string, days: number) => Promise<ToolAnalyticsResponse>;
   getToolTimeHeatmap: (
     projectId: string,

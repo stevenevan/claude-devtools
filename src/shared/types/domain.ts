@@ -549,3 +549,29 @@ export interface ProductivityMetrics {
   days: ProductivityDay[];
   totals: ProductivityTotals;
 }
+
+export interface SessionDurationEntry {
+  sessionId: string;
+  projectId: string;
+  projectName: string;
+  title: string;
+  wallMs: number;
+  activeMs: number;
+  startedMs: number;
+}
+
+export interface DurationStats {
+  p50Ms: number;
+  p95Ms: number;
+  maxMs: number;
+  outlierThresholdMs: number;
+}
+
+export interface SessionDurationResponse {
+  sessions: SessionDurationEntry[];
+  histogram: number[];
+  histogramMaxMs: number;
+  wallStats: DurationStats;
+  activeStats: DurationStats;
+  outlierSessionIds: string[];
+}

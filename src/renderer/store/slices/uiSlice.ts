@@ -26,6 +26,9 @@ export interface UISlice {
   helpPanelOpen: boolean;
   contextHeatmapVisible: boolean;
   flameGraphVisible: boolean;
+  /** Session IDs marked as duration outliers (wall > p95 × 1.5). Populated
+   * by the DurationPanel effect; sidebar SessionItem reads it for a badge. */
+  durationOutlierSessionIds: Set<string>;
 
   openCommandPalette: () => void;
   closeCommandPalette: () => void;
@@ -36,6 +39,7 @@ export interface UISlice {
   toggleContextHeatmap: () => void;
   toggleFlameGraph: () => void;
   setFlameGraphVisible: (visible: boolean) => void;
+  setDurationOutlierSessionIds: (ids: string[]) => void;
 }
 
 const CONTEXT_HEATMAP_STORAGE_KEY = 'cdt.ui.contextHeatmapVisible';
@@ -66,6 +70,7 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => (
   helpPanelOpen: false,
   contextHeatmapVisible: loadContextHeatmapVisible(),
   flameGraphVisible: false,
+  durationOutlierSessionIds: new Set<string>(),
 
   // Command palette actions
   openCommandPalette: () => {
@@ -115,5 +120,9 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => (
 
   setFlameGraphVisible: (visible) => {
     set({ flameGraphVisible: visible });
+  },
+
+  setDurationOutlierSessionIds: (ids) => {
+    set({ durationOutlierSessionIds: new Set(ids) });
   },
 });

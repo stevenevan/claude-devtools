@@ -12,7 +12,7 @@ import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { EyeOff, ListTodo, MessageSquare, Pin } from 'lucide-react';
+import { AlertTriangle, EyeOff, ListTodo, MessageSquare, Pin } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { countPendingTodos } from '@renderer/types/todos';
@@ -123,6 +123,7 @@ export const SessionItem = React.memo(function SessionItem({
     splitPane,
     togglePinSession,
     toggleHideSession,
+    isDurationOutlier,
   } = useStore(
     useShallow((s) => ({
       openTab: s.openTab,
@@ -133,6 +134,7 @@ export const SessionItem = React.memo(function SessionItem({
       splitPane: s.splitPane,
       togglePinSession: s.togglePinSession,
       toggleHideSession: s.toggleHideSession,
+      isDurationOutlier: s.durationOutlierSessionIds.has(session.id),
     }))
   );
 
@@ -259,6 +261,14 @@ export const SessionItem = React.memo(function SessionItem({
           {session.isOngoing && <OngoingIndicator />}
           {isPinned && <Pin className="size-2.5 shrink-0 text-blue-400" />}
           {isHidden && <EyeOff className="size-2.5 shrink-0 text-zinc-500" />}
+          {isDurationOutlier && (
+            <span
+              title="Duration outlier: wall time exceeds p95 × 1.5"
+              className="text-amber-400"
+            >
+              <AlertTriangle className="size-2.5 shrink-0" />
+            </span>
+          )}
           <span
             className={cn(
               'truncate text-[13px] leading-tight font-medium',

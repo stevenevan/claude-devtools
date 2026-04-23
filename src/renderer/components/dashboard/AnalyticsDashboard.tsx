@@ -41,6 +41,7 @@ import {
 
 import { BudgetPanel } from './BudgetPanel';
 import { CostTrendChart } from './CostTrendChart';
+import { DurationPanel } from './DurationPanel';
 import { ErrorHotspotsPanel } from './ErrorHotspotsPanel';
 import { ProductivityPanel } from './ProductivityPanel';
 import { SessionSchedule } from './SessionSchedule';
@@ -521,6 +522,11 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
         {/* Productivity */}
         <div className="mb-6">
           <ProductivityPanel />
+        </div>
+
+        {/* Session duration */}
+        <div className="mb-6">
+          <DurationPanel />
         </div>
 
         {/* Cost trend */}

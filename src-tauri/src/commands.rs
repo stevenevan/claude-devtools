@@ -1080,6 +1080,15 @@ pub fn get_productivity_metrics(
     crate::analytics::compute_productivity_metrics(days, &registry)
 }
 
+/// Per-session wall/active durations with p50/p95/max stats and outlier ids.
+#[tauri::command]
+pub fn get_session_duration_stats(
+    days: u32,
+    registry: tauri::State<'_, Arc<Mutex<SubprojectRegistry>>>,
+) -> Result<crate::analytics::SessionDurationResponse, String> {
+    crate::analytics::compute_session_duration_stats(days, &registry)
+}
+
 // ---------------------------------------------------------------------------
 // Project Discovery
 // ---------------------------------------------------------------------------
