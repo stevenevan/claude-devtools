@@ -1,5 +1,5 @@
 use crate::analysis::error_hotspots::{self, ErrorHotspotsResponse};
-use crate::analysis::tool_analytics::{self, ToolAnalyticsResponse};
+use crate::analysis::tool_analytics::{self, ToolAnalyticsResponse, ToolTimeHeatmapResponse};
 
 #[tauri::command]
 pub fn get_tool_analytics(
@@ -7,6 +7,15 @@ pub fn get_tool_analytics(
     days: u32,
 ) -> Result<ToolAnalyticsResponse, String> {
     tool_analytics::compute_tool_analytics(&project_id, days)
+}
+
+#[tauri::command]
+pub fn get_tool_time_heatmap(
+    project_id: String,
+    days: u32,
+    tool_filter: Option<String>,
+) -> Result<ToolTimeHeatmapResponse, String> {
+    tool_analytics::compute_tool_time_heatmap(&project_id, days, tool_filter.as_deref())
 }
 
 #[tauri::command]

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
+import { ToolTimeHeatmap } from '@renderer/components/dashboard/ToolTimeHeatmap';
 import { useToolAnalyticsData } from '@renderer/hooks/useToolAnalyticsData';
 import { useStore } from '@renderer/store';
 import { cn } from '@renderer/lib/utils';
@@ -260,6 +261,8 @@ export const ToolAnalyticsPanel = ({
           </div>
         </>
       )}
+
+      <ToolTimeHeatmap projectId={projectId} days={days} />
     </div>
   );
 };

@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 
+use chrono::{Datelike, Local, TimeZone, Timelike};
 use serde::{Deserialize, Serialize};
 
 use crate::analysis::tokenizer;
@@ -34,6 +35,25 @@ pub struct ToolAnalyticsResponse {
     pub total_calls: u32,
     pub total_errors: u32,
     pub scanned_sessions: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolTimeHeatmapCell {
+    /// 0 = Monday, 6 = Sunday (chrono `num_days_from_monday`).
+    pub day_of_week: u8,
+    /// 0..=23 local-timezone hour.
+    pub hour: u8,
+    pub call_count: u32,
+    pub top_tool: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolTimeHeatmapResponse {
+    pub cells: Vec<ToolTimeHeatmapCell>,
+    pub total_calls: u32,
+    pub tool_names: Vec<String>,
 }
 
 #[derive(Deserialize)]
@@ -294,6 +314,169 @@ pub fn compute_tool_analytics(
     })
 }
 
+// Tool Time-of-Day Heatmap (sprint 22)
+
+/// 7 (days) x 24 (hours) heatmap bucket key = day * 24 + hour.
+type HeatmapKey = u8;
+
+fn heatmap_key(day: u8, hour: u8) -> HeatmapKey {
+    day * 24 + hour
+}
+
+fn bucket_local(ts_ms: f64) -> Option<(u8, u8)> {
+    let secs = (ts_ms / 1000.0) as i64;
+    let nanos = ((ts_ms - (secs as f64) * 1000.0) * 1_000_000.0).round() as u32;
+    let utc = chrono::DateTime::from_timestamp(secs, nanos)?;
+    let local = Local.from_utc_datetime(&utc.naive_utc());
+    let day = local.weekday().num_days_from_monday() as u8;
+    let hour = local.hour() as u8;
+    Some((day, hour))
+}
+
+#[derive(Default)]
+struct HeatmapCellAcc {
+    total: u32,
+    per_tool: HashMap<String, u32>,
+}
+
+/// Walk a session's tool_use blocks, bucketing by local (weekday, hour). When
+/// `tool_filter` is `Some`, only matching tool names count.
+fn scan_session_heatmap(
+    path: &Path,
+    buckets: &mut HashMap<HeatmapKey, HeatmapCellAcc>,
+    tool_filter: Option<&str>,
+) -> Option<()> {
+    let file = std::fs::File::open(path).ok()?;
+    let reader = BufReader::with_capacity(64 * 1024, file);
+
+    for line in reader.lines().map_while(Result::ok) {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let entry: RawEntry = match serde_json::from_str(&line) {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+        let ts_ms = match entry.timestamp.as_deref().and_then(parse_timestamp_ms) {
+            Some(v) => v,
+            None => continue,
+        };
+        let msg = match entry.message {
+            Some(m) => m,
+            None => continue,
+        };
+        if msg.role.as_deref() != Some("assistant") {
+            continue;
+        }
+        let blocks = match msg.content.as_ref().and_then(|c| c.as_array()) {
+            Some(a) => a,
+            None => continue,
+        };
+
+        let (day, hour) = match bucket_local(ts_ms) {
+            Some(pair) => pair,
+            None => continue,
+        };
+
+        for block in blocks {
+            if block.get("type").and_then(|v| v.as_str()) != Some("tool_use") {
+                continue;
+            }
+            let name = block
+                .get("name")
+                .and_then(|v| v.as_str())
+                .unwrap_or("unknown");
+            if let Some(filter) = tool_filter {
+                if name != filter {
+                    continue;
+                }
+            }
+            let cell = buckets.entry(heatmap_key(day, hour)).or_default();
+            cell.total += 1;
+            *cell.per_tool.entry(name.to_string()).or_insert(0) += 1;
+        }
+    }
+    Some(())
+}
+
+pub fn compute_tool_time_heatmap(
+    project_id: &str,
+    days: u32,
+    tool_filter: Option<&str>,
+) -> Result<ToolTimeHeatmapResponse, String> {
+    let project_dir = resolve_project_dir(project_id)?;
+    let days = days.clamp(1, 90);
+
+    let now_ms = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|e| e.to_string())?
+        .as_millis() as f64;
+    let cutoff_ms = now_ms - (days as f64) * 86_400_000.0;
+
+    let entries = std::fs::read_dir(&project_dir).map_err(|e| e.to_string())?;
+    let mut buckets: HashMap<HeatmapKey, HeatmapCellAcc> = HashMap::new();
+    // Also collect the full tool name set across the range (ignoring filter)
+    // so the dropdown always shows every tool, even if filter removes rows.
+    let mut all_tools: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+
+    for entry in entries.flatten() {
+        let fname = entry.file_name();
+        let fname = fname.to_string_lossy();
+        if !fname.ends_with(".jsonl") {
+            continue;
+        }
+        let modified_ms = entry
+            .metadata()
+            .ok()
+            .and_then(|m| m.modified().ok())
+            .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+            .map(|d| d.as_secs_f64() * 1000.0)
+            .unwrap_or(0.0);
+        if modified_ms < cutoff_ms {
+            continue;
+        }
+        let path = entry.path();
+
+        // Collect tool names regardless of filter.
+        let mut unfiltered: HashMap<HeatmapKey, HeatmapCellAcc> = HashMap::new();
+        let _ = scan_session_heatmap(&path, &mut unfiltered, None);
+        for cell in unfiltered.values() {
+            for name in cell.per_tool.keys() {
+                all_tools.insert(name.clone());
+            }
+        }
+
+        // Real scan with filter for bucket totals.
+        let _ = scan_session_heatmap(&path, &mut buckets, tool_filter);
+    }
+
+    let mut cells: Vec<ToolTimeHeatmapCell> = Vec::with_capacity(7 * 24);
+    for day in 0u8..7 {
+        for hour in 0u8..24 {
+            let cell = buckets.remove(&heatmap_key(day, hour)).unwrap_or_default();
+            let top_tool = cell
+                .per_tool
+                .into_iter()
+                .max_by_key(|(_, v)| *v)
+                .map(|(name, _)| name);
+            cells.push(ToolTimeHeatmapCell {
+                day_of_week: day,
+                hour,
+                call_count: cell.total,
+                top_tool,
+            });
+        }
+    }
+
+    let total_calls: u32 = cells.iter().map(|c| c.call_count).sum();
+
+    Ok(ToolTimeHeatmapResponse {
+        cells,
+        total_calls,
+        tool_names: all_tools.into_iter().collect(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -382,6 +565,71 @@ mod tests {
         let mut stats: HashMap<String, ToolStats> = HashMap::new();
         scan_session(&path, &mut stats).unwrap();
         assert!(stats.is_empty());
+
+        std::fs::remove_dir_all(&tmp).unwrap();
+    }
+
+    #[test]
+    fn heatmap_bucket_local_uses_local_timezone_weekday_and_hour() {
+        // 2026-04-20 (Monday) at 15:30 UTC — check that the local bucket is a
+        // plausible Mon/Tue/Sun hour (depends on runner tz). We assert day is
+        // in range and hour in range, and the round-trip is stable.
+        let ms = chrono::DateTime::parse_from_rfc3339("2026-04-20T15:30:00Z")
+            .unwrap()
+            .timestamp_millis() as f64;
+        let (day, hour) = bucket_local(ms).unwrap();
+        assert!(day < 7);
+        assert!(hour < 24);
+    }
+
+    #[test]
+    fn heatmap_scan_buckets_assistant_tool_uses() {
+        let tmp = std::env::temp_dir().join(format!("tool_heatmap_test_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&tmp);
+        std::fs::create_dir_all(&tmp).unwrap();
+
+        // Two tool_use blocks at the same timestamp, different tools.
+        let lines = [
+            r#"{"timestamp":"2026-04-20T09:00:00.000Z","message":{"role":"assistant","content":[{"type":"tool_use","id":"t1","name":"Bash","input":{}}]}}"#,
+            r#"{"timestamp":"2026-04-20T09:00:10.000Z","message":{"role":"assistant","content":[{"type":"tool_use","id":"t2","name":"Bash","input":{}}]}}"#,
+            r#"{"timestamp":"2026-04-20T09:00:20.000Z","message":{"role":"assistant","content":[{"type":"tool_use","id":"t3","name":"Read","input":{}}]}}"#,
+        ];
+        let path = write_fixture(&tmp, "session.jsonl", &lines);
+
+        let mut buckets: HashMap<HeatmapKey, HeatmapCellAcc> = HashMap::new();
+        scan_session_heatmap(&path, &mut buckets, None).unwrap();
+
+        // Exactly one bucket should be populated (all three tool_uses in same hour).
+        assert_eq!(buckets.len(), 1);
+        let cell = buckets.values().next().unwrap();
+        assert_eq!(cell.total, 3);
+        // Bash dominates (2 calls vs 1 Read) → top_tool in finalize is Bash.
+        assert_eq!(*cell.per_tool.get("Bash").unwrap(), 2);
+        assert_eq!(*cell.per_tool.get("Read").unwrap(), 1);
+
+        std::fs::remove_dir_all(&tmp).unwrap();
+    }
+
+    #[test]
+    fn heatmap_tool_filter_excludes_non_matching() {
+        let tmp = std::env::temp_dir()
+            .join(format!("tool_heatmap_filter_test_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&tmp);
+        std::fs::create_dir_all(&tmp).unwrap();
+
+        let lines = [
+            r#"{"timestamp":"2026-04-20T09:00:00.000Z","message":{"role":"assistant","content":[{"type":"tool_use","id":"t1","name":"Bash","input":{}}]}}"#,
+            r#"{"timestamp":"2026-04-20T09:00:10.000Z","message":{"role":"assistant","content":[{"type":"tool_use","id":"t2","name":"Read","input":{}}]}}"#,
+        ];
+        let path = write_fixture(&tmp, "session.jsonl", &lines);
+
+        let mut buckets: HashMap<HeatmapKey, HeatmapCellAcc> = HashMap::new();
+        scan_session_heatmap(&path, &mut buckets, Some("Bash")).unwrap();
+
+        let cell = buckets.values().next().unwrap();
+        assert_eq!(cell.total, 1);
+        assert!(cell.per_tool.contains_key("Bash"));
+        assert!(!cell.per_tool.contains_key("Read"));
 
         std::fs::remove_dir_all(&tmp).unwrap();
     }

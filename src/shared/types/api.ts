@@ -21,6 +21,7 @@ import type {
   SessionsByIdsOptions,
   SessionsPaginationOptions,
   ToolAnalyticsResponse,
+  ToolTimeHeatmapResponse,
   ErrorHotspotsResponse,
   AggregatedSessionTodos,
 } from './domain';
@@ -422,6 +423,11 @@ export interface ElectronAPI {
   getCostForecast: (windowDays: number) => Promise<CostForecast>;
   getProductivityMetrics: (days: number) => Promise<ProductivityMetrics>;
   getToolAnalytics: (projectId: string, days: number) => Promise<ToolAnalyticsResponse>;
+  getToolTimeHeatmap: (
+    projectId: string,
+    days: number,
+    toolFilter?: string | null
+  ) => Promise<ToolTimeHeatmapResponse>;
   getErrorHotspots: (
     projectId: string,
     days: number,

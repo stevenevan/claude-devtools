@@ -469,6 +469,19 @@ export interface ToolAnalyticsResponse {
   scannedSessions: number;
 }
 
+export interface ToolTimeHeatmapCell {
+  dayOfWeek: number;
+  hour: number;
+  callCount: number;
+  topTool: string | null;
+}
+
+export interface ToolTimeHeatmapResponse {
+  cells: ToolTimeHeatmapCell[];
+  totalCalls: number;
+  toolNames: string[];
+}
+
 export interface RepeatedToolError {
   toolName: string;
   errorPrefix: string;

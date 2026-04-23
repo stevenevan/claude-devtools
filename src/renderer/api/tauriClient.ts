@@ -79,6 +79,7 @@ import type {
   SshLastConnection,
   SubagentDetail,
   ToolAnalyticsResponse,
+  ToolTimeHeatmapResponse,
   ErrorHotspotsResponse,
   AggregatedSessionTodos,
   TriggerTestResult,
@@ -188,6 +189,17 @@ export class TauriAPIClient implements ElectronAPI {
 
   getToolAnalytics = (projectId: string, days: number): Promise<ToolAnalyticsResponse> =>
     invoke<ToolAnalyticsResponse>('get_tool_analytics', { projectId, days });
+
+  getToolTimeHeatmap = (
+    projectId: string,
+    days: number,
+    toolFilter?: string | null
+  ): Promise<ToolTimeHeatmapResponse> =>
+    invoke<ToolTimeHeatmapResponse>('get_tool_time_heatmap', {
+      projectId,
+      days,
+      toolFilter: toolFilter ?? null,
+    });
 
   getErrorHotspots = (
     projectId: string,
