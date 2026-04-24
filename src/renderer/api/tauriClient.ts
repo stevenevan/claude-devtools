@@ -82,6 +82,7 @@ import type {
   SubagentDetail,
   ToolAnalyticsResponse,
   ToolTimeHeatmapResponse,
+  ErrorClustersResponse,
   ErrorHotspotsResponse,
   AggregatedSessionTodos,
   TriggerTestResult,
@@ -218,6 +219,17 @@ export class TauriAPIClient implements ElectronAPI {
       projectId,
       days,
       minOccurrences,
+    });
+
+  getErrorClusters = (
+    projectId: string,
+    days: number,
+    minClusterSize: number
+  ): Promise<ErrorClustersResponse> =>
+    invoke<ErrorClustersResponse>('get_error_clusters', {
+      projectId,
+      days,
+      minClusterSize,
     });
 
   getAllTodos = (projectIds: string[]): Promise<AggregatedSessionTodos[]> =>

@@ -9,6 +9,8 @@ import { AlertTriangle, Loader2 } from 'lucide-react';
 
 import type { ErrorHotspotsResponse, RepeatedToolError } from '@shared/types';
 
+import { ErrorClustersPanel } from './ErrorClustersPanel';
+
 const logger = createLogger('Component:ErrorHotspotsPanel');
 
 interface ErrorHotspotsPanelProps {
@@ -93,6 +95,8 @@ export const ErrorHotspotsPanel = ({
           ))}
         </div>
       )}
+
+      <ErrorClustersPanel projectId={selectedProjectId} days={days} />
     </div>
   );
 };

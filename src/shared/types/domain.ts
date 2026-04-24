@@ -496,6 +496,29 @@ export interface ErrorHotspotsResponse {
   scannedSessions: number;
 }
 
+export interface ErrorClusterMember {
+  sessionId: string;
+  toolName: string;
+  errorPrefix: string;
+  timestampMs: number;
+}
+
+export interface ErrorCluster {
+  id: string;
+  representative: string;
+  primaryTool: string;
+  toolNames: string[];
+  occurrenceCount: number;
+  sessionCount: number;
+  lastSeenMs: number;
+  members: ErrorClusterMember[];
+}
+
+export interface ErrorClustersResponse {
+  clusters: ErrorCluster[];
+  scannedSessions: number;
+}
+
 export interface AggregatedSessionTodos {
   projectId: string;
   sessionId: string;

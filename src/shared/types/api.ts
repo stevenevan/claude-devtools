@@ -24,6 +24,7 @@ import type {
   SessionsPaginationOptions,
   ToolAnalyticsResponse,
   ToolTimeHeatmapResponse,
+  ErrorClustersResponse,
   ErrorHotspotsResponse,
   AggregatedSessionTodos,
 } from './domain';
@@ -437,6 +438,11 @@ export interface ElectronAPI {
     days: number,
     minOccurrences: number
   ) => Promise<ErrorHotspotsResponse>;
+  getErrorClusters: (
+    projectId: string,
+    days: number,
+    minClusterSize: number
+  ) => Promise<ErrorClustersResponse>;
   getAllTodos: (projectIds: string[]) => Promise<AggregatedSessionTodos[]>;
   getWaterfallData: (projectId: string, sessionId: string) => Promise<WaterfallData | null>;
   getSubagentDetail: (
