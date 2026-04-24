@@ -575,3 +575,24 @@ export interface SessionDurationResponse {
   activeStats: DurationStats;
   outlierSessionIds: string[];
 }
+
+export interface ModelComparisonEntry {
+  model: string;
+  displayName: string;
+  family: 'opus' | 'sonnet' | 'haiku' | 'other';
+  sessionCount: number;
+  totalTokens: number;
+  totalCostUsd: number;
+  tokensPerSession: number;
+  costPerSession: number;
+  costPerMillionTokens: number;
+  toolCallsPerSession: number;
+  errorRate: number;
+  avgResponseMs: number;
+  dailySessions: number[];
+}
+
+export interface ModelComparisonResponse {
+  models: ModelComparisonEntry[];
+  totalSessions: number;
+}

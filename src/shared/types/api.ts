@@ -8,6 +8,7 @@ import type { ConversationGroup, FileChangeEvent, SessionDetail, SubagentDetail 
 import type {
   AnalyticsResponse,
   CostForecast,
+  ModelComparisonResponse,
   PaginatedSessionsResult,
   ProductivityMetrics,
   SessionDurationResponse,
@@ -424,6 +425,7 @@ export interface ElectronAPI {
   getCostForecast: (windowDays: number) => Promise<CostForecast>;
   getProductivityMetrics: (days: number) => Promise<ProductivityMetrics>;
   getSessionDurationStats: (days: number) => Promise<SessionDurationResponse>;
+  getModelComparison: (days: number) => Promise<ModelComparisonResponse>;
   getToolAnalytics: (projectId: string, days: number) => Promise<ToolAnalyticsResponse>;
   getToolTimeHeatmap: (
     projectId: string,

@@ -1089,6 +1089,15 @@ pub fn get_session_duration_stats(
     crate::analytics::compute_session_duration_stats(days, &registry)
 }
 
+/// Per-model metrics — cost/token, tokens/session, tool-calls/session, error rate, latency.
+#[tauri::command]
+pub fn get_model_comparison(
+    days: u32,
+    registry: tauri::State<'_, Arc<Mutex<SubprojectRegistry>>>,
+) -> Result<crate::analytics::ModelComparisonResponse, String> {
+    crate::analytics::compute_model_comparison(days, &registry)
+}
+
 // ---------------------------------------------------------------------------
 // Project Discovery
 // ---------------------------------------------------------------------------

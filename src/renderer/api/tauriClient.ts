@@ -46,6 +46,7 @@ import type {
   AnalyticsResponse,
   AnnotationEntry,
   CostForecast,
+  ModelComparisonResponse,
   ProductivityMetrics,
   SessionDurationResponse,
   AppConfig,
@@ -190,6 +191,9 @@ export class TauriAPIClient implements ElectronAPI {
 
   getSessionDurationStats = (days: number): Promise<SessionDurationResponse> =>
     invoke<SessionDurationResponse>('get_session_duration_stats', { days });
+
+  getModelComparison = (days: number): Promise<ModelComparisonResponse> =>
+    invoke<ModelComparisonResponse>('get_model_comparison', { days });
 
   getToolAnalytics = (projectId: string, days: number): Promise<ToolAnalyticsResponse> =>
     invoke<ToolAnalyticsResponse>('get_tool_analytics', { projectId, days });

@@ -21,6 +21,10 @@ pub struct SessionSummary {
     pub custom_title: Option<String>,
     /// Total tool_use blocks encountered in the session.
     pub tool_call_count: u64,
+    /// tool_result blocks marked `is_error`.
+    pub tool_error_count: u64,
+    /// Number of `role: assistant` message entries.
+    pub assistant_message_count: u64,
     /// Gap-adjusted active milliseconds — consecutive timestamp deltas capped
     /// at `ACTIVE_GAP_CAP_MS`. Idle stretches (e.g. the user walks away) stop
     /// counting once the cap is exceeded.
@@ -78,6 +82,8 @@ pub fn scan_session_fast(file_path: &Path) -> Option<SessionSummary> {
     let mut prev_ts: Option<f64> = None;
     let mut active_ms: f64 = 0.0;
     let mut tool_call_count: u64 = 0;
+    let mut tool_error_count: u64 = 0;
+    let mut assistant_message_count: u64 = 0;
     let mut first_user_text: Option<String> = None;
     let mut custom_title: Option<String> = None;
 
@@ -140,6 +146,7 @@ pub fn scan_session_fast(file_path: &Path) -> Option<SessionSummary> {
         }
 
         if role == Some("assistant") {
+            assistant_message_count += 1;
             if let Some(m) = model {
                 if !m.is_empty() && m != "<synthetic>" {
                     *model_counts.entry(m.to_string()).or_insert(0) += 1;
@@ -147,13 +154,18 @@ pub fn scan_session_fast(file_path: &Path) -> Option<SessionSummary> {
             }
         }
 
-        // Count tool_use blocks in any content array.
+        // Count tool_use / tool_result blocks in any content array.
         if let Some(ref msg) = entry.message {
             if let Some(content) = msg.content.as_ref() {
                 if let Some(arr) = content.as_array() {
                     for block in arr {
-                        if block.get("type").and_then(|v| v.as_str()) == Some("tool_use") {
+                        let ty = block.get("type").and_then(|v| v.as_str());
+                        if ty == Some("tool_use") {
                             tool_call_count += 1;
+                        } else if ty == Some("tool_result")
+                            && block.get("is_error").and_then(|v| v.as_bool()) == Some(true)
+                        {
+                            tool_error_count += 1;
                         }
                     }
                 }
@@ -225,6 +237,8 @@ pub fn scan_session_fast(file_path: &Path) -> Option<SessionSummary> {
         first_user_text,
         custom_title,
         tool_call_count,
+        tool_error_count,
+        assistant_message_count,
         active_ms,
     })
 }
