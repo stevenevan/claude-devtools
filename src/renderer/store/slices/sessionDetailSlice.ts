@@ -7,13 +7,10 @@ import { asEnhancedChunkArray } from '@renderer/types/data';
 import { findTabBySession, truncateLabel } from '@renderer/types/tabs';
 import { processSessionClaudeMd } from '@renderer/utils/claudeMdTracker';
 import { processSessionContextWithPhases } from '@renderer/utils/contextTracker';
-import {
-  extractFileReferences,
-  transformChunksToConversation,
-} from '@renderer/utils/groupTransformer';
+import { transformChunksToConversation } from '@renderer/utils/groupTransformer';
 import { createLogger } from '@shared/utils/logger';
 
-import { resolveFilePath } from '../utils/pathResolution';
+import { applyDirectoryTokenData, collectMentionedFilePaths } from './sessionDetailActions';
 
 const logger = createLogger('Store:sessionDetail');
 
@@ -263,74 +260,13 @@ export const createSessionDetailSlice: StateCreator<AppState, [], [], SessionDet
               }
             }
 
-            // Update stats: set real tokens and REMOVE non-existent files
-            for (const [, stats] of claudeMdStats.entries()) {
-              // Filter out non-existent paths
-              stats.accumulatedInjections = stats.accumulatedInjections.filter(
-                (inj) => inj.source !== 'directory' || !nonExistentPaths.has(inj.path)
-              );
-              stats.newInjections = stats.newInjections.filter(
-                (inj) => inj.source !== 'directory' || !nonExistentPaths.has(inj.path)
-              );
-
-              // Update tokens for existing files
-              for (const injection of stats.accumulatedInjections) {
-                if (injection.source === 'directory' && directoryTokens.has(injection.path)) {
-                  injection.estimatedTokens = directoryTokens.get(injection.path)!;
-                }
-              }
-              for (const injection of stats.newInjections) {
-                if (injection.source === 'directory' && directoryTokens.has(injection.path)) {
-                  injection.estimatedTokens = directoryTokens.get(injection.path)!;
-                }
-              }
-
-              // Recalculate totals and counts
-              stats.totalEstimatedTokens = stats.accumulatedInjections.reduce(
-                (sum, inj) => sum + inj.estimatedTokens,
-                0
-              );
-              stats.accumulatedCount = stats.accumulatedInjections.length;
-              stats.newCount = stats.newInjections.length;
-            }
+            applyDirectoryTokenData(claudeMdStats, { directoryTokens, nonExistentPaths });
           }
         }
 
-        // Compute unified context stats (CLAUDE.md + mentioned files + tool outputs)
-        // Extract all mentioned file paths from user groups
-        const mentionedFilePaths = new Set<string>();
-        for (const item of conversation.items) {
-          if (item.type === 'user' && item.group.content.fileReferences) {
-            for (const ref of item.group.content.fileReferences) {
-              // Use resolveFilePath to properly handle ./ and ../ prefixes
-              const absolutePath = resolveFilePath(projectRoot, ref.path);
-              mentionedFilePaths.add(absolutePath);
-            }
-          }
-        }
-
-        // Also collect @-mentions from isMeta:true user messages in AI responses
-        for (const item of conversation.items) {
-          if (item.type === 'ai') {
-            for (const msg of item.group.responses) {
-              if (msg.type !== 'user') continue;
-              let text = '';
-              if (typeof msg.content === 'string') {
-                text = msg.content;
-              } else if (Array.isArray(msg.content)) {
-                for (const block of msg.content) {
-                  if (block.type === 'text' && block.text) text += block.text;
-                }
-              }
-              if (text) {
-                for (const ref of extractFileReferences(text)) {
-                  const absolutePath = resolveFilePath(projectRoot, ref.path);
-                  mentionedFilePaths.add(absolutePath);
-                }
-              }
-            }
-          }
-        }
+        // Compute unified context stats (CLAUDE.md + mentioned files + tool outputs).
+        // See sessionDetailActions.ts for the extraction logic.
+        const mentionedFilePaths = collectMentionedFilePaths(conversation.items, projectRoot);
 
         // Fetch token data for each mentioned file (parallel IPC calls)
         const mentionedFileTokenData = new Map<string, MentionedFileInfo>();

@@ -136,6 +136,17 @@ export function useKeyboardShortcuts(): void {
             useStore.getState().toggleFlameGraph();
             return;
           }
+        } else if (event.key === '[' || event.key === ']') {
+          const activeTab = getActiveTab();
+          if (activeTab?.type === 'session') {
+            event.preventDefault();
+            window.dispatchEvent(
+              new CustomEvent('turn-navigate', {
+                detail: { direction: event.key === ']' ? 'next' : 'prev' },
+              })
+            );
+            return;
+          }
         }
       }
 
