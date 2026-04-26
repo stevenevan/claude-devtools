@@ -14,6 +14,7 @@ import { countPendingTodos } from '@renderer/types/todos';
 
 import { LiveMetricsBar } from '../common/LiveMetricsBar';
 import { ContextHeatmap } from './ContextHeatmap';
+import { ReplayControls } from './ReplayControls';
 import { SessionContextPanel } from './SessionContextPanel/index';
 import { SessionMinimap } from './SessionMinimap';
 import { TodoPanel } from './TodoPanel';
@@ -75,6 +76,8 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     setTabVisibleAIGroup,
     contextHeatmapVisible,
     toggleContextHeatmap,
+    replayMode,
+    replayCursorIndex,
   } = useStore(
     useShallow((s) => ({
       searchQuery: s.searchQuery,
@@ -89,6 +92,8 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
       setTabVisibleAIGroup: s.setTabVisibleAIGroup,
       contextHeatmapVisible: s.contextHeatmapVisible,
       toggleContextHeatmap: s.toggleContextHeatmap,
+      replayMode: s.replayMode,
+      replayCursorIndex: s.replayCursorIndex,
     }))
   );
 
@@ -847,6 +852,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
         isStreaming={isStreaming}
         startTime={sessionDetail?.session?.createdAt ?? null}
       />
+      <ReplayControls totalChunks={conversation.items.length} />
       <div className="relative flex flex-1 overflow-hidden">
         {/* Chat content */}
         <div
@@ -946,12 +952,14 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
                   {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                     const item = conversation.items[virtualRow.index];
                     if (!item) return null;
+                    const fadedByReplay =
+                      replayMode !== 'off' && virtualRow.index > replayCursorIndex;
                     return (
                       <div
                         key={virtualRow.key}
                         ref={rowVirtualizer.measureElement}
                         data-index={virtualRow.index}
-                        className="pb-6"
+                        className={cn('pb-6', fadedByReplay && 'pointer-events-none opacity-25')}
                         style={{
                           position: 'absolute',
                           top: 0,
@@ -976,20 +984,27 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
                   })}
                 </div>
               ) : (
-                conversation.items.map((item) => (
-                  <ChatHistoryItem
-                    key={item.group.id}
-                    item={item}
-                    highlightedGroupId={highlightedGroupId}
-                    highlightToolUseId={effectiveHighlightToolUseId}
-                    isSearchHighlight={isSearchHighlight}
-                    isNavigationHighlight={isNavigationHighlight}
-                    highlightColor={effectiveHighlightColor}
-                    registerChatItemRef={registerChatItemRef}
-                    registerAIGroupRef={registerAIGroupRefCombined}
-                    registerToolRef={registerToolRef}
-                  />
-                ))
+                conversation.items.map((item, index) => {
+                  const fadedByReplay = replayMode !== 'off' && index > replayCursorIndex;
+                  return (
+                    <div
+                      key={item.group.id}
+                      className={cn(fadedByReplay && 'pointer-events-none opacity-25')}
+                    >
+                      <ChatHistoryItem
+                        item={item}
+                        highlightedGroupId={highlightedGroupId}
+                        highlightToolUseId={effectiveHighlightToolUseId}
+                        isSearchHighlight={isSearchHighlight}
+                        isNavigationHighlight={isNavigationHighlight}
+                        highlightColor={effectiveHighlightColor}
+                        registerChatItemRef={registerChatItemRef}
+                        registerAIGroupRef={registerAIGroupRefCombined}
+                        registerToolRef={registerToolRef}
+                      />
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>

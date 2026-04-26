@@ -12,6 +12,7 @@ import type { ConversationSlice } from './slices/conversationSlice';
 import type { NotificationSlice } from './slices/notificationSlice';
 import type { PaneSlice } from './slices/paneSlice';
 import type { ProjectSlice } from './slices/projectSlice';
+import type { ReplaySlice } from './slices/replaySlice';
 import type { RepositorySlice } from './slices/repositorySlice';
 import type { SessionDetailSlice } from './slices/sessionDetailSlice';
 import type { SessionSlice } from './slices/sessionSlice';
@@ -90,4 +91,5 @@ export type AppState = ProjectSlice &
   ConnectionSlice &
   ContextSlice &
   UpdateSlice &
-  AnnotationSlice;
+  AnnotationSlice &
+  ReplaySlice;

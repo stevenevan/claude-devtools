@@ -147,6 +147,20 @@ export function useKeyboardShortcuts(): void {
             );
             return;
           }
+        } else if (event.key === ' ') {
+          const replayMode = useStore.getState().replayMode;
+          if (replayMode !== 'off') {
+            event.preventDefault();
+            useStore.getState().togglePlayPause();
+            return;
+          }
+        } else if (event.key === ',' || event.key === '.') {
+          const replayMode = useStore.getState().replayMode;
+          if (replayMode !== 'off') {
+            event.preventDefault();
+            useStore.getState().stepReplay(event.key === '.' ? 'next' : 'prev');
+            return;
+          }
         }
       }
 

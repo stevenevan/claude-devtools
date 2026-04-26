@@ -15,6 +15,7 @@ import { createConversationSlice } from './slices/conversationSlice';
 import { createNotificationSlice } from './slices/notificationSlice';
 import { createPaneSlice } from './slices/paneSlice';
 import { createProjectSlice } from './slices/projectSlice';
+import { createReplaySlice } from './slices/replaySlice';
 import { createRepositorySlice } from './slices/repositorySlice';
 import { createSessionDetailSlice } from './slices/sessionDetailSlice';
 import { createSessionSlice } from './slices/sessionSlice';
@@ -76,6 +77,7 @@ export const useStore = create<AppState>()(
       ...createContextSlice(...args),
       ...createUpdateSlice(...args),
       ...createAnnotationSlice(...args),
+      ...createReplaySlice(...args),
     }),
     {
       name: 'claude-devtools-store',
