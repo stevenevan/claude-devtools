@@ -8,6 +8,7 @@ import { persist } from 'zustand/middleware';
 
 import { createAnnotationSlice } from './slices/annotationSlice';
 import { createClaudeConfigSlice } from './slices/claudeConfigSlice';
+import { createComparisonTabSlice } from './slices/comparisonTabSlice';
 import { createConfigSlice } from './slices/configSlice';
 import { createConnectionSlice } from './slices/connectionSlice';
 import { createContextSlice } from './slices/contextSlice';
@@ -78,6 +79,7 @@ export const useStore = create<AppState>()(
       ...createUpdateSlice(...args),
       ...createAnnotationSlice(...args),
       ...createReplaySlice(...args),
+      ...createComparisonTabSlice(...args),
     }),
     {
       name: 'claude-devtools-store',

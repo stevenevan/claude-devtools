@@ -23,7 +23,12 @@ import {
   Zap,
 } from 'lucide-react';
 
+import { useStore } from '@renderer/store';
+import { alignColumns } from '@renderer/utils/comparisonAlignment';
+import { useShallow } from 'zustand/react/shallow';
+
 import { Button } from '../ui/button';
+import { SessionComparisonColumn, type TurnCell } from './SessionComparisonColumn';
 
 import type { Chunk, SessionDetail } from '@shared/types/chunks';
 import type { Tab } from '@renderer/types/tabs';
@@ -72,21 +77,26 @@ function countTools(detail: SessionDetail): Map<string, number> {
 export const SessionComparison = ({ tab }: Readonly<SessionComparisonProps>): React.JSX.Element => {
   const [leftDetail, setLeftDetail] = useState<SessionDetail | null>(null);
   const [rightDetail, setRightDetail] = useState<SessionDetail | null>(null);
+  const [extraDetails, setExtraDetails] = useState<SessionDetail[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!tab.projectId || !tab.sessionId || !tab.compareProjectId || !tab.compareSessionId) return;
 
     setLoading(true);
+    const extras = tab.extraCompareSessions ?? [];
     void Promise.all([
       api.getSessionDetail(tab.projectId, tab.sessionId),
       api.getSessionDetail(tab.compareProjectId, tab.compareSessionId),
-    ]).then(([left, right]) => {
+      ...extras.map((e) => api.getSessionDetail(e.projectId, e.sessionId)),
+    ]).then((results) => {
+      const [left, right, ...rest] = results;
       setLeftDetail(left);
       setRightDetail(right);
+      setExtraDetails(rest.filter((d): d is SessionDetail => d != null));
       setLoading(false);
     });
-  }, [tab.projectId, tab.sessionId, tab.compareProjectId, tab.compareSessionId]);
+  }, [tab.projectId, tab.sessionId, tab.compareProjectId, tab.compareSessionId, tab.extraCompareSessions]);
 
   if (loading) {
     return (
@@ -173,8 +183,12 @@ export const SessionComparison = ({ tab }: Readonly<SessionComparisonProps>): Re
             </div>
           </div>
         )}
-        {/* Conversation Diff */}
-        <ConversationDiff leftDetail={leftDetail} rightDetail={rightDetail} />
+        {/* Conversation Diff (2-way or N-way) */}
+        {extraDetails.length === 0 ? (
+          <ConversationDiff leftDetail={leftDetail} rightDetail={rightDetail} />
+        ) : (
+          <MultiConversationDiff details={[leftDetail, rightDetail, ...extraDetails]} tab={tab} />
+        )}
       </div>
     </div>
   );
@@ -386,6 +400,125 @@ const ConversationDiff = ({
                   <span className="text-muted-foreground/50 text-[10px] italic">—</span>
                 )}
               </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// Multi-Session (N-way) Comparison — sprint 28
+
+interface MultiConversationDiffProps {
+  details: SessionDetail[];
+  tab: Tab;
+}
+
+function turnSignature(t: TurnCell): string {
+  // Normalize whitespace so divergent whitespace doesn't poison alignment.
+  return t.userText.replace(/\s+/g, ' ').trim().slice(0, 200);
+}
+
+const MultiConversationDiff = ({
+  details,
+  tab,
+}: Readonly<MultiConversationDiffProps>): React.JSX.Element => {
+  const columns = useMemo(
+    () =>
+      details.map((d) =>
+        extractTurns(d).map(
+          (t): TurnCell => ({
+            userText: t.userText,
+            aiSummary: t.aiSummary,
+            toolCount: t.toolCount,
+          })
+        )
+      ),
+    [details]
+  );
+
+  const { rows, divergenceRowIndices } = useMemo(
+    () => alignColumns(columns, turnSignature),
+    [columns]
+  );
+
+  const { sessions, addCompareSession, removeCompareSession } = useStore(
+    useShallow((s) => ({
+      sessions: s.sessions,
+      addCompareSession: s.addCompareSession,
+      removeCompareSession: s.removeCompareSession,
+    }))
+  );
+
+  const existingIds = new Set(details.map((d) => d.session.id));
+  const pickable = sessions.filter((s) => !existingIds.has(s.id));
+
+  return (
+    <div className="border-border mt-6 rounded-lg border p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
+          Conversation · {details.length} sessions · {divergenceRowIndices.length} divergent rows
+        </h2>
+        {tab.projectId && pickable.length > 0 && (
+          <select
+            value=""
+            onChange={(e) => {
+              const sid = e.target.value;
+              if (sid && tab.projectId) {
+                addCompareSession(tab.id, tab.projectId, sid);
+              }
+            }}
+            className="border-border bg-background text-text-secondary rounded-sm border px-2 py-1 text-[10px]"
+          >
+            <option value="">Add session…</option>
+            {pickable.slice(0, 20).map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.customTitle ?? s.id.slice(0, 8)}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      <div className="flex gap-3">
+        {/* Divergence rail */}
+        <div className="flex w-4 flex-col gap-2 pt-6">
+          {rows.map((row, idx) => (
+            <div
+              key={idx}
+              className={cn(
+                'min-h-[44px] w-1 rounded-[1px]',
+                row.isDivergent ? 'bg-amber-400/70' : 'bg-border/40'
+              )}
+              title={row.isDivergent ? 'Divergent vs. first session' : ''}
+            />
+          ))}
+        </div>
+
+        {/* N columns */}
+        {details.map((detail, colIdx) => {
+          const title =
+            detail.session.customTitle ?? detail.session.id.slice(0, 8);
+          const cells = rows.map((r) => r.cells[colIdx] ?? null);
+          const isExtra = colIdx >= 2;
+          return (
+            <div key={detail.session.id} className="flex min-w-0 flex-1 flex-col">
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-muted-foreground truncate text-[10px]">
+                  Column {colIdx + 1}
+                </span>
+                {isExtra && (
+                  <button
+                    onClick={() => removeCompareSession(tab.id, detail.session.id)}
+                    className="text-muted-foreground hover:text-foreground text-[9px]"
+                    title="Remove this session from comparison"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+              <SessionComparisonColumn title={title} cells={cells} />
             </div>
           );
         })}

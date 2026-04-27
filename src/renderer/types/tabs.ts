@@ -84,6 +84,9 @@ export interface Tab {
   compareSessionId?: string;
   compareProjectId?: string;
 
+  /** Extra sessions for 3-5 way comparison (sprint 28). */
+  extraCompareSessions?: { projectId: string; sessionId: string }[];
+
   /** Display name for the tab (max 50 chars) */
   label: string;
 

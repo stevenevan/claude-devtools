@@ -5,6 +5,7 @@
 
 import type { AnnotationSlice } from './slices/annotationSlice';
 import type { ClaudeConfigSlice } from './slices/claudeConfigSlice';
+import type { ComparisonTabSlice } from './slices/comparisonTabSlice';
 import type { ConfigSlice } from './slices/configSlice';
 import type { ConnectionSlice } from './slices/connectionSlice';
 import type { ContextSlice } from './slices/contextSlice';
@@ -92,4 +93,5 @@ export type AppState = ProjectSlice &
   ContextSlice &
   UpdateSlice &
   AnnotationSlice &
-  ReplaySlice;
+  ReplaySlice &
+  ComparisonTabSlice;
