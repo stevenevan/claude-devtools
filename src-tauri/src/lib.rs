@@ -54,6 +54,7 @@ pub fn run() {
             analysis::commands::get_tool_time_heatmap,
             analysis::commands::get_error_hotspots,
             analysis::commands::get_error_clusters,
+            analysis::commands::get_file_graph,
             commands::get_all_todos,
             commands::get_projects,
             commands::get_sessions_paginated,

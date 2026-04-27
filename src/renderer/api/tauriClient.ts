@@ -46,6 +46,7 @@ import type {
   AnalyticsResponse,
   AnnotationEntry,
   CostForecast,
+  FileGraphResponse,
   ModelComparisonResponse,
   ProductivityMetrics,
   SessionDurationResponse,
@@ -195,6 +196,9 @@ export class TauriAPIClient implements ElectronAPI {
 
   getModelComparison = (days: number): Promise<ModelComparisonResponse> =>
     invoke<ModelComparisonResponse>('get_model_comparison', { days });
+
+  getFileGraph = (projectId: string, sessionId: string): Promise<FileGraphResponse> =>
+    invoke<FileGraphResponse>('get_file_graph', { projectId, sessionId });
 
   getToolAnalytics = (projectId: string, days: number): Promise<ToolAnalyticsResponse> =>
     invoke<ToolAnalyticsResponse>('get_tool_analytics', { projectId, days });

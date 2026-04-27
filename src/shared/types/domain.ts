@@ -619,3 +619,24 @@ export interface ModelComparisonResponse {
   models: ModelComparisonEntry[];
   totalSessions: number;
 }
+
+export interface FileGraphNode {
+  path: string;
+  readCount: number;
+  editCount: number;
+  writeCount: number;
+  totalInteractions: number;
+  turnIndices: number[];
+}
+
+export interface FileGraphEdge {
+  from: string;
+  to: string;
+  kind: string;
+  weight: number;
+}
+
+export interface FileGraphResponse {
+  nodes: FileGraphNode[];
+  edges: FileGraphEdge[];
+}

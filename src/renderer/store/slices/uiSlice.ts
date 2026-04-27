@@ -27,6 +27,7 @@ export interface UISlice {
   contextHeatmapVisible: boolean;
   flameGraphVisible: boolean;
   teamTreeVisible: boolean;
+  fileGraphVisible: boolean;
   /** Session IDs marked as duration outliers (wall > p95 × 1.5). Populated
    * by the DurationPanel effect; sidebar SessionItem reads it for a badge. */
   durationOutlierSessionIds: Set<string>;
@@ -41,6 +42,7 @@ export interface UISlice {
   toggleFlameGraph: () => void;
   setFlameGraphVisible: (visible: boolean) => void;
   toggleTeamTree: () => void;
+  toggleFileGraph: () => void;
   setDurationOutlierSessionIds: (ids: string[]) => void;
 }
 
@@ -73,6 +75,7 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => (
   contextHeatmapVisible: loadContextHeatmapVisible(),
   flameGraphVisible: false,
   teamTreeVisible: false,
+  fileGraphVisible: false,
   durationOutlierSessionIds: new Set<string>(),
 
   // Command palette actions
@@ -127,6 +130,10 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => (
 
   toggleTeamTree: () => {
     set((state) => ({ teamTreeVisible: !state.teamTreeVisible }));
+  },
+
+  toggleFileGraph: () => {
+    set((state) => ({ fileGraphVisible: !state.fileGraphVisible }));
   },
 
   setDurationOutlierSessionIds: (ids) => {
