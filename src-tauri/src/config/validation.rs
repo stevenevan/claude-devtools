@@ -16,10 +16,40 @@ pub fn validate_config_update(section: &str, data: &Value) -> Result<(String, Va
         "display" => validate_display(data).map(|v| (section.to_string(), v)),
         "httpServer" => validate_http_server(data).map(|v| (section.to_string(), v)),
         "ssh" => validate_ssh(data).map(|v| (section.to_string(), v)),
+        "dashboard" => validate_dashboard(data).map(|v| (section.to_string(), v)),
         _ => Err(
-            "Section must be one of: notifications, general, display, httpServer, ssh".to_string(),
+            "Section must be one of: notifications, general, display, httpServer, ssh, dashboard"
+                .to_string(),
         ),
     }
+}
+
+fn validate_dashboard(data: &Value) -> Result<Value, String> {
+    let obj = data
+        .as_object()
+        .ok_or("dashboard update must be an object")?;
+    for key in obj.keys() {
+        if key != "widgetOrder" && key != "hiddenWidgets" {
+            return Err(format!("Unknown dashboard field: {key}"));
+        }
+    }
+    if let Some(order) = obj.get("widgetOrder") {
+        let arr = order.as_array().ok_or("widgetOrder must be an array")?;
+        for v in arr {
+            if !v.is_string() {
+                return Err("widgetOrder entries must be strings".to_string());
+            }
+        }
+    }
+    if let Some(hidden) = obj.get("hiddenWidgets") {
+        let arr = hidden.as_array().ok_or("hiddenWidgets must be an array")?;
+        for v in arr {
+            if !v.is_string() {
+                return Err("hiddenWidgets entries must be strings".to_string());
+            }
+        }
+    }
+    Ok(data.clone())
 }
 
 // Notifications

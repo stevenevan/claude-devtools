@@ -38,6 +38,11 @@ export interface ConfigSlice {
   openSettingsTab: (section?: string) => void;
   clearPendingSettingsSection: () => void;
 
+  // Dashboard layout (sprint 32)
+  updateDashboardLayout: (
+    patch: { widgetOrder?: string[]; hiddenWidgets?: string[] }
+  ) => Promise<void>;
+
   // Bookmark actions
   fetchBookmarks: () => Promise<void>;
   toggleBookmark: (sessionId: string, projectId: string, groupId: string) => Promise<void>;
@@ -116,6 +121,16 @@ export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (s
 
   clearPendingSettingsSection: () => {
     set({ pendingSettingsSection: null });
+  },
+
+  updateDashboardLayout: async (patch) => {
+    try {
+      await api.config.update('dashboard', patch as Record<string, unknown>);
+      const config = await api.config.get();
+      set({ appConfig: config });
+    } catch (error) {
+      logger.error('Failed to update dashboard layout:', error);
+    }
   },
 
   // Bookmark actions

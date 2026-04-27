@@ -320,4 +320,9 @@ export interface AppConfig {
     dailyBudgetUsd?: number;
     weeklyBudgetUsd?: number;
   };
+  /** Dashboard widget ordering + hide list (sprint 32). */
+  dashboard?: {
+    widgetOrder?: string[];
+    hiddenWidgets?: string[];
+  };
 }

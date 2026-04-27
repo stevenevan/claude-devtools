@@ -18,6 +18,19 @@ pub struct AppConfig {
     pub http_server: HttpServerConfig,
     #[serde(default)]
     pub budget: BudgetConfig,
+    #[serde(default)]
+    pub dashboard: DashboardConfig,
+}
+
+// Dashboard layout (widget order + hidden ids) — sprint 32.
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DashboardConfig {
+    #[serde(default)]
+    pub widget_order: Vec<String>,
+    #[serde(default)]
+    pub hidden_widgets: Vec<String>,
 }
 
 // Budget Config — spending thresholds (no alerting in sprint 18; see roadmap).
@@ -238,6 +251,7 @@ impl Default for AppConfig {
             ssh: SshPersistConfig::default(),
             http_server: HttpServerConfig::default(),
             budget: BudgetConfig::default(),
+            dashboard: DashboardConfig::default(),
         }
     }
 }
@@ -374,6 +388,11 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         None => defaults.budget.clone(),
     };
 
+    let dashboard: DashboardConfig = match obj.get("dashboard") {
+        Some(v) => serde_json::from_value(v.clone()).unwrap_or_default(),
+        None => defaults.dashboard.clone(),
+    };
+
     AppConfig {
         notifications,
         general,
@@ -382,6 +401,7 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         ssh,
         http_server,
         budget,
+        dashboard,
     }
 }
 

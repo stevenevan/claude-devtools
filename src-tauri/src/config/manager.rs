@@ -84,6 +84,21 @@ impl ConfigState {
                 let obj = validated.as_object().unwrap();
                 merge_json_into_ssh(&mut self.config.ssh, obj);
             }
+            "dashboard" => {
+                let obj = validated.as_object().unwrap();
+                if let Some(order) = obj.get("widgetOrder").and_then(|v| v.as_array()) {
+                    self.config.dashboard.widget_order = order
+                        .iter()
+                        .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                        .collect();
+                }
+                if let Some(hidden) = obj.get("hiddenWidgets").and_then(|v| v.as_array()) {
+                    self.config.dashboard.hidden_widgets = hidden
+                        .iter()
+                        .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                        .collect();
+                }
+            }
             _ => {}
         }
 

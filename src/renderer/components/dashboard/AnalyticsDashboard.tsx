@@ -41,12 +41,14 @@ import {
 
 import { BudgetPanel } from './BudgetPanel';
 import { CostTrendChart } from './CostTrendChart';
+import { DashboardCustomizeMenu } from './DashboardCustomizeMenu';
 import { DurationPanel } from './DurationPanel';
 import { ErrorHotspotsPanel } from './ErrorHotspotsPanel';
 import { ModelComparisonPanel } from './ModelComparisonPanel';
 import { ProductivityPanel } from './ProductivityPanel';
 import { SessionSchedule } from './SessionSchedule';
 import { ToolAnalyticsPanel } from './ToolAnalyticsPanel';
+import { useWidgetVisible } from './useWidgetVisibility';
 
 // Stat Card
 
@@ -331,6 +333,10 @@ const DashboardSkeleton = (): React.JSX.Element => (
 // Main Component
 
 export const AnalyticsDashboard = (): React.JSX.Element => {
+  const showBudget = useWidgetVisible('budget-panel');
+  const showProductivity = useWidgetVisible('productivity-panel');
+  const showDuration = useWidgetVisible('duration-panel');
+  const showModelComparison = useWidgetVisible('model-comparison');
   const {
     timeBuckets,
     projectUsage,
@@ -421,7 +427,10 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
               Token usage, costs, and session activity across all projects
             </p>
           </div>
-          <DayRangeSelector value={days} onChange={setDays} />
+          <div className="flex items-center gap-2">
+            <DashboardCustomizeMenu />
+            <DayRangeSelector value={days} onChange={setDays} />
+          </div>
         </div>
 
         {/* Summary Stats */}
@@ -516,24 +525,32 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
         </ChartSection>
 
         {/* Budget & forecast */}
-        <div className="mb-6">
-          <BudgetPanel />
-        </div>
+        {showBudget && (
+          <div className="mb-6">
+            <BudgetPanel />
+          </div>
+        )}
 
         {/* Productivity */}
-        <div className="mb-6">
-          <ProductivityPanel />
-        </div>
+        {showProductivity && (
+          <div className="mb-6">
+            <ProductivityPanel />
+          </div>
+        )}
 
         {/* Session duration */}
-        <div className="mb-6">
-          <DurationPanel />
-        </div>
+        {showDuration && (
+          <div className="mb-6">
+            <DurationPanel />
+          </div>
+        )}
 
         {/* Model comparison */}
-        <div className="mb-6">
-          <ModelComparisonPanel />
-        </div>
+        {showModelComparison && (
+          <div className="mb-6">
+            <ModelComparisonPanel />
+          </div>
+        )}
 
         {/* Cost trend */}
         <ChartSection
