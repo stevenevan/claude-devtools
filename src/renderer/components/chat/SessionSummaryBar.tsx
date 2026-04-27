@@ -7,7 +7,7 @@ import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatDuration, formatTokensCompact } from '@renderer/utils/formatters';
 import { parseModelString } from '@shared/utils/modelParser';
-import { Clock, DollarSign, Flame, Hash, Layers, Zap } from 'lucide-react';
+import { Clock, DollarSign, Flame, Hash, Layers, Users, Zap } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 interface SessionSummaryBarProps {
@@ -30,7 +30,16 @@ function shortModelName(model: string | undefined): string {
 }
 
 export const SessionSummaryBar = ({ tabId }: Readonly<SessionSummaryBarProps>): React.JSX.Element | null => {
-  const { metrics, totalAIGroups, isOngoing, flameGraphVisible, toggleFlameGraph } = useStore(
+  const {
+    metrics,
+    totalAIGroups,
+    isOngoing,
+    flameGraphVisible,
+    toggleFlameGraph,
+    teamTreeVisible,
+    toggleTeamTree,
+    hasProcesses,
+  } = useStore(
     useShallow((s) => {
       const td = tabId ? s.tabSessionData[tabId] : null;
       const detail = td?.sessionDetail ?? s.sessionDetail;
@@ -41,6 +50,9 @@ export const SessionSummaryBar = ({ tabId }: Readonly<SessionSummaryBarProps>): 
         isOngoing: detail?.session?.isOngoing ?? false,
         flameGraphVisible: s.flameGraphVisible,
         toggleFlameGraph: s.toggleFlameGraph,
+        teamTreeVisible: s.teamTreeVisible,
+        toggleTeamTree: s.toggleTeamTree,
+        hasProcesses: (detail?.processes?.length ?? 0) > 0,
       };
     })
   );
@@ -100,6 +112,24 @@ export const SessionSummaryBar = ({ tabId }: Readonly<SessionSummaryBarProps>): 
         <Flame className="size-3" />
         <span>Flame</span>
       </button>
+
+      {/* Team tree toggle */}
+      {hasProcesses && (
+        <button
+          onClick={() => toggleTeamTree()}
+          className={cn(
+            'flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-[11px] transition-colors',
+            teamTreeVisible
+              ? 'bg-indigo-500/20 text-indigo-200'
+              : 'text-text-secondary hover:bg-surface-raised'
+          )}
+          title={teamTreeVisible ? 'Hide team tree' : 'Show team tree'}
+          aria-pressed={teamTreeVisible}
+        >
+          <Users className="size-3" />
+          <span>Teams</span>
+        </button>
+      )}
 
       {/* Ongoing dot */}
       {isOngoing && (

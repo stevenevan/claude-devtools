@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { ChatHistory } from '../chat/ChatHistory';
 import { SessionSummaryBar } from '../chat/SessionSummaryBar';
+import { TeamTreeView } from '../chat/TeamTreeView';
 import { ToolFlameGraph } from '../chat/ToolFlameGraph';
 import { SearchBar } from '../search/SearchBar';
 
@@ -14,13 +15,15 @@ interface MiddlePanelProps {
 }
 
 export const MiddlePanel: React.FC<MiddlePanelProps> = ({ tabId }) => {
-  const { flameGraphVisible, chunks } = useStore(
+  const { flameGraphVisible, teamTreeVisible, chunks, processes } = useStore(
     useShallow((s) => {
       const td = tabId ? s.tabSessionData[tabId] : null;
       const detail = td?.sessionDetail ?? s.sessionDetail;
       return {
         flameGraphVisible: s.flameGraphVisible,
+        teamTreeVisible: s.teamTreeVisible,
         chunks: detail?.chunks ?? [],
+        processes: detail?.processes ?? [],
       };
     })
   );
@@ -32,6 +35,11 @@ export const MiddlePanel: React.FC<MiddlePanelProps> = ({ tabId }) => {
       {flameGraphVisible && chunks.length > 0 && (
         <div className="border-border/50 shrink-0 border-b px-3 py-2">
           <ToolFlameGraph chunks={chunks} />
+        </div>
+      )}
+      {teamTreeVisible && processes.length > 0 && (
+        <div className="border-border/50 shrink-0 border-b px-3 py-2">
+          <TeamTreeView processes={processes} />
         </div>
       )}
       <ChatHistory tabId={tabId} />
