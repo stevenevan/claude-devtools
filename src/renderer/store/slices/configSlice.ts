@@ -43,6 +43,10 @@ export interface ConfigSlice {
     patch: { widgetOrder?: string[]; hiddenWidgets?: string[] }
   ) => Promise<void>;
 
+  // Shortcut overrides (sprint 33)
+  setShortcutOverride: (actionId: string, combo: string | null) => Promise<void>;
+  resetAllShortcuts: () => Promise<void>;
+
   // Bookmark actions
   fetchBookmarks: () => Promise<void>;
   toggleBookmark: (sessionId: string, projectId: string, groupId: string) => Promise<void>;
@@ -130,6 +134,33 @@ export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (s
       set({ appConfig: config });
     } catch (error) {
       logger.error('Failed to update dashboard layout:', error);
+    }
+  },
+
+  setShortcutOverride: async (actionId, combo) => {
+    try {
+      const current = get().appConfig?.shortcuts?.overrides ?? {};
+      const next: Record<string, string> = { ...current };
+      if (!combo || combo.trim().length === 0) {
+        delete next[actionId];
+      } else {
+        next[actionId] = combo.trim();
+      }
+      await api.config.update('shortcuts', { overrides: next });
+      const config = await api.config.get();
+      set({ appConfig: config });
+    } catch (error) {
+      logger.error('Failed to update shortcut override:', error);
+    }
+  },
+
+  resetAllShortcuts: async () => {
+    try {
+      await api.config.update('shortcuts', { overrides: {} });
+      const config = await api.config.get();
+      set({ appConfig: config });
+    } catch (error) {
+      logger.error('Failed to reset shortcuts:', error);
     }
   },
 

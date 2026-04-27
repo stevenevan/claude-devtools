@@ -325,4 +325,8 @@ export interface AppConfig {
     widgetOrder?: string[];
     hiddenWidgets?: string[];
   };
+  /** Keyboard shortcut overrides: action id → combo (sprint 33). */
+  shortcuts?: {
+    overrides?: Record<string, string>;
+  };
 }

@@ -20,6 +20,19 @@ pub struct AppConfig {
     pub budget: BudgetConfig,
     #[serde(default)]
     pub dashboard: DashboardConfig,
+    #[serde(default)]
+    pub shortcuts: ShortcutsConfig,
+}
+
+// Keyboard shortcut overrides (sprint 33).
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ShortcutsConfig {
+    /// Map of action id → override combo (e.g. "Cmd+K"). Missing entries fall
+    /// back to defaults defined in the frontend registry.
+    #[serde(default)]
+    pub overrides: std::collections::HashMap<String, String>,
 }
 
 // Dashboard layout (widget order + hidden ids) — sprint 32.
@@ -252,6 +265,7 @@ impl Default for AppConfig {
             http_server: HttpServerConfig::default(),
             budget: BudgetConfig::default(),
             dashboard: DashboardConfig::default(),
+            shortcuts: ShortcutsConfig::default(),
         }
     }
 }
@@ -393,6 +407,11 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         None => defaults.dashboard.clone(),
     };
 
+    let shortcuts: ShortcutsConfig = match obj.get("shortcuts") {
+        Some(v) => serde_json::from_value(v.clone()).unwrap_or_default(),
+        None => defaults.shortcuts.clone(),
+    };
+
     AppConfig {
         notifications,
         general,
@@ -402,6 +421,7 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         http_server,
         budget,
         dashboard,
+        shortcuts,
     }
 }
 

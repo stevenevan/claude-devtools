@@ -99,6 +99,18 @@ impl ConfigState {
                         .collect();
                 }
             }
+            "shortcuts" => {
+                let obj = validated.as_object().unwrap();
+                if let Some(overrides) = obj.get("overrides").and_then(|v| v.as_object()) {
+                    let mut next = std::collections::HashMap::new();
+                    for (k, v) in overrides {
+                        if let Some(s) = v.as_str() {
+                            next.insert(k.clone(), s.to_string());
+                        }
+                    }
+                    self.config.shortcuts.overrides = next;
+                }
+            }
             _ => {}
         }
 

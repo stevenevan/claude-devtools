@@ -17,11 +17,37 @@ pub fn validate_config_update(section: &str, data: &Value) -> Result<(String, Va
         "httpServer" => validate_http_server(data).map(|v| (section.to_string(), v)),
         "ssh" => validate_ssh(data).map(|v| (section.to_string(), v)),
         "dashboard" => validate_dashboard(data).map(|v| (section.to_string(), v)),
+        "shortcuts" => validate_shortcuts(data).map(|v| (section.to_string(), v)),
         _ => Err(
-            "Section must be one of: notifications, general, display, httpServer, ssh, dashboard"
+            "Section must be one of: notifications, general, display, httpServer, ssh, dashboard, shortcuts"
                 .to_string(),
         ),
     }
+}
+
+fn validate_shortcuts(data: &Value) -> Result<Value, String> {
+    let obj = data
+        .as_object()
+        .ok_or("shortcuts update must be an object")?;
+    for key in obj.keys() {
+        if key != "overrides" {
+            return Err(format!("Unknown shortcuts field: {key}"));
+        }
+    }
+    if let Some(overrides) = obj.get("overrides") {
+        let overrides_obj = overrides
+            .as_object()
+            .ok_or("overrides must be an object")?;
+        for (k, v) in overrides_obj {
+            if k.is_empty() {
+                return Err("shortcut override id must not be empty".to_string());
+            }
+            if !v.is_string() {
+                return Err("shortcut override combo must be a string".to_string());
+            }
+        }
+    }
+    Ok(data.clone())
 }
 
 fn validate_dashboard(data: &Value) -> Result<Value, String> {
