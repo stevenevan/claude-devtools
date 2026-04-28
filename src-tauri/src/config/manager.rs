@@ -111,6 +111,23 @@ impl ConfigState {
                     self.config.shortcuts.overrides = next;
                 }
             }
+            "themes" => {
+                let obj = validated.as_object().unwrap();
+                if let Some(active) = obj.get("activeId") {
+                    self.config.themes.active_id = active.as_str().map(|s| s.to_string());
+                }
+                if let Some(arr) = obj.get("custom").and_then(|v| v.as_array()) {
+                    let mut themes: Vec<super::types::CustomTheme> = Vec::new();
+                    for entry in arr {
+                        if let Ok(theme) = serde_json::from_value::<super::types::CustomTheme>(
+                            entry.clone(),
+                        ) {
+                            themes.push(theme);
+                        }
+                    }
+                    self.config.themes.custom = themes;
+                }
+            }
             _ => {}
         }
 

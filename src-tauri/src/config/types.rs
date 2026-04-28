@@ -22,6 +22,32 @@ pub struct AppConfig {
     pub dashboard: DashboardConfig,
     #[serde(default)]
     pub shortcuts: ShortcutsConfig,
+    #[serde(default)]
+    pub themes: ThemesConfig,
+}
+
+// Custom theme definitions (sprint 34).
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ThemesConfig {
+    /// Active custom theme id. `None` means use built-in dark/light only.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub active_id: Option<String>,
+    /// User-defined themes. Built-ins are not stored here.
+    #[serde(default)]
+    pub custom: Vec<CustomTheme>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CustomTheme {
+    pub id: String,
+    pub name: String,
+    /// Which built-in theme overrides apply on top of: "dark" or "light".
+    pub based_on: String,
+    /// Map of CSS variable name (without leading `--`) → colour value.
+    pub overrides: HashMap<String, String>,
 }
 
 // Keyboard shortcut overrides (sprint 33).
@@ -266,6 +292,7 @@ impl Default for AppConfig {
             budget: BudgetConfig::default(),
             dashboard: DashboardConfig::default(),
             shortcuts: ShortcutsConfig::default(),
+            themes: ThemesConfig::default(),
         }
     }
 }
@@ -412,6 +439,11 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         None => defaults.shortcuts.clone(),
     };
 
+    let themes: ThemesConfig = match obj.get("themes") {
+        Some(v) => serde_json::from_value(v.clone()).unwrap_or_default(),
+        None => defaults.themes.clone(),
+    };
+
     AppConfig {
         notifications,
         general,
@@ -422,6 +454,7 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         budget,
         dashboard,
         shortcuts,
+        themes,
     }
 }
 

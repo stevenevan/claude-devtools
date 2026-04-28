@@ -7,6 +7,7 @@ import { createLogger } from '@shared/utils/logger';
 
 import type { AppState } from '../types';
 import type { AppConfig } from '@renderer/types/data';
+import type { CustomTheme } from '@shared/types/notifications';
 import type { StateCreator } from 'zustand';
 
 const logger = createLogger('Store:config');
@@ -39,13 +40,19 @@ export interface ConfigSlice {
   clearPendingSettingsSection: () => void;
 
   // Dashboard layout (sprint 32)
-  updateDashboardLayout: (
-    patch: { widgetOrder?: string[]; hiddenWidgets?: string[] }
-  ) => Promise<void>;
+  updateDashboardLayout: (patch: {
+    widgetOrder?: string[];
+    hiddenWidgets?: string[];
+  }) => Promise<void>;
 
   // Shortcut overrides (sprint 33)
   setShortcutOverride: (actionId: string, combo: string | null) => Promise<void>;
   resetAllShortcuts: () => Promise<void>;
+
+  // Custom themes (sprint 34)
+  saveCustomTheme: (theme: CustomTheme) => Promise<void>;
+  deleteCustomTheme: (themeId: string) => Promise<void>;
+  setActiveTheme: (themeId: string | null) => Promise<void>;
 
   // Bookmark actions
   fetchBookmarks: () => Promise<void>;
@@ -161,6 +168,44 @@ export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (s
       set({ appConfig: config });
     } catch (error) {
       logger.error('Failed to reset shortcuts:', error);
+    }
+  },
+
+  saveCustomTheme: async (theme) => {
+    try {
+      const current = get().appConfig?.themes?.custom ?? [];
+      const idx = current.findIndex((t) => t.id === theme.id);
+      const next = idx >= 0 ? current.map((t, i) => (i === idx ? theme : t)) : [...current, theme];
+      await api.config.update('themes', { custom: next });
+      const config = await api.config.get();
+      set({ appConfig: config });
+    } catch (error) {
+      logger.error('Failed to save custom theme:', error);
+    }
+  },
+
+  deleteCustomTheme: async (themeId) => {
+    try {
+      const current = get().appConfig?.themes?.custom ?? [];
+      const next = current.filter((t) => t.id !== themeId);
+      const activeId = get().appConfig?.themes?.activeId;
+      const patch: Record<string, unknown> = { custom: next };
+      if (activeId === themeId) patch.activeId = null;
+      await api.config.update('themes', patch);
+      const config = await api.config.get();
+      set({ appConfig: config });
+    } catch (error) {
+      logger.error('Failed to delete custom theme:', error);
+    }
+  },
+
+  setActiveTheme: async (themeId) => {
+    try {
+      await api.config.update('themes', { activeId: themeId });
+      const config = await api.config.get();
+      set({ appConfig: config });
+    } catch (error) {
+      logger.error('Failed to set active theme:', error);
     }
   },
 

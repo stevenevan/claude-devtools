@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { applyTheme, revertTheme } from '@renderer/utils/themeApplier';
 import { useShallow } from 'zustand/react/shallow';
 
 import { useStore } from '../store';
@@ -113,7 +114,14 @@ export function useTheme(): {
   useEffect(() => {
     const root = document.documentElement;
 
-    root.classList.remove('dark', 'light', 'theme-nord', 'theme-solarized', 'theme-monokai', 'theme-high-contrast');
+    root.classList.remove(
+      'dark',
+      'light',
+      'theme-nord',
+      'theme-solarized',
+      'theme-monokai',
+      'theme-high-contrast'
+    );
 
     root.classList.add(resolvedTheme);
 
@@ -122,6 +130,21 @@ export function useTheme(): {
       root.classList.add(`theme-${preset}`);
     }
   }, [resolvedTheme, preset]);
+
+  // Apply custom CSS-variable theme overrides (sprint 34)
+  useEffect(() => {
+    const activeId = appConfig?.themes?.activeId;
+    const custom = appConfig?.themes?.custom ?? [];
+    const active = activeId ? custom.find((t) => t.id === activeId) : undefined;
+    if (!active) {
+      revertTheme();
+      return;
+    }
+    applyTheme(active.overrides);
+    return () => {
+      revertTheme();
+    };
+  }, [appConfig?.themes?.activeId, appConfig?.themes?.custom]);
 
   return {
     theme: configuredTheme,

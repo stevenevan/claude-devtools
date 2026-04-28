@@ -329,4 +329,16 @@ export interface AppConfig {
   shortcuts?: {
     overrides?: Record<string, string>;
   };
+  /** Custom CSS-variable themes (sprint 34). */
+  themes?: {
+    activeId?: string | null;
+    custom?: CustomTheme[];
+  };
+}
+
+export interface CustomTheme {
+  id: string;
+  name: string;
+  basedOn: 'dark' | 'light';
+  overrides: Record<string, string>;
 }

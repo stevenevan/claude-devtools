@@ -18,11 +18,55 @@ pub fn validate_config_update(section: &str, data: &Value) -> Result<(String, Va
         "ssh" => validate_ssh(data).map(|v| (section.to_string(), v)),
         "dashboard" => validate_dashboard(data).map(|v| (section.to_string(), v)),
         "shortcuts" => validate_shortcuts(data).map(|v| (section.to_string(), v)),
+        "themes" => validate_themes(data).map(|v| (section.to_string(), v)),
         _ => Err(
-            "Section must be one of: notifications, general, display, httpServer, ssh, dashboard, shortcuts"
+            "Section must be one of: notifications, general, display, httpServer, ssh, dashboard, shortcuts, themes"
                 .to_string(),
         ),
     }
+}
+
+fn validate_themes(data: &Value) -> Result<Value, String> {
+    let obj = data.as_object().ok_or("themes update must be an object")?;
+    for key in obj.keys() {
+        if key != "activeId" && key != "custom" {
+            return Err(format!("Unknown themes field: {key}"));
+        }
+    }
+    if let Some(active) = obj.get("activeId") {
+        if !active.is_null() && !active.is_string() {
+            return Err("activeId must be a string or null".to_string());
+        }
+    }
+    if let Some(custom) = obj.get("custom") {
+        let arr = custom.as_array().ok_or("custom must be an array")?;
+        for entry in arr {
+            let theme = entry.as_object().ok_or("theme entry must be an object")?;
+            for f in ["id", "name", "basedOn"] {
+                let v = theme.get(f).ok_or(format!("theme missing field: {f}"))?;
+                if !v.is_string() {
+                    return Err(format!("theme.{f} must be a string"));
+                }
+            }
+            let based = theme["basedOn"].as_str().unwrap_or("");
+            if based != "dark" && based != "light" {
+                return Err("theme.basedOn must be 'dark' or 'light'".to_string());
+            }
+            let overrides = theme
+                .get("overrides")
+                .and_then(|v| v.as_object())
+                .ok_or("theme.overrides must be an object")?;
+            for (k, v) in overrides {
+                if k.is_empty() {
+                    return Err("theme override key must not be empty".to_string());
+                }
+                if !v.is_string() {
+                    return Err("theme override value must be a string".to_string());
+                }
+            }
+        }
+    }
+    Ok(data.clone())
 }
 
 fn validate_shortcuts(data: &Value) -> Result<Value, String> {
