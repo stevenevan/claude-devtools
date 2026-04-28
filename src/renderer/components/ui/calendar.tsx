@@ -120,14 +120,10 @@ function Calendar({
         },
         Chevron: ({ className: chevronClass, orientation, ...chevronProps }) => {
           if (orientation === 'left') {
-            return (
-              <RiArrowLeftSLine className={cn('size-4', chevronClass)} {...chevronProps} />
-            );
+            return <RiArrowLeftSLine className={cn('size-4', chevronClass)} {...chevronProps} />;
           }
           if (orientation === 'right') {
-            return (
-              <RiArrowRightSLine className={cn('size-4', chevronClass)} {...chevronProps} />
-            );
+            return <RiArrowRightSLine className={cn('size-4', chevronClass)} {...chevronProps} />;
           }
           return <RiArrowDownSLine className={cn('size-4', chevronClass)} {...chevronProps} />;
         },

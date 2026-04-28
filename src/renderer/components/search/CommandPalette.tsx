@@ -14,10 +14,10 @@ import {
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatModifierShortcut } from '@renderer/utils/keyboardUtils';
+import { triggerDownload } from '@renderer/utils/sessionExporter';
 import { createLogger } from '@shared/utils/logger';
 import { Command as CommandPrimitive } from 'cmdk';
 import { formatDistanceToNow } from 'date-fns';
-import { triggerDownload } from '@renderer/utils/sessionExporter';
 import {
   Bot,
   Copy,
@@ -271,7 +271,13 @@ export const CommandPalette = (): React.JSX.Element | null => {
             }}
           />
           {loading && <Loader2 className="text-muted-foreground size-4 shrink-0 animate-spin" />}
-          <Button variant="ghost" size="icon-xs" onClick={closeCommandPalette} title="Close" aria-label="Close search palette">
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={closeCommandPalette}
+            title="Close"
+            aria-label="Close search palette"
+          >
             <X className="size-4" />
           </Button>
         </div>

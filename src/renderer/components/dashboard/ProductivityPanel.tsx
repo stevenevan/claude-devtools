@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 
-import { cn } from '@renderer/lib/utils';
 import { useProductivityMetrics } from '@renderer/hooks/useProductivityMetrics';
+import { cn } from '@renderer/lib/utils';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 
-import type { ProductivityDay } from '@shared/types';
-
 import { registerDashboardWidget } from './widgetContract';
+
+import type { ProductivityDay } from '@shared/types';
 
 registerDashboardWidget({
   id: 'productivity-panel',
@@ -170,9 +170,7 @@ export const ProductivityPanel = (): React.JSX.Element => {
     return (
       <div className="border-border bg-background/50 rounded-xs border p-4">
         <p className="text-text-muted text-[11px]">Productivity</p>
-        <p className="text-text-muted mt-2 text-[10px]">
-          {error ?? 'No data available yet.'}
-        </p>
+        <p className="text-text-muted mt-2 text-[10px]">{error ?? 'No data available yet.'}</p>
       </div>
     );
   }

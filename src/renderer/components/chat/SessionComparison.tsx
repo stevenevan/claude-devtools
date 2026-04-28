@@ -7,6 +7,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { api } from '@renderer/api';
 import { cn } from '@renderer/lib/utils';
+import { useStore } from '@renderer/store';
+import { alignColumns } from '@renderer/utils/comparisonAlignment';
 import { formatDuration, formatTokensCompact } from '@renderer/utils/formatters';
 import { parseModelString } from '@shared/utils/modelParser';
 import {
@@ -22,16 +24,14 @@ import {
   Wrench,
   Zap,
 } from 'lucide-react';
-
-import { useStore } from '@renderer/store';
-import { alignColumns } from '@renderer/utils/comparisonAlignment';
 import { useShallow } from 'zustand/react/shallow';
 
 import { Button } from '../ui/button';
+
 import { SessionComparisonColumn, type TurnCell } from './SessionComparisonColumn';
 
-import type { Chunk, SessionDetail } from '@shared/types/chunks';
 import type { Tab } from '@renderer/types/tabs';
+import type { Chunk, SessionDetail } from '@shared/types/chunks';
 
 interface SessionComparisonProps {
   tab: Tab;
@@ -51,7 +51,13 @@ function formatCost(cost?: number): string {
   return `$${cost.toFixed(2)}`;
 }
 
-const MetricRow = ({ icon: Icon, label, leftValue, rightValue, iconColor = 'text-muted-foreground' }: Readonly<MetricRowProps>): React.JSX.Element => (
+const MetricRow = ({
+  icon: Icon,
+  label,
+  leftValue,
+  rightValue,
+  iconColor = 'text-muted-foreground',
+}: Readonly<MetricRowProps>): React.JSX.Element => (
   <div className="flex items-center gap-3 py-1.5">
     <Icon className={cn('size-3.5 shrink-0', iconColor)} />
     <span className="text-muted-foreground w-24 shrink-0 text-xs">{label}</span>
@@ -65,7 +71,8 @@ function countTools(detail: SessionDetail): Map<string, number> {
   const counts = new Map<string, number>();
   for (const chunk of detail.chunks) {
     if ('toolExecutions' in chunk) {
-      for (const exec of (chunk as { toolExecutions: { toolCall: { name: string } }[] }).toolExecutions) {
+      for (const exec of (chunk as { toolExecutions: { toolCall: { name: string } }[] })
+        .toolExecutions) {
         const name = exec.toolCall.name;
         counts.set(name, (counts.get(name) ?? 0) + 1);
       }
@@ -96,7 +103,13 @@ export const SessionComparison = ({ tab }: Readonly<SessionComparisonProps>): Re
       setExtraDetails(rest.filter((d): d is SessionDetail => d != null));
       setLoading(false);
     });
-  }, [tab.projectId, tab.sessionId, tab.compareProjectId, tab.compareSessionId, tab.extraCompareSessions]);
+  }, [
+    tab.projectId,
+    tab.sessionId,
+    tab.compareProjectId,
+    tab.compareSessionId,
+    tab.extraCompareSessions,
+  ]);
 
   if (loading) {
     return (
@@ -116,8 +129,12 @@ export const SessionComparison = ({ tab }: Readonly<SessionComparisonProps>): Re
 
   const leftMetrics = leftDetail.metrics;
   const rightMetrics = rightDetail.metrics;
-  const leftModel = leftMetrics.model ? parseModelString(leftMetrics.model)?.name ?? leftMetrics.model : '--';
-  const rightModel = rightMetrics.model ? parseModelString(rightMetrics.model)?.name ?? rightMetrics.model : '--';
+  const leftModel = leftMetrics.model
+    ? (parseModelString(leftMetrics.model)?.name ?? leftMetrics.model)
+    : '--';
+  const rightModel = rightMetrics.model
+    ? (parseModelString(rightMetrics.model)?.name ?? rightMetrics.model)
+    : '--';
 
   const leftTools = countTools(leftDetail);
   const rightTools = countTools(rightDetail);
@@ -149,29 +166,61 @@ export const SessionComparison = ({ tab }: Readonly<SessionComparisonProps>): Re
 
         {/* Metrics comparison */}
         <div className="border-border rounded-lg border p-4">
-          <h2 className="text-muted-foreground mb-3 text-[10px] font-medium uppercase tracking-wider">
+          <h2 className="text-muted-foreground mb-3 text-[10px] font-medium tracking-wider uppercase">
             Metrics
           </h2>
           <div className="divide-border divide-y">
-            <MetricRow icon={Zap} label="Total Tokens" leftValue={formatTokensCompact(leftMetrics.totalTokens)} rightValue={formatTokensCompact(rightMetrics.totalTokens)} iconColor="text-amber-400/70" />
-            <MetricRow icon={DollarSign} label="Cost" leftValue={formatCost(leftMetrics.costUsd)} rightValue={formatCost(rightMetrics.costUsd)} iconColor="text-green-400/70" />
-            <MetricRow icon={Clock} label="Duration" leftValue={formatDuration(leftMetrics.durationMs)} rightValue={formatDuration(rightMetrics.durationMs)} iconColor="text-blue-400/70" />
-            <MetricRow icon={Hash} label="Messages" leftValue={String(leftMetrics.messageCount)} rightValue={String(rightMetrics.messageCount)} iconColor="text-purple-400/70" />
-            <MetricRow icon={Layers} label="Model" leftValue={leftModel} rightValue={rightModel} iconColor="text-indigo-400/70" />
+            <MetricRow
+              icon={Zap}
+              label="Total Tokens"
+              leftValue={formatTokensCompact(leftMetrics.totalTokens)}
+              rightValue={formatTokensCompact(rightMetrics.totalTokens)}
+              iconColor="text-amber-400/70"
+            />
+            <MetricRow
+              icon={DollarSign}
+              label="Cost"
+              leftValue={formatCost(leftMetrics.costUsd)}
+              rightValue={formatCost(rightMetrics.costUsd)}
+              iconColor="text-green-400/70"
+            />
+            <MetricRow
+              icon={Clock}
+              label="Duration"
+              leftValue={formatDuration(leftMetrics.durationMs)}
+              rightValue={formatDuration(rightMetrics.durationMs)}
+              iconColor="text-blue-400/70"
+            />
+            <MetricRow
+              icon={Hash}
+              label="Messages"
+              leftValue={String(leftMetrics.messageCount)}
+              rightValue={String(rightMetrics.messageCount)}
+              iconColor="text-purple-400/70"
+            />
+            <MetricRow
+              icon={Layers}
+              label="Model"
+              leftValue={leftModel}
+              rightValue={rightModel}
+              iconColor="text-indigo-400/70"
+            />
           </div>
         </div>
 
         {/* Tool usage comparison */}
         {allToolNames.size > 0 && (
           <div className="border-border mt-6 rounded-lg border p-4">
-            <h2 className="text-muted-foreground mb-3 text-[10px] font-medium uppercase tracking-wider">
+            <h2 className="text-muted-foreground mb-3 text-[10px] font-medium tracking-wider uppercase">
               Tool Usage
             </h2>
             <div className="divide-border divide-y">
               {[...allToolNames].sort().map((toolName) => (
                 <div key={toolName} className="flex items-center gap-3 py-1.5">
                   <Wrench className="text-muted-foreground size-3.5 shrink-0" />
-                  <span className="text-muted-foreground w-24 shrink-0 truncate font-mono text-xs">{toolName}</span>
+                  <span className="text-muted-foreground w-24 shrink-0 truncate font-mono text-xs">
+                    {toolName}
+                  </span>
                   <span className="text-foreground flex-1 text-right text-xs tabular-nums">
                     {leftTools.get(toolName) ?? 0}
                   </span>
@@ -229,9 +278,9 @@ function extractTurns(detail: SessionDetail): TurnSummary[] {
       for (let j = nextChunk.responses.length - 1; j >= 0; j--) {
         const resp = nextChunk.responses[j];
         if (resp.type === 'assistant' && Array.isArray(resp.content)) {
-          const textBlock = resp.content.find(
-            (b: { type: string }) => b.type === 'text'
-          ) as { text?: string } | undefined;
+          const textBlock = resp.content.find((b: { type: string }) => b.type === 'text') as
+            | { text?: string }
+            | undefined;
           if (textBlock?.text) {
             aiSummary = textBlock.text.slice(0, 200);
             break;
@@ -300,7 +349,7 @@ const ConversationDiff = ({
   return (
     <div className="border-border mt-6 rounded-lg border p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
+        <h2 className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
           Conversation ({maxTurns} turns)
         </h2>
         {divergentIndices.length > 0 && (
@@ -349,9 +398,7 @@ const ConversationDiff = ({
               }}
               className={cn(
                 'flex gap-3 rounded-sm border px-3 py-2',
-                hasDivergence
-                  ? 'border-amber-500/30 bg-amber-500/5'
-                  : 'border-border'
+                hasDivergence ? 'border-amber-500/30 bg-amber-500/5' : 'border-border'
               )}
             >
               {/* Turn number */}
@@ -457,7 +504,7 @@ const MultiConversationDiff = ({
   return (
     <div className="border-border mt-6 rounded-lg border p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
+        <h2 className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
           Conversation · {details.length} sessions · {divergenceRowIndices.length} divergent rows
         </h2>
         {tab.projectId && pickable.length > 0 && (
@@ -498,8 +545,7 @@ const MultiConversationDiff = ({
 
         {/* N columns */}
         {details.map((detail, colIdx) => {
-          const title =
-            detail.session.customTitle ?? detail.session.id.slice(0, 8);
+          const title = detail.session.customTitle ?? detail.session.id.slice(0, 8);
           const cells = rows.map((r) => r.cells[colIdx] ?? null);
           const isExtra = colIdx >= 2;
           return (

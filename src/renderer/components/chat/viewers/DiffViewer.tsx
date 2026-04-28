@@ -252,7 +252,9 @@ interface SplitDiffViewProps {
 }
 
 /** Build paired rows for side-by-side display. */
-function buildSplitRows(diffLines: DiffLine[]): { left: DiffLine | null; right: DiffLine | null }[] {
+function buildSplitRows(
+  diffLines: DiffLine[]
+): { left: DiffLine | null; right: DiffLine | null }[] {
   const rows: { left: DiffLine | null; right: DiffLine | null }[] = [];
   let i = 0;
   while (i < diffLines.length) {

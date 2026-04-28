@@ -103,7 +103,7 @@ export const ShortcutCheatSheet = ({
           <div className="grid grid-cols-2 gap-6">
             {SECTIONS.map((section) => (
               <div key={section.title}>
-                <h3 className="text-muted-foreground mb-2 text-[10px] font-medium uppercase tracking-wider">
+                <h3 className="text-muted-foreground mb-2 text-[10px] font-medium tracking-wider uppercase">
                   {section.title}
                 </h3>
                 <div className="space-y-1.5">
@@ -124,8 +124,15 @@ export const ShortcutCheatSheet = ({
         {/* Footer */}
         <div className="border-border border-t pt-2.5">
           <span className="text-muted-foreground text-[10px]">
-            Press <kbd className="border-border bg-muted rounded-sm border px-1 font-mono text-[10px]">?</kbd> or{' '}
-            <kbd className="border-border bg-muted rounded-sm border px-1 font-mono text-[10px]">Esc</kbd> to close
+            Press{' '}
+            <kbd className="border-border bg-muted rounded-sm border px-1 font-mono text-[10px]">
+              ?
+            </kbd>{' '}
+            or{' '}
+            <kbd className="border-border bg-muted rounded-sm border px-1 font-mono text-[10px]">
+              Esc
+            </kbd>{' '}
+            to close
           </span>
         </div>
       </DialogContent>

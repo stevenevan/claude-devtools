@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
 import { ToolTimeHeatmap } from '@renderer/components/dashboard/ToolTimeHeatmap';
-import { useToolAnalyticsData } from '@renderer/hooks/useToolAnalyticsData';
-import { useStore } from '@renderer/store';
-import { cn } from '@renderer/lib/utils';
 import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
+import { useToolAnalyticsData } from '@renderer/hooks/useToolAnalyticsData';
+import { cn } from '@renderer/lib/utils';
+import { useStore } from '@renderer/store';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { ChevronRight } from 'lucide-react';
 import {
@@ -67,8 +67,10 @@ export const ToolAnalyticsPanel = ({
     }
   }, [projectId, selectedProjectId, projects]);
 
-  const { tools, totalCalls, totalErrors, scannedSessions, loading, error } =
-    useToolAnalyticsData(projectId, days);
+  const { tools, totalCalls, totalErrors, scannedSessions, loading, error } = useToolAnalyticsData(
+    projectId,
+    days
+  );
 
   const topTools = tools.slice(0, TOP_N).map((t, i) => ({
     ...t,
@@ -78,7 +80,7 @@ export const ToolAnalyticsPanel = ({
   const selectedProject = projects.find((p) => p.id === projectId);
 
   return (
-    <div className="rounded-xs border border-border bg-background/50 p-4">
+    <div className="border-border bg-background/50 rounded-xs border p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <h3 className="text-text text-sm font-medium">Tool Usage</h3>
@@ -86,7 +88,8 @@ export const ToolAnalyticsPanel = ({
             {selectedProject
               ? `Per-tool call stats for ${selectedProject.name}`
               : 'Select a project to view tool usage'}
-            {scannedSessions > 0 && ` · ${scannedSessions} session${scannedSessions === 1 ? '' : 's'} scanned`}
+            {scannedSessions > 0 &&
+              ` · ${scannedSessions} session${scannedSessions === 1 ? '' : 's'} scanned`}
           </p>
         </div>
         <NativeSelect
@@ -110,7 +113,9 @@ export const ToolAnalyticsPanel = ({
       </div>
 
       {error && (
-        <p className="text-text-muted py-4 text-center text-xs">Failed to load tool analytics: {error}</p>
+        <p className="text-text-muted py-4 text-center text-xs">
+          Failed to load tool analytics: {error}
+        </p>
       )}
       {!error && loading && (
         <p className="text-text-muted py-4 text-center text-xs">Loading tool analytics...</p>
@@ -128,7 +133,9 @@ export const ToolAnalyticsPanel = ({
             </div>
             <div className="border-border/50 rounded-xs border px-2 py-1.5">
               <span className="text-text-muted block">Errors</span>
-              <span className={cn('font-mono text-xs', totalErrors > 0 ? 'text-red-400' : 'text-text')}>
+              <span
+                className={cn('font-mono text-xs', totalErrors > 0 ? 'text-red-400' : 'text-text')}
+              >
                 {totalErrors}
               </span>
             </div>
@@ -143,7 +150,11 @@ export const ToolAnalyticsPanel = ({
           <div className="mb-4">
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={topTools} layout="vertical" barCategoryGap="20%">
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgba(255,255,255,0.04)"
+                  horizontal={false}
+                />
                 <XAxis
                   type="number"
                   tick={{ fontSize: 10, fill: '#71717a' }}
@@ -176,7 +187,7 @@ export const ToolAnalyticsPanel = ({
             </ResponsiveContainer>
           </div>
 
-          <div className="overflow-hidden rounded-xs border border-border/50">
+          <div className="border-border/50 overflow-hidden rounded-xs border">
             <table className="w-full text-[10px]">
               <thead className="bg-surface-raised">
                 <tr className="text-text-muted">
@@ -202,7 +213,10 @@ export const ToolAnalyticsPanel = ({
                       >
                         <td className="px-1.5 py-1.5">
                           <ChevronRight
-                            className={cn('size-3 text-text-muted transition-transform', isExpanded && 'rotate-90')}
+                            className={cn(
+                              'size-3 text-text-muted transition-transform',
+                              isExpanded && 'rotate-90'
+                            )}
                           />
                         </td>
                         <td className="text-text px-2 py-1.5 font-medium">{t.toolName}</td>
@@ -235,13 +249,20 @@ export const ToolAnalyticsPanel = ({
                               </div>
                               <div>
                                 <span className="text-text-muted block">Errors</span>
-                                <span className={cn('font-mono', t.errorCount > 0 ? 'text-red-400' : 'text-text')}>
+                                <span
+                                  className={cn(
+                                    'font-mono',
+                                    t.errorCount > 0 ? 'text-red-400' : 'text-text'
+                                  )}
+                                >
                                   {t.errorCount}
                                 </span>
                               </div>
                               <div>
                                 <span className="text-text-muted block">Success rate</span>
-                                <span className="text-text font-mono">{formatPercent(t.successRate)}</span>
+                                <span className="text-text font-mono">
+                                  {formatPercent(t.successRate)}
+                                </span>
                               </div>
                               <div>
                                 <span className="text-text-muted block">Median token cost</span>

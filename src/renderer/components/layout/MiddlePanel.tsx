@@ -16,7 +16,15 @@ interface MiddlePanelProps {
 }
 
 export const MiddlePanel: React.FC<MiddlePanelProps> = ({ tabId }) => {
-  const { flameGraphVisible, teamTreeVisible, fileGraphVisible, chunks, processes, sessionProjectId, sessionId } = useStore(
+  const {
+    flameGraphVisible,
+    teamTreeVisible,
+    fileGraphVisible,
+    chunks,
+    processes,
+    sessionProjectId,
+    sessionId,
+  } = useStore(
     useShallow((s) => {
       const td = tabId ? s.tabSessionData[tabId] : null;
       const detail = td?.sessionDetail ?? s.sessionDetail;

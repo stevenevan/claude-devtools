@@ -5,9 +5,9 @@ import { cn } from '@renderer/lib/utils';
 import { createLogger } from '@shared/utils/logger';
 import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
 
-import type { CostForecast } from '@shared/types';
-
 import { registerDashboardWidget } from './widgetContract';
+
+import type { CostForecast } from '@shared/types';
 
 const logger = createLogger('Component:BudgetPanel');
 
@@ -87,8 +87,7 @@ export const BudgetPanel = (): React.JSX.Element => {
     };
   }, []);
 
-  const currentSpend =
-    forecast?.recentDailyCosts.reduce((sum, c) => sum + c, 0) ?? 0;
+  const currentSpend = forecast?.recentDailyCosts.reduce((sum, c) => sum + c, 0) ?? 0;
   const projectedDaily = forecast?.projectedDailyCostUsd ?? 0;
   const projectedWeekly = forecast?.projectedWeeklyCostUsd ?? 0;
   const slope = forecast?.trendSlopeUsdPerDay ?? 0;

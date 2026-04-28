@@ -6,19 +6,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Button } from '@renderer/components/ui/button';
 import { api } from '@renderer/api';
-import { useStore } from '@renderer/store';
+import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
-import {
-  Clock,
-  Filter,
-  GitBranch,
-  Loader2,
-  MessageSquare,
-  Search,
-  X,
-} from 'lucide-react';
+import { useStore } from '@renderer/store';
+import { Clock, Filter, GitBranch, Loader2, MessageSquare, Search, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import type { FilteredSearchResult, SearchFilters } from '@shared/types/domain';
@@ -44,9 +36,12 @@ function getDateRange(preset: DatePreset): { min?: number; max?: number } {
   const now = Date.now();
   const day = 86400000;
   switch (preset) {
-    case 'today': return { min: now - day };
-    case 'week': return { min: now - 7 * day };
-    case 'month': return { min: now - 30 * day };
+    case 'today':
+      return { min: now - day };
+    case 'week':
+      return { min: now - 7 * day };
+    case 'month':
+      return { min: now - 30 * day };
   }
 }
 
@@ -146,7 +141,10 @@ export const SearchView = (): React.JSX.Element => {
 
   return (
     <div className="bg-background flex-1 overflow-auto">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[600px] bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(99,102,241,0.08),transparent)]" aria-hidden="true" />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-[600px] bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(99,102,241,0.08),transparent)]"
+        aria-hidden="true"
+      />
 
       <div className="relative mx-auto max-w-3xl px-8 py-12">
         {/* Search input */}
@@ -161,7 +159,11 @@ export const SearchView = (): React.JSX.Element => {
             className="text-foreground placeholder:text-muted-foreground flex-1 bg-transparent text-sm outline-hidden"
           />
           {(query || hasFilters) && (
-            <button onClick={clearAll} className="text-muted-foreground hover:text-foreground" title="Clear all">
+            <button
+              onClick={clearAll}
+              className="text-muted-foreground hover:text-foreground"
+              title="Clear all"
+            >
               <X className="size-4" />
             </button>
           )}
@@ -210,7 +212,9 @@ export const SearchView = (): React.JSX.Element => {
         {hasSearched && (
           <div className="text-muted-foreground mb-4 flex items-center justify-between text-xs">
             <span>
-              {loading ? 'Searching...' : `${results.length} result${results.length !== 1 ? 's' : ''}`}
+              {loading
+                ? 'Searching...'
+                : `${results.length} result${results.length !== 1 ? 's' : ''}`}
             </span>
           </div>
         )}
@@ -285,7 +289,12 @@ export const SearchView = (): React.JSX.Element => {
             <Search className="text-muted-foreground mx-auto mb-3 size-8 opacity-50" />
             <p className="text-muted-foreground text-sm">No sessions match your search</p>
             {hasFilters && (
-              <Button variant="ghost" size="sm" onClick={clearAll} className="text-muted-foreground mt-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAll}
+                className="text-muted-foreground mt-3"
+              >
                 Clear filters
               </Button>
             )}
@@ -296,8 +305,12 @@ export const SearchView = (): React.JSX.Element => {
         {!hasSearched && (
           <div className="py-16 text-center">
             <Search className="text-muted-foreground mx-auto mb-3 size-8 opacity-50" />
-            <p className="text-muted-foreground text-sm">Search across all your Claude Code sessions</p>
-            <p className="text-muted-foreground mt-1 text-xs">Type a query or use filters to get started</p>
+            <p className="text-muted-foreground text-sm">
+              Search across all your Claude Code sessions
+            </p>
+            <p className="text-muted-foreground mt-1 text-xs">
+              Type a query or use filters to get started
+            </p>
           </div>
         )}
       </div>

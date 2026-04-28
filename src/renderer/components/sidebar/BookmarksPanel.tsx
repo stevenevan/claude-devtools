@@ -90,7 +90,7 @@ const BookmarkItem = ({
         }
       }}
     >
-      <MessageSquare className="text-amber-400/70 size-3.5 shrink-0" />
+      <MessageSquare className="size-3.5 shrink-0 text-amber-400/70" />
       <div className="min-w-0 flex-1">
         <div className="text-foreground truncate text-xs">{bookmark.groupId}</div>
         <div className="text-muted-foreground text-[10px]">{timeAgo}</div>
@@ -102,7 +102,7 @@ const BookmarkItem = ({
           e.stopPropagation();
           onRemove();
         }}
-        className="text-muted-foreground hover:text-red-400 shrink-0 opacity-0 group-hover:opacity-100"
+        className="text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 hover:text-red-400"
         title="Remove bookmark"
       >
         <BookmarkX className="size-3" />

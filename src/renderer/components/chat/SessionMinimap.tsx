@@ -34,31 +34,41 @@ interface SessionMinimapProps {
 
 function getItemColor(item: ChatItem): string {
   switch (item.type) {
-    case 'user': return 'bg-blue-400/70';
+    case 'user':
+      return 'bg-blue-400/70';
     case 'ai': {
       const tokens = item.group.tokens?.input ?? 0;
       if (tokens > 50000) return 'bg-amber-400/70';
       return 'bg-indigo-400/60';
     }
-    case 'system': return 'bg-zinc-400/40';
-    case 'compact': return 'bg-zinc-600/30';
+    case 'system':
+      return 'bg-zinc-400/40';
+    case 'compact':
+      return 'bg-zinc-600/30';
     case 'event': {
       const eventData = (item.group as { eventData?: { eventType?: string } }).eventData;
       if (eventData?.eventType === 'api_error') return 'bg-red-400/70';
       return 'bg-zinc-400/40';
     }
-    default: return 'bg-zinc-500/30';
+    default:
+      return 'bg-zinc-500/30';
   }
 }
 
 function getItemWeight(item: ChatItem): number {
   switch (item.type) {
-    case 'ai': return 3;
-    case 'user': return 1.5;
-    case 'system': return 1;
-    case 'compact': return 0.5;
-    case 'event': return 0.5;
-    default: return 1;
+    case 'ai':
+      return 3;
+    case 'user':
+      return 1.5;
+    case 'system':
+      return 1;
+    case 'compact':
+      return 0.5;
+    case 'event':
+      return 0.5;
+    default:
+      return 1;
   }
 }
 
@@ -266,7 +276,7 @@ export const SessionMinimap = ({
         {items.map((item, idx) => {
           const weight = getItemWeight(item);
           const start =
-            (items.slice(0, idx).reduce((s, it) => s + getItemWeight(it), 0)) / totalWeight;
+            items.slice(0, idx).reduce((s, it) => s + getItemWeight(it), 0) / totalWeight;
           const end = start + weight / totalWeight;
           const { startRatio, endRatio } = visibleRange(zoom, panRatio);
           if (end < startRatio || start > endRatio) return null;
@@ -288,19 +298,19 @@ export const SessionMinimap = ({
               {zoom >= 4 && item.type === 'ai' && (
                 <span
                   aria-hidden
-                  className="text-text-muted absolute -right-1 top-1/2 size-1 -translate-y-1/2 rounded-full bg-violet-400"
+                  className="text-text-muted absolute top-1/2 -right-1 size-1 -translate-y-1/2 rounded-full bg-violet-400"
                 />
               )}
               {isBookmarked && (
                 <span
                   aria-hidden
-                  className="absolute right-0 top-1/2 size-1.5 -translate-y-1/2 rounded-full bg-amber-400"
+                  className="absolute top-1/2 right-0 size-1.5 -translate-y-1/2 rounded-full bg-amber-400"
                 />
               )}
               {annotationColor && (
                 <span
                   aria-hidden
-                  className="absolute right-[5px] top-1/2 size-1.5 -translate-y-1/2 rounded-full"
+                  className="absolute top-1/2 right-[5px] size-1.5 -translate-y-1/2 rounded-full"
                   style={{ backgroundColor: getAnnotationColorHex(annotationColor) }}
                 />
               )}
@@ -311,7 +321,7 @@ export const SessionMinimap = ({
 
       {/* Zoom indicator badge (only when zoomed in) */}
       {zoom > 1 && (
-        <span className="text-text-muted absolute -left-6 top-1 rounded-[2px] bg-black/40 px-1 font-mono text-[8px]">
+        <span className="text-text-muted absolute top-1 -left-6 rounded-[2px] bg-black/40 px-1 font-mono text-[8px]">
           {zoom.toFixed(1)}x
         </span>
       )}
@@ -336,4 +346,3 @@ export const SessionMinimap = ({
     </div>
   );
 };
-

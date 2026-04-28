@@ -46,11 +46,20 @@ function getActivityFromStep(step: SemanticStep | null | undefined): {
       case 'Bash':
         return { icon: Terminal, label: 'Running command...' };
       case 'Read':
-        return { icon: FileText, label: input ? `Reading ${truncatePath(input)}` : 'Reading file...' };
+        return {
+          icon: FileText,
+          label: input ? `Reading ${truncatePath(input)}` : 'Reading file...',
+        };
       case 'Write':
-        return { icon: FileText, label: input ? `Writing ${truncatePath(input)}` : 'Writing file...' };
+        return {
+          icon: FileText,
+          label: input ? `Writing ${truncatePath(input)}` : 'Writing file...',
+        };
       case 'Edit':
-        return { icon: Pencil, label: input ? `Editing ${truncatePath(input)}` : 'Editing file...' };
+        return {
+          icon: Pencil,
+          label: input ? `Editing ${truncatePath(input)}` : 'Editing file...',
+        };
       case 'Grep':
       case 'Glob':
         return { icon: Search, label: 'Searching codebase...' };
@@ -103,16 +112,11 @@ export const LiveActivityBar = ({
         className
       )}
     >
-      <span className="relative flex shrink-0 h-2 w-2">
+      <span className="relative flex h-2 w-2 shrink-0">
         <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-400 opacity-75" />
         <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
       </span>
-      <Icon
-        className={cn(
-          'size-4 shrink-0 text-green-400',
-          isSpinner && 'animate-spin'
-        )}
-      />
+      <Icon className={cn('size-4 shrink-0 text-green-400', isSpinner && 'animate-spin')} />
       <span className="text-sm text-green-300/90 tabular-nums">{label}</span>
     </div>
   );

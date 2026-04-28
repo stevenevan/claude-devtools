@@ -125,7 +125,9 @@ export function useKeyboardShortcuts(): void {
           if (activeTab?.type === 'session') {
             event.preventDefault();
             window.dispatchEvent(
-              new CustomEvent('turn-navigate', { detail: { direction: event.key === 'j' ? 'next' : 'prev' } })
+              new CustomEvent('turn-navigate', {
+                detail: { direction: event.key === 'j' ? 'next' : 'prev' },
+              })
             );
             return;
           }

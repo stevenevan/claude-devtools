@@ -29,7 +29,9 @@ function shortModelName(model: string | undefined): string {
   return info.name;
 }
 
-export const SessionSummaryBar = ({ tabId }: Readonly<SessionSummaryBarProps>): React.JSX.Element | null => {
+export const SessionSummaryBar = ({
+  tabId,
+}: Readonly<SessionSummaryBarProps>): React.JSX.Element | null => {
   const {
     metrics,
     totalAIGroups,
@@ -90,7 +92,9 @@ export const SessionSummaryBar = ({ tabId }: Readonly<SessionSummaryBarProps>): 
       {/* Turns */}
       <span className="text-text-secondary flex items-center gap-1.5" title="AI turns">
         <Hash className="size-3 text-purple-400/70" />
-        <span>{totalAIGroups} turn{totalAIGroups !== 1 ? 's' : ''}</span>
+        <span>
+          {totalAIGroups} turn{totalAIGroups !== 1 ? 's' : ''}
+        </span>
       </span>
 
       {/* Model */}
@@ -158,7 +162,7 @@ export const SessionSummaryBar = ({ tabId }: Readonly<SessionSummaryBarProps>): 
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-400 opacity-75" />
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />
           </span>
-          <span className="text-green-400/70 text-[10px] uppercase tracking-wider">Live</span>
+          <span className="text-[10px] tracking-wider text-green-400/70 uppercase">Live</span>
         </span>
       )}
     </div>

@@ -48,3 +48,8 @@ components/
 
 ## Contexts
 - `contexts/TabUIContext.tsx` - Per-tab UI state isolation
+
+## Banned Patterns
+- **No `useCallback` or `React.memo`** unless profiling proves a measurable perf issue
+- **No JSDoc comments** — code should be self-documenting; use inline comments only when logic is non-obvious
+- **No unnecessary comments** — don't add comments that restate what the code does

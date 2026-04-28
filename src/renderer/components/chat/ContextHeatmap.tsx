@@ -1,16 +1,12 @@
 import { useMemo, useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';
+import { buildTurnBreakdown } from '@renderer/utils/contextTracker';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 
-import { buildTurnBreakdown } from '@renderer/utils/contextTracker';
-
-import type {
-  ContextCategoryKey,
-  ContextTurnBreakdown,
-} from '@renderer/utils/contextTracker';
 import type { ContextStats } from '@renderer/types/contextInjection';
 import type { ChatItem } from '@renderer/types/groups';
+import type { ContextCategoryKey, ContextTurnBreakdown } from '@renderer/utils/contextTracker';
 
 const CATEGORY_LABEL: Record<ContextCategoryKey, string> = {
   claudeMd: 'CLAUDE.md',

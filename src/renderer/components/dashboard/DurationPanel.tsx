@@ -5,9 +5,9 @@ import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { AlertTriangle } from 'lucide-react';
 
-import type { SessionDurationEntry } from '@shared/types';
-
 import { registerDashboardWidget } from './widgetContract';
+
+import type { SessionDurationEntry } from '@shared/types';
 
 registerDashboardWidget({
   id: 'duration-panel',
@@ -91,9 +91,7 @@ export const DurationPanel = (): React.JSX.Element => {
     return (
       <div className="border-border bg-background/50 rounded-xs border p-4">
         <p className="text-text-muted text-[11px]">Session Duration</p>
-        <p className="text-text-muted mt-2 text-[10px]">
-          {error ?? 'No duration data available.'}
-        </p>
+        <p className="text-text-muted mt-2 text-[10px]">{error ?? 'No duration data available.'}</p>
       </div>
     );
   }
@@ -137,7 +135,7 @@ export const DurationPanel = (): React.JSX.Element => {
       </div>
 
       <div className="mt-4">
-        <h4 className="text-text-muted mb-2 text-[10px] uppercase tracking-wider">
+        <h4 className="text-text-muted mb-2 text-[10px] tracking-wider uppercase">
           Outliers ({outlierSessions.length})
         </h4>
         {outlierSessions.length === 0 ? (

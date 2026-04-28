@@ -21,9 +21,10 @@ export const defaultDashboardLayout = (): DashboardLayoutState => ({
  * last save still appear. Returns an ordered list of visible + hidden widgets
  * for rendering.
  */
-export function applyLayoutToRegistry(
-  layout: DashboardLayoutState
-): { visible: DashboardWidgetMeta[]; hidden: DashboardWidgetMeta[] } {
+export function applyLayoutToRegistry(layout: DashboardLayoutState): {
+  visible: DashboardWidgetMeta[];
+  hidden: DashboardWidgetMeta[];
+} {
   const widgets = getRegisteredWidgets();
   const byId = new Map(widgets.map((w) => [w.id, w]));
   const hiddenSet = new Set(layout.hiddenWidgets);

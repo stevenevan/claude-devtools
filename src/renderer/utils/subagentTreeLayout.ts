@@ -78,8 +78,7 @@ export function buildSubagentTree(
   // Stable sort within each level by start time (oldest first).
   function sortRec(list: SubagentTreeNode[]): void {
     list.sort(
-      (a, b) =>
-        new Date(a.process.startTime).getTime() - new Date(b.process.startTime).getTime()
+      (a, b) => new Date(a.process.startTime).getTime() - new Date(b.process.startTime).getTime()
     );
     for (const n of list) sortRec(n.children);
   }

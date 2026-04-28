@@ -27,7 +27,7 @@ export const TabbedLayout = (): React.JSX.Element => {
     >
       <a
         href="#pane-container"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-surface-raised focus:px-3 focus:py-2 focus:text-sm focus:text-text focus:shadow-lg"
+        className="focus:bg-surface-raised focus:text-text sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:px-3 focus:py-2 focus:text-sm focus:shadow-lg"
       >
         Skip to main content
       </a>

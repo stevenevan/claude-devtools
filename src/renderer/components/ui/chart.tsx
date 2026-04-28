@@ -65,9 +65,7 @@ function ChartContainer({
 }
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(
-    ([, entry]) => entry.theme || entry.color
-  );
+  const colorConfig = Object.entries(config).filter(([, entry]) => entry.theme || entry.color);
 
   if (!colorConfig.length) {
     return null;
@@ -180,9 +178,7 @@ function ChartTooltipContent({
             const key = `${nameKey || item.name || item.dataKey || 'value'}`;
             const itemConfig = getPayloadConfigFromPayload(config, item, key);
             const indicatorColor =
-              color ||
-              (item.payload?.fill as string | undefined) ||
-              item.color;
+              color || (item.payload?.fill as string | undefined) || item.color;
 
             return (
               <div
@@ -199,7 +195,7 @@ function ChartTooltipContent({
                       name: unknown,
                       item: unknown,
                       index: number,
-                      payload: unknown,
+                      payload: unknown
                     ) => React.ReactNode
                   )(item.value, item.name, item, index, item.payload)
                 ) : (

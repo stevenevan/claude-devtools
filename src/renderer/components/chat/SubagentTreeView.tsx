@@ -83,18 +83,16 @@ const TreeNode = ({
 
         <span className="text-foreground truncate font-medium">{description}</span>
         <span className="text-muted-foreground/60 shrink-0 text-[10px]">{shortId}</span>
-        {model && (
-          <span className="text-muted-foreground shrink-0 text-[10px]">{model.name}</span>
-        )}
+        {model && <span className="text-muted-foreground shrink-0 text-[10px]">{model.name}</span>}
 
         <span className="ml-auto flex shrink-0 items-center gap-1.5">
-          <span className="text-muted-foreground tabular-nums text-[10px]">
+          <span className="text-muted-foreground text-[10px] tabular-nums">
             {toolUseCount} tools
           </span>
-          <span className="text-muted-foreground tabular-nums text-[10px]">
+          <span className="text-muted-foreground text-[10px] tabular-nums">
             {formatTokensCompact(process.metrics.totalTokens)}
           </span>
-          <span className="text-muted-foreground tabular-nums text-[10px]">
+          <span className="text-muted-foreground text-[10px] tabular-nums">
             {formatDuration(process.durationMs)}
           </span>
           {isOngoing ? (
@@ -146,10 +144,7 @@ export const SubagentTreeView = ({
   const [hideEmpty, setHideEmpty] = useState(false);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
-  const tree = useMemo(
-    () => buildSubagentTree(processes, { hideEmpty }),
-    [processes, hideEmpty]
-  );
+  const tree = useMemo(() => buildSubagentTree(processes, { hideEmpty }), [processes, hideEmpty]);
 
   if (processes.length === 0) return null;
 
@@ -166,16 +161,14 @@ export const SubagentTreeView = ({
     <div className={cn('border-border rounded-sm border', className)}>
       <div className="border-border flex items-center gap-2 border-b px-3 py-1.5">
         <Bot className="text-muted-foreground size-3" />
-        <span className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
+        <span className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
           Subagents ({processes.length})
         </span>
         <button
           onClick={() => setHideEmpty((v) => !v)}
           className={cn(
             'ml-auto flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
-            hideEmpty
-              ? 'bg-sky-500/20 text-sky-200'
-              : 'text-muted-foreground hover:bg-white/[0.03]'
+            hideEmpty ? 'bg-sky-500/20 text-sky-200' : 'text-muted-foreground hover:bg-white/[0.03]'
           )}
           title={hideEmpty ? 'Show empty subagents' : 'Hide subagents with 0 tool calls'}
         >

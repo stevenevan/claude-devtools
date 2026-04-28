@@ -398,7 +398,15 @@ export const createConversationSlice: StateCreator<AppState, [], [], Conversatio
       const currentSearchId = ++searchIdCounter;
 
       api
-        .searchSessionContent(projectId, sessionId, query, searchIsRegex, false, undefined, MAX_SEARCH_MATCHES)
+        .searchSessionContent(
+          projectId,
+          sessionId,
+          query,
+          searchIsRegex,
+          false,
+          undefined,
+          MAX_SEARCH_MATCHES
+        )
         .then((result) => {
           // Discard stale results
           if (currentSearchId !== searchIdCounter) return;

@@ -143,8 +143,12 @@ export const ToolFlameGraph = ({
     if (!bar) return;
     const barStartMs = bar.startMs - layout.sessionStartMs;
     const barDurationMs = Math.max(bar.endMs - bar.startMs, 1);
-    const desiredScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, (containerWidth * 0.4) / barDurationMs));
-    const centerPan = containerWidth / 2 - barStartMs * desiredScale - (barDurationMs * desiredScale) / 2;
+    const desiredScale = Math.min(
+      MAX_SCALE,
+      Math.max(MIN_SCALE, (containerWidth * 0.4) / barDurationMs)
+    );
+    const centerPan =
+      containerWidth / 2 - barStartMs * desiredScale - (barDurationMs * desiredScale) / 2;
     setScale(desiredScale);
     setPan(centerPan);
   }, [focusedToolCallId, layout, containerWidth]);

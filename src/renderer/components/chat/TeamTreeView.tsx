@@ -64,12 +64,7 @@ const TeamTreeNodeRow = ({
       )}
     </button>
     {node.children.map((child) => (
-      <TeamTreeNodeRow
-        key={child.id}
-        node={child}
-        depth={depth + 1}
-        onSelect={onSelect}
-      />
+      <TeamTreeNodeRow key={child.id} node={child} depth={depth + 1} onSelect={onSelect} />
     ))}
   </div>
 );
@@ -101,9 +96,7 @@ export const TeamTreeView = ({
         className
       )}
     >
-      <div className="text-text-muted mb-1 text-[10px] uppercase tracking-wider">
-        Agent Teams
-      </div>
+      <div className="text-text-muted mb-1 text-[10px] tracking-wider uppercase">Agent Teams</div>
       {tree.map((node) => (
         <TeamTreeNodeRow key={node.id} node={node} depth={0} onSelect={onSelectProcess} />
       ))}

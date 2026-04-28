@@ -1,45 +1,80 @@
-# claude-devtools
+# CLAUDE.md
 
-Tauri desktop app that visualizes Claude Code session execution
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Tech Stack
-Tauri 2.x, Rust (backend), React 18.x, TypeScript 5.x, Tailwind CSS 4.x, Zustand 5.x
-Linting: oxlint, Formatting: oxfmt
+## Overview
+
+Tauri 2.x desktop app that visualizes Claude Code session execution. Reads raw JSONL session logs from `~/.claude/` and reconstructs the full execution trace.
+
+**Tech Stack:** Tauri 2.x, Rust (backend), React 18, TypeScript 5, Tailwind CSS 4, Zustand 5
+**Linting/Formatting:** oxlint, oxfmt
+**Package Manager:** Always use `bun` (not npm/yarn/pnpm)
 
 ## Commands
-Always use bun (not npm/yarn/pnpm) for this project.
 
-- `bun install` - Install dependencies
-- `bun run dev` - Dev server with hot reload
-- `bun run build` - Production build
-- `bun run typecheck` - Type checking
-- `bun run lint:fix` - Lint and auto-fix
-- `bun run format` - Format code
-- `bun run test` - Run all vitest tests
-- `bun run test:watch` - Watch mode
-- `bun run test:coverage` - Coverage report
-- `bun run test:coverage:critical` - Critical path coverage
-- `bun run test:chunks` - Chunk building tests
-- `bun run test:semantic` - Semantic step extraction tests
-- `bun run test:noise` - Noise filtering tests
-- `bun run test:task-filtering` - Task tool filtering tests
+```bash
+bun install                    # Install dependencies
+bun run dev                    # Dev server with hot reload (Tauri + Vite)
+bun run build                  # Production build (Tauri)
+bun run typecheck              # TypeScript type checking
+bun run lint:fix               # Lint and auto-fix (oxlint)
+bun run format                 # Format code (oxfmt)
+bun run check                  # Full quality gate: types + lint + test + build
+bun run quality                # check + format:check + knip (unused exports)
+
+# Tests (Vitest)
+bun run test                   # Run all tests
+bun run test -- path/to/file.test.ts   # Run single test file
+bun run test -- -t "test name"         # Run by test name pattern
+bun run test:watch             # Watch mode
+bun run test:coverage          # Coverage report
+bun run test:coverage:critical # Critical path coverage (65% lines, 75% functions)
+
+# Specialized test scripts (tsx, not vitest)
+bun run test:chunks            # Chunk building tests
+bun run test:semantic          # Semantic step extraction
+bun run test:noise             # Noise filtering tests
+bun run test:task-filtering    # Task tool filtering
+
+# Rust (run from src-tauri/)
+cargo test                     # Run Rust tests
+cargo check                    # Type check Rust code
+```
 
 ## Path Aliases
-Use path aliases for imports:
+
 - `@renderer/*` → `src/renderer/*`
 - `@shared/*` → `src/shared/*`
 
 ## Data Sources
-~/.claude/projects/{encoded-path}/*.jsonl - Session files
-~/.claude/todos/{sessionId}.json - Todo data
+
+`~/.claude/projects/{encoded-path}/*.jsonl` — Session files
+`~/.claude/todos/{sessionId}.json` — Todo data
 
 Path encoding: `/Users/name/project` → `-Users-name-project`
+
+## Data Pipeline
+
+```
+~/.claude/projects/{id}/*.jsonl
+  → Rust: session_parser (streaming line-by-line)
+  → Rust: entry_parser → ParsedMessage[]
+  → Rust: message_classifier → MessageCategory (HardNoise|User|Ai|System|Event|Compact)
+  → Rust: chunk_builder (state machine, flushes AI buffer on non-AI messages)
+  → Rust: chunk_factory → EnhancedChunk[] (User|AI|System|Compact|Event)
+  → Rust: tool_linking, tokenizer, semantic_step_extractor, context_accumulator
+  → SessionDetail { chunks, metrics, processes, contextStats }
+  → Frontend invoke() via tauriClient.ts (with reviveDates for ISO→Date conversion)
+  → Zustand store (sessionDetailSlice, conversationSlice)
+  → aiGroupEnhancer → groupTransformer → displayItemBuilder
+  → React components (ChatHistory, AIChatGroup, LinkedToolItem, etc.)
+```
 
 ## Critical Concepts
 
 ### isMeta Flag
-- `isMeta: false` = Real user message (creates new chunks)
-- `isMeta: true` = Internal message (tool results, system-generated)
+- `isMeta: false` = Real user message (creates new UserChunk, starts new turn)
+- `isMeta: true` = Internal message (tool results, system-generated, doesn't create chunks)
 
 ### Chunk Structure
 Independent chunk types for timeline visualization:
@@ -51,7 +86,7 @@ Independent chunk types for timeline visualization:
 Each chunk has: timestamp, duration, metrics (tokens, cost, tools)
 
 ### Task/Subagent Filtering
-Task tool_use blocks are filtered when subagent exists
+Task tool_use blocks are filtered when a matching subagent Process exists.
 Keep orphaned Task calls (no matching subagent) for visibility.
 
 ### Agent Teams
@@ -74,38 +109,10 @@ Tracks what consumes tokens in Claude's context window across 6 categories (disc
 | `team-coordination` | `TeamCoordinationInjection` | Team tools (SendMessage, TaskCreate, etc.) |
 | `user-message` | `UserMessageInjection` | User prompt text per turn |
 
-- **Types**: `src/renderer/types/contextInjection.ts` — `ContextInjection` union, `ContextStats`, `TokensByCategory`
+- **Types**: `src/renderer/types/contextInjection.ts`
 - **Tracker**: `src/renderer/utils/contextTracker.ts` — `computeContextStats()`, `processSessionContextWithPhases()`
 - **Context Phases**: Compaction events reset accumulated injections, tracked via `ContextPhaseInfo`
 - **Display surfaces**: `ContextBadge` (per-turn popover), `TokenUsageDisplay` (hover breakdown), `SessionContextPanel` (full panel)
-
-## Error Handling
-- Main: try/catch, console.error, return safe defaults
-- Renderer: error state in Zustand store
-- IPC: parameter validation, graceful degradation
-
-## Performance
-- LRU Cache: Avoid re-parsing large JSONL files
-- Streaming JSONL: Line-by-line processing
-- Virtual Scrolling: For large session/message lists
-- Debounced File Watching: 100ms debounce
-
-## Troubleshooting
-
-### Build Issues
-```bash
-rm -rf dist dist-electron node_modules
-bun install
-bun run build
-```
-
-### Type Errors
-```bash
-bun run typecheck
-```
-
-### Test Failures
-Check for changes in message parsing or chunk building logic.
 
 ## TypeScript Conventions
 
@@ -153,5 +160,29 @@ Note: renderer utils/hooks/types do NOT have barrel exports — import directly 
 
 ### Import Order
 1. External packages
-2. Path aliases (@main, @renderer, @shared)
+2. Path aliases (@renderer, @shared)
 3. Relative imports
+
+## Performance
+- LRU Cache: Avoids re-parsing large JSONL files (Rust `SessionCache`)
+- Streaming JSONL: Line-by-line processing in Rust
+- Virtual Scrolling: `@tanstack/react-virtual` for large session/message lists
+- Debounced File Watching: 100ms debounce via `notify` crate
+- Incremental Detail: `get_session_detail_incremental` skips unchanged sessions
+
+## Troubleshooting
+
+### Build Issues
+```bash
+rm -rf dist node_modules
+bun install
+bun run build
+```
+
+### Type Errors
+```bash
+bun run typecheck
+```
+
+### Test Failures
+Check for changes in message parsing or chunk building logic.

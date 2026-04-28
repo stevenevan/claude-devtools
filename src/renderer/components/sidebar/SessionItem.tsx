@@ -10,12 +10,11 @@ import { ContextMenu, ContextMenuTrigger } from '@renderer/components/ui/context
 import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/ui/tooltip';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
+import { countPendingTodos } from '@renderer/types/todos';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { AlertTriangle, EyeOff, ListTodo, MessageSquare, Pin } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
-
-import { countPendingTodos } from '@renderer/types/todos';
 
 import { OngoingIndicator } from '../common/OngoingIndicator';
 
@@ -262,10 +261,7 @@ export const SessionItem = React.memo(function SessionItem({
           {isPinned && <Pin className="size-2.5 shrink-0 text-blue-400" />}
           {isHidden && <EyeOff className="size-2.5 shrink-0 text-zinc-500" />}
           {isDurationOutlier && (
-            <span
-              title="Duration outlier: wall time exceeds p95 × 1.5"
-              className="text-amber-400"
-            >
+            <span title="Duration outlier: wall time exceeds p95 × 1.5" className="text-amber-400">
               <AlertTriangle className="size-2.5 shrink-0" />
             </span>
           )}
@@ -322,9 +318,7 @@ export const SessionItem = React.memo(function SessionItem({
           onTogglePin={() => void togglePinSession(session.id)}
           onToggleHide={() => void toggleHideSession(session.id)}
           onCompareWith={
-            selectedSessionId && selectedSessionId !== session.id
-              ? handleCompareWith
-              : undefined
+            selectedSessionId && selectedSessionId !== session.id ? handleCompareWith : undefined
           }
         />
       )}

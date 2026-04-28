@@ -6,8 +6,8 @@ import { useStore } from '@renderer/store';
 import { MessageSquarePlus, MessageSquareText } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
-import { AnnotationEditor } from './AnnotationEditor';
 import { getAnnotationColorHex } from './annotationColors';
+import { AnnotationEditor } from './AnnotationEditor';
 
 interface AnnotationBadgeProps {
   targetId: string;

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { api } from '@renderer/api';
-import type { ToolAnalyticsResponse } from '@shared/types';
 import { createLogger } from '@shared/utils/logger';
+
+import type { ToolAnalyticsResponse } from '@shared/types';
 
 const logger = createLogger('Hook:useToolAnalyticsData');
 
@@ -15,10 +16,7 @@ export interface ToolAnalyticsData {
   error: string | null;
 }
 
-export function useToolAnalyticsData(
-  projectId: string | null,
-  days: number
-): ToolAnalyticsData {
+export function useToolAnalyticsData(projectId: string | null, days: number): ToolAnalyticsData {
   const [data, setData] = useState<ToolAnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

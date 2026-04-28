@@ -63,7 +63,7 @@ export const ReplayControls = ({
   const progress = totalChunks > 0 ? (replayCursorIndex + 1) / totalChunks : 0;
 
   return (
-    <div className="border-border/40 bg-surface-overlay/90 backdrop-blur-md flex shrink-0 items-center gap-2 border-b px-4 py-2 text-xs">
+    <div className="border-border/40 bg-surface-overlay/90 flex shrink-0 items-center gap-2 border-b px-4 py-2 text-xs backdrop-blur-md">
       <button
         onClick={() => stepReplay('prev')}
         className="hover:bg-surface-raised text-text-secondary rounded-sm p-1"
@@ -79,11 +79,7 @@ export const ReplayControls = ({
         )}
         title={replayMode === 'playing' ? 'Pause (space)' : 'Play (space)'}
       >
-        {replayMode === 'playing' ? (
-          <Pause className="size-3.5" />
-        ) : (
-          <Play className="size-3.5" />
-        )}
+        {replayMode === 'playing' ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}
       </button>
       <button
         onClick={() => stepReplay('next')}
@@ -123,7 +119,7 @@ export const ReplayControls = ({
           style={{ width: `${Math.min(100, progress * 100)}%` }}
         />
       </div>
-      <span className="text-text-muted shrink-0 tabular-nums text-[10px]">
+      <span className="text-text-muted shrink-0 text-[10px] tabular-nums">
         {Math.min(replayCursorIndex + 1, totalChunks)} / {totalChunks}
       </span>
     </div>

@@ -676,11 +676,7 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
         </div>
 
         {/* Tool Usage Analytics */}
-        <Collapsible
-          open={toolAnalyticsOpen}
-          onOpenChange={setToolAnalyticsOpen}
-          className="mb-6"
-        >
+        <Collapsible open={toolAnalyticsOpen} onOpenChange={setToolAnalyticsOpen} className="mb-6">
           <CollapsibleTrigger
             className={cn(
               'flex w-full items-center justify-between rounded-xs border border-border bg-background/50 px-4 py-3 text-left transition-colors hover:bg-card'

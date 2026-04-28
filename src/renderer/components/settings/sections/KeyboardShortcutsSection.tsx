@@ -35,37 +35,39 @@ export const KeyboardShortcutsSection = (): React.JSX.Element => {
     return ids;
   }, [conflicts]);
 
-  const handleCaptureKeyDown = (actionId: string) => (e: React.KeyboardEvent): void => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.key === 'Escape') {
-      setCapturingId(null);
-      return;
-    }
-    // Require at least one non-modifier key
-    if (e.key === 'Meta' || e.key === 'Control' || e.key === 'Shift' || e.key === 'Alt') {
-      return;
-    }
-    const combo = comboFromEvent(e.nativeEvent);
-    // Check for conflicts before persisting
-    const next = resolveBindings({ ...overrides, [actionId]: combo });
-    const clashIncludesOther = (c: { actionIds: string[] }): boolean => {
-      if (!c.actionIds.includes(actionId)) return false;
-      for (const id of c.actionIds) {
-        if (id !== actionId) return true;
+  const handleCaptureKeyDown =
+    (actionId: string) =>
+    (e: React.KeyboardEvent): void => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.key === 'Escape') {
+        setCapturingId(null);
+        return;
       }
-      return false;
-    };
-    const clash = findConflicts(next).find(clashIncludesOther);
-    if (clash) {
-      const other = clash.actionIds.find((id) => id !== actionId) ?? 'another action';
-      logger.warn(`Shortcut ${combo} already bound to ${other}; skipping rebind`);
+      // Require at least one non-modifier key
+      if (e.key === 'Meta' || e.key === 'Control' || e.key === 'Shift' || e.key === 'Alt') {
+        return;
+      }
+      const combo = comboFromEvent(e.nativeEvent);
+      // Check for conflicts before persisting
+      const next = resolveBindings({ ...overrides, [actionId]: combo });
+      const clashIncludesOther = (c: { actionIds: string[] }): boolean => {
+        if (!c.actionIds.includes(actionId)) return false;
+        for (const id of c.actionIds) {
+          if (id !== actionId) return true;
+        }
+        return false;
+      };
+      const clash = findConflicts(next).find(clashIncludesOther);
+      if (clash) {
+        const other = clash.actionIds.find((id) => id !== actionId) ?? 'another action';
+        logger.warn(`Shortcut ${combo} already bound to ${other}; skipping rebind`);
+        setCapturingId(null);
+        return;
+      }
+      void setShortcutOverride(actionId, combo);
       setCapturingId(null);
-      return;
-    }
-    void setShortcutOverride(actionId, combo);
-    setCapturingId(null);
-  };
+    };
 
   return (
     <div>
@@ -100,9 +102,7 @@ export const KeyboardShortcutsSection = (): React.JSX.Element => {
                 {action.scope === 'session' && (
                   <span className="text-text-muted text-[9px] uppercase">session</span>
                 )}
-                {isOverridden && (
-                  <span className="text-[9px] text-amber-400">custom</span>
-                )}
+                {isOverridden && <span className="text-[9px] text-amber-400">custom</span>}
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -135,8 +135,8 @@ export const KeyboardShortcutsSection = (): React.JSX.Element => {
 
       {conflicts.length > 0 && (
         <div className="mt-3 rounded-xs border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-[11px] text-rose-200">
-          {conflicts.length} conflict{conflicts.length === 1 ? '' : 's'} detected — duplicate
-          combos cannot both fire. Rebind the affected actions.
+          {conflicts.length} conflict{conflicts.length === 1 ? '' : 's'} detected — duplicate combos
+          cannot both fire. Rebind the affected actions.
         </div>
       )}
     </div>

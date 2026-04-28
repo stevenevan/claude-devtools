@@ -175,7 +175,10 @@ export class TauriAPIClient implements ElectronAPI {
     projectId: string,
     sessionId: string
   ): Promise<SessionDetail | null> => {
-    const raw = await invoke<SessionDetail>('get_session_detail_incremental', { projectId, sessionId });
+    const raw = await invoke<SessionDetail>('get_session_detail_incremental', {
+      projectId,
+      sessionId,
+    });
     return reviveDates(raw);
   };
 
@@ -350,12 +353,9 @@ export class TauriAPIClient implements ElectronAPI {
     },
     onUpdated: (callback) => {
       let unlisten: UnlistenFn | null = null;
-      void listen<{ total: number; unreadCount: number }>(
-        'notification:updated',
-        (event) => {
-          callback(null, event.payload);
-        }
-      ).then((fn) => {
+      void listen<{ total: number; unreadCount: number }>('notification:updated', (event) => {
+        callback(null, event.payload);
+      }).then((fn) => {
         unlisten = fn;
       });
       return () => {
@@ -411,10 +411,18 @@ export class TauriAPIClient implements ElectronAPI {
     openInEditor: () => invoke('config_open_in_editor'),
     addBookmark: (sessionId: string, projectId: string, groupId: string, note?: string) =>
       invoke('config_add_bookmark', { sessionId, projectId, groupId, note: note ?? null }),
-    removeBookmark: (bookmarkId: string) =>
-      invoke('config_remove_bookmark', { bookmarkId }),
+    removeBookmark: (bookmarkId: string) => invoke('config_remove_bookmark', { bookmarkId }),
     getBookmarks: () =>
-      invoke<{ id: string; sessionId: string; projectId: string; groupId: string; note?: string; createdAt: number }[]>('config_get_bookmarks'),
+      invoke<
+        {
+          id: string;
+          sessionId: string;
+          projectId: string;
+          groupId: string;
+          note?: string;
+          createdAt: number;
+        }[]
+      >('config_get_bookmarks'),
     setSessionTags: (sessionId: string, tags: string[]) =>
       invoke('config_set_session_tags', { sessionId, tags }),
     getSessionTags: (sessionId: string) =>
@@ -433,8 +441,7 @@ export class TauriAPIClient implements ElectronAPI {
         text: patch.text ?? null,
         color: patch.color ?? null,
       }),
-    removeAnnotation: (annotationId) =>
-      invoke('config_remove_annotation', { annotationId }),
+    removeAnnotation: (annotationId) => invoke('config_remove_annotation', { annotationId }),
     getAnnotations: () => invoke<AnnotationEntry[]>('config_get_annotations'),
     createGroup: (name: string) => invoke<boolean>('config_create_group', { name }),
     deleteGroup: (name: string) => invoke<void>('config_delete_group', { name }),

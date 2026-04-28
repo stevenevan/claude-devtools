@@ -3,14 +3,7 @@ import { useMemo, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatDuration, formatTokensCompact } from '@renderer/utils/formatters';
-import {
-  Bot,
-  ChevronRight,
-  Home,
-  Loader2,
-  Search,
-  X,
-} from 'lucide-react';
+import { Bot, ChevronRight, Home, Loader2, Search, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { Button } from '../ui/button';
@@ -103,7 +96,13 @@ export const SubagentDetailPanel = (): React.JSX.Element | null => {
         </div>
 
         {/* Close */}
-        <Button variant="ghost" size="icon-xs" onClick={closeSubagentModal} title="Close" aria-label="Close subagent panel">
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          onClick={closeSubagentModal}
+          title="Close"
+          aria-label="Close subagent panel"
+        >
           <X className="size-3.5" />
         </Button>
       </div>
@@ -157,19 +156,12 @@ const SubagentContent = ({
       <div className="border-border flex items-center gap-4 rounded-sm border px-3 py-2">
         <Bot className="text-muted-foreground size-4" />
         <div className="flex items-center gap-3 text-xs">
-          <span className="text-foreground font-medium">
-            {detail.description || detail.id}
-          </span>
+          <span className="text-foreground font-medium">{detail.description || detail.id}</span>
           <span className="text-muted-foreground">
-            {formatTokensCompact(
-              detail.metrics.inputTokens + detail.metrics.outputTokens
-            )}{' '}
-            tokens
+            {formatTokensCompact(detail.metrics.inputTokens + detail.metrics.outputTokens)} tokens
           </span>
           <span className="text-muted-foreground">{formatDuration(detail.duration)}</span>
-          <span className="text-muted-foreground">
-            {detail.metrics.messageCount} messages
-          </span>
+          <span className="text-muted-foreground">{detail.metrics.messageCount} messages</span>
         </div>
       </div>
 
@@ -219,10 +211,10 @@ const SemanticGroupCard = ({
         )}
       >
         <span className="text-foreground flex-1 truncate text-left font-medium">{group.label}</span>
-        <span className="text-muted-foreground tabular-nums text-[10px]">
+        <span className="text-muted-foreground text-[10px] tabular-nums">
           {group.steps.length} steps
         </span>
-        <span className="text-muted-foreground tabular-nums text-[10px]">
+        <span className="text-muted-foreground text-[10px] tabular-nums">
           {formatDuration(group.totalDuration)}
         </span>
       </button>

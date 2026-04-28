@@ -73,7 +73,8 @@ const FEATURES = [
   },
   {
     title: 'Search',
-    body: 'Command palette (' +
+    body:
+      'Command palette (' +
       mod +
       '+K) performs in-session search; toggle Global to search across every project.',
   },
@@ -144,8 +145,8 @@ export const HelpPanel = ({ open, onClose }: Readonly<HelpPanelProps>): React.JS
                     subagents, and tool executions.
                   </li>
                   <li>
-                    Use the Activity Bar on the left to switch between Projects, Analytics,
-                    Agents, Skills, Plugins, and Annotations.
+                    Use the Activity Bar on the left to switch between Projects, Analytics, Agents,
+                    Skills, Plugins, and Annotations.
                   </li>
                   <li>
                     Press <kbd className="border-border rounded-sm border px-1">{mod}+K</kbd> to
@@ -184,7 +185,7 @@ export const HelpPanel = ({ open, onClose }: Readonly<HelpPanelProps>): React.JS
                           className="border-border/60 flex items-center justify-between border-b py-1.5 text-xs last:border-b-0"
                         >
                           <span className="text-muted-foreground">{item.description}</span>
-                          <kbd className="border-border bg-background font-mono rounded-sm border px-1.5 py-0.5 text-[11px]">
+                          <kbd className="border-border bg-background rounded-sm border px-1.5 py-0.5 font-mono text-[11px]">
                             {item.keys}
                           </kbd>
                         </div>

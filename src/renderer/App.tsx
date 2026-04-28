@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 
+import { useShallow } from 'zustand/react/shallow';
+
 import { api } from './api';
 import { ConfirmDialog } from './components/common/ConfirmDialog';
 import { ContextSwitchOverlay } from './components/common/ContextSwitchOverlay';
@@ -10,24 +12,19 @@ import { TabbedLayout } from './components/layout/TabbedLayout';
 import { TooltipProvider } from './components/ui/tooltip';
 import { useTheme } from './hooks/useTheme';
 import { initializeNotificationListeners, useStore } from './store';
-import { useShallow } from 'zustand/react/shallow';
 
 export const App = (): React.JSX.Element => {
   useTheme();
 
-  const {
-    shortcutCheatSheetOpen,
-    toggleShortcutCheatSheet,
-    helpPanelOpen,
-    setHelpPanelOpen,
-  } = useStore(
-    useShallow((s) => ({
-      shortcutCheatSheetOpen: s.shortcutCheatSheetOpen,
-      toggleShortcutCheatSheet: s.toggleShortcutCheatSheet,
-      helpPanelOpen: s.helpPanelOpen,
-      setHelpPanelOpen: s.setHelpPanelOpen,
-    }))
-  );
+  const { shortcutCheatSheetOpen, toggleShortcutCheatSheet, helpPanelOpen, setHelpPanelOpen } =
+    useStore(
+      useShallow((s) => ({
+        shortcutCheatSheetOpen: s.shortcutCheatSheetOpen,
+        toggleShortcutCheatSheet: s.toggleShortcutCheatSheet,
+        helpPanelOpen: s.helpPanelOpen,
+        setHelpPanelOpen: s.setHelpPanelOpen,
+      }))
+    );
 
   // Dismiss splash screen once React is ready
   useEffect(() => {
@@ -62,10 +59,7 @@ export const App = (): React.JSX.Element => {
         <ContextSwitchOverlay />
         <TabbedLayout />
         <ConfirmDialog />
-        <ShortcutCheatSheet
-          open={shortcutCheatSheetOpen}
-          onClose={toggleShortcutCheatSheet}
-        />
+        <ShortcutCheatSheet open={shortcutCheatSheetOpen} onClose={toggleShortcutCheatSheet} />
         <HelpPanel open={helpPanelOpen} onClose={() => setHelpPanelOpen(false)} />
       </TooltipProvider>
     </ErrorBoundary>

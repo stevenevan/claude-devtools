@@ -58,7 +58,9 @@ interface DateGroupedSessionsProps {
   sidebarFilters?: Set<SidebarFilter>;
 }
 
-export const DateGroupedSessions = ({ sidebarFilters }: DateGroupedSessionsProps = {}): React.JSX.Element => {
+export const DateGroupedSessions = ({
+  sidebarFilters,
+}: DateGroupedSessionsProps = {}): React.JSX.Element => {
   const {
     sessions,
     selectedSessionId,

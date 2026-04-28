@@ -1,5 +1,4 @@
-const isMac =
-  typeof navigator !== 'undefined' && navigator.platform.includes('Mac');
+const isMac = typeof navigator !== 'undefined' && navigator.platform.includes('Mac');
 const mod = isMac ? '⌘' : 'Ctrl';
 
 export interface ShortcutDefinition {

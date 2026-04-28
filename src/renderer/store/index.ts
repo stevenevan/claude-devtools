@@ -27,11 +27,11 @@ import { createUISlice } from './slices/uiSlice';
 import { createUpdateSlice } from './slices/updateSlice';
 
 import type { DetectedError } from '../types/data';
+import type { ActivityView } from './slices/uiSlice';
 import type { AppState } from './types';
 import type { PaneLayout } from '@renderer/types/panes';
 import type { Tab } from '@renderer/types/tabs';
 import type { UpdaterStatus } from '@shared/types';
-import type { ActivityView } from './slices/uiSlice';
 
 // Persisted State Shape
 

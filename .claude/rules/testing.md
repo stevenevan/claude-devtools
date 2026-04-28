@@ -9,14 +9,16 @@ Uses Vitest with `happy-dom` environment. Config in `vitest.config.ts`.
 
 ## Test Commands
 ```bash
-pnpm test                 # Run all vitest tests
-pnpm test:watch           # Watch mode
-pnpm test:coverage        # Coverage report
-pnpm test:coverage:critical # Critical path coverage
-pnpm test:chunks          # Chunk building tests
-pnpm test:semantic        # Semantic step extraction
-pnpm test:noise           # Noise filtering tests
-pnpm test:task-filtering  # Task tool filtering
+bun run test                   # Run all vitest tests
+bun run test -- path/to/file   # Run single test file
+bun run test -- -t "pattern"   # Run by test name pattern
+bun run test:watch             # Watch mode
+bun run test:coverage          # Coverage report
+bun run test:coverage:critical # Critical path coverage
+bun run test:chunks            # Chunk building tests
+bun run test:semantic          # Semantic step extraction
+bun run test:noise             # Noise filtering tests
+bun run test:task-filtering    # Task tool filtering
 ```
 
 ## Test Structure

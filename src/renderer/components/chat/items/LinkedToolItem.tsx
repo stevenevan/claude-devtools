@@ -138,7 +138,8 @@ export const LinkedToolItem: React.FC<LinkedToolItemProps> = React.memo(function
     linkedTool.name === 'Write' && hasWriteContent(linkedTool) && !linkedTool.result?.isError;
   const useSkillViewer = linkedTool.name === 'Skill' && hasSkillInstructions(linkedTool);
   const useBashViewer = linkedTool.name === 'Bash';
-  const useDefaultViewer = !useReadViewer && !useEditViewer && !useWriteViewer && !useSkillViewer && !useBashViewer;
+  const useDefaultViewer =
+    !useReadViewer && !useEditViewer && !useWriteViewer && !useSkillViewer && !useBashViewer;
 
   // Check if we should show error display for Read/Write tools
   const showReadError = linkedTool.name === 'Read' && linkedTool.result?.isError;

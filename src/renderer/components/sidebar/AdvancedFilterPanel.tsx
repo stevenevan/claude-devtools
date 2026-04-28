@@ -54,9 +54,7 @@ export const AdvancedFilterPanel = (): React.JSX.Element => {
 
   const toggleTag = (tag: string): void => {
     const current = activeFilters.tags ?? [];
-    const next = current.includes(tag)
-      ? current.filter((t) => t !== tag)
-      : [...current, tag];
+    const next = current.includes(tag) ? current.filter((t) => t !== tag) : [...current, tag];
     setFilter({ tags: next.length > 0 ? next : undefined });
   };
 
@@ -68,11 +66,7 @@ export const AdvancedFilterPanel = (): React.JSX.Element => {
         className="group text-muted-foreground hover:text-foreground flex w-full items-center justify-between px-3 py-1.5 text-[11px]"
       >
         <span className="flex items-center gap-1.5">
-          {expanded ? (
-            <ChevronDown className="size-3" />
-          ) : (
-            <ChevronRight className="size-3" />
-          )}
+          {expanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
           <Filter className="size-3" />
           Advanced filters
           {badgeCount > 0 && (
@@ -182,7 +176,7 @@ export const AdvancedFilterPanel = (): React.JSX.Element => {
 
           {availableTags.length > 0 && (
             <div>
-              <div className="text-muted-foreground mb-1 text-[10px] font-medium uppercase tracking-wider">
+              <div className="text-muted-foreground mb-1 text-[10px] font-medium tracking-wider uppercase">
                 Tags
               </div>
               <div className="flex flex-wrap gap-1">
@@ -224,7 +218,7 @@ const FilterField = ({
   children,
 }: Readonly<{ label: string; children: React.ReactNode }>): React.JSX.Element => (
   <label className="flex flex-col gap-1">
-    <span className="text-muted-foreground text-[10px] font-medium uppercase tracking-wider">
+    <span className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
       {label}
     </span>
     {children}

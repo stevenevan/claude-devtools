@@ -6,9 +6,9 @@ import { createLogger } from '@shared/utils/logger';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
-import type { ModelComparisonEntry, ModelComparisonResponse } from '@shared/types';
-
 import { registerDashboardWidget } from './widgetContract';
+
+import type { ModelComparisonEntry, ModelComparisonResponse } from '@shared/types';
 
 const logger = createLogger('Component:ModelComparisonPanel');
 
@@ -118,7 +118,12 @@ const HeaderCell = ({
     >
       <span className="inline-flex items-center gap-1">
         {label}
-        {isActive && (sort.dir === 'asc' ? <ChevronUp className="size-2.5" /> : <ChevronDown className="size-2.5" />)}
+        {isActive &&
+          (sort.dir === 'asc' ? (
+            <ChevronUp className="size-2.5" />
+          ) : (
+            <ChevronDown className="size-2.5" />
+          ))}
       </span>
     </th>
   );
@@ -217,12 +222,33 @@ export const ModelComparisonPanel = (): React.JSX.Element => {
         <table className="w-full text-[10px]">
           <thead>
             <tr className="border-border/40 border-b">
-              <HeaderCell label="Model" field="displayName" sort={sort} onSort={handleSort} align="left" />
+              <HeaderCell
+                label="Model"
+                field="displayName"
+                sort={sort}
+                onSort={handleSort}
+                align="left"
+              />
               <HeaderCell label="Sessions" field="sessionCount" sort={sort} onSort={handleSort} />
               <HeaderCell label="Total cost" field="totalCostUsd" sort={sort} onSort={handleSort} />
-              <HeaderCell label="Tokens/sess" field="tokensPerSession" sort={sort} onSort={handleSort} />
-              <HeaderCell label="$/MTok" field="costPerMillionTokens" sort={sort} onSort={handleSort} />
-              <HeaderCell label="Tools/sess" field="toolCallsPerSession" sort={sort} onSort={handleSort} />
+              <HeaderCell
+                label="Tokens/sess"
+                field="tokensPerSession"
+                sort={sort}
+                onSort={handleSort}
+              />
+              <HeaderCell
+                label="$/MTok"
+                field="costPerMillionTokens"
+                sort={sort}
+                onSort={handleSort}
+              />
+              <HeaderCell
+                label="Tools/sess"
+                field="toolCallsPerSession"
+                sort={sort}
+                onSort={handleSort}
+              />
               <HeaderCell label="Error rate" field="errorRate" sort={sort} onSort={handleSort} />
               <HeaderCell label="Avg resp" field="avgResponseMs" sort={sort} onSort={handleSort} />
               <th className="text-text-muted px-2 py-1.5 text-left text-[10px] font-medium">7d</th>

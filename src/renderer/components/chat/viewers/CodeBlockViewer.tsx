@@ -199,16 +199,9 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
   const displayFileName = getBaseName(fileName) || fileName;
 
   return (
-    <div
-      className={cn('overflow-hidden rounded-lg border shadow-xs', theme.wrapper)}
-    >
+    <div className={cn('overflow-hidden rounded-lg border shadow-xs', theme.wrapper)}>
       {/* Header */}
-      <div
-        className={cn(
-          'flex items-center justify-between border-b px-3 py-2',
-          theme.header
-        )}
-      >
+      <div className={cn('flex items-center justify-between border-b px-3 py-2', theme.header)}>
         <div className="flex min-w-0 items-center gap-2">
           <FileCode className="text-muted-foreground size-4 shrink-0" />
           <span className="truncate font-mono text-sm text-blue-400" title={fileName}>

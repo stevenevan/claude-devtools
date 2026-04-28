@@ -7,9 +7,9 @@ import { createLogger } from '@shared/utils/logger';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 
-import type { ErrorHotspotsResponse, RepeatedToolError } from '@shared/types';
-
 import { ErrorClustersPanel } from './ErrorClustersPanel';
+
+import type { ErrorHotspotsResponse, RepeatedToolError } from '@shared/types';
 
 const logger = createLogger('Component:ErrorHotspotsPanel');
 
@@ -77,9 +77,7 @@ export const ErrorHotspotsPanel = ({
       )}
 
       {!loading && !error && data && data.repeatedErrors.length === 0 && (
-        <p className="text-muted-foreground py-6 text-center text-xs">
-          No repeated errors found.
-        </p>
+        <p className="text-muted-foreground py-6 text-center text-xs">No repeated errors found.</p>
       )}
 
       {data && data.repeatedErrors.length > 0 && (
@@ -88,9 +86,7 @@ export const ErrorHotspotsPanel = ({
             <HotspotRow
               key={`${hotspot.toolName}-${idx}`}
               hotspot={hotspot}
-              onOpenSession={(sessionId) =>
-                navigateToSession(selectedProjectId, sessionId)
-              }
+              onOpenSession={(sessionId) => navigateToSession(selectedProjectId, sessionId)}
             />
           ))}
         </div>
@@ -137,9 +133,7 @@ const HotspotRow = ({
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className={cn(
-              'text-muted-foreground hover:text-foreground text-[11px] underline'
-            )}
+            className={cn('text-muted-foreground hover:text-foreground text-[11px] underline')}
           >
             {expanded ? 'Hide' : 'View'} sessions
           </button>

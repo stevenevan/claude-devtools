@@ -3,12 +3,8 @@
  * Shows the file path with a copy-to-clipboard action.
  */
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/ui/tooltip';
 import { cn } from '@renderer/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@renderer/components/ui/tooltip';
 import { FileText } from 'lucide-react';
 
 interface FileQuickPeekProps {

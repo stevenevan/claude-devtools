@@ -29,7 +29,7 @@ interface TodoPanelProps {
 const statusIcon: Record<TodoItem['status'], React.ReactNode> = {
   completed: <CheckCircle2 className="size-4 shrink-0 text-emerald-400" />,
   in_progress: <Loader2 className="size-4 shrink-0 animate-spin text-blue-400" />,
-  pending: <Circle className="size-4 shrink-0 text-text-muted" />,
+  pending: <Circle className="text-text-muted size-4 shrink-0" />,
 };
 
 const statusLabel: Record<TodoItem['status'], string> = {
@@ -50,41 +50,47 @@ export const TodoPanel = ({ todoData, onClose }: Readonly<TodoPanelProps>): Reac
 
   if (totalCount === 0) {
     return (
-      <div className="flex h-full flex-col bg-surface-sidebar">
-        <div className="flex items-center justify-between border-b border-border px-3 py-2">
+      <div className="bg-surface-sidebar flex h-full flex-col">
+        <div className="border-border flex items-center justify-between border-b px-3 py-2">
           <div className="flex items-center gap-2">
-            <ListTodo className="size-4 text-text-secondary" />
-            <span className="text-sm font-medium text-text">Tasks</span>
+            <ListTodo className="text-text-secondary size-4" />
+            <span className="text-text text-sm font-medium">Tasks</span>
           </div>
           <Button variant="ghost" size="icon-xs" onClick={onClose}>
             <X className="size-3.5" />
           </Button>
         </div>
         <div className="flex flex-1 items-center justify-center p-4">
-          <p className="text-sm text-text-muted">No tasks in this session</p>
+          <p className="text-text-muted text-sm">No tasks in this session</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col bg-surface-sidebar">
-      <div className="flex items-center justify-between border-b border-border px-3 py-2">
+    <div className="bg-surface-sidebar flex h-full flex-col">
+      <div className="border-border flex items-center justify-between border-b px-3 py-2">
         <div className="flex items-center gap-2">
-          <ListTodo className="size-4 text-text-secondary" />
-          <span className="text-sm font-medium text-text">Tasks</span>
-          <span className="rounded-full bg-surface-raised px-1.5 py-0.5 text-xs text-text-muted">
+          <ListTodo className="text-text-secondary size-4" />
+          <span className="text-text text-sm font-medium">Tasks</span>
+          <span className="bg-surface-raised text-text-muted rounded-full px-1.5 py-0.5 text-xs">
             {completedCount}/{totalCount}
           </span>
         </div>
-        <Button variant="ghost" size="icon-xs" onClick={onClose} title="Close" aria-label="Close tasks panel">
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          onClick={onClose}
+          title="Close"
+          aria-label="Close tasks panel"
+        >
           <X className="size-3.5" />
         </Button>
       </div>
 
       {/* Progress bar */}
-      <div className="border-b border-border px-3 py-2">
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-raised">
+      <div className="border-border border-b px-3 py-2">
+        <div className="bg-surface-raised h-1.5 w-full overflow-hidden rounded-full">
           <div
             className="h-full rounded-full bg-emerald-500 transition-all duration-300"
             style={{ width: `${(completedCount / totalCount) * 100}%` }}
@@ -93,7 +99,7 @@ export const TodoPanel = ({ todoData, onClose }: Readonly<TodoPanelProps>): Reac
       </div>
 
       {/* Status filter */}
-      <div className="flex flex-wrap gap-1 border-b border-border px-3 py-2">
+      <div className="border-border flex flex-wrap gap-1 border-b px-3 py-2">
         {FILTERS.map((filter) => (
           <button
             key={filter.id}
@@ -116,7 +122,7 @@ export const TodoPanel = ({ todoData, onClose }: Readonly<TodoPanelProps>): Reac
         {items.map((item, index) => (
           <div
             key={index}
-            className="flex items-start gap-2.5 border-b border-border-subtle px-3 py-2.5"
+            className="border-border-subtle flex items-start gap-2.5 border-b px-3 py-2.5"
           >
             {statusIcon[item.status]}
             <div className="min-w-0 flex-1">

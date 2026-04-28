@@ -1,9 +1,9 @@
 import { ContextHeatmap } from '@renderer/components/chat/ContextHeatmap';
 
+import { registerDashboardWidget } from './widgetContract';
+
 import type { ContextStats } from '@renderer/types/contextInjection';
 import type { ChatItem } from '@renderer/types/groups';
-
-import { registerDashboardWidget } from './widgetContract';
 
 registerDashboardWidget({
   id: 'context-heatmap',

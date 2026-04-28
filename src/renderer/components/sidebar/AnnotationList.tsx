@@ -12,21 +12,16 @@ import { getAnnotationColorHex } from '../chat/annotationColors';
 import type { AnnotationEntry } from '@shared/types';
 
 export const AnnotationList = (): React.JSX.Element => {
-  const {
-    annotations,
-    annotationsLoading,
-    fetchAnnotations,
-    removeAnnotation,
-    navigateToSession,
-  } = useStore(
-    useShallow((s) => ({
-      annotations: s.annotations,
-      annotationsLoading: s.annotationsLoading,
-      fetchAnnotations: s.fetchAnnotations,
-      removeAnnotation: s.removeAnnotation,
-      navigateToSession: s.navigateToSession,
-    }))
-  );
+  const { annotations, annotationsLoading, fetchAnnotations, removeAnnotation, navigateToSession } =
+    useStore(
+      useShallow((s) => ({
+        annotations: s.annotations,
+        annotationsLoading: s.annotationsLoading,
+        fetchAnnotations: s.fetchAnnotations,
+        removeAnnotation: s.removeAnnotation,
+        navigateToSession: s.navigateToSession,
+      }))
+    );
 
   useEffect(() => {
     void fetchAnnotations();
@@ -116,7 +111,7 @@ const AnnotationRow = ({
           e.stopPropagation();
           onRemove();
         }}
-        className="text-muted-foreground hover:text-red-400 shrink-0 opacity-0 group-hover:opacity-100"
+        className="text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 hover:text-red-400"
         title="Remove annotation"
       >
         <Trash2 className="size-3" />

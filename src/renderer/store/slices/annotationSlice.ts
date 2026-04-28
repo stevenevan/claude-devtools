@@ -1,8 +1,8 @@
 import { api } from '@renderer/api';
-import type { AnnotationEntry } from '@shared/types';
 import { createLogger } from '@shared/utils/logger';
 
 import type { AppState } from '../types';
+import type { AnnotationEntry } from '@shared/types';
 import type { StateCreator } from 'zustand';
 
 const logger = createLogger('Store:annotation');
@@ -44,8 +44,7 @@ export const createAnnotationSlice: StateCreator<AppState, [], [], AnnotationSli
       logger.error('Failed to fetch annotations:', error);
       set({
         annotationsLoading: false,
-        annotationsError:
-          error instanceof Error ? error.message : 'Failed to load annotations',
+        annotationsError: error instanceof Error ? error.message : 'Failed to load annotations',
       });
     }
   },

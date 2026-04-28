@@ -55,20 +55,19 @@ export const BashToolViewer: React.FC<BashToolViewerProps> = ({ linkedTool }) =>
   const isLargeOutput = outputLines.length > LARGE_OUTPUT_THRESHOLD;
   const hasOutput = output.trim().length > 0;
 
-  const previewText = isLargeOutput && !showFullOutput
-    ? outputLines.slice(0, OUTPUT_PREVIEW_LINES).join('\n')
-    : output;
+  const previewText =
+    isLargeOutput && !showFullOutput
+      ? outputLines.slice(0, OUTPUT_PREVIEW_LINES).join('\n')
+      : output;
 
   return (
     <div className="space-y-2">
       {/* Command section */}
       <div>
-        {description && (
-          <div className="text-muted-foreground mb-1 text-xs">{description}</div>
-        )}
+        {description && <div className="text-muted-foreground mb-1 text-xs">{description}</div>}
         <div className="border-border bg-muted flex items-start gap-2 rounded border p-3">
           <Terminal className="text-muted-foreground mt-0.5 size-3.5 shrink-0" />
-          <code className="text-foreground flex-1 break-all whitespace-pre-wrap text-xs">
+          <code className="text-foreground flex-1 text-xs break-all whitespace-pre-wrap">
             {command}
           </code>
         </div>
@@ -78,11 +77,7 @@ export const BashToolViewer: React.FC<BashToolViewerProps> = ({ linkedTool }) =>
       {!isOrphaned && hasOutput && (
         <Collapsible defaultOpen={isError}>
           <CollapsibleTrigger className="text-muted-foreground mb-1 flex cursor-pointer items-center gap-2 border-none bg-none p-0 text-xs">
-            {isError ? (
-              <ChevronDown className="size-3" />
-            ) : (
-              <ChevronRight className="size-3" />
-            )}
+            {isError ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
             Output
             {isError ? (
               <XCircle className="size-3 text-red-400" />
@@ -110,7 +105,7 @@ export const BashToolViewer: React.FC<BashToolViewerProps> = ({ linkedTool }) =>
                 <div className="border-border border-t px-3 py-2">
                   <button
                     onClick={() => setShowFullOutput(true)}
-                    className="text-indigo-400 hover:text-indigo-300 text-xs transition-colors"
+                    className="text-xs text-indigo-400 transition-colors hover:text-indigo-300"
                   >
                     Show full output ({outputLines.length - OUTPUT_PREVIEW_LINES} more lines)
                   </button>
@@ -120,7 +115,7 @@ export const BashToolViewer: React.FC<BashToolViewerProps> = ({ linkedTool }) =>
                 <div className="border-border border-t px-3 py-2">
                   <button
                     onClick={() => setShowFullOutput(false)}
-                    className="text-indigo-400 hover:text-indigo-300 text-xs transition-colors"
+                    className="text-xs text-indigo-400 transition-colors hover:text-indigo-300"
                   >
                     Collapse output
                   </button>
@@ -133,9 +128,7 @@ export const BashToolViewer: React.FC<BashToolViewerProps> = ({ linkedTool }) =>
 
       {/* Orphaned indicator */}
       {isOrphaned && (
-        <div className="text-muted-foreground/50 text-xs italic">
-          Awaiting result...
-        </div>
+        <div className="text-muted-foreground/50 text-xs italic">Awaiting result...</div>
       )}
     </div>
   );

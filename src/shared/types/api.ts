@@ -148,11 +148,25 @@ export interface ConfigAPI {
   /** Bulk unhide sessions for a project */
   unhideSessions: (projectId: string, sessionIds: string[]) => Promise<void>;
   /** Add a bookmark on an AI group */
-  addBookmark: (sessionId: string, projectId: string, groupId: string, note?: string) => Promise<void>;
+  addBookmark: (
+    sessionId: string,
+    projectId: string,
+    groupId: string,
+    note?: string
+  ) => Promise<void>;
   /** Remove a bookmark by ID */
   removeBookmark: (bookmarkId: string) => Promise<void>;
   /** Get all bookmarks */
-  getBookmarks: () => Promise<{ id: string; sessionId: string; projectId: string; groupId: string; note?: string; createdAt: number }[]>;
+  getBookmarks: () => Promise<
+    {
+      id: string;
+      sessionId: string;
+      projectId: string;
+      groupId: string;
+      note?: string;
+      createdAt: number;
+    }[]
+  >;
   /** Set tags for a session */
   setSessionTags: (sessionId: string, tags: string[]) => Promise<void>;
   /** Get tags for a session */
@@ -283,12 +297,7 @@ export interface ContextInfo {
 /**
  * SSH connection state.
  */
-export type SshConnectionState =
-  | 'disconnected'
-  | 'connecting'
-  | 'retrying'
-  | 'connected'
-  | 'error';
+export type SshConnectionState = 'disconnected' | 'connecting' | 'retrying' | 'connected' | 'error';
 
 /**
  * SSH authentication method.
@@ -408,7 +417,10 @@ export interface ElectronAPI {
   ) => Promise<SearchSessionsResult>;
   searchAllProjects: (query: string, maxResults?: number) => Promise<SearchSessionsResult>;
   /** Search sessions with optional filters (date range, status, text query). */
-  searchSessionsFiltered: (filters: SearchFilters, maxResults?: number) => Promise<FilteredSearchResponse>;
+  searchSessionsFiltered: (
+    filters: SearchFilters,
+    maxResults?: number
+  ) => Promise<FilteredSearchResponse>;
   /** Full-text search within a session's parsed chunks (Rust backend). */
   searchSessionContent: (
     projectId: string,
@@ -421,7 +433,10 @@ export interface ElectronAPI {
   ) => Promise<ContentSearchResult>;
   getSessionDetail: (projectId: string, sessionId: string) => Promise<SessionDetail | null>;
   /** Incrementally refresh a session — only re-parses new JSONL lines since last read. */
-  getSessionDetailIncremental: (projectId: string, sessionId: string) => Promise<SessionDetail | null>;
+  getSessionDetailIncremental: (
+    projectId: string,
+    sessionId: string
+  ) => Promise<SessionDetail | null>;
   getSessionMetrics: (projectId: string, sessionId: string) => Promise<SessionMetrics | null>;
   getAnalytics: (days: number) => Promise<AnalyticsResponse>;
   getCostForecast: (windowDays: number) => Promise<CostForecast>;

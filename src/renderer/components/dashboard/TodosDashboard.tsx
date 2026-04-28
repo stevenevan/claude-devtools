@@ -233,7 +233,9 @@ const SessionTodoCard = ({
             <span
               className={cn(
                 'flex-1 break-words',
-                item.status === 'completed' ? 'text-muted-foreground line-through' : 'text-foreground'
+                item.status === 'completed'
+                  ? 'text-muted-foreground line-through'
+                  : 'text-foreground'
               )}
             >
               {item.content}

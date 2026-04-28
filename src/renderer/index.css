@@ -134,13 +134,13 @@
   --card-foreground: oklch(0.93 0.01 230);
   --popover: oklch(0.26 0.02 240);
   --popover-foreground: oklch(0.93 0.01 230);
-  --muted: oklch(0.30 0.02 240);
+  --muted: oklch(0.3 0.02 240);
   --muted-foreground: oklch(0.65 0.03 230);
-  --accent: oklch(0.30 0.02 240);
+  --accent: oklch(0.3 0.02 240);
   --accent-foreground: oklch(0.93 0.01 230);
   --border: oklch(0.35 0.02 240);
   --input: oklch(0.35 0.02 240);
-  --ring: oklch(0.70 0.10 240);
+  --ring: oklch(0.7 0.1 240);
   --sidebar: oklch(0.22 0.02 240);
   --sidebar-foreground: oklch(0.93 0.01 230);
   --sidebar-border: oklch(0.35 0.02 240);
@@ -154,27 +154,27 @@
   --popover: oklch(0.19 0.02 200);
   --popover-foreground: oklch(0.83 0.04 90);
   --muted: oklch(0.24 0.02 200);
-  --muted-foreground: oklch(0.60 0.04 190);
+  --muted-foreground: oklch(0.6 0.04 190);
   --accent: oklch(0.24 0.02 200);
   --accent-foreground: oklch(0.83 0.04 90);
-  --border: oklch(0.30 0.02 200);
-  --input: oklch(0.30 0.02 200);
+  --border: oklch(0.3 0.02 200);
+  --input: oklch(0.3 0.02 200);
   --ring: oklch(0.65 0.13 210);
   --sidebar: oklch(0.15 0.02 200);
   --sidebar-foreground: oklch(0.83 0.04 90);
-  --sidebar-border: oklch(0.30 0.02 200);
+  --sidebar-border: oklch(0.3 0.02 200);
 }
 
 .dark.theme-monokai {
-  --background: oklch(0.20 0.01 80);
+  --background: oklch(0.2 0.01 80);
   --foreground: oklch(0.95 0.01 100);
   --card: oklch(0.25 0.01 80);
   --card-foreground: oklch(0.95 0.01 100);
   --popover: oklch(0.25 0.01 80);
   --popover-foreground: oklch(0.95 0.01 100);
-  --muted: oklch(0.30 0.01 80);
-  --muted-foreground: oklch(0.60 0.02 80);
-  --accent: oklch(0.30 0.01 80);
+  --muted: oklch(0.3 0.01 80);
+  --muted-foreground: oklch(0.6 0.02 80);
+  --accent: oklch(0.3 0.01 80);
   --accent-foreground: oklch(0.95 0.01 100);
   --border: oklch(0.35 0.01 80);
   --input: oklch(0.35 0.01 80);
@@ -187,20 +187,20 @@
 .dark.theme-high-contrast {
   --background: oklch(0.05 0 0);
   --foreground: oklch(1 0 0);
-  --card: oklch(0.10 0 0);
+  --card: oklch(0.1 0 0);
   --card-foreground: oklch(1 0 0);
-  --popover: oklch(0.10 0 0);
+  --popover: oklch(0.1 0 0);
   --popover-foreground: oklch(1 0 0);
   --muted: oklch(0.15 0 0);
   --muted-foreground: oklch(0.75 0 0);
   --accent: oklch(0.15 0 0);
   --accent-foreground: oklch(1 0 0);
-  --border: oklch(0.40 0 0);
-  --input: oklch(0.40 0 0);
-  --ring: oklch(0.80 0 0);
+  --border: oklch(0.4 0 0);
+  --input: oklch(0.4 0 0);
+  --ring: oklch(0.8 0 0);
   --sidebar: oklch(0.05 0 0);
   --sidebar-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(0.40 0 0);
+  --sidebar-border: oklch(0.4 0 0);
 }
 
 @layer base {
@@ -217,8 +217,13 @@
 
 /* Streaming tab indicator — subtle pulsing green border */
 @keyframes streaming-border {
-  0%, 100% { box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.3); }
-  50% { box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.6); }
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.3);
+  }
+  50% {
+    box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.6);
+  }
 }
 
 .animate-streaming-border {

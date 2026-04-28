@@ -72,9 +72,7 @@ export const ErrorClustersPanel = ({
         </p>
       </div>
 
-      {loading && (
-        <p className="text-text-muted py-4 text-center text-[10px]">Loading clusters…</p>
-      )}
+      {loading && <p className="text-text-muted py-4 text-center text-[10px]">Loading clusters…</p>}
       {error && (
         <p className="text-text-muted py-4 text-center text-[10px]">
           Failed to load clusters: {error}
@@ -91,10 +89,7 @@ export const ErrorClustersPanel = ({
           {data.clusters.map((cluster) => {
             const isOpen = expanded.has(cluster.id);
             return (
-              <div
-                key={cluster.id}
-                className="border-border/50 overflow-hidden rounded-xs border"
-              >
+              <div key={cluster.id} className="border-border/50 overflow-hidden rounded-xs border">
                 <button
                   onClick={() => toggle(cluster.id)}
                   className="hover:bg-surface-raised flex w-full items-center gap-2 px-3 py-2 text-left"
@@ -109,8 +104,8 @@ export const ErrorClustersPanel = ({
                     {cluster.representative}
                   </span>
                   <span className="text-text-muted shrink-0 text-[10px] tabular-nums">
-                    {cluster.primaryTool} · {cluster.occurrenceCount} ·{' '}
-                    {cluster.sessionCount} session{cluster.sessionCount === 1 ? '' : 's'}
+                    {cluster.primaryTool} · {cluster.occurrenceCount} · {cluster.sessionCount}{' '}
+                    session{cluster.sessionCount === 1 ? '' : 's'}
                   </span>
                 </button>
                 {isOpen && (
@@ -120,7 +115,7 @@ export const ErrorClustersPanel = ({
                         key={`${m.sessionId}-${i}`}
                         onClick={() => navigateToSession(projectId, m.sessionId)}
                         className={cn(
-                          'hover:bg-surface-raised flex w-full items-center gap-3 border-b border-border/20 px-3 py-1.5 text-left last:border-b-0',
+                          'hover:bg-surface-raised flex w-full items-center gap-3 border-b border-border/20 px-3 py-1.5 text-left last:border-b-0'
                         )}
                       >
                         <span className="text-text-muted shrink-0 text-[9px] tabular-nums">

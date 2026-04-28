@@ -100,9 +100,7 @@ export const ToolTimeHeatmap = ({
         </NativeSelect>
       </div>
 
-      {loading && (
-        <p className="text-text-muted py-4 text-center text-[10px]">Loading heatmap…</p>
-      )}
+      {loading && <p className="text-text-muted py-4 text-center text-[10px]">Loading heatmap…</p>}
       {error && (
         <p className="text-text-muted py-4 text-center text-[10px]">
           Failed to load heatmap: {error}
@@ -119,10 +117,16 @@ export const ToolTimeHeatmap = ({
                 </span>
               ))}
             </div>
-            <div className="grid grid-cols-24 gap-[3px]" style={{ gridTemplateColumns: 'repeat(24, minmax(10px, 1fr))' }}>
+            <div
+              className="grid grid-cols-24 gap-[3px]"
+              style={{ gridTemplateColumns: 'repeat(24, minmax(10px, 1fr))' }}
+            >
               {/* Hour labels row */}
               {Array.from({ length: 24 }).map((_, h) => (
-                <div key={`h-${h}`} className="text-text-muted h-3 text-center text-[8px] leading-3">
+                <div
+                  key={`h-${h}`}
+                  className="text-text-muted h-3 text-center text-[8px] leading-3"
+                >
                   {h % 3 === 0 ? h : ''}
                 </div>
               ))}

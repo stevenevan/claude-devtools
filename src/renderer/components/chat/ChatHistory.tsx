@@ -6,13 +6,13 @@ import { useTabUI } from '@renderer/hooks/useTabUI';
 import { useVisibleAIGroup } from '@renderer/hooks/useVisibleAIGroup';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
+import { countPendingTodos } from '@renderer/types/todos';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChevronsDown } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
-import { countPendingTodos } from '@renderer/types/todos';
-
 import { LiveMetricsBar } from '../common/LiveMetricsBar';
+
 import { ContextHeatmap } from './ContextHeatmap';
 import { ReplayControls } from './ReplayControls';
 import { SessionContextPanel } from './SessionContextPanel/index';
@@ -434,9 +434,10 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
         if (currentPos < 0) {
           nextIdx = 0;
         } else {
-          nextIdx = detail.direction === 'next'
-            ? Math.min(currentPos + 1, aiGroupIndices.length - 1)
-            : Math.max(currentPos - 1, 0);
+          nextIdx =
+            detail.direction === 'next'
+              ? Math.min(currentPos + 1, aiGroupIndices.length - 1)
+              : Math.max(currentPos - 1, 0);
         }
       }
 
@@ -468,7 +469,14 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
 
     window.addEventListener('turn-navigate', handler);
     return () => window.removeEventListener('turn-navigate', handler);
-  }, [isThisTabActive, conversation, effectiveTabId, shouldVirtualize, rowVirtualizer, setHighlightedGroupId]);
+  }, [
+    isThisTabActive,
+    conversation,
+    effectiveTabId,
+    shouldVirtualize,
+    rowVirtualizer,
+    setHighlightedGroupId,
+  ]);
 
   // Callback to register AI group refs (combines with visibility hook)
   const registerAIGroupRefCombined = useCallback(
@@ -832,7 +840,8 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
       if (shouldVirtualize) {
         rowVirtualizer.scrollToIndex(index, { align: 'start', behavior: 'smooth' });
       } else {
-        const el = chatItemRefs.current.get(item.group.id) ?? aiGroupRefs.current.get(item.group.id);
+        const el =
+          chatItemRefs.current.get(item.group.id) ?? aiGroupRefs.current.get(item.group.id);
         el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     },
@@ -846,7 +855,11 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
   if (!conversation || conversation.items.length === 0) return <ChatHistoryEmptyState />;
 
   return (
-    <div role="log" aria-label="Chat history" className="bg-background flex flex-1 flex-col overflow-hidden">
+    <div
+      role="log"
+      aria-label="Chat history"
+      className="bg-background flex flex-1 flex-col overflow-hidden"
+    >
       <LiveMetricsBar
         metrics={sessionDetail?.metrics ?? null}
         isStreaming={isStreaming}
@@ -1043,11 +1056,8 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
 
         {/* Task list panel sidebar */}
         {isTodoPanelVisible && hasTodoData && (
-          <div className="w-72 shrink-0 border-l border-border">
-            <TodoPanel
-              todoData={todoData}
-              onClose={() => setIsTodoPanelVisible(false)}
-            />
+          <div className="border-border w-72 shrink-0 border-l">
+            <TodoPanel todoData={todoData} onClose={() => setIsTodoPanelVisible(false)} />
           </div>
         )}
 

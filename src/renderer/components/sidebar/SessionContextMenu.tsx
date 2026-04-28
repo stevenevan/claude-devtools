@@ -14,7 +14,17 @@ import {
 import { useClipboard } from '@renderer/hooks/mantine';
 import { MAX_PANES } from '@renderer/types/panes';
 import { formatShortcut } from '@renderer/utils/stringUtils';
-import { ArrowLeftRight, Check, ClipboardCopy, Eye, EyeOff, Pin, PinOff, Tag, Terminal } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  Check,
+  ClipboardCopy,
+  Eye,
+  EyeOff,
+  Pin,
+  PinOff,
+  Tag,
+  Terminal,
+} from 'lucide-react';
 
 import { SessionTagEditor } from './SessionTagEditor';
 
