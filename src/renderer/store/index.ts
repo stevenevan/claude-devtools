@@ -20,6 +20,7 @@ import { createReplaySlice } from './slices/replaySlice';
 import { createRepositorySlice } from './slices/repositorySlice';
 import { createSessionDetailSlice } from './slices/sessionDetailSlice';
 import { createSessionSlice } from './slices/sessionSlice';
+import { createSnapshotSlice } from './slices/snapshotSlice';
 import { createSubagentSlice } from './slices/subagentSlice';
 import { createTabSlice } from './slices/tabSlice';
 import { createTabUISlice } from './slices/tabUISlice';
@@ -80,6 +81,7 @@ export const useStore = create<AppState>()(
       ...createAnnotationSlice(...args),
       ...createReplaySlice(...args),
       ...createComparisonTabSlice(...args),
+      ...createSnapshotSlice(...args),
     }),
     {
       name: 'claude-devtools-store',

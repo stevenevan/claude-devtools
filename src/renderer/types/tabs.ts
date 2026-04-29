@@ -72,13 +72,23 @@ export interface Tab {
   id: string;
 
   /** Type of content displayed in this tab */
-  type: 'session' | 'dashboard' | 'projects' | 'notifications' | 'settings' | 'comparison';
+  type:
+    | 'session'
+    | 'dashboard'
+    | 'projects'
+    | 'notifications'
+    | 'settings'
+    | 'comparison'
+    | 'snapshot';
 
   /** Session ID (required when type === 'session') */
   sessionId?: string;
 
   /** Project ID (required when type === 'session') */
   projectId?: string;
+
+  /** Snapshot ID (required when type === 'snapshot'). Sprint 36. */
+  snapshotId?: string;
 
   /** Second session/project for comparison tabs */
   compareSessionId?: string;

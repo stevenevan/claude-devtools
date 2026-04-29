@@ -81,6 +81,8 @@ import type {
   SshConfigHostEntry,
   SshConnectionStatus,
   SshLastConnection,
+  SnapshotMeta,
+  SnapshotsAPI,
   SubagentDetail,
   ToolAnalyticsResponse,
   ToolTimeHeatmapResponse,
@@ -485,6 +487,25 @@ export class TauriAPIClient implements ElectronAPI {
   session: SessionAPI = {
     scrollToLine: (sessionId: string, lineNumber: number) =>
       invoke('session_scroll_to_line', { sessionId, lineNumber }),
+  };
+
+  // ---------------------------------------------------------------------------
+  // Snapshots (sprint 36)
+  // ---------------------------------------------------------------------------
+
+  snapshots: SnapshotsAPI = {
+    list: () => invoke<SnapshotMeta[]>('snapshots_list'),
+    createFromSession: (projectId, sessionId, label) =>
+      invoke<SnapshotMeta>('snapshots_create_from_session', {
+        projectId,
+        sessionId,
+        label: label ?? null,
+      }),
+    delete: (snapshotId) => invoke<void>('snapshots_delete', { snapshotId }),
+    open: async (snapshotId) => {
+      const raw = await invoke<SessionDetail>('snapshots_open', { snapshotId });
+      return reviveDates(raw);
+    },
   };
 
   // ---------------------------------------------------------------------------

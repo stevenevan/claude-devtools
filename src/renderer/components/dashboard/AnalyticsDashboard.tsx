@@ -47,6 +47,7 @@ import { ErrorHotspotsPanel } from './ErrorHotspotsPanel';
 import { ModelComparisonPanel } from './ModelComparisonPanel';
 import { ProductivityPanel } from './ProductivityPanel';
 import { SessionSchedule } from './SessionSchedule';
+import { SnapshotsView } from './SnapshotsView';
 import { ToolAnalyticsPanel } from './ToolAnalyticsPanel';
 import { useWidgetVisible } from './useWidgetVisibility';
 
@@ -337,6 +338,7 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
   const showProductivity = useWidgetVisible('productivity-panel');
   const showDuration = useWidgetVisible('duration-panel');
   const showModelComparison = useWidgetVisible('model-comparison');
+  const showSnapshots = useWidgetVisible('snapshots-view');
   const {
     timeBuckets,
     projectUsage,
@@ -549,6 +551,13 @@ export const AnalyticsDashboard = (): React.JSX.Element => {
         {showModelComparison && (
           <div className="mb-6">
             <ModelComparisonPanel />
+          </div>
+        )}
+
+        {/* Session snapshots */}
+        {showSnapshots && (
+          <div className="mb-6">
+            <SnapshotsView />
           </div>
         )}
 

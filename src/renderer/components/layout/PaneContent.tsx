@@ -5,6 +5,7 @@ import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Loader2 } from 'lucide-react';
 
+import { SnapshotTabContent } from '../chat/SnapshotTabContent';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 
 import { SessionTabContent } from './SessionTabContent';
@@ -137,6 +138,7 @@ export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
                   <SessionComparison tab={tab} />
                 </Suspense>
               )}
+              {tab.type === 'snapshot' && <SnapshotTabContent tab={tab} />}
             </ErrorBoundary>
           </div>
         );

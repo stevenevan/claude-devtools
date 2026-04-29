@@ -6,6 +6,7 @@ mod config;
 mod discovery;
 mod notifications;
 mod parsing;
+mod snapshots;
 mod ssh;
 mod types;
 mod watcher;
@@ -141,6 +142,10 @@ pub fn run() {
             commands::link_tool_calls,
             commands::count_tokens,
             commands::count_tokens_batch,
+            snapshots::snapshots_list,
+            snapshots::snapshots_create_from_session,
+            snapshots::snapshots_delete,
+            snapshots::snapshots_open,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

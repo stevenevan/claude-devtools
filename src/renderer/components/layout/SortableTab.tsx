@@ -22,6 +22,7 @@ import { formatShortcut } from '@renderer/utils/stringUtils';
 import {
   ArrowLeftRight,
   Bell,
+  Camera,
   FileText,
   FolderGit2,
   LayoutDashboard,
@@ -59,6 +60,7 @@ const TAB_ICONS = {
   settings: Settings,
   session: FileText,
   comparison: ArrowLeftRight,
+  snapshot: Camera,
 } as const;
 
 export const SortableTab = ({

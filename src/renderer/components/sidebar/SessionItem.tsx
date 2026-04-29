@@ -123,6 +123,7 @@ export const SessionItem = React.memo(function SessionItem({
     togglePinSession,
     toggleHideSession,
     isDurationOutlier,
+    createSnapshotFromSession,
   } = useStore(
     useShallow((s) => ({
       openTab: s.openTab,
@@ -134,6 +135,7 @@ export const SessionItem = React.memo(function SessionItem({
       togglePinSession: s.togglePinSession,
       toggleHideSession: s.toggleHideSession,
       isDurationOutlier: s.durationOutlierSessionIds.has(session.id),
+      createSnapshotFromSession: s.createSnapshotFromSession,
     }))
   );
 
@@ -320,6 +322,11 @@ export const SessionItem = React.memo(function SessionItem({
           onCompareWith={
             selectedSessionId && selectedSessionId !== session.id ? handleCompareWith : undefined
           }
+          onSaveSnapshot={() => {
+            if (!activeProjectId) return;
+            const label = session.customTitle ?? session.firstMessage?.slice(0, 50) ?? 'Session';
+            void createSnapshotFromSession(activeProjectId, session.id, label);
+          }}
         />
       )}
     </ContextMenu>

@@ -16,6 +16,7 @@ import { MAX_PANES } from '@renderer/types/panes';
 import { formatShortcut } from '@renderer/utils/stringUtils';
 import {
   ArrowLeftRight,
+  Camera,
   Check,
   ClipboardCopy,
   Eye,
@@ -39,6 +40,7 @@ interface SessionContextMenuProps {
   onTogglePin: () => void;
   onToggleHide: () => void;
   onCompareWith?: () => void;
+  onSaveSnapshot?: () => void;
 }
 
 export const SessionContextMenu = ({
@@ -52,6 +54,7 @@ export const SessionContextMenu = ({
   onTogglePin,
   onToggleHide,
   onCompareWith,
+  onSaveSnapshot,
 }: SessionContextMenuProps): React.JSX.Element => {
   const idClipboard = useClipboard({ timeout: 600 });
   const cmdClipboard = useClipboard({ timeout: 600 });
@@ -89,6 +92,16 @@ export const SessionContextMenu = ({
           <ContextMenuItem onClick={onCompareWith}>
             <ArrowLeftRight className="size-4" />
             Compare with Current Session
+          </ContextMenuItem>
+        </>
+      )}
+
+      {onSaveSnapshot && (
+        <>
+          <ContextMenuSeparator />
+          <ContextMenuItem onClick={onSaveSnapshot}>
+            <Camera className="size-4" />
+            Save as Snapshot
           </ContextMenuItem>
         </>
       )}

@@ -17,6 +17,7 @@ import type { ReplaySlice } from './slices/replaySlice';
 import type { RepositorySlice } from './slices/repositorySlice';
 import type { SessionDetailSlice } from './slices/sessionDetailSlice';
 import type { SessionSlice } from './slices/sessionSlice';
+import type { SnapshotSlice } from './slices/snapshotSlice';
 import type { SubagentSlice } from './slices/subagentSlice';
 import type { TabSlice } from './slices/tabSlice';
 import type { TabUISlice } from './slices/tabUISlice';
@@ -94,4 +95,5 @@ export type AppState = ProjectSlice &
   UpdateSlice &
   AnnotationSlice &
   ReplaySlice &
-  ComparisonTabSlice;
+  ComparisonTabSlice &
+  SnapshotSlice;

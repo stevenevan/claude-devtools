@@ -75,6 +75,30 @@ export interface GlobalPlugin {
   enabled: boolean;
 }
 
+// Snapshots API (sprint 36)
+
+export interface SnapshotMeta {
+  id: string;
+  label: string;
+  sourceSessionId: string;
+  sourceProjectId: string;
+  createdAt: number;
+  messageCount: number;
+  chunkCount: number;
+  sizeBytes: number;
+}
+
+export interface SnapshotsAPI {
+  list: () => Promise<SnapshotMeta[]>;
+  createFromSession: (
+    projectId: string,
+    sessionId: string,
+    label?: string
+  ) => Promise<SnapshotMeta>;
+  delete: (snapshotId: string) => Promise<void>;
+  open: (snapshotId: string) => Promise<SessionDetail>;
+}
+
 // Notifications API
 
 /**
@@ -524,6 +548,9 @@ export interface ElectronAPI {
 
   // Deep link navigation
   session: SessionAPI;
+
+  // Session snapshots (sprint 36)
+  snapshots: SnapshotsAPI;
 
   // Window zoom sync (for traffic-light-safe layout)
   getZoomFactor: () => Promise<number>;
