@@ -7,7 +7,11 @@ import { createLogger } from '@shared/utils/logger';
 
 import type { AppState } from '../types';
 import type { AppConfig } from '@renderer/types/data';
-import type { CustomTheme } from '@shared/types/notifications';
+import type {
+  CustomTheme,
+  FilterPresetEntry,
+  FilterPresetPayload,
+} from '@shared/types/notifications';
 import type { StateCreator } from 'zustand';
 
 const logger = createLogger('Store:config');
@@ -53,6 +57,12 @@ export interface ConfigSlice {
   saveCustomTheme: (theme: CustomTheme) => Promise<void>;
   deleteCustomTheme: (themeId: string) => Promise<void>;
   setActiveTheme: (themeId: string | null) => Promise<void>;
+
+  // Filter presets (sprint 35)
+  addFilterPreset: (name: string, filter: FilterPresetPayload) => Promise<FilterPresetEntry>;
+  removeFilterPreset: (presetId: string) => Promise<void>;
+  renameFilterPreset: (presetId: string, name: string) => Promise<void>;
+  setDefaultFilterPreset: (presetId: string | null) => Promise<void>;
 
   // Bookmark actions
   fetchBookmarks: () => Promise<void>;
@@ -206,6 +216,43 @@ export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (s
       set({ appConfig: config });
     } catch (error) {
       logger.error('Failed to set active theme:', error);
+    }
+  },
+
+  addFilterPreset: async (name, filter) => {
+    const entry = await api.config.addFilterPreset(name, filter);
+    const config = await api.config.get();
+    set({ appConfig: config });
+    return entry;
+  },
+
+  removeFilterPreset: async (presetId) => {
+    try {
+      await api.config.removeFilterPreset(presetId);
+      const config = await api.config.get();
+      set({ appConfig: config });
+    } catch (error) {
+      logger.error('Failed to remove filter preset:', error);
+    }
+  },
+
+  renameFilterPreset: async (presetId, name) => {
+    try {
+      await api.config.renameFilterPreset(presetId, name);
+      const config = await api.config.get();
+      set({ appConfig: config });
+    } catch (error) {
+      logger.error('Failed to rename filter preset:', error);
+    }
+  },
+
+  setDefaultFilterPreset: async (presetId) => {
+    try {
+      await api.config.setDefaultFilterPreset(presetId);
+      const config = await api.config.get();
+      set({ appConfig: config });
+    } catch (error) {
+      logger.error('Failed to set default filter preset:', error);
     }
   },
 

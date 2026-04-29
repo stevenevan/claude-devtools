@@ -181,6 +181,22 @@ pub struct SessionsConfig {
     pub annotations: Vec<AnnotationEntry>,
     #[serde(default)]
     pub session_groups: HashMap<String, Vec<String>>,
+    #[serde(default)]
+    pub filter_presets: Vec<FilterPreset>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_filter_preset_id: Option<String>,
+}
+
+/// A saved filter preset (sprint 35). The `filter` payload is stored opaquely
+/// as JSON to avoid coupling backend persistence to the frontend
+/// `SessionFilterState` shape; the frontend validates fields on read.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FilterPreset {
+    pub id: String,
+    pub name: String,
+    pub filter: Value,
+    pub created_at: f64,
 }
 
 /// Inline annotation anchored to a specific display target (AI group, turn, item) in a session.
@@ -350,6 +366,8 @@ impl Default for SessionsConfig {
             session_tags: HashMap::new(),
             annotations: vec![],
             session_groups: HashMap::new(),
+            filter_presets: vec![],
+            default_filter_preset_id: None,
         }
     }
 }

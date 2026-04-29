@@ -32,6 +32,8 @@ import type {
 import type {
   AppConfig,
   DetectedError,
+  FilterPresetEntry,
+  FilterPresetPayload,
   NotificationTrigger,
   TriggerTestResult,
 } from './notifications';
@@ -198,6 +200,14 @@ export interface ConfigAPI {
   removeFromGroup: (name: string, sessionId: string) => Promise<void>;
   /** Get all manual groups as { groupName: sessionIds[] } */
   getGroups: () => Promise<Record<string, string[]>>;
+  /** Save a new filter preset (sprint 35); returns the persisted entry */
+  addFilterPreset: (name: string, filter: FilterPresetPayload) => Promise<FilterPresetEntry>;
+  /** Remove a filter preset by id */
+  removeFilterPreset: (presetId: string) => Promise<void>;
+  /** Rename a filter preset; returns whether a preset with that id was found */
+  renameFilterPreset: (presetId: string, name: string) => Promise<boolean>;
+  /** Set or clear the default filter preset (auto-applied on first sidebar mount) */
+  setDefaultFilterPreset: (presetId: string | null) => Promise<void>;
 }
 
 export interface AnnotationEntry {

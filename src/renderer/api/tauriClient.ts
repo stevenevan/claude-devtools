@@ -60,6 +60,7 @@ import type {
   ElectronAPI,
   FileChangeEvent,
   FilteredSearchResponse,
+  FilterPresetEntry,
   HttpServerAPI,
   HttpServerStatus,
   NotificationsAPI,
@@ -450,6 +451,13 @@ export class TauriAPIClient implements ElectronAPI {
     removeFromGroup: (name: string, sessionId: string) =>
       invoke<void>('config_remove_from_group', { name, sessionId }),
     getGroups: () => invoke<Record<string, string[]>>('config_get_groups'),
+    addFilterPreset: (name, filter) =>
+      invoke<FilterPresetEntry>('config_add_filter_preset', { name, filter }),
+    removeFilterPreset: (presetId) => invoke<void>('config_remove_filter_preset', { presetId }),
+    renameFilterPreset: (presetId, name) =>
+      invoke<boolean>('config_rename_filter_preset', { presetId, name }),
+    setDefaultFilterPreset: (presetId) =>
+      invoke<void>('config_set_default_filter_preset', { presetId }),
 
     // Native: folder selection dialogs via Tauri plugin
     selectFolders: async (): Promise<string[]> => {

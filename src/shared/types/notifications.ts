@@ -282,6 +282,10 @@ export interface AppConfig {
     pinnedSessions: Record<string, { sessionId: string; pinnedAt: number }[]>;
     /** Hidden sessions per project. Key is projectId, value is array of hidden sessions */
     hiddenSessions: Record<string, { sessionId: string; hiddenAt: number }[]>;
+    /** Saved filter presets (sprint 35). */
+    filterPresets?: FilterPresetEntry[];
+    /** Default preset id auto-applied on first sidebar mount per launch (sprint 35). */
+    defaultFilterPresetId?: string | null;
   };
   /** SSH connection settings */
   ssh?: {
@@ -341,4 +345,23 @@ export interface CustomTheme {
   name: string;
   basedOn: 'dark' | 'light';
   overrides: Record<string, string>;
+}
+
+/** Saved filter preset (sprint 35). The `filter` shape mirrors `SessionFilterState`
+ * but is stored opaquely and validated in the frontend on read. */
+export interface FilterPresetEntry {
+  id: string;
+  name: string;
+  filter: FilterPresetPayload;
+  createdAt: number;
+}
+
+export interface FilterPresetPayload {
+  dateMin?: number;
+  dateMax?: number;
+  minContext?: number;
+  maxContext?: number;
+  minCompactions?: number;
+  agentName?: string;
+  tags?: string[];
 }

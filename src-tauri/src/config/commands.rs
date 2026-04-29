@@ -5,7 +5,9 @@ use std::sync::{Arc, Mutex};
 use serde_json::Value;
 
 use super::manager::ConfigState;
-use super::types::{AnnotationEntry, AppConfig, BookmarkEntry, ClaudeRootInfo, NotificationTrigger};
+use super::types::{
+    AnnotationEntry, AppConfig, BookmarkEntry, ClaudeRootInfo, FilterPreset, NotificationTrigger,
+};
 
 type ConfigMutex = Arc<Mutex<ConfigState>>;
 
@@ -399,4 +401,53 @@ pub fn config_get_groups(
 ) -> Result<std::collections::HashMap<String, Vec<String>>, String> {
     let state = config.lock().map_err(|e| e.to_string())?;
     Ok(state.get_session_groups().clone())
+}
+
+// Filter Presets (sprint 35)
+
+#[tauri::command]
+pub fn config_add_filter_preset(
+    name: String,
+    filter: Value,
+    config: tauri::State<'_, ConfigMutex>,
+) -> Result<FilterPreset, String> {
+    let mut state = config.lock().map_err(|e| e.to_string())?;
+    let preset = FilterPreset {
+        id: uuid::Uuid::new_v4().to_string(),
+        name,
+        filter,
+        created_at: now_ms(),
+    };
+    state.add_filter_preset(preset.clone());
+    Ok(preset)
+}
+
+#[tauri::command]
+pub fn config_remove_filter_preset(
+    preset_id: String,
+    config: tauri::State<'_, ConfigMutex>,
+) -> Result<(), String> {
+    let mut state = config.lock().map_err(|e| e.to_string())?;
+    state.remove_filter_preset(&preset_id);
+    Ok(())
+}
+
+#[tauri::command]
+pub fn config_rename_filter_preset(
+    preset_id: String,
+    name: String,
+    config: tauri::State<'_, ConfigMutex>,
+) -> Result<bool, String> {
+    let mut state = config.lock().map_err(|e| e.to_string())?;
+    Ok(state.rename_filter_preset(&preset_id, &name))
+}
+
+#[tauri::command]
+pub fn config_set_default_filter_preset(
+    preset_id: Option<String>,
+    config: tauri::State<'_, ConfigMutex>,
+) -> Result<(), String> {
+    let mut state = config.lock().map_err(|e| e.to_string())?;
+    state.set_default_filter_preset(preset_id);
+    Ok(())
 }

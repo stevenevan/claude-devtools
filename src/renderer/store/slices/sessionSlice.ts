@@ -35,6 +35,9 @@ export interface SessionSlice {
   activeFilters: SessionFilterState;
   setFilter: (patch: Partial<SessionFilterState>) => void;
   clearFilters: () => void;
+  /** Replace activeFilters wholesale with a preset payload (sprint 35).
+   * Replaces (not merges) so absent fields are cleared. */
+  applyFilterPreset: (filter: SessionFilterState) => void;
   // Pagination state
   sessionsCursor: string | null;
   sessionsHasMore: boolean;
@@ -112,6 +115,9 @@ export const createSessionSlice: StateCreator<AppState, [], [], SessionSlice> = 
   },
   clearFilters: () => {
     set({ activeFilters: {} });
+  },
+  applyFilterPreset: (filter) => {
+    set({ activeFilters: { ...filter } });
   },
 
   // Fetch sessions for a specific project (legacy - not paginated)

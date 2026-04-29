@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useDefaultFilterPreset } from '@renderer/hooks/useDefaultFilterPreset';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { useShallow } from 'zustand/react/shallow';
@@ -36,6 +37,7 @@ export const Sidebar = (): React.JSX.Element | null => {
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
   const [activeFilters, setActiveFilters] = useState<Set<SidebarFilter>>(new Set());
+  useDefaultFilterPreset();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   const handleToggleFilter = useCallback((filter: SidebarFilter) => {

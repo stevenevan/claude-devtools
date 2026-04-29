@@ -578,6 +578,51 @@ impl ConfigState {
     }
 
     // =========================================================================
+    // Filter Presets (sprint 35)
+    // =========================================================================
+
+    pub fn add_filter_preset(&mut self, preset: super::types::FilterPreset) {
+        self.config.sessions.filter_presets.push(preset);
+        self.save_config();
+    }
+
+    pub fn remove_filter_preset(&mut self, preset_id: &str) {
+        self.config
+            .sessions
+            .filter_presets
+            .retain(|p| p.id != preset_id);
+        if self.config.sessions.default_filter_preset_id.as_deref() == Some(preset_id) {
+            self.config.sessions.default_filter_preset_id = None;
+        }
+        self.save_config();
+    }
+
+    pub fn rename_filter_preset(&mut self, preset_id: &str, name: &str) -> bool {
+        let Some(preset) = self
+            .config
+            .sessions
+            .filter_presets
+            .iter_mut()
+            .find(|p| p.id == preset_id)
+        else {
+            return false;
+        };
+        preset.name = name.to_string();
+        self.save_config();
+        true
+    }
+
+    pub fn set_default_filter_preset(&mut self, preset_id: Option<String>) {
+        if let Some(ref id) = preset_id {
+            if !self.config.sessions.filter_presets.iter().any(|p| &p.id == id) {
+                return;
+            }
+        }
+        self.config.sessions.default_filter_preset_id = preset_id;
+        self.save_config();
+    }
+
+    // =========================================================================
     // Internal
     // =========================================================================
 

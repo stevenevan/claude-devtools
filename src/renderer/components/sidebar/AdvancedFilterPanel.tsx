@@ -6,6 +6,8 @@ import { useStore } from '@renderer/store';
 import { ChevronDown, ChevronRight, Filter, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
+import { FilterPresetBar } from './FilterPresetBar';
+
 import type { SessionFilterState } from '@renderer/store/slices/sessionSlice';
 
 function countActive(filters: SessionFilterState): number {
@@ -60,6 +62,7 @@ export const AdvancedFilterPanel = (): React.JSX.Element => {
 
   return (
     <div className="border-border/60 border-b">
+      <FilterPresetBar />
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}

@@ -12,8 +12,12 @@ import { createLogger } from '@shared/utils/logger';
 import { useShallow } from 'zustand/react/shallow';
 
 import { useStore } from '../store';
+import { parseFilterPayload } from '../utils/filterPresetSerialization';
 
 const logger = createLogger('Hook:KeyboardShortcuts');
+
+const G_SEQUENCE_WINDOW_MS = 750;
+let pendingGAt: number | null = null;
 
 export function useKeyboardShortcuts(): void {
   const {
@@ -102,6 +106,38 @@ export function useKeyboardShortcuts(): void {
           }
         }
         return;
+      }
+
+      // --- g-prefix: filter preset quick activation (g then 1..9) ---
+      if (!isMod && !event.altKey && !event.shiftKey) {
+        const tag = (event.target as HTMLElement)?.tagName;
+        const inInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+        if (!inInput) {
+          if (event.key === 'g') {
+            pendingGAt = Date.now();
+            return;
+          }
+          if (
+            pendingGAt !== null &&
+            Date.now() - pendingGAt <= G_SEQUENCE_WINDOW_MS &&
+            /^[1-9]$/.test(event.key)
+          ) {
+            event.preventDefault();
+            const idx = parseInt(event.key, 10) - 1;
+            const state = useStore.getState();
+            const presets = state.appConfig?.sessions?.filterPresets ?? [];
+            const preset = presets[idx];
+            pendingGAt = null;
+            if (preset) {
+              const filter = parseFilterPayload(preset.filter);
+              if (filter !== null) state.applyFilterPreset(filter);
+            }
+            return;
+          }
+          if (pendingGAt !== null) {
+            pendingGAt = null;
+          }
+        }
       }
 
       // --- ? key: shortcut cheat sheet ---
