@@ -99,6 +99,17 @@ export interface SnapshotsAPI {
   open: (snapshotId: string) => Promise<SessionDetail>;
 }
 
+// Plugins API (sprint 38)
+
+export interface PluginEntry {
+  id: string;
+  path: string;
+}
+
+export interface PluginsAPI {
+  list: () => Promise<PluginEntry[]>;
+}
+
 // Notifications API
 
 /**
@@ -567,6 +578,9 @@ export interface ElectronAPI {
 
   // Session snapshots (sprint 36)
   snapshots: SnapshotsAPI;
+
+  // Plugins (sprint 38)
+  plugins: PluginsAPI;
 
   // Window zoom sync (for traffic-light-safe layout)
   getZoomFactor: () => Promise<number>;

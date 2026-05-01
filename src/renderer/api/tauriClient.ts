@@ -81,6 +81,8 @@ import type {
   SshConfigHostEntry,
   SshConnectionStatus,
   SshLastConnection,
+  PluginEntry,
+  PluginsAPI,
   SnapshotMeta,
   SnapshotsAPI,
   SubagentDetail,
@@ -515,6 +517,14 @@ export class TauriAPIClient implements ElectronAPI {
       const raw = await invoke<SessionDetail>('snapshots_open', { snapshotId });
       return reviveDates(raw);
     },
+  };
+
+  // ---------------------------------------------------------------------------
+  // Plugins (sprint 38) — discovery only; execution stays in the renderer worker
+  // ---------------------------------------------------------------------------
+
+  plugins: PluginsAPI = {
+    list: () => invoke<PluginEntry[]>('plugins_discover'),
   };
 
   // ---------------------------------------------------------------------------
