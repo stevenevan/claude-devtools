@@ -94,7 +94,13 @@ import type {
   WaterfallData,
   WslClaudeRootCandidate,
 } from '@shared/types';
-import type { AgentConfig, GlobalAgent, GlobalPlugin, GlobalSkill } from '@shared/types/api';
+import type {
+  AgentConfig,
+  AnnotationImportReport,
+  GlobalAgent,
+  GlobalPlugin,
+  GlobalSkill,
+} from '@shared/types/api';
 
 export class TauriAPIClient implements ElectronAPI {
   // ---------------------------------------------------------------------------
@@ -460,6 +466,9 @@ export class TauriAPIClient implements ElectronAPI {
       invoke<boolean>('config_rename_filter_preset', { presetId, name }),
     setDefaultFilterPreset: (presetId) =>
       invoke<void>('config_set_default_filter_preset', { presetId }),
+    exportAnnotations: (sessionIds) => invoke<string>('config_export_annotations', { sessionIds }),
+    importAnnotations: (json) =>
+      invoke<AnnotationImportReport>('config_import_annotations', { json }),
 
     // Native: folder selection dialogs via Tauri plugin
     selectFolders: async (): Promise<string[]> => {

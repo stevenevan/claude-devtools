@@ -232,6 +232,22 @@ export interface ConfigAPI {
   renameFilterPreset: (presetId: string, name: string) => Promise<boolean>;
   /** Set or clear the default filter preset (auto-applied on first sidebar mount) */
   setDefaultFilterPreset: (presetId: string | null) => Promise<void>;
+  /** Export annotations + bookmarks for the given session ids as JSON.
+   * Empty array exports everything (sprint 37). */
+  exportAnnotations: (sessionIds: string[]) => Promise<string>;
+  /** Import annotations + bookmarks from a previously exported JSON bundle.
+   * Conflicts: annotations matched by (sessionId, targetId) — newer
+   * `updatedAt` wins; bookmarks matched by (sessionId, groupId) skip duplicates. */
+  importAnnotations: (json: string) => Promise<AnnotationImportReport>;
+}
+
+/** Counts returned by `importAnnotations` (sprint 37). */
+export interface AnnotationImportReport {
+  annotationsAdded: number;
+  annotationsUpdated: number;
+  annotationsSkipped: number;
+  bookmarksAdded: number;
+  bookmarksSkipped: number;
 }
 
 export interface AnnotationEntry {

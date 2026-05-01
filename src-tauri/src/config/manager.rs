@@ -623,6 +623,96 @@ impl ConfigState {
     }
 
     // =========================================================================
+    // Annotation/Bookmark Export/Import (sprint 37)
+    // =========================================================================
+
+    pub fn export_annotations_bundle(
+        &self,
+        session_ids: &[String],
+    ) -> super::types::AnnotationExportBundle {
+        let session_set: std::collections::HashSet<&str> =
+            session_ids.iter().map(|s| s.as_str()).collect();
+        let want_all = session_set.is_empty();
+
+        let annotations: Vec<super::types::AnnotationEntry> = self
+            .config
+            .sessions
+            .annotations
+            .iter()
+            .filter(|a| want_all || session_set.contains(a.session_id.as_str()))
+            .cloned()
+            .collect();
+        let bookmarks: Vec<super::types::BookmarkEntry> = self
+            .config
+            .sessions
+            .bookmarks
+            .iter()
+            .filter(|b| want_all || session_set.contains(b.session_id.as_str()))
+            .cloned()
+            .collect();
+
+        super::types::AnnotationExportBundle {
+            version: 1,
+            exported_at: now_millis(),
+            annotations,
+            bookmarks,
+        }
+    }
+
+    /// Merge imported annotations + bookmarks into the current config.
+    /// Conflict resolution: newer `updated_at` wins for annotations
+    /// (matched by `(session_id, target_id)`); duplicate bookmarks
+    /// (matched by `(session_id, group_id)`) are skipped.
+    pub fn import_annotations_bundle(
+        &mut self,
+        bundle: super::types::AnnotationExportBundle,
+    ) -> super::types::ImportReport {
+        let mut report = super::types::ImportReport::default();
+
+        for incoming in bundle.annotations {
+            let existing_idx = self
+                .config
+                .sessions
+                .annotations
+                .iter()
+                .position(|a| a.session_id == incoming.session_id && a.target_id == incoming.target_id);
+            match existing_idx {
+                Some(idx) => {
+                    let existing = &self.config.sessions.annotations[idx];
+                    if incoming.updated_at > existing.updated_at {
+                        self.config.sessions.annotations[idx] = incoming;
+                        report.annotations_updated += 1;
+                    } else {
+                        report.annotations_skipped += 1;
+                    }
+                }
+                None => {
+                    self.config.sessions.annotations.push(incoming);
+                    report.annotations_added += 1;
+                }
+            }
+        }
+
+        for incoming in bundle.bookmarks {
+            let exists = self
+                .config
+                .sessions
+                .bookmarks
+                .iter()
+                .any(|b| b.session_id == incoming.session_id && b.group_id == incoming.group_id);
+            if exists {
+                report.bookmarks_skipped += 1;
+            } else {
+                self.config.sessions.bookmarks.push(incoming);
+                report.bookmarks_added += 1;
+            }
+        }
+
+        self.save_config();
+        report
+    }
+
+    // =========================================================================
     // Internal
     // =========================================================================
 
@@ -887,5 +977,98 @@ mod tests {
 
         state.remove_annotation("a1");
         assert!(state.get_annotations().is_empty());
+    }
+
+    #[test]
+    fn import_annotations_resolves_conflict_by_newer_timestamp() {
+        use super::super::types::{AnnotationExportBundle, BookmarkEntry};
+
+        let mut state = temp_config();
+
+        // Seed an existing annotation at updated_at=10
+        state.add_annotation(AnnotationEntry {
+            id: "existing".to_string(),
+            session_id: "s1".to_string(),
+            project_id: "p1".to_string(),
+            target_id: "t1".to_string(),
+            text: "old".to_string(),
+            color: "blue".to_string(),
+            created_at: 1.0,
+            updated_at: 10.0,
+        });
+        // Seed an existing bookmark
+        state.add_bookmark(BookmarkEntry {
+            id: "bk1".to_string(),
+            session_id: "s1".to_string(),
+            project_id: "p1".to_string(),
+            group_id: "g1".to_string(),
+            note: None,
+            created_at: 1.0,
+        });
+
+        // Bundle: one matching annotation with newer ts (overwrite),
+        // one matching annotation with older ts (skip),
+        // one new annotation,
+        // one duplicate bookmark (skip),
+        // one new bookmark.
+        let bundle = AnnotationExportBundle {
+            version: 1,
+            exported_at: 100.0,
+            annotations: vec![
+                AnnotationEntry {
+                    id: "incoming-newer".to_string(),
+                    session_id: "s1".to_string(),
+                    project_id: "p1".to_string(),
+                    target_id: "t1".to_string(),
+                    text: "new".to_string(),
+                    color: "green".to_string(),
+                    created_at: 5.0,
+                    updated_at: 20.0,
+                },
+                AnnotationEntry {
+                    id: "another-target".to_string(),
+                    session_id: "s1".to_string(),
+                    project_id: "p1".to_string(),
+                    target_id: "t2".to_string(),
+                    text: "fresh".to_string(),
+                    color: "red".to_string(),
+                    created_at: 50.0,
+                    updated_at: 50.0,
+                },
+            ],
+            bookmarks: vec![
+                BookmarkEntry {
+                    id: "bk-dup".to_string(),
+                    session_id: "s1".to_string(),
+                    project_id: "p1".to_string(),
+                    group_id: "g1".to_string(),
+                    note: None,
+                    created_at: 99.0,
+                },
+                BookmarkEntry {
+                    id: "bk-new".to_string(),
+                    session_id: "s2".to_string(),
+                    project_id: "p1".to_string(),
+                    group_id: "gX".to_string(),
+                    note: Some("note".to_string()),
+                    created_at: 99.0,
+                },
+            ],
+        };
+
+        let report = state.import_annotations_bundle(bundle);
+        assert_eq!(report.annotations_updated, 1);
+        assert_eq!(report.annotations_added, 1);
+        assert_eq!(report.annotations_skipped, 0);
+        assert_eq!(report.bookmarks_added, 1);
+        assert_eq!(report.bookmarks_skipped, 1);
+
+        let merged = state.get_annotations();
+        let t1 = merged
+            .iter()
+            .find(|a| a.target_id == "t1")
+            .expect("t1 present");
+        assert_eq!(t1.text, "new");
+        assert_eq!(t1.updated_at, 20.0);
     }
 }

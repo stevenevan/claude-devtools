@@ -8,6 +8,7 @@ import { MessageSquareText, Trash2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { getAnnotationColorHex } from '../chat/annotationColors';
+import { CollectionsPanel } from '../chat/CollectionsPanel';
 
 import type { AnnotationEntry } from '@shared/types';
 
@@ -42,18 +43,22 @@ export const AnnotationList = (): React.JSX.Element => {
 
   if (annotations.length === 0) {
     return (
-      <div className="flex h-full flex-col items-center justify-center px-4 py-12">
-        <MessageSquareText className="text-muted-foreground mb-2 size-6" />
-        <p className="text-muted-foreground mb-1 text-xs">No annotations yet</p>
-        <p className="text-muted-foreground text-[10px]">
-          Click the note icon on any turn to add one
-        </p>
+      <div className="flex h-full flex-col gap-3 overflow-y-auto px-2 py-2">
+        <CollectionsPanel />
+        <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
+          <MessageSquareText className="text-muted-foreground mb-2 size-6" />
+          <p className="text-muted-foreground mb-1 text-xs">No annotations yet</p>
+          <p className="text-muted-foreground text-[10px]">
+            Click the note icon on any turn to add one
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto px-2 py-2">
+    <div className="flex h-full flex-col gap-2 overflow-y-auto px-2 py-2">
+      <CollectionsPanel />
       <div className="flex flex-col gap-1">
         {sorted.map((annotation) => (
           <AnnotationRow

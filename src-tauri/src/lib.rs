@@ -124,6 +124,8 @@ pub fn run() {
             config::commands::config_remove_filter_preset,
             config::commands::config_rename_filter_preset,
             config::commands::config_set_default_filter_preset,
+            config::commands::config_export_annotations,
+            config::commands::config_import_annotations,
             notifications::commands::notifications_get,
             notifications::commands::notifications_mark_read,
             notifications::commands::notifications_mark_all_read,

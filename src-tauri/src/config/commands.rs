@@ -6,7 +6,8 @@ use serde_json::Value;
 
 use super::manager::ConfigState;
 use super::types::{
-    AnnotationEntry, AppConfig, BookmarkEntry, ClaudeRootInfo, FilterPreset, NotificationTrigger,
+    AnnotationEntry, AnnotationExportBundle, AppConfig, BookmarkEntry, ClaudeRootInfo,
+    FilterPreset, ImportReport, NotificationTrigger,
 };
 
 type ConfigMutex = Arc<Mutex<ConfigState>>;
@@ -450,4 +451,27 @@ pub fn config_set_default_filter_preset(
     let mut state = config.lock().map_err(|e| e.to_string())?;
     state.set_default_filter_preset(preset_id);
     Ok(())
+}
+
+// Annotation/Bookmark Export/Import (sprint 37)
+
+#[tauri::command]
+pub fn config_export_annotations(
+    session_ids: Vec<String>,
+    config: tauri::State<'_, ConfigMutex>,
+) -> Result<String, String> {
+    let state = config.lock().map_err(|e| e.to_string())?;
+    let bundle = state.export_annotations_bundle(&session_ids);
+    serde_json::to_string_pretty(&bundle).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn config_import_annotations(
+    json: String,
+    config: tauri::State<'_, ConfigMutex>,
+) -> Result<ImportReport, String> {
+    let bundle: AnnotationExportBundle =
+        serde_json::from_str(&json).map_err(|e| format!("Invalid bundle JSON: {e}"))?;
+    let mut state = config.lock().map_err(|e| e.to_string())?;
+    Ok(state.import_annotations_bundle(bundle))
 }

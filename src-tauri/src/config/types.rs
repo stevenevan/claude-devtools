@@ -199,6 +199,29 @@ pub struct FilterPreset {
     pub created_at: f64,
 }
 
+// Annotation/Bookmark export bundle (sprint 37).
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AnnotationExportBundle {
+    pub version: u32,
+    pub exported_at: f64,
+    pub annotations: Vec<AnnotationEntry>,
+    pub bookmarks: Vec<BookmarkEntry>,
+}
+
+/// Result of an import operation. Per-category counts let the UI surface
+/// what changed without diffing the resulting config.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportReport {
+    pub annotations_added: u32,
+    pub annotations_updated: u32,
+    pub annotations_skipped: u32,
+    pub bookmarks_added: u32,
+    pub bookmarks_skipped: u32,
+}
+
 /// Inline annotation anchored to a specific display target (AI group, turn, item) in a session.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
