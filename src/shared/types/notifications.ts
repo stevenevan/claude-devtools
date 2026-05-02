@@ -342,6 +342,35 @@ export interface AppConfig {
   plugins?: {
     enabled?: string[];
   };
+  /** Notification rules engine (sprint 40). */
+  notificationRules?: NotificationRule[];
+}
+
+// Notification rules DSL (sprint 40)
+
+export type NotificationRulePredicate =
+  | { kind: 'toolName'; equals: string }
+  | { kind: 'durationGt'; ms: number }
+  | { kind: 'error'; isError: boolean }
+  | { kind: 'costGt'; usd: number }
+  | { kind: 'regexMatch'; pattern: string };
+
+export type NotificationRuleNode =
+  | { kind: 'all'; children: NotificationRuleNode[] }
+  | { kind: 'any'; children: NotificationRuleNode[] }
+  | { kind: 'predicate'; predicate: NotificationRulePredicate };
+
+export type NotificationRuleAction =
+  | { kind: 'notify' }
+  | { kind: 'badge' }
+  | { kind: 'webhook'; url: string; template: string };
+
+export interface NotificationRule {
+  id: string;
+  name: string;
+  enabled: boolean;
+  condition: NotificationRuleNode;
+  action: NotificationRuleAction;
 }
 
 export interface CustomTheme {

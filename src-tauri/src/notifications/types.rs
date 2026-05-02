@@ -134,3 +134,56 @@ pub struct NotificationUpdatedPayload {
     pub total: usize,
     pub unread_count: usize,
 }
+
+// Notification rules engine (sprint 40)
+//
+// Predicates evaluate against a `RuleEvalContext` describing one
+// candidate event. Conditions compose through `RuleNode::All` /
+// `RuleNode::Any`. Actions live in their own enum so sprint 41 only
+// fills the `Webhook` dispatch body — not the type.
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+pub enum RulePredicate {
+    ToolName { equals: String },
+    DurationGt { ms: f64 },
+    Error { is_error: bool },
+    CostGt { usd: f64 },
+    RegexMatch { pattern: String },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+pub enum RuleNode {
+    All { children: Vec<RuleNode> },
+    Any { children: Vec<RuleNode> },
+    Predicate { predicate: RulePredicate },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+pub enum RuleAction {
+    Notify,
+    Badge,
+    Webhook { url: String, template: String },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct NotificationRule {
+    pub id: String,
+    pub name: String,
+    pub enabled: bool,
+    pub condition: RuleNode,
+    pub action: RuleAction,
+}
+
+/// Evaluation input. Caller fills relevant fields per candidate event.
+#[derive(Debug, Clone, Default)]
+pub struct RuleEvalContext<'a> {
+    pub tool_name: Option<&'a str>,
+    pub duration_ms: Option<f64>,
+    pub is_error: bool,
+    pub cost_usd: Option<f64>,
+    pub message: Option<&'a str>,
+}

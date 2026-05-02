@@ -18,6 +18,7 @@ import { Switch } from '@renderer/components/ui/switch';
 
 import { SettingRow, SettingsSectionHeader } from '../components';
 import { NotificationTriggerSettings } from '../NotificationTriggerSettings';
+import { RulesEditor } from '../NotificationTriggerSettings/RulesEditor';
 
 import type { RepositoryDropdownItem, SafeConfig } from '../hooks/useSettingsConfig';
 import type { NotificationTrigger } from '@renderer/types/data';
@@ -79,6 +80,10 @@ export const NotificationsSection = ({
         onAddTrigger={onAddTrigger}
         onRemoveTrigger={onRemoveTrigger}
       />
+
+      {/* Notification Rules (sprint 40) */}
+      <SettingsSectionHeader title="Notification Rules" />
+      <RulesEditor />
 
       {/* Notification Settings */}
       <SettingsSectionHeader title="Notification Settings" />

@@ -20,11 +20,19 @@ pub fn validate_config_update(section: &str, data: &Value) -> Result<(String, Va
         "shortcuts" => validate_shortcuts(data).map(|v| (section.to_string(), v)),
         "themes" => validate_themes(data).map(|v| (section.to_string(), v)),
         "plugins" => validate_plugins(data).map(|v| (section.to_string(), v)),
+        "notificationRules" => validate_notification_rules(data).map(|v| (section.to_string(), v)),
         _ => Err(
-            "Section must be one of: notifications, general, display, httpServer, ssh, dashboard, shortcuts, themes, plugins"
+            "Section must be one of: notifications, general, display, httpServer, ssh, dashboard, shortcuts, themes, plugins, notificationRules"
                 .to_string(),
         ),
     }
+}
+
+fn validate_notification_rules(data: &Value) -> Result<Value, String> {
+    if !data.is_array() {
+        return Err("notificationRules update must be an array".to_string());
+    }
+    Ok(data.clone())
 }
 
 fn validate_plugins(data: &Value) -> Result<Value, String> {

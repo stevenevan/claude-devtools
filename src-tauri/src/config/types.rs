@@ -26,6 +26,9 @@ pub struct AppConfig {
     pub themes: ThemesConfig,
     #[serde(default)]
     pub plugins: PluginsConfig,
+    /// Notification rules engine (sprint 40).
+    #[serde(default)]
+    pub notification_rules: Vec<crate::notifications::types::NotificationRule>,
 }
 
 // Plugins config — persisted enabled-plugin ids (sprint 39).
@@ -346,6 +349,7 @@ impl Default for AppConfig {
             shortcuts: ShortcutsConfig::default(),
             themes: ThemesConfig::default(),
             plugins: PluginsConfig::default(),
+            notification_rules: Vec::new(),
         }
     }
 }
@@ -504,6 +508,12 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         None => defaults.plugins.clone(),
     };
 
+    let notification_rules: Vec<crate::notifications::types::NotificationRule> =
+        match obj.get("notificationRules") {
+            Some(v) => serde_json::from_value(v.clone()).unwrap_or_default(),
+            None => defaults.notification_rules.clone(),
+        };
+
     AppConfig {
         notifications,
         general,
@@ -516,6 +526,7 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         shortcuts,
         themes,
         plugins,
+        notification_rules,
     }
 }
 

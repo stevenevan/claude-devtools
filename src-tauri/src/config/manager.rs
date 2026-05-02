@@ -137,6 +137,20 @@ impl ConfigState {
                         .collect();
                 }
             }
+            "notificationRules" => {
+                if let Some(arr) = validated.as_array() {
+                    let mut rules: Vec<crate::notifications::types::NotificationRule> = Vec::new();
+                    for entry in arr {
+                        if let Ok(rule) = serde_json::from_value::<
+                            crate::notifications::types::NotificationRule,
+                        >(entry.clone())
+                        {
+                            rules.push(rule);
+                        }
+                    }
+                    self.config.notification_rules = rules;
+                }
+            }
             _ => {}
         }
 

@@ -76,6 +76,61 @@ pub fn extract_tool_use_field(input: &Value, match_field: &str) -> Option<String
     }
 }
 
+// Rule DSL evaluation (sprint 40)
+
+use super::types::{NotificationRule, RuleAction, RuleEvalContext, RuleNode, RulePredicate};
+
+pub fn evaluate_predicate(p: &RulePredicate, ctx: &RuleEvalContext) -> bool {
+    match p {
+        RulePredicate::ToolName { equals } => ctx.tool_name == Some(equals.as_str()),
+        RulePredicate::DurationGt { ms } => ctx.duration_ms.map(|d| d > *ms).unwrap_or(false),
+        RulePredicate::Error { is_error } => ctx.is_error == *is_error,
+        RulePredicate::CostGt { usd } => ctx.cost_usd.map(|c| c > *usd).unwrap_or(false),
+        RulePredicate::RegexMatch { pattern } => match ctx.message {
+            Some(m) => matches_pattern(m, pattern),
+            None => false,
+        },
+    }
+}
+
+pub fn evaluate_node(node: &RuleNode, ctx: &RuleEvalContext) -> bool {
+    match node {
+        RuleNode::All { children } => children.iter().all(|c| evaluate_node(c, ctx)),
+        RuleNode::Any { children } => children.iter().any(|c| evaluate_node(c, ctx)),
+        RuleNode::Predicate { predicate } => evaluate_predicate(predicate, ctx),
+    }
+}
+
+/// Dispatch the rule's action. `Webhook` is a typed stub in sprint 40 —
+/// sprint 41 fills the dispatch body without changing the signature.
+pub fn dispatch_action(action: &RuleAction) -> Result<(), String> {
+    match action {
+        RuleAction::Notify => Ok(()),
+        RuleAction::Badge => Ok(()),
+        RuleAction::Webhook { url, template } => {
+            // Sprint 40: typed stub. Logged only — the real HTTP dispatch
+            // is sprint 41's responsibility.
+            let _ = url;
+            let _ = template;
+            eprintln!("[notifications] webhook dispatch stub: {url}");
+            Ok(())
+        }
+    }
+}
+
+/// Evaluate every enabled rule and dispatch matching actions. Returns
+/// the ids of rules that fired.
+pub fn evaluate_rules(rules: &[NotificationRule], ctx: &RuleEvalContext) -> Vec<String> {
+    let mut fired = Vec::new();
+    for rule in rules.iter().filter(|r| r.enabled) {
+        if evaluate_node(&rule.condition, ctx) {
+            let _ = dispatch_action(&rule.action);
+            fired.push(rule.id.clone());
+        }
+    }
+    fired
+}
+
 // Tests
 
 #[cfg(test)]
@@ -136,5 +191,93 @@ mod tests {
             extract_tool_use_field(&input, "count"),
             Some("42".to_string())
         );
+    }
+
+    // Sprint 40 — rule DSL evaluation
+
+    fn ctx_for(message: &str, duration: f64) -> RuleEvalContext<'_> {
+        RuleEvalContext {
+            tool_name: Some("Bash"),
+            duration_ms: Some(duration),
+            is_error: false,
+            cost_usd: None,
+            message: Some(message),
+        }
+    }
+
+    #[test]
+    fn rule_all_matches_when_both_predicates_satisfied() {
+        let condition = RuleNode::All {
+            children: vec![
+                RuleNode::Predicate {
+                    predicate: RulePredicate::RegexMatch {
+                        pattern: "TODO".to_string(),
+                    },
+                },
+                RuleNode::Predicate {
+                    predicate: RulePredicate::DurationGt { ms: 5000.0 },
+                },
+            ],
+        };
+
+        assert!(evaluate_node(&condition, &ctx_for("contains TODO marker", 6000.0)));
+        assert!(!evaluate_node(&condition, &ctx_for("contains TODO marker", 1000.0)));
+        assert!(!evaluate_node(&condition, &ctx_for("nope", 6000.0)));
+    }
+
+    #[test]
+    fn rule_any_matches_either_predicate() {
+        let condition = RuleNode::Any {
+            children: vec![
+                RuleNode::Predicate {
+                    predicate: RulePredicate::ToolName {
+                        equals: "Read".to_string(),
+                    },
+                },
+                RuleNode::Predicate {
+                    predicate: RulePredicate::DurationGt { ms: 1000.0 },
+                },
+            ],
+        };
+
+        assert!(evaluate_node(&condition, &ctx_for("ignored", 2000.0)));
+        let mut ctx = ctx_for("ignored", 100.0);
+        ctx.tool_name = Some("Read");
+        assert!(evaluate_node(&condition, &ctx));
+    }
+
+    #[test]
+    fn webhook_action_returns_ok_stub() {
+        let action = RuleAction::Webhook {
+            url: "https://example.invalid/hook".to_string(),
+            template: "{}".to_string(),
+        };
+        assert_eq!(dispatch_action(&action), Ok(()));
+    }
+
+    #[test]
+    fn evaluate_rules_returns_only_enabled_matches() {
+        let rules = vec![
+            NotificationRule {
+                id: "r1".into(),
+                name: "match".into(),
+                enabled: true,
+                condition: RuleNode::Predicate {
+                    predicate: RulePredicate::DurationGt { ms: 100.0 },
+                },
+                action: RuleAction::Notify,
+            },
+            NotificationRule {
+                id: "r2".into(),
+                name: "disabled-match".into(),
+                enabled: false,
+                condition: RuleNode::Predicate {
+                    predicate: RulePredicate::DurationGt { ms: 100.0 },
+                },
+                action: RuleAction::Notify,
+            },
+        ];
+        let ctx = ctx_for("anything", 1000.0);
+        assert_eq!(evaluate_rules(&rules, &ctx), vec!["r1".to_string()]);
     }
 }
