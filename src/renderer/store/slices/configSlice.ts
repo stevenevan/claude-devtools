@@ -64,6 +64,9 @@ export interface ConfigSlice {
   renameFilterPreset: (presetId: string, name: string) => Promise<void>;
   setDefaultFilterPreset: (presetId: string | null) => Promise<void>;
 
+  // Plugins (sprint 39)
+  setPluginEnabled: (pluginId: string, enabled: boolean) => Promise<void>;
+
   // Bookmark actions
   fetchBookmarks: () => Promise<void>;
   toggleBookmark: (sessionId: string, projectId: string, groupId: string) => Promise<void>;
@@ -324,5 +327,19 @@ export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (s
 
   getSessionTags: (sessionId: string) => {
     return get().sessionTags.get(sessionId) ?? [];
+  },
+
+  setPluginEnabled: async (pluginId, enabled) => {
+    try {
+      const current = get().appConfig?.plugins?.enabled ?? [];
+      const next = enabled
+        ? Array.from(new Set([...current, pluginId]))
+        : current.filter((id) => id !== pluginId);
+      await api.config.update('plugins', { enabled: next });
+      const config = await api.config.get();
+      set({ appConfig: config });
+    } catch (error) {
+      logger.error('Failed to update plugin enabled state:', error);
+    }
   },
 });

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { isDesktopMode } from '@renderer/api';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs';
-import { Bell, HardDrive, Keyboard, Palette, Server, Settings, Wrench } from 'lucide-react';
+import { Bell, HardDrive, Keyboard, Palette, Plug, Server, Settings, Wrench } from 'lucide-react';
 
 export type SettingsSection =
   | 'general'
@@ -11,6 +11,7 @@ export type SettingsSection =
   | 'notifications'
   | 'shortcuts'
   | 'themes'
+  | 'plugins'
   | 'advanced';
 
 interface SettingsTabsProps {
@@ -33,6 +34,7 @@ const tabs: TabConfig[] = [
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard },
   { id: 'themes', label: 'Themes', icon: Palette },
+  { id: 'plugins', label: 'Plugins', icon: Plug },
   { id: 'advanced', label: 'Advanced', icon: Wrench },
 ];
 

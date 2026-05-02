@@ -24,6 +24,19 @@ pub struct AppConfig {
     pub shortcuts: ShortcutsConfig,
     #[serde(default)]
     pub themes: ThemesConfig,
+    #[serde(default)]
+    pub plugins: PluginsConfig,
+}
+
+// Plugins config — persisted enabled-plugin ids (sprint 39).
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PluginsConfig {
+    /// Plugin ids the user has explicitly enabled. Disabled or unknown
+    /// plugins discovered on disk stay loaded as inert metadata.
+    #[serde(default)]
+    pub enabled: Vec<String>,
 }
 
 // Custom theme definitions (sprint 34).
@@ -332,6 +345,7 @@ impl Default for AppConfig {
             dashboard: DashboardConfig::default(),
             shortcuts: ShortcutsConfig::default(),
             themes: ThemesConfig::default(),
+            plugins: PluginsConfig::default(),
         }
     }
 }
@@ -485,6 +499,11 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         None => defaults.themes.clone(),
     };
 
+    let plugins: PluginsConfig = match obj.get("plugins") {
+        Some(v) => serde_json::from_value(v.clone()).unwrap_or_default(),
+        None => defaults.plugins.clone(),
+    };
+
     AppConfig {
         notifications,
         general,
@@ -496,6 +515,7 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         dashboard,
         shortcuts,
         themes,
+        plugins,
     }
 }
 

@@ -19,11 +19,30 @@ pub fn validate_config_update(section: &str, data: &Value) -> Result<(String, Va
         "dashboard" => validate_dashboard(data).map(|v| (section.to_string(), v)),
         "shortcuts" => validate_shortcuts(data).map(|v| (section.to_string(), v)),
         "themes" => validate_themes(data).map(|v| (section.to_string(), v)),
+        "plugins" => validate_plugins(data).map(|v| (section.to_string(), v)),
         _ => Err(
-            "Section must be one of: notifications, general, display, httpServer, ssh, dashboard, shortcuts, themes"
+            "Section must be one of: notifications, general, display, httpServer, ssh, dashboard, shortcuts, themes, plugins"
                 .to_string(),
         ),
     }
+}
+
+fn validate_plugins(data: &Value) -> Result<Value, String> {
+    let obj = data.as_object().ok_or("plugins update must be an object")?;
+    for key in obj.keys() {
+        if key != "enabled" {
+            return Err(format!("Unknown plugins field: {key}"));
+        }
+    }
+    if let Some(list) = obj.get("enabled") {
+        let arr = list.as_array().ok_or("enabled must be an array")?;
+        for entry in arr {
+            if !entry.is_string() {
+                return Err("enabled entries must be strings".to_string());
+            }
+        }
+    }
+    Ok(data.clone())
 }
 
 fn validate_themes(data: &Value) -> Result<Value, String> {

@@ -5,8 +5,12 @@ import {
   probeWorkerScope,
   WORKER_GLOBAL_ALLOWLIST,
 } from '@renderer/plugins/capabilityGate';
+import {
+  PluginDisposedError,
+  SUBSCRIPTION_QUOTA,
+  TEARDOWN_TIMEOUT_MS,
+} from '@renderer/plugins/pluginApi';
 import { PUBLIC_METHODS, SandboxBridge } from '@renderer/plugins/sandboxBridge';
-import { PluginDisposedError, SUBSCRIPTION_QUOTA } from '@renderer/plugins/pluginApi';
 
 describe('capabilityGate allowlist', () => {
   it('allowlist enumerates only the explicit globals plugins may keep', () => {
@@ -87,5 +91,9 @@ describe('SandboxBridge', () => {
     bridge.dispose();
     await expect(pending).rejects.toBeInstanceOf(PluginDisposedError);
     expect(bridge.isDisposed).toBe(true);
+  });
+
+  it('teardown timeout is the documented 100ms', () => {
+    expect(TEARDOWN_TIMEOUT_MS).toBe(100);
   });
 });

@@ -128,6 +128,15 @@ impl ConfigState {
                     self.config.themes.custom = themes;
                 }
             }
+            "plugins" => {
+                let obj = validated.as_object().unwrap();
+                if let Some(enabled) = obj.get("enabled").and_then(|v| v.as_array()) {
+                    self.config.plugins.enabled = enabled
+                        .iter()
+                        .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                        .collect();
+                }
+            }
             _ => {}
         }
 

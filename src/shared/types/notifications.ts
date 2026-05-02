@@ -338,6 +338,10 @@ export interface AppConfig {
     activeId?: string | null;
     custom?: CustomTheme[];
   };
+  /** Plugin enable list (sprint 39). */
+  plugins?: {
+    enabled?: string[];
+  };
 }
 
 export interface CustomTheme {

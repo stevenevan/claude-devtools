@@ -16,6 +16,7 @@ import {
   GeneralSection,
   KeyboardShortcutsSection,
   NotificationsSection,
+  PluginsSettings,
   ThemeEditor,
   WorkspaceSection,
 } from './sections';
@@ -148,6 +149,10 @@ export const SettingsView = (): React.JSX.Element | null => {
 
           <SettingsTabContent value="themes" className="mt-4">
             <ThemeEditor />
+          </SettingsTabContent>
+
+          <SettingsTabContent value="plugins" className="mt-4">
+            <PluginsSettings />
           </SettingsTabContent>
 
           <SettingsTabContent value="advanced" className="mt-4">
