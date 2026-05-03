@@ -10,9 +10,21 @@ import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
-import { Clock, Filter, GitBranch, Loader2, MessageSquare, Search, X } from 'lucide-react';
+import {
+  Clock,
+  Filter,
+  GitBranch,
+  Loader2,
+  MessageSquare,
+  Search,
+  Sparkles,
+  X,
+} from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
+import { ParsedFilterChips } from './ParsedFilterChips';
+
+import type { ParsedNLQuery } from '@shared/types/api';
 import type { FilteredSearchResult, SearchFilters } from '@shared/types/domain';
 
 type StatusFilter = 'all' | 'ongoing' | 'completed';
@@ -73,6 +85,8 @@ export const SearchView = (): React.JSX.Element => {
   const [results, setResults] = useState<FilteredSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [nlMode, setNlMode] = useState(false);
+  const [parsed, setParsed] = useState<ParsedNLQuery | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
@@ -158,6 +172,22 @@ export const SearchView = (): React.JSX.Element => {
             placeholder="Search sessions across all projects..."
             className="text-foreground placeholder:text-muted-foreground flex-1 bg-transparent text-sm outline-hidden"
           />
+          <button
+            type="button"
+            onClick={() => {
+              const next = !nlMode;
+              setNlMode(next);
+              if (!next) setParsed(null);
+            }}
+            className={cn(
+              'text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] transition-colors',
+              nlMode ? 'border-indigo-500/50 bg-indigo-500/10 text-indigo-300' : 'border-border'
+            )}
+            title="Toggle natural-language query"
+          >
+            <Sparkles className="size-3" />
+            NL
+          </button>
           {(query || hasFilters) && (
             <button
               onClick={clearAll}
@@ -168,6 +198,36 @@ export const SearchView = (): React.JSX.Element => {
             </button>
           )}
         </div>
+
+        {nlMode && (
+          <div className="mb-4 flex flex-col gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={async () => {
+                if (!query.trim()) {
+                  setParsed(null);
+                  return;
+                }
+                const result = await api.parseNLQuery(query);
+                setParsed(result);
+                if (result.dateMin !== undefined) {
+                  const days = Math.round((Date.now() - result.dateMin) / 86400000);
+                  if (days <= 1) setDatePreset('today');
+                  else if (days <= 7) setDatePreset('week');
+                  else setDatePreset('month');
+                }
+                if (result.textQuery) setQuery(result.textQuery);
+                if (result.hasErrors) setStatusFilter('completed');
+              }}
+              className="w-fit gap-1"
+            >
+              <Sparkles className="size-3" />
+              Interpret query
+            </Button>
+            <ParsedFilterChips parsed={parsed} />
+          </div>
+        )}
 
         {/* Filter chips */}
         <div className="mb-6 flex flex-wrap items-center gap-2">

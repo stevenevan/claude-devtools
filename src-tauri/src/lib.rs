@@ -5,6 +5,7 @@ mod commands;
 mod config;
 mod discovery;
 mod notifications;
+mod nl_query;
 mod parsing;
 mod plugins;
 mod snapshots;
@@ -151,6 +152,7 @@ pub fn run() {
             snapshots::snapshots_open,
             plugins::plugins_discover,
             notifications::webhook::webhook_test_send,
+            nl_query::parse_nl_query,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

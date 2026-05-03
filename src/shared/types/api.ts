@@ -106,6 +106,17 @@ export interface PluginEntry {
   path: string;
 }
 
+// NL query (sprint 43)
+
+export interface ParsedNLQuery {
+  dateMin?: number;
+  agentName?: string;
+  minCost?: number;
+  hasErrors?: boolean;
+  textQuery?: string;
+  author?: string;
+}
+
 export interface PluginsAPI {
   list: () => Promise<PluginEntry[]>;
 }
@@ -592,6 +603,9 @@ export interface ElectronAPI {
 
   // Webhooks (sprint 41)
   webhook: WebhookAPI;
+
+  // Natural language query (sprint 43; lexical only)
+  parseNLQuery: (query: string) => Promise<ParsedNLQuery>;
 
   // Window zoom sync (for traffic-light-safe layout)
   getZoomFactor: () => Promise<number>;

@@ -81,6 +81,7 @@ import type {
   SshConfigHostEntry,
   SshConnectionStatus,
   SshLastConnection,
+  ParsedNLQuery,
   PluginEntry,
   PluginsAPI,
   WebhookAPI,
@@ -535,6 +536,9 @@ export class TauriAPIClient implements ElectronAPI {
   webhook: WebhookAPI = {
     testSend: (endpoint) => invoke<void>('webhook_test_send', { endpoint }),
   };
+
+  parseNLQuery = (query: string): Promise<ParsedNLQuery> =>
+    invoke<ParsedNLQuery>('parse_nl_query', { query });
 
   // ---------------------------------------------------------------------------
   // Zoom — Tauri doesn't have Electron's zoom sync mechanism
