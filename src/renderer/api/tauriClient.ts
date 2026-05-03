@@ -83,6 +83,7 @@ import type {
   SshLastConnection,
   PluginEntry,
   PluginsAPI,
+  WebhookAPI,
   SnapshotMeta,
   SnapshotsAPI,
   SubagentDetail,
@@ -525,6 +526,14 @@ export class TauriAPIClient implements ElectronAPI {
 
   plugins: PluginsAPI = {
     list: () => invoke<PluginEntry[]>('plugins_discover'),
+  };
+
+  // ---------------------------------------------------------------------------
+  // Webhooks (sprint 41) — test sender. Real dispatch happens server-side.
+  // ---------------------------------------------------------------------------
+
+  webhook: WebhookAPI = {
+    testSend: (endpoint) => invoke<void>('webhook_test_send', { endpoint }),
   };
 
   // ---------------------------------------------------------------------------

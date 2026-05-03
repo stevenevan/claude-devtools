@@ -110,6 +110,14 @@ export interface PluginsAPI {
   list: () => Promise<PluginEntry[]>;
 }
 
+// Webhook API (sprint 41)
+
+import type { WebhookEndpoint } from './notifications';
+
+export interface WebhookAPI {
+  testSend: (endpoint: WebhookEndpoint) => Promise<void>;
+}
+
 // Notifications API
 
 /**
@@ -581,6 +589,9 @@ export interface ElectronAPI {
 
   // Plugins (sprint 38)
   plugins: PluginsAPI;
+
+  // Webhooks (sprint 41)
+  webhook: WebhookAPI;
 
   // Window zoom sync (for traffic-light-safe layout)
   getZoomFactor: () => Promise<number>;

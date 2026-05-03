@@ -150,6 +150,7 @@ pub fn run() {
             snapshots::snapshots_delete,
             snapshots::snapshots_open,
             plugins::plugins_discover,
+            notifications::webhook::webhook_test_send,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

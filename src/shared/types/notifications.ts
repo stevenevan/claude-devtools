@@ -344,6 +344,15 @@ export interface AppConfig {
   };
   /** Notification rules engine (sprint 40). */
   notificationRules?: NotificationRule[];
+  /** Webhook endpoints (sprint 41). */
+  webhookEndpoints?: WebhookEndpoint[];
+}
+
+export interface WebhookEndpoint {
+  id: string;
+  label: string;
+  url: string;
+  template: string;
 }
 
 // Notification rules DSL (sprint 40)

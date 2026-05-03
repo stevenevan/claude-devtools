@@ -21,11 +21,19 @@ pub fn validate_config_update(section: &str, data: &Value) -> Result<(String, Va
         "themes" => validate_themes(data).map(|v| (section.to_string(), v)),
         "plugins" => validate_plugins(data).map(|v| (section.to_string(), v)),
         "notificationRules" => validate_notification_rules(data).map(|v| (section.to_string(), v)),
+        "webhookEndpoints" => validate_webhook_endpoints(data).map(|v| (section.to_string(), v)),
         _ => Err(
-            "Section must be one of: notifications, general, display, httpServer, ssh, dashboard, shortcuts, themes, plugins, notificationRules"
+            "Section must be one of: notifications, general, display, httpServer, ssh, dashboard, shortcuts, themes, plugins, notificationRules, webhookEndpoints"
                 .to_string(),
         ),
     }
+}
+
+fn validate_webhook_endpoints(data: &Value) -> Result<Value, String> {
+    if !data.is_array() {
+        return Err("webhookEndpoints update must be an array".to_string());
+    }
+    Ok(data.clone())
 }
 
 fn validate_notification_rules(data: &Value) -> Result<Value, String> {

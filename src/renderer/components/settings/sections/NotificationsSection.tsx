@@ -20,6 +20,8 @@ import { SettingRow, SettingsSectionHeader } from '../components';
 import { NotificationTriggerSettings } from '../NotificationTriggerSettings';
 import { RulesEditor } from '../NotificationTriggerSettings/RulesEditor';
 
+import { WebhookSettings } from './WebhookSettings';
+
 import type { RepositoryDropdownItem, SafeConfig } from '../hooks/useSettingsConfig';
 import type { NotificationTrigger } from '@renderer/types/data';
 
@@ -84,6 +86,10 @@ export const NotificationsSection = ({
       {/* Notification Rules (sprint 40) */}
       <SettingsSectionHeader title="Notification Rules" />
       <RulesEditor />
+
+      {/* Webhook Endpoints (sprint 41) */}
+      <SettingsSectionHeader title="Webhook Endpoints" />
+      <WebhookSettings />
 
       {/* Notification Settings */}
       <SettingsSectionHeader title="Notification Settings" />

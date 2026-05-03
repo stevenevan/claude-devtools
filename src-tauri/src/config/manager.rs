@@ -151,6 +151,20 @@ impl ConfigState {
                     self.config.notification_rules = rules;
                 }
             }
+            "webhookEndpoints" => {
+                if let Some(arr) = validated.as_array() {
+                    let mut eps: Vec<crate::notifications::webhook::WebhookEndpoint> = Vec::new();
+                    for entry in arr {
+                        if let Ok(ep) = serde_json::from_value::<
+                            crate::notifications::webhook::WebhookEndpoint,
+                        >(entry.clone())
+                        {
+                            eps.push(ep);
+                        }
+                    }
+                    self.config.webhook_endpoints = eps;
+                }
+            }
             _ => {}
         }
 

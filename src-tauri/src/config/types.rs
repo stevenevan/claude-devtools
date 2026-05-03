@@ -29,6 +29,9 @@ pub struct AppConfig {
     /// Notification rules engine (sprint 40).
     #[serde(default)]
     pub notification_rules: Vec<crate::notifications::types::NotificationRule>,
+    /// Webhook endpoints (sprint 41).
+    #[serde(default)]
+    pub webhook_endpoints: Vec<crate::notifications::webhook::WebhookEndpoint>,
 }
 
 // Plugins config — persisted enabled-plugin ids (sprint 39).
@@ -350,6 +353,7 @@ impl Default for AppConfig {
             themes: ThemesConfig::default(),
             plugins: PluginsConfig::default(),
             notification_rules: Vec::new(),
+            webhook_endpoints: Vec::new(),
         }
     }
 }
@@ -514,6 +518,12 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
             None => defaults.notification_rules.clone(),
         };
 
+    let webhook_endpoints: Vec<crate::notifications::webhook::WebhookEndpoint> =
+        match obj.get("webhookEndpoints") {
+            Some(v) => serde_json::from_value(v.clone()).unwrap_or_default(),
+            None => defaults.webhook_endpoints.clone(),
+        };
+
     AppConfig {
         notifications,
         general,
@@ -527,6 +537,7 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         themes,
         plugins,
         notification_rules,
+        webhook_endpoints,
     }
 }
 
