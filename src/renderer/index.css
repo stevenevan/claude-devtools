@@ -55,6 +55,24 @@
 }
 
 :root {
+  /* ANSI palette for Bash output (sprint 42). Light theme mappings. */
+  --ansi-black: #1a1a1a;
+  --ansi-red: #c0392b;
+  --ansi-green: #1e8449;
+  --ansi-yellow: #b7950b;
+  --ansi-blue: #2471a3;
+  --ansi-magenta: #884ea0;
+  --ansi-cyan: #117a8b;
+  --ansi-white: #5d6d7e;
+  --ansi-bright-black: #4a4a4a;
+  --ansi-bright-red: #e74c3c;
+  --ansi-bright-green: #27ae60;
+  --ansi-bright-yellow: #f1c40f;
+  --ansi-bright-blue: #3498db;
+  --ansi-bright-magenta: #af7ac5;
+  --ansi-bright-cyan: #5dade2;
+  --ansi-bright-white: #ecf0f1;
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0.008 326);
   --card: oklch(1 0 0);
@@ -90,6 +108,24 @@
 }
 
 .dark {
+  /* ANSI palette overrides for dark theme (sprint 42). */
+  --ansi-black: #2c2c2c;
+  --ansi-red: #ff6b6b;
+  --ansi-green: #51cf66;
+  --ansi-yellow: #ffd43b;
+  --ansi-blue: #74c0fc;
+  --ansi-magenta: #b197fc;
+  --ansi-cyan: #66d9e8;
+  --ansi-white: #ced4da;
+  --ansi-bright-black: #495057;
+  --ansi-bright-red: #ff8787;
+  --ansi-bright-green: #69db7c;
+  --ansi-bright-yellow: #ffe066;
+  --ansi-bright-blue: #91a7ff;
+  --ansi-bright-magenta: #d0bfff;
+  --ansi-bright-cyan: #99e9f2;
+  --ansi-bright-white: #f8f9fa;
+
   --background: oklch(0.145 0.008 326);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.212 0.019 322.12);

@@ -12,6 +12,7 @@ import {
   CollapsibleTrigger,
 } from '@renderer/components/ui/collapsible';
 import { cn } from '@renderer/lib/utils';
+import { renderAnsi } from '@shared/utils/ansiParser';
 import { CheckCircle, ChevronDown, ChevronRight, Terminal, XCircle } from 'lucide-react';
 
 import type { LinkedToolItem } from '@renderer/types/groups';
@@ -100,7 +101,17 @@ export const BashToolViewer: React.FC<BashToolViewerProps> = ({ linkedTool }) =>
                 isLargeOutput && !showFullOutput ? 'max-h-none' : 'max-h-96'
               )}
             >
-              <pre className="p-3 break-words whitespace-pre-wrap">{previewText}</pre>
+              <pre className="p-3 break-words whitespace-pre-wrap">
+                {renderAnsi(previewText).map((seg, i) => (
+                  <span
+                    key={i}
+                    style={seg.color ? { color: `var(${seg.color})` } : undefined}
+                    className={seg.bold ? 'font-semibold' : undefined}
+                  >
+                    {seg.text}
+                  </span>
+                ))}
+              </pre>
               {isLargeOutput && !showFullOutput && (
                 <div className="border-border border-t px-3 py-2">
                   <button
