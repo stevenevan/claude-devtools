@@ -20,6 +20,33 @@ impl Default for RetryConfig {
     }
 }
 
+/// Sprint 45: reconnection policy used by the long-lived SSH session
+/// loop. Backoff doubles 1s → 2s → 4s → 8s → 16s, caps at 30s, retries
+/// indefinitely until the caller cancels.
+#[derive(Debug, Clone)]
+pub struct ReconnectPolicy {
+    pub base_delay: Duration,
+    pub max_delay: Duration,
+}
+
+impl Default for ReconnectPolicy {
+    fn default() -> Self {
+        Self {
+            base_delay: Duration::from_secs(1),
+            max_delay: Duration::from_secs(30),
+        }
+    }
+}
+
+impl ReconnectPolicy {
+    /// Delay for `attempt` (0-indexed). Caps at `max_delay`.
+    pub fn delay_for_attempt(&self, attempt: u32) -> Duration {
+        let shift = attempt.min(20); // 2^20 * 1s ≫ max_delay
+        let raw = self.base_delay.saturating_mul(1u32 << shift);
+        raw.min(self.max_delay)
+    }
+}
+
 /// Tracks the current retry state.
 #[derive(Debug, Clone, Default)]
 pub struct RetryState {
@@ -139,6 +166,19 @@ mod tests {
         assert!(!is_transient_error("Permission denied (publickey)"));
         assert!(!is_transient_error("Invalid key format"));
         assert!(!is_transient_error("No such host"));
+    }
+
+    #[test]
+    fn reconnect_policy_caps_at_max_delay() {
+        let policy = ReconnectPolicy::default();
+        assert_eq!(policy.delay_for_attempt(0), Duration::from_secs(1));
+        assert_eq!(policy.delay_for_attempt(1), Duration::from_secs(2));
+        assert_eq!(policy.delay_for_attempt(2), Duration::from_secs(4));
+        assert_eq!(policy.delay_for_attempt(3), Duration::from_secs(8));
+        assert_eq!(policy.delay_for_attempt(4), Duration::from_secs(16));
+        assert_eq!(policy.delay_for_attempt(5), Duration::from_secs(30));
+        assert_eq!(policy.delay_for_attempt(20), Duration::from_secs(30));
+        assert_eq!(policy.delay_for_attempt(100), Duration::from_secs(30));
     }
 
     #[test]

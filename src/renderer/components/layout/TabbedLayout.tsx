@@ -12,6 +12,7 @@ import { ActivityBar } from './ActivityBar';
 import { CustomTitleBar } from './CustomTitleBar';
 import { PaneContainer } from './PaneContainer';
 import { Sidebar } from './Sidebar';
+import { SshStatusIndicator } from './SshStatusIndicator';
 
 export const TabbedLayout = (): React.JSX.Element => {
   useKeyboardShortcuts();
@@ -41,6 +42,9 @@ export const TabbedLayout = (): React.JSX.Element => {
       </div>
       <UpdateDialog />
       <WorkspaceIndicator />
+      <div className="fixed top-2 right-4 z-30">
+        <SshStatusIndicator />
+      </div>
     </div>
   );
 };
