@@ -1,17 +1,17 @@
-mod analysis;
-mod analytics;
-mod cache;
-mod commands;
-mod config;
-mod discovery;
-mod notifications;
-mod nl_query;
-mod parsing;
-mod plugins;
-mod snapshots;
-mod ssh;
-mod types;
-mod watcher;
+pub mod analysis;
+pub mod analytics;
+pub mod cache;
+pub mod commands;
+pub mod config;
+pub mod discovery;
+pub mod notifications;
+pub mod nl_query;
+pub mod parsing;
+pub mod plugins;
+pub mod snapshots;
+pub mod ssh;
+pub mod types;
+pub mod watcher;
 
 use tauri_plugin_autostart::MacosLauncher;
 
