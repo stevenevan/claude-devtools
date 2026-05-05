@@ -6,6 +6,7 @@ import { useZoomFactor } from '@renderer/hooks/useZoomFactor';
 import { UpdateBanner } from '../common/UpdateBanner';
 import { UpdateDialog } from '../common/UpdateDialog';
 import { WorkspaceIndicator } from '../common/WorkspaceIndicator';
+import { OnboardingTour } from '../onboarding/OnboardingTour';
 import { CommandPalette } from '../search/CommandPalette';
 
 import { ActivityBar } from './ActivityBar';
@@ -42,6 +43,7 @@ export const TabbedLayout = (): React.JSX.Element => {
       </div>
       <UpdateDialog />
       <WorkspaceIndicator />
+      <OnboardingTour />
       <div className="fixed top-2 right-4 z-30">
         <SshStatusIndicator />
       </div>

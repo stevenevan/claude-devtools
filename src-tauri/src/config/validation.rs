@@ -22,11 +22,27 @@ pub fn validate_config_update(section: &str, data: &Value) -> Result<(String, Va
         "plugins" => validate_plugins(data).map(|v| (section.to_string(), v)),
         "notificationRules" => validate_notification_rules(data).map(|v| (section.to_string(), v)),
         "webhookEndpoints" => validate_webhook_endpoints(data).map(|v| (section.to_string(), v)),
+        "onboarding" => validate_onboarding(data).map(|v| (section.to_string(), v)),
         _ => Err(
-            "Section must be one of: notifications, general, display, httpServer, ssh, dashboard, shortcuts, themes, plugins, notificationRules, webhookEndpoints"
+            "Section must be one of: notifications, general, display, httpServer, ssh, dashboard, shortcuts, themes, plugins, notificationRules, webhookEndpoints, onboarding"
                 .to_string(),
         ),
     }
+}
+
+fn validate_onboarding(data: &Value) -> Result<Value, String> {
+    let obj = data.as_object().ok_or("onboarding update must be an object")?;
+    for key in obj.keys() {
+        if key != "completed" {
+            return Err(format!("Unknown onboarding field: {key}"));
+        }
+    }
+    if let Some(v) = obj.get("completed") {
+        if !v.is_boolean() {
+            return Err("completed must be a boolean".to_string());
+        }
+    }
+    Ok(data.clone())
 }
 
 fn validate_webhook_endpoints(data: &Value) -> Result<Value, String> {

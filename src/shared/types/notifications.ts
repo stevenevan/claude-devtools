@@ -346,6 +346,10 @@ export interface AppConfig {
   notificationRules?: NotificationRule[];
   /** Webhook endpoints (sprint 41). */
   webhookEndpoints?: WebhookEndpoint[];
+  /** Backend session-cache size (sprint 46). */
+  cacheMaxSessions?: number;
+  /** Whether the first-run onboarding tour has been dismissed (sprint 49). */
+  onboardingCompleted?: boolean;
 }
 
 export interface WebhookEndpoint {

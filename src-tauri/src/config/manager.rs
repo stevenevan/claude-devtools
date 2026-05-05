@@ -165,6 +165,12 @@ impl ConfigState {
                     self.config.webhook_endpoints = eps;
                 }
             }
+            "onboarding" => {
+                let obj = validated.as_object().unwrap();
+                if let Some(v) = obj.get("completed").and_then(|v| v.as_bool()) {
+                    self.config.onboarding_completed = v;
+                }
+            }
             _ => {}
         }
 

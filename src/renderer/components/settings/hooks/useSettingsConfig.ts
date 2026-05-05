@@ -121,12 +121,14 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
       // Optimistic update - immediately reflect the change in UI
       setOptimisticConfig((prev) => {
         if (!prev) return prev;
+        const current = prev[section];
+        const merged =
+          current !== null && typeof current === 'object' && !Array.isArray(current)
+            ? { ...(current as object), ...(data as object) }
+            : data;
         return {
           ...prev,
-          [section]: {
-            ...prev[section],
-            ...data,
-          },
+          [section]: merged,
         };
       });
 

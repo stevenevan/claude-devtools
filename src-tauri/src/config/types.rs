@@ -35,6 +35,9 @@ pub struct AppConfig {
     /// Backend observability — tunable session-cache size (sprint 46).
     #[serde(default = "default_cache_max_sessions")]
     pub cache_max_sessions: usize,
+    /// Whether onboarding tour has been completed/skipped (sprint 49).
+    #[serde(default)]
+    pub onboarding_completed: bool,
 }
 
 fn default_cache_max_sessions() -> usize {
@@ -362,6 +365,7 @@ impl Default for AppConfig {
             notification_rules: Vec::new(),
             webhook_endpoints: Vec::new(),
             cache_max_sessions: default_cache_max_sessions(),
+            onboarding_completed: false,
         }
     }
 }
@@ -538,6 +542,11 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         .map(|v| v.max(1) as usize)
         .unwrap_or(defaults.cache_max_sessions);
 
+    let onboarding_completed: bool = obj
+        .get("onboardingCompleted")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(defaults.onboarding_completed);
+
     AppConfig {
         notifications,
         general,
@@ -553,6 +562,7 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         notification_rules,
         webhook_endpoints,
         cache_max_sessions,
+        onboarding_completed,
     }
 }
 
