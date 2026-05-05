@@ -169,7 +169,11 @@ export const ToolFlameGraph = ({
   const heightPx = (layout.maxDepth + 1) * (ROW_HEIGHT + ROW_GAP) + ROW_GAP;
 
   return (
-    <div className={cn('border-border bg-background/50 rounded-xs border', className)}>
+    <div
+      role="region"
+      aria-label={`Tool execution flame graph: ${layout.bars.length} tools, total ${formatDurationMs(totalMs)}, max depth ${layout.maxDepth + 1}`}
+      className={cn('border-border bg-background/50 rounded-xs border', className)}
+    >
       <div className="border-border/50 flex items-center justify-between border-b px-3 py-1.5 text-[10px]">
         <span className="text-text-muted">
           {layout.bars.length} tools · {formatDurationMs(totalMs)} · depth {layout.maxDepth + 1}

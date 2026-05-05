@@ -158,13 +158,18 @@ export const SubagentTreeView = ({
   };
 
   return (
-    <div className={cn('border-border rounded-sm border', className)}>
+    <div
+      role="tree"
+      aria-label="Subagents"
+      className={cn('border-border rounded-sm border', className)}
+    >
       <div className="border-border flex items-center gap-2 border-b px-3 py-1.5">
         <Bot className="text-muted-foreground size-3" />
         <span className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
           Subagents ({processes.length})
         </span>
         <button
+          type="button"
           onClick={() => setHideEmpty((v) => !v)}
           className={cn(
             'ml-auto flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] transition-colors',
