@@ -29,6 +29,10 @@ pub struct SessionCache {
     ttl: Duration,
     /// Tracks incremental parsing state per session (keyed by cache key).
     incremental: HashMap<String, IncrementalState>,
+    /// Hit/miss/evict counters (sprint 46).
+    pub hits: u64,
+    pub misses: u64,
+    pub evicts: u64,
 }
 
 impl SessionCache {
@@ -37,20 +41,33 @@ impl SessionCache {
             inner: LruCache::new(NonZeroUsize::new(capacity).unwrap_or(NonZeroUsize::new(50).unwrap())),
             ttl,
             incremental: HashMap::new(),
+            hits: 0,
+            misses: 0,
+            evicts: 0,
         }
     }
 
     pub fn get(&mut self, key: &str) -> Option<&ParsedSession> {
-        let entry = self.inner.get(key)?;
+        let entry = match self.inner.get(key) {
+            Some(e) => e,
+            None => {
+                self.misses += 1;
+                return None;
+            }
+        };
         if entry.inserted_at.elapsed() > self.ttl {
             self.inner.pop(key);
+            self.evicts += 1;
+            self.misses += 1;
             return None;
         }
+        self.hits += 1;
         // Re-borrow after mutation check
         self.inner.get(key).map(|e| &e.value)
     }
 
     pub fn insert(&mut self, key: String, value: ParsedSession) {
+        let was_full = self.inner.len() == self.inner.cap().get();
         self.inner.put(
             key,
             CacheEntry {
@@ -58,6 +75,35 @@ impl SessionCache {
                 inserted_at: Instant::now(),
             },
         );
+        if was_full {
+            self.evicts += 1;
+        }
+    }
+
+    /// Sprint 46: hot-resize the cache. New capacity ≥ 1; entries beyond
+    /// the new bound are evicted from the LRU tail.
+    pub fn set_capacity(&mut self, capacity: usize) {
+        let cap = NonZeroUsize::new(capacity.max(1)).unwrap();
+        let prior = self.inner.len();
+        self.inner.resize(cap);
+        let new_len = self.inner.len();
+        if prior > new_len {
+            self.evicts += (prior - new_len) as u64;
+        }
+    }
+
+    pub fn capacity(&self) -> usize {
+        self.inner.cap().get()
+    }
+
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
+
+    pub fn clear(&mut self) {
+        self.evicts += self.inner.len() as u64;
+        self.inner.clear();
+        self.incremental.clear();
     }
 
     pub fn get_incremental(&self, key: &str) -> Option<&IncrementalState> {

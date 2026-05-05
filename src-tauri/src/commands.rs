@@ -829,9 +829,10 @@ pub fn get_waterfall_data(
     project_id: String,
     session_id: String,
     cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+    timing: tauri::State<'_, Arc<crate::timing::TimingBuffer>>,
 ) -> Result<Option<SessionDetail>, String> {
     // Reuse get_session_detail which already builds chunks
-    get_session_detail(project_id, session_id, cache).map(Some)
+    get_session_detail(project_id, session_id, cache, timing).map(Some)
 }
 
 /// Get subagent detail view.
@@ -1152,7 +1153,9 @@ pub fn get_session_detail(
     project_id: String,
     session_id: String,
     cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+    timing: tauri::State<'_, Arc<crate::timing::TimingBuffer>>,
 ) -> Result<SessionDetail, String> {
+    let _guard = crate::timing::TimingGuard::new(&timing, "get_session_detail");
     let claude_dir = watcher::resolve_claude_dir()
         .ok_or("Cannot resolve home directory")?;
     let projects_dir = path_decoder::get_projects_base_path(&claude_dir);

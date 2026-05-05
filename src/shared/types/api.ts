@@ -106,6 +106,26 @@ export interface PluginEntry {
   path: string;
 }
 
+// Backend observability (sprint 46)
+
+export interface BackendTimingSummary {
+  command: string;
+  count: number;
+  p50Ms: number;
+  p95Ms: number;
+  p99Ms: number;
+  maxMs: number;
+}
+
+export interface BackendCacheStats {
+  capacity: number;
+  size: number;
+  hits: number;
+  misses: number;
+  evicts: number;
+  hitRate: number;
+}
+
 // NL query (sprint 43)
 
 export interface ParsedNLQuery {
@@ -606,6 +626,12 @@ export interface ElectronAPI {
 
   // Natural language query (sprint 43; lexical only)
   parseNLQuery: (query: string) => Promise<ParsedNLQuery>;
+
+  // Backend observability (sprint 46)
+  getBackendTimings: (limit?: number) => Promise<BackendTimingSummary[]>;
+  getCacheStats: () => Promise<BackendCacheStats>;
+  setCacheCapacity: (capacity: number) => Promise<void>;
+  clearSessionCache: () => Promise<void>;
 
   // Window zoom sync (for traffic-light-safe layout)
   getZoomFactor: () => Promise<number>;

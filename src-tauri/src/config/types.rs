@@ -32,6 +32,13 @@ pub struct AppConfig {
     /// Webhook endpoints (sprint 41).
     #[serde(default)]
     pub webhook_endpoints: Vec<crate::notifications::webhook::WebhookEndpoint>,
+    /// Backend observability — tunable session-cache size (sprint 46).
+    #[serde(default = "default_cache_max_sessions")]
+    pub cache_max_sessions: usize,
+}
+
+fn default_cache_max_sessions() -> usize {
+    50
 }
 
 // Plugins config — persisted enabled-plugin ids (sprint 39).
@@ -354,6 +361,7 @@ impl Default for AppConfig {
             plugins: PluginsConfig::default(),
             notification_rules: Vec::new(),
             webhook_endpoints: Vec::new(),
+            cache_max_sessions: default_cache_max_sessions(),
         }
     }
 }
@@ -524,6 +532,12 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
             None => defaults.webhook_endpoints.clone(),
         };
 
+    let cache_max_sessions: usize = obj
+        .get("cacheMaxSessions")
+        .and_then(|v| v.as_u64())
+        .map(|v| v.max(1) as usize)
+        .unwrap_or(defaults.cache_max_sessions);
+
     AppConfig {
         notifications,
         general,
@@ -538,6 +552,7 @@ pub fn merge_config_with_defaults(loaded: &Value) -> AppConfig {
         plugins,
         notification_rules,
         webhook_endpoints,
+        cache_max_sessions,
     }
 }
 

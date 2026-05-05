@@ -81,6 +81,8 @@ import type {
   SshConfigHostEntry,
   SshConnectionStatus,
   SshLastConnection,
+  BackendCacheStats,
+  BackendTimingSummary,
   ParsedNLQuery,
   PluginEntry,
   PluginsAPI,
@@ -539,6 +541,16 @@ export class TauriAPIClient implements ElectronAPI {
 
   parseNLQuery = (query: string): Promise<ParsedNLQuery> =>
     invoke<ParsedNLQuery>('parse_nl_query', { query });
+
+  getBackendTimings = (limit?: number): Promise<BackendTimingSummary[]> =>
+    invoke<BackendTimingSummary[]>('get_backend_timings', { limit: limit ?? null });
+
+  getCacheStats = (): Promise<BackendCacheStats> => invoke<BackendCacheStats>('get_cache_stats');
+
+  setCacheCapacity = (capacity: number): Promise<void> =>
+    invoke<void>('set_cache_capacity', { capacity });
+
+  clearSessionCache = (): Promise<void> => invoke<void>('clear_session_cache');
 
   // ---------------------------------------------------------------------------
   // Zoom — Tauri doesn't have Electron's zoom sync mechanism

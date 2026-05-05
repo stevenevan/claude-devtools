@@ -10,6 +10,7 @@ pub mod parsing;
 pub mod plugins;
 pub mod snapshots;
 pub mod ssh;
+pub mod timing;
 pub mod types;
 pub mod watcher;
 
@@ -32,6 +33,7 @@ pub fn run() {
         .manage(std::sync::Arc::new(std::sync::Mutex::new(config::manager::ConfigState::new())))
         .manage(std::sync::Mutex::new(notifications::manager::NotificationState::new()))
         .manage(std::sync::Arc::new(tokio::sync::Mutex::new(ssh::connection_manager::SshState::default())))
+        .manage(std::sync::Arc::new(timing::TimingBuffer::default()))
         .setup(|app| {
             let handle = app.handle().clone();
 
@@ -153,6 +155,10 @@ pub fn run() {
             plugins::plugins_discover,
             notifications::webhook::webhook_test_send,
             nl_query::parse_nl_query,
+            timing::get_backend_timings,
+            timing::get_cache_stats,
+            timing::set_cache_capacity,
+            timing::clear_session_cache,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

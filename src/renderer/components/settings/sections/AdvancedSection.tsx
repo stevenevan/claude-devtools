@@ -13,6 +13,8 @@ import { CheckCircle, Code2, Download, Loader2, RefreshCw, Upload } from 'lucide
 
 import { SettingsSectionHeader } from '../components';
 
+import { BackendDebugPanel } from './BackendDebugPanel';
+
 interface AdvancedSectionProps {
   readonly saving: boolean;
   readonly onResetToDefaults: () => void;
@@ -114,6 +116,9 @@ export const AdvancedSection = ({
           </Button>
         )}
       </div>
+
+      <SettingsSectionHeader title="Debug" />
+      <BackendDebugPanel />
 
       <SettingsSectionHeader title="About" />
       <div className="flex items-start gap-4 py-3">
