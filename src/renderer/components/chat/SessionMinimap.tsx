@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';
+import { scrollController } from '@renderer/services/scrollController';
 import { useStore } from '@renderer/store';
 import {
   clampPan,
@@ -18,7 +19,6 @@ import {
   visibleRange,
   zoomAround,
 } from '@renderer/utils/minimapLayout';
-import { scrollController } from '@renderer/utils/scrollController';
 import { useShallow } from 'zustand/react/shallow';
 
 import { getAnnotationColorHex } from './annotationColors';

@@ -11,8 +11,6 @@
  * - `release(writer)` drops the claim early if the writer finishes sooner.
  * - `isOwnedBy(writer)` is what observers check before re-acting to a scroll.
  * - `owner()` lets debugging panels inspect state.
- *
- * Kept intentionally tiny and dependency-free so any module can import it.
  */
 
 export type ScrollWriter =
@@ -21,6 +19,7 @@ export type ScrollWriter =
   | 'navigation'
   | 'virtualizer'
   | 'replay-cursor'
+  | 'scrubber'
   | (string & {});
 
 const DEFAULT_HOLD_MS = 200;
@@ -89,7 +88,6 @@ export const scrollController = {
     return scrollController.owner() === writer;
   },
 
-  /** Returns true when some *other* writer currently owns the lock. */
   isBusyFor(observer: ScrollWriter): boolean {
     const current = scrollController.owner();
     return current !== null && current !== observer;
@@ -102,7 +100,6 @@ export const scrollController = {
     };
   },
 
-  /** Test-only reset. */
   _resetForTests(): void {
     lock = null;
     clearExpireTimer();

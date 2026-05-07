@@ -7,10 +7,7 @@
  * import contract atomically. Do not generalize this pattern to other utils.
  */
 
-import {
-  MAX_MENTIONED_FILE_TOKENS,
-} from '../../types/contextInjection';
-
+import { MAX_MENTIONED_FILE_TOKENS } from '../../types/contextInjection';
 import {
   createGlobalInjections,
   detectClaudeMdFromFilePath,
@@ -45,12 +42,7 @@ import type {
   TokensByCategory,
 } from '../../types/contextInjection';
 import type { ClaudeMdFileInfo } from '../../types/data';
-import type {
-  AIGroup,
-  AIGroupDisplayItem,
-  LinkedToolItem,
-  UserGroup,
-} from '../../types/groups';
+import type { AIGroup, AIGroupDisplayItem, LinkedToolItem, UserGroup } from '../../types/groups';
 
 export { processSessionContextWithPhases } from './processWithPhases';
 export {
@@ -393,4 +385,3 @@ export function computeContextStats(params: ComputeContextStatsParams): ContextS
     newCounts,
   };
 }
-

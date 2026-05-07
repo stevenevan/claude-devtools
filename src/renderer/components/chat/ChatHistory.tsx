@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { isNearBottom, useAutoScrollBottom } from '@renderer/hooks/useAutoScrollBottom';
+import { useChatHistoryScroll } from '@renderer/hooks/useChatHistoryScroll';
 import { useTabNavigationController } from '@renderer/hooks/useTabNavigationController';
 import { useTabUI } from '@renderer/hooks/useTabUI';
 import { useTurnNavigationListener } from '@renderer/hooks/useTurnNavigationListener';
@@ -14,26 +14,19 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { LiveMetricsBar } from '../common/LiveMetricsBar';
 
+import { ChatHistoryEmptyState } from './ChatHistoryEmptyState';
+import { ChatHistoryLoadingState } from './ChatHistoryLoadingState';
+import { ChatHistoryVirtualizer } from './ChatHistoryVirtualizer';
 import { ContextHeatmap } from './ContextHeatmap';
 import { ReplayControls } from './ReplayControls';
 import { SessionContextPanel } from './SessionContextPanel/index';
 import { SessionMinimap } from './SessionMinimap';
 import { TodoPanel } from './TodoPanel';
 
-/** Pixels from bottom considered "near bottom" for scroll-button visibility and auto-scroll. */
-const SCROLL_THRESHOLD = 300;
-/** Must match the `w-80` (320px) context panel width used in the layout below. */
-const CONTEXT_PANEL_WIDTH_PX = 320;
-
-import { ChatHistoryEmptyState } from './ChatHistoryEmptyState';
-import { ChatHistoryItem } from './ChatHistoryItem';
-import { ChatHistoryLoadingState } from './ChatHistoryLoadingState';
-
 import type { ContextInjection } from '@renderer/types/contextInjection';
 
-/**
- * Waits for two requestAnimationFrame cycles, allowing the virtualizer to render.
- */
+const CONTEXT_PANEL_WIDTH_PX = 320;
+
 function waitForDoubleRaf(): Promise<void> {
   return new Promise((resolve) =>
     requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
@@ -41,7 +34,6 @@ function waitForDoubleRaf(): Promise<void> {
 }
 
 interface ChatHistoryProps {
-  /** Tab ID for per-tab state isolation (scroll position, deep links) */
   tabId?: string;
 }
 
@@ -49,7 +41,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
   const VIRTUALIZATION_THRESHOLD = 120;
   const ESTIMATED_CHAT_ITEM_HEIGHT = 260;
 
-  // Per-tab UI state (context panel, scroll position, expansion) from useTabUI
   const {
     isContextPanelVisible,
     setContextPanelVisible,
@@ -63,7 +54,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
 
   const [isTodoPanelVisible, setIsTodoPanelVisible] = useState(false);
 
-  // Global store subscriptions (shared data)
   const {
     searchQuery,
     currentSearchIndex,
@@ -98,7 +88,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     }))
   );
 
-  // Per-tab session data (each tab renders its own session independently)
   const tabData = useStore(
     useShallow((s) => {
       const td = tabId ? s.tabSessionData[tabId] : null;
@@ -121,28 +110,21 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     isStreaming,
   } = tabData;
 
-  // State for Context button hover (local state OK - doesn't need per-tab isolation)
   const [isContextButtonHovered, setIsContextButtonHovered] = useState(false);
 
-  // Determine if this tab instance is currently active
-  // Use tabId prop if provided, otherwise fall back to activeTabId (for backwards compatibility)
   const effectiveTabId = tabId ?? activeTabId;
   const isThisTabActive = effectiveTabId === activeTabId;
 
-  // Get THIS tab's pending navigation request
   const thisTab = effectiveTabId ? openTabs.find((t) => t.id === effectiveTabId) : null;
   const pendingNavigation = thisTab?.pendingNavigation;
 
-  // Compute all accumulated context injections (phase-aware)
   const { allContextInjections, lastAiGroupTotalTokens } = useMemo(() => {
     if (!sessionContextStats || !conversation?.items.length) {
       return { allContextInjections: [] as ContextInjection[], lastAiGroupTotalTokens: undefined };
     }
 
-    // Determine which phase to show
     const effectivePhase = selectedContextPhase;
 
-    // If a specific phase is selected, find the last AI group in that phase
     let targetAiGroupId: string | undefined;
     if (effectivePhase !== null && sessionPhaseInfo) {
       const phase = sessionPhaseInfo.phases.find((p) => p.phaseNumber === effectivePhase);
@@ -151,7 +133,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
       }
     }
 
-    // Default: use the last AI group overall
     if (!targetAiGroupId) {
       const lastAiItem = [...conversation.items].reverse().find((item) => item.type === 'ai');
       if (lastAiItem?.type !== 'ai') {
@@ -166,7 +147,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     const stats = sessionContextStats.get(targetAiGroupId);
     const injections = stats?.accumulatedInjections ?? [];
 
-    // Get total tokens from the target AI group
     let totalTokens: number | undefined;
     const targetItem = conversation.items.find(
       (item) => item.type === 'ai' && item.group.id === targetAiGroupId
@@ -190,22 +170,16 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     return { allContextInjections: injections, lastAiGroupTotalTokens: totalTokens };
   }, [sessionContextStats, conversation, selectedContextPhase, sessionPhaseInfo]);
 
-  // Task list data
   const todoData = sessionDetail?.session?.todoData;
   const hasTodoData = todoData != null && Array.isArray(todoData) && todoData.length > 0;
   const todoPendingCount = hasTodoData ? countPendingTodos(todoData) : 0;
 
-  // State for navigation highlight (blue, used for Turn navigation from CLAUDE.md panel)
   const [isNavigationHighlight, setIsNavigationHighlight] = useState(false);
   const navigationHighlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Refs map for AI groups, chat items, and individual tool items (for scrolling)
   const aiGroupRefs = useRef<Map<string, HTMLElement>>(new Map());
   const chatItemRefs = useRef<Map<string, HTMLElement>>(new Map());
   const toolItemRefs = useRef<Map<string, HTMLElement>>(new Map());
-
-  // Shared scroll container ref - used by both auto-scroll and navigation coordinator
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const isSearchActive = searchQuery.trim().length > 0;
   const shouldVirtualize = (conversation?.items.length ?? 0) >= VIRTUALIZATION_THRESHOLD;
@@ -229,6 +203,8 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     return map;
   }, [conversation]);
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   const rowVirtualizer = useVirtualizer({
     count: shouldVirtualize ? (conversation?.items.length ?? 0) : 0,
     getScrollElement: () => scrollContainerRef.current,
@@ -247,18 +223,13 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
         return;
       }
       rowVirtualizer.scrollToIndex(index, { align: 'center' });
-      // Wait 2 RAF frames so the virtualizer has time to render the target row
       await waitForDoubleRaf();
     },
     [groupIndexMap, rowVirtualizer, shouldVirtualize]
   );
 
-  // Sticky context button height (py-3 = 12px padding * 2 + button height ~28px + pt-3 = 12px)
-  // Total: approximately 52px, round up to 60px for safety
   const STICKY_BUTTON_OFFSET = allContextInjections.length > 0 || hasTodoData ? 60 : 0;
 
-  // Unified navigation controller - replaces useNavigationCoordinator + useSearchContextNavigation
-  // Must be created before useAutoScrollBottom so we can pass shouldDisableAutoScroll
   const {
     highlightedGroupId,
     setHighlightedGroupId,
@@ -285,14 +256,10 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     selectSearchMatch,
   });
 
-  // Local tool highlight for context panel navigation (separate from controller)
   const [contextNavToolUseId, setContextNavToolUseId] = useState<string | null>(null);
   const effectiveHighlightToolUseId = controllerToolUseId ?? contextNavToolUseId ?? undefined;
-  // Use blue for context panel tool navigation, otherwise use controller's color
   const effectiveHighlightColor = contextNavToolUseId ? ('blue' as const) : highlightColor;
 
-  // Keep search match indices aligned with this tab's rendered conversation.
-  // This avoids stale/global match lists after tab switches or in-place refreshes.
   useEffect(() => {
     if (!isThisTabActive || !searchQuery.trim()) {
       return;
@@ -300,10 +267,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     setSearchQuery(searchQuery, conversation);
   }, [isThisTabActive, searchQuery, conversation, setSearchQuery]);
 
-  // Canonicalize matches from rendered mark elements (DOM order).
-  // This guarantees that nth navigation follows the exact nth visible highlight.
-  // Skip when virtualizing: only a subset of items are rendered, so DOM-based sync
-  // would produce an incomplete match list. The store-level matches are already correct.
   useEffect(() => {
     if (!isThisTabActive || !isSearchActive || !conversation || shouldVirtualize) {
       emptyRenderedSyncCountRef.current = 0;
@@ -330,7 +293,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
         renderedMatches.push({ itemId, matchIndexInItem: matchIndex });
       }
 
-      // Prevent transient "0 marks" snapshots during mount from wiping results.
       if (renderedMatches.length === 0 && searchMatches.length > 0) {
         emptyRenderedSyncCountRef.current += 1;
         if (emptyRenderedSyncCountRef.current < 3) {
@@ -343,7 +305,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
       syncSearchMatchesWithRendered(renderedMatches);
     };
 
-    // Wait for highlight marks to be mounted and stabilized.
     frameA = requestAnimationFrame(() => {
       frameB = requestAnimationFrame(run);
     });
@@ -363,9 +324,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     syncSearchMatchesWithRendered,
   ]);
 
-  // Track shouldDisableAutoScroll transitions for scroll restore coordination
-  const prevShouldDisableRef = useRef(shouldDisableAutoScroll);
-
   const { registerAIGroupRef } = useVisibleAIGroup({
     onVisibleChange: (aiGroupId) => {
       if (effectiveTabId) {
@@ -376,41 +334,22 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     rootRef: scrollContainerRef,
   });
 
-  // Scroll-to-bottom button visibility
-  const [showScrollButton, setShowScrollButton] = useState(false);
-
-  const checkScrollButton = useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    const { scrollTop, scrollHeight, clientHeight } = container;
-    setShowScrollButton(!isNearBottom(scrollTop, scrollHeight, clientHeight, SCROLL_THRESHOLD));
-  }, []);
-
-  // Auto-follow when conversation updates, but only if the user was already near bottom.
-  // This preserves manual reading position when the user scrolls up.
-  // Disabled during navigation to prevent conflicts with deep-link/search scrolling.
-  const { scrollToBottom } = useAutoScrollBottom([conversation], {
-    threshold: SCROLL_THRESHOLD,
-    smoothDuration: 300,
-    autoBehavior: 'auto',
-    disabled: shouldDisableAutoScroll,
-    externalRef: scrollContainerRef,
-    resetKey: effectiveTabId,
-  });
-
-  // Re-check button visibility whenever conversation updates
-  useEffect(() => {
-    checkScrollButton();
-  }, [conversation, checkScrollButton]);
-
-  // Listen for session-refresh-scroll-bottom events (from Ctrl+R / refresh button)
-  useEffect(() => {
-    const handler = (): void => {
-      scrollToBottom('smooth');
-    };
-    window.addEventListener('session-refresh-scroll-bottom', handler);
-    return () => window.removeEventListener('session-refresh-scroll-bottom', handler);
-  }, [scrollToBottom]);
+  const { showScrollButton, checkScrollButton, scrollToBottom, setShowScrollButton } =
+    useChatHistoryScroll({
+      scrollContainerRef,
+      conversation,
+      conversationLoading,
+      isThisTabActive,
+      effectiveTabId,
+      savedScrollTop,
+      saveScrollPosition,
+      shouldDisableAutoScroll,
+      currentSearchIndex,
+      searchMatches,
+      ensureGroupVisible,
+      aiGroupRefs,
+      chatItemRefs,
+    });
 
   useTurnNavigationListener({
     isThisTabActive,
@@ -424,7 +363,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     setIsNavigationHighlight,
   });
 
-  // Callback to register AI group refs (combines with visibility hook)
   const registerAIGroupRefCombined = useCallback(
     (groupId: string) => {
       const visibilityRef = registerAIGroupRef(groupId);
@@ -437,7 +375,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     [registerAIGroupRef]
   );
 
-  // Handler to navigate to a specific turn (AI group) from CLAUDE.md panel
   const handleNavigateToTurn = useCallback(
     (turnIndex: number) => {
       if (!conversation) return;
@@ -469,7 +406,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     [conversation, ensureGroupVisible, setHighlightedGroupId]
   );
 
-  // Handler to navigate to a user message group (preceding the AI group at turnIndex)
   const handleNavigateToUserGroup = useCallback(
     (turnIndex: number) => {
       if (!conversation) return;
@@ -478,7 +414,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
       );
       if (aiItemIndex < 0) return;
 
-      // Find the user item preceding this AI group
       const prevItem = aiItemIndex > 0 ? conversation.items[aiItemIndex - 1] : null;
       if (prevItem?.type !== 'user') return;
 
@@ -505,7 +440,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     [conversation, ensureGroupVisible, setHighlightedGroupId]
   );
 
-  // Handler to navigate to a specific tool within a turn from context panel
   const handleNavigateToTool = useCallback(
     (turnIndex: number, toolUseId: string) => {
       if (!conversation) return;
@@ -518,12 +452,10 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
         const groupId = targetItem.group.id;
         await ensureGroupVisible(groupId);
 
-        // Set group + tool highlight immediately
         setHighlightedGroupId(groupId);
         setIsNavigationHighlight(true);
         setContextNavToolUseId(toolUseId);
 
-        // Wait for tool element to appear in DOM (up to 500ms)
         let toolElement: HTMLElement | undefined;
         const startTime = Date.now();
         while (Date.now() - startTime < 500) {
@@ -532,13 +464,11 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
           await new Promise((resolve) => setTimeout(resolve, 50));
         }
 
-        // Scroll to tool element, or fall back to AI group
         const scrollTarget = toolElement ?? aiGroupRefs.current.get(groupId);
         if (scrollTarget) {
           scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // Clear highlight after 2s
         if (navigationHighlightTimerRef.current) {
           clearTimeout(navigationHighlightTimerRef.current);
         }
@@ -554,206 +484,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     [conversation, ensureGroupVisible, setHighlightedGroupId]
   );
 
-  // Scroll to current search result when it changes
-  useEffect(() => {
-    const currentMatch = currentSearchIndex >= 0 ? searchMatches[currentSearchIndex] : null;
-    if (!currentMatch) return;
-
-    let frameId = 0;
-    let attempt = 0;
-    let cancelled = false;
-
-    /**
-     * Promote a mark element to "current" (demote any previous) and scroll to it.
-     */
-    const promoteAndScroll = (el: HTMLElement): void => {
-      const container = scrollContainerRef.current;
-      if (container) {
-        container
-          .querySelectorAll<HTMLElement>('mark[data-search-result="current"]')
-          .forEach((prev) => {
-            /* eslint-disable no-param-reassign -- Directly mutating DOM element style/attributes is necessary for search result highlighting */
-            prev.setAttribute('data-search-result', 'match');
-            prev.style.backgroundColor = 'rgb(133 77 14 / 0.5)';
-            prev.style.color = 'rgb(254 240 138)';
-            prev.style.boxShadow = '';
-            /* eslint-enable no-param-reassign -- Re-enable after DOM mutations */
-          });
-      }
-      /* eslint-disable no-param-reassign -- Directly mutating DOM element style/attributes is necessary for current search result highlighting */
-      el.setAttribute('data-search-result', 'current');
-      el.style.backgroundColor = 'rgb(202 138 4 / 0.7)';
-      el.style.color = 'rgb(254 249 195)';
-      el.style.boxShadow = '0 0 0 1px rgb(234 179 8)';
-      /* eslint-enable no-param-reassign -- Re-enable after DOM mutations */
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
-
-    /**
-     * DOM text-search fallback: walk text nodes inside the group element to find the
-     * Nth occurrence of the search query, then scroll the enclosing element into view.
-     * This works even when React hasn't created <mark> elements (ReactMarkdown
-     * component memoization, render timing, etc.).
-     */
-    const fallbackDOMSearch = (): boolean => {
-      const groupEl =
-        chatItemRefs.current.get(currentMatch.itemId) ??
-        aiGroupRefs.current.get(currentMatch.itemId);
-      if (!groupEl) return false;
-
-      const query = useStore.getState().searchQuery;
-      if (!query) return false;
-      const lowerQuery = query.toLowerCase();
-      let count = 0;
-
-      // Scope to [data-search-content] elements to exclude UI chrome
-      // (timestamps, labels, buttons) from text-node walking
-      const searchRoots = groupEl.querySelectorAll<HTMLElement>('[data-search-content]');
-      const roots = searchRoots.length > 0 ? Array.from(searchRoots) : [groupEl];
-
-      for (const root of roots) {
-        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-        let node: Node | null;
-        while ((node = walker.nextNode())) {
-          const text = node.textContent ?? '';
-          const lowerText = text.toLowerCase();
-          let pos = 0;
-          while ((pos = lowerText.indexOf(lowerQuery, pos)) !== -1) {
-            if (count === currentMatch.matchIndexInItem) {
-              const parent = node.parentElement;
-              if (parent) {
-                parent.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return true;
-              }
-            }
-            count++;
-            pos += lowerQuery.length;
-          }
-        }
-      }
-      return false;
-    };
-
-    const tryScrollToResult = (): void => {
-      const container = scrollContainerRef.current;
-      if (!container) return;
-
-      // Primary: find mark by item ID + match index
-      const el = container.querySelector<HTMLElement>(
-        `mark[data-search-item-id="${CSS.escape(currentMatch.itemId)}"][data-search-match-index="${currentMatch.matchIndexInItem}"]`
-      );
-      if (el) {
-        promoteAndScroll(el);
-        return;
-      }
-
-      // Secondary: align by global order (nth rendered mark) as canonical fallback.
-      if (attempt >= 3) {
-        const orderedMarks = Array.from(
-          container.querySelectorAll<HTMLElement>(
-            'mark[data-search-item-id][data-search-match-index]'
-          )
-        );
-        const byGlobal = orderedMarks[currentSearchIndex];
-        if (byGlobal) {
-          promoteAndScroll(byGlobal);
-          return;
-        }
-      }
-
-      // After a few frames, try fallback DOM text search
-      if (attempt >= 6) {
-        if (fallbackDOMSearch()) return;
-      }
-
-      // Keep retrying (marks may appear after async render)
-      if (attempt < 60) {
-        attempt++;
-        frameId = requestAnimationFrame(tryScrollToResult);
-      }
-    };
-
-    const run = async (): Promise<void> => {
-      await ensureGroupVisible(currentMatch.itemId);
-      if (cancelled) return;
-      frameId = requestAnimationFrame(tryScrollToResult);
-    };
-
-    void run();
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(frameId);
-    };
-  }, [currentSearchIndex, searchMatches, scrollContainerRef, ensureGroupVisible]);
-
-  // Track previous active state to detect when THIS tab becomes active/inactive
-  const wasActiveRef = useRef(isThisTabActive);
-
-  // Save scroll position when THIS tab becomes inactive
-  useEffect(() => {
-    const wasActive = wasActiveRef.current;
-    wasActiveRef.current = isThisTabActive;
-
-    // If this tab just became inactive, save its scroll position
-    if (wasActive && !isThisTabActive && scrollContainerRef.current) {
-      saveScrollPosition(scrollContainerRef.current.scrollTop);
-    }
-  }, [isThisTabActive, saveScrollPosition, scrollContainerRef]);
-
-  // Also save on unmount (e.g., when tab is closed)
-  useEffect(() => {
-    const scrollContainer = scrollContainerRef.current;
-    return () => {
-      if (scrollContainer) {
-        saveScrollPosition(scrollContainer.scrollTop);
-      }
-    };
-  }, [saveScrollPosition, scrollContainerRef]);
-
-  // Restore scroll position when THIS tab becomes active with saved position
-  // Uses shouldDisableAutoScroll (covers full navigation lifecycle) instead of pendingNavigation
-  // After navigation completes (transition true→false), save current position to prevent stale restore
-  useEffect(() => {
-    const wasDisabled = prevShouldDisableRef.current;
-    prevShouldDisableRef.current = shouldDisableAutoScroll;
-
-    // Navigation just completed — save current scroll position, skip restore
-    if (wasDisabled && !shouldDisableAutoScroll && scrollContainerRef.current) {
-      saveScrollPosition(scrollContainerRef.current.scrollTop);
-      return;
-    }
-
-    if (
-      isThisTabActive &&
-      savedScrollTop !== undefined &&
-      scrollContainerRef.current &&
-      !conversationLoading &&
-      !shouldDisableAutoScroll
-    ) {
-      let frameA = 0;
-      let frameB = 0;
-      // Use double RAF so layout + virtual rows settle before restore.
-      frameA = requestAnimationFrame(() => {
-        frameB = requestAnimationFrame(() => {
-          if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTop = savedScrollTop;
-          }
-        });
-      });
-      return () => {
-        cancelAnimationFrame(frameA);
-        cancelAnimationFrame(frameB);
-      };
-    }
-  }, [
-    isThisTabActive,
-    savedScrollTop,
-    conversationLoading,
-    scrollContainerRef,
-    shouldDisableAutoScroll,
-    saveScrollPosition,
-  ]);
-
   useEffect(() => {
     return () => {
       if (navigationHighlightTimerRef.current) {
@@ -762,7 +492,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     };
   }, []);
 
-  // Register ref for user/system chat items
   const registerChatItemRef = useCallback((groupId: string) => {
     return (el: HTMLElement | null) => {
       if (el) chatItemRefs.current.set(groupId, el);
@@ -770,13 +499,11 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     };
   }, []);
 
-  // Register ref for individual tool items (for precise scroll targeting)
   const registerToolRef = useCallback((toolId: string, el: HTMLElement | null) => {
     if (el) toolItemRefs.current.set(toolId, el);
     else toolItemRefs.current.delete(toolId);
   }, []);
 
-  // Minimap: jump to a conversation item by index
   const handleMinimapJump = useCallback(
     (index: number) => {
       if (!conversation) return;
@@ -794,10 +521,8 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     [conversation, shouldVirtualize, rowVirtualizer]
   );
 
-  // Loading state
   if (conversationLoading) return <ChatHistoryLoadingState />;
 
-  // Empty state
   if (!conversation || conversation.items.length === 0) return <ChatHistoryEmptyState />;
 
   return (
@@ -813,13 +538,11 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
       />
       <ReplayControls totalChunks={conversation.items.length} />
       <div className="relative flex flex-1 overflow-hidden">
-        {/* Chat content */}
         <div
           ref={scrollContainerRef}
           className="bg-background flex-1 overflow-y-auto"
           onScroll={checkScrollButton}
         >
-          {/* Sticky toolbar buttons (Context + Tasks + Heatmap toggle) */}
           {(allContextInjections.length > 0 || hasTodoData) && (
             <div className="pointer-events-none sticky top-0 z-10 flex justify-end gap-1.5 px-4 pt-3 pb-0">
               {sessionContextStats && sessionContextStats.size > 0 && (
@@ -883,7 +606,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
               allContextInjections.length > 0 && '-mt-8'
             )}
           >
-            {/* Session metadata header (custom title / agent name) */}
             {(sessionDetail?.session?.customTitle || sessionDetail?.session?.agentName) && (
               <div className="mb-6">
                 {sessionDetail.session.customTitle && (
@@ -900,76 +622,25 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
               </div>
             )}
             <div className="space-y-6">
-              {shouldVirtualize ? (
-                <div
-                  style={{
-                    height: `${rowVirtualizer.getTotalSize()}px`,
-                    width: '100%',
-                    position: 'relative',
-                  }}
-                >
-                  {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                    const item = conversation.items[virtualRow.index];
-                    if (!item) return null;
-                    const fadedByReplay =
-                      replayMode !== 'off' && virtualRow.index > replayCursorIndex;
-                    return (
-                      <div
-                        key={virtualRow.key}
-                        ref={rowVirtualizer.measureElement}
-                        data-index={virtualRow.index}
-                        className={cn('pb-6', fadedByReplay && 'pointer-events-none opacity-25')}
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          transform: `translateY(${virtualRow.start}px)`,
-                        }}
-                      >
-                        <ChatHistoryItem
-                          item={item}
-                          highlightedGroupId={highlightedGroupId}
-                          highlightToolUseId={effectiveHighlightToolUseId}
-                          isSearchHighlight={isSearchHighlight}
-                          isNavigationHighlight={isNavigationHighlight}
-                          highlightColor={effectiveHighlightColor}
-                          registerChatItemRef={registerChatItemRef}
-                          registerAIGroupRef={registerAIGroupRefCombined}
-                          registerToolRef={registerToolRef}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                conversation.items.map((item, index) => {
-                  const fadedByReplay = replayMode !== 'off' && index > replayCursorIndex;
-                  return (
-                    <div
-                      key={item.group.id}
-                      className={cn(fadedByReplay && 'pointer-events-none opacity-25')}
-                    >
-                      <ChatHistoryItem
-                        item={item}
-                        highlightedGroupId={highlightedGroupId}
-                        highlightToolUseId={effectiveHighlightToolUseId}
-                        isSearchHighlight={isSearchHighlight}
-                        isNavigationHighlight={isNavigationHighlight}
-                        highlightColor={effectiveHighlightColor}
-                        registerChatItemRef={registerChatItemRef}
-                        registerAIGroupRef={registerAIGroupRefCombined}
-                        registerToolRef={registerToolRef}
-                      />
-                    </div>
-                  );
-                })
-              )}
+              <ChatHistoryVirtualizer
+                items={conversation.items}
+                shouldVirtualize={shouldVirtualize}
+                rowVirtualizer={rowVirtualizer}
+                replayMode={replayMode}
+                replayCursorIndex={replayCursorIndex}
+                highlightedGroupId={highlightedGroupId}
+                highlightToolUseId={effectiveHighlightToolUseId}
+                isSearchHighlight={isSearchHighlight}
+                isNavigationHighlight={isNavigationHighlight}
+                highlightColor={effectiveHighlightColor}
+                registerChatItemRef={registerChatItemRef}
+                registerAIGroupRef={registerAIGroupRefCombined}
+                registerToolRef={registerToolRef}
+              />
             </div>
           </div>
         </div>
 
-        {/* Scroll to bottom button */}
         {showScrollButton && (
           <button
             onClick={() => {
@@ -990,7 +661,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
           </button>
         )}
 
-        {/* Session minimap */}
         {conversation.items.length >= 5 && (
           <SessionMinimap
             items={conversation.items}
@@ -1000,14 +670,12 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
           />
         )}
 
-        {/* Task list panel sidebar */}
         {isTodoPanelVisible && hasTodoData && (
           <div className="border-border w-72 shrink-0 border-l">
             <TodoPanel todoData={todoData} onClose={() => setIsTodoPanelVisible(false)} />
           </div>
         )}
 
-        {/* Context panel sidebar */}
         {isContextPanelVisible && allContextInjections.length > 0 && (
           <div className="w-80 shrink-0">
             <SessionContextPanel
