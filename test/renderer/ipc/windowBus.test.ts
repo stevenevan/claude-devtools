@@ -68,6 +68,27 @@ describe('windowBus', () => {
     expect(received).toEqual([{ sessionId: 's5' }]);
   });
 
+  it('buffers messages until markReady() is called (handshake gate)', () => {
+    const transport = createMemoryTransport();
+    const busA = createWindowBus(transport.transport, 'win-A');
+    const busB = createWindowBus(transport.transport, 'win-B', { requireHandshake: true });
+    const received: BusMessage[] = [];
+    busB.subscribe('seed', (msg) => received.push(msg));
+
+    busA.emit('seed', { v: 1 });
+    vi.advanceTimersByTime(60);
+    expect(received).toHaveLength(0);
+    expect(busB.isReady()).toBe(false);
+
+    busB.markReady();
+    expect(received).toHaveLength(1);
+    expect(received[0].seq).toBe(1);
+
+    busA.emit('seed', { v: 2 });
+    vi.advanceTimersByTime(60);
+    expect(received).toHaveLength(2);
+  });
+
   it('per-topic Lamport seq increments independently', () => {
     const transport = createMemoryTransport();
     const busA = createWindowBus(transport.transport, 'win-A');

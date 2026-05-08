@@ -33,6 +33,10 @@ export interface WindowBus {
   windowId(): string;
   pendingTimers(): number;
   flushPending(): void;
+  /** Mark this window as ready to receive cross-window state; drains the seed buffer. */
+  markReady(): void;
+  /** True after markReady() has been called. */
+  isReady(): boolean;
   dispose(): void;
 }
 
@@ -41,17 +45,28 @@ interface PendingEmit {
   timer: ReturnType<typeof setTimeout> | null;
 }
 
-export function createWindowBus(transport: BusTransport, windowId: string): WindowBus {
+export interface WindowBusOptions {
+  /**
+   * If true, incoming cross-window messages are buffered until `markReady()`
+   * is called. The seed buffer drains in receive order on ready.
+   * Defaults to false (immediate delivery).
+   */
+  requireHandshake?: boolean;
+}
+
+export function createWindowBus(
+  transport: BusTransport,
+  windowId: string,
+  options: WindowBusOptions = {},
+): WindowBus {
   const seqByTopic = new Map<string, number>();
   const pendingByTopic = new Map<string, PendingEmit>();
   const lastDeliveredSeq = new Map<string, number>();
   const subscribers = new Map<string, Set<(message: BusMessage) => void>>();
+  const seedBuffer: BusMessage[] = [];
+  let ready = !options.requireHandshake;
 
-  const dispatch = (message: BusMessage): void => {
-    if (message.originWindowId === windowId) return; // self-origin filter
-    const last = lastDeliveredSeq.get(message.topic) ?? -1;
-    if (message.seq <= last) return; // out-of-order or duplicate
-    lastDeliveredSeq.set(message.topic, message.seq);
+  const deliver = (message: BusMessage): void => {
     const subs = subscribers.get(message.topic);
     if (!subs) return;
     for (const sub of subs) {
@@ -61,6 +76,18 @@ export function createWindowBus(transport: BusTransport, windowId: string): Wind
         // Listener errors must not break the bus.
       }
     }
+  };
+
+  const dispatch = (message: BusMessage): void => {
+    if (message.originWindowId === windowId) return; // self-origin filter
+    const last = lastDeliveredSeq.get(message.topic) ?? -1;
+    if (message.seq <= last) return; // out-of-order or duplicate
+    lastDeliveredSeq.set(message.topic, message.seq);
+    if (!ready) {
+      seedBuffer.push(message);
+      return;
+    }
+    deliver(message);
   };
 
   const unsubscribeTransport = transport.subscribe(dispatch);
@@ -108,6 +135,13 @@ export function createWindowBus(transport: BusTransport, windowId: string): Wind
       const topics = Array.from(pendingByTopic.keys());
       for (const topic of topics) flushTopic(topic);
     },
+    markReady: () => {
+      if (ready) return;
+      ready = true;
+      const drained = seedBuffer.splice(0, seedBuffer.length);
+      for (const msg of drained) deliver(msg);
+    },
+    isReady: () => ready,
     dispose: () => {
       for (const [, pending] of pendingByTopic) {
         if (pending.timer !== null) clearTimeout(pending.timer);

@@ -148,6 +148,8 @@ pub fn run() {
             commands::link_tool_calls,
             commands::count_tokens,
             commands::count_tokens_batch,
+            commands::window_bus_broadcast,
+            commands::window_bus_ready,
             snapshots::snapshots_list,
             snapshots::snapshots_create_from_session,
             snapshots::snapshots_delete,
