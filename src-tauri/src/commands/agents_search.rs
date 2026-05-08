@@ -488,7 +488,7 @@ pub fn search_session_content(
         if let Some(cached) = cache.get(&cache_key) {
             cached.clone()
         } else {
-            let file_path = super::resolve_session_path(&project_id, &session_id)?;
+            let file_path = super::path_util::resolve_session_path(&project_id, &session_id)?;
             let session = session_parser::parse_session_file(&file_path)?;
             cache.insert(cache_key, session.clone());
             session
