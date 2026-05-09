@@ -747,4 +747,53 @@ mod tests {
         let msg = make_user_msg("tool output", true);
         assert_eq!(categorize_message(&msg), MessageCategory::Ai);
     }
+
+    // =========================================================================
+    // Sprint 56 boundary cases
+    // =========================================================================
+
+    #[test]
+    fn test_real_user_message_unicode() {
+        let msg = make_user_msg("héllo 🚀 世界", false);
+        assert!(is_parsed_real_user_message(&msg));
+    }
+
+    #[test]
+    fn test_categorize_empty_falls_through_to_ai() {
+        // Empty user content with is_meta=false is not user/system/noise/compact —
+        // it falls through to Ai. Boundary documented for chunk-builder callers.
+        let msg = make_user_msg("", false);
+        assert_eq!(categorize_message(&msg), MessageCategory::Ai);
+    }
+
+    #[test]
+    fn test_categorize_assistant_role_is_ai() {
+        let mut msg = make_user_msg("hello", false);
+        msg.message_type = "assistant".to_string();
+        msg.role = Some("assistant".to_string());
+        assert_eq!(categorize_message(&msg), MessageCategory::Ai);
+    }
+
+    #[test]
+    fn test_categorize_meta_with_tool_use_block_is_ai() {
+        let msg = make_blocks_msg(
+            vec![ContentBlock::ToolUse {
+                id: "tu1".to_string(),
+                name: "Read".to_string(),
+                input: serde_json::json!({}),
+            }],
+            true,
+        );
+        assert_eq!(categorize_message(&msg), MessageCategory::Ai);
+    }
+
+    #[test]
+    fn test_real_user_message_long_content() {
+        let long = "x".repeat(10_000);
+        let msg = make_user_msg(&long, false);
+        assert!(
+            is_parsed_real_user_message(&msg),
+            "long but non-meta content is still a real user message"
+        );
+    }
 }

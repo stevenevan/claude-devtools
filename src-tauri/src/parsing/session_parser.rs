@@ -11,6 +11,12 @@ use super::entry_parser::parse_entry;
 use super::message_classifier::is_parsed_real_user_message;
 use super::metrics::calculate_metrics;
 
+/// Hard cap on a single JSONL line before it reaches serde_json (sprint 56).
+/// A pathological producer cannot make us allocate gigabytes of contiguous heap
+/// or stall parsing for minutes — over-cap lines are dropped with a structured
+/// error log and the file continues.
+pub const MAX_JSONL_LINE_BYTES: usize = 10 * 1024 * 1024;
+
 /// Session-level metadata extracted from non-message JSONL entries.
 #[derive(Debug, Clone, Default)]
 pub struct SessionFileMetadata {
@@ -27,6 +33,14 @@ pub struct LineParseResult {
 /// This is the shared core used by both full and incremental parsing.
 pub fn parse_jsonl_line(line: &str, metadata: &mut SessionFileMetadata) -> Option<ParsedMessage> {
     if line.trim().is_empty() {
+        return None;
+    }
+    if line.len() > MAX_JSONL_LINE_BYTES {
+        eprintln!(
+            "[parser] dropping oversized JSONL line ({} bytes > {} cap)",
+            line.len(),
+            MAX_JSONL_LINE_BYTES
+        );
         return None;
     }
 
@@ -708,5 +722,49 @@ mod tests {
     fn test_parse_session_file_nonexistent() {
         let session = parse_session_file(Path::new("/nonexistent/path.jsonl")).unwrap();
         assert!(session.messages.is_empty());
+    }
+
+    #[test]
+    fn test_drops_oversized_line() {
+        let mut meta = SessionFileMetadata::default();
+        let oversized = format!(
+            "{{\"type\":\"user\",\"uuid\":\"u1\",\"parentUuid\":null,\"isSidechain\":false,\"cwd\":\"/tmp\",\"message\":{{\"role\":\"user\",\"content\":\"{}\"}}}}",
+            "x".repeat(MAX_JSONL_LINE_BYTES + 1)
+        );
+        let result = parse_jsonl_line(&oversized, &mut meta);
+        assert!(result.is_none(), "oversized line should be dropped");
+    }
+
+    #[test]
+    fn test_accepts_line_at_cap_boundary() {
+        let mut meta = SessionFileMetadata::default();
+        let small = r#"{"type":"user","uuid":"u1","parentUuid":null,"isSidechain":false,"cwd":"/tmp","message":{"role":"user","content":"hi"}}"#;
+        assert!(small.len() < MAX_JSONL_LINE_BYTES);
+        let result = parse_jsonl_line(small, &mut meta);
+        assert!(result.is_some(), "in-cap line should parse");
+    }
+
+    #[test]
+    fn test_drops_invalid_json() {
+        let mut meta = SessionFileMetadata::default();
+        let result = parse_jsonl_line("{not json", &mut meta);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_empty_line_returns_none() {
+        let mut meta = SessionFileMetadata::default();
+        assert!(parse_jsonl_line("", &mut meta).is_none());
+        assert!(parse_jsonl_line("   ", &mut meta).is_none());
+        assert!(parse_jsonl_line("\t\n", &mut meta).is_none());
+    }
+
+    #[test]
+    fn test_metadata_extracted_without_message() {
+        let mut meta = SessionFileMetadata::default();
+        let line = r#"{"type":"custom-title","customTitle":"Sprint 56"}"#;
+        let result = parse_jsonl_line(line, &mut meta);
+        assert!(result.is_none());
+        assert_eq!(meta.custom_title.as_deref(), Some("Sprint 56"));
     }
 }
