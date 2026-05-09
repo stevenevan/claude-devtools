@@ -550,4 +550,31 @@ describe('tabSlice', () => {
       expect(store.getState().selectedProjectId).toBeNull();
     });
   });
+
+  describe('multi-select (sprint 57 boundary)', () => {
+    it('setSelectedTabIds writes the list', () => {
+      store.getState().openTab({ type: 'session', sessionId: 's1', projectId: 'p1', label: 'A' });
+      store.getState().openTab({ type: 'session', sessionId: 's2', projectId: 'p1', label: 'B' });
+      const [first, second] = store.getState().openTabs;
+      store.getState().setSelectedTabIds([first.id, second.id]);
+      expect(store.getState().selectedTabIds).toEqual([first.id, second.id]);
+    });
+
+    it('clearTabSelection empties the list', () => {
+      store.getState().openTab({ type: 'session', sessionId: 's1', projectId: 'p1', label: 'A' });
+      const [t] = store.getState().openTabs;
+      store.getState().setSelectedTabIds([t.id]);
+      store.getState().clearTabSelection();
+      expect(store.getState().selectedTabIds).toEqual([]);
+    });
+
+    it('closing a tab purges it from selectedTabIds', () => {
+      store.getState().openTab({ type: 'session', sessionId: 's1', projectId: 'p1', label: 'A' });
+      store.getState().openTab({ type: 'session', sessionId: 's2', projectId: 'p1', label: 'B' });
+      const [first, second] = store.getState().openTabs;
+      store.getState().setSelectedTabIds([first.id, second.id]);
+      store.getState().closeTab(second.id);
+      expect(store.getState().selectedTabIds).toEqual([first.id]);
+    });
+  });
 });
