@@ -1,19 +1,45 @@
 /// SSH connection manager — connect/disconnect lifecycle with russh.
 
-use std::sync::Arc;
+use std::borrow::Cow;
+use std::sync::{Arc, Mutex};
 
 use russh::client;
+use russh::Preferred;
+use russh_keys::ssh_key::Algorithm;
+use russh_keys::ssh_key::EcdsaCurve;
+use russh_keys::ssh_key::HashAlg;
 use russh_keys::PublicKey;
 use russh_sftp::client::SftpSession;
 
 use super::agent_discovery;
 use super::config_parser;
+use super::known_hosts::{check_or_learn, default_known_hosts_path, Decision};
 use super::retry::{is_transient_error, RetryConfig, RetryState};
 use super::types::{SshConfigHostEntry, SshConnectionConfig, SshConnectionStatus};
 
-// SSH Client Handler (required by russh)
+const SAFE_HOST_KEY_ALGOS: &[Algorithm] = &[
+    Algorithm::Ed25519,
+    Algorithm::Ecdsa { curve: EcdsaCurve::NistP256 },
+    Algorithm::Ecdsa { curve: EcdsaCurve::NistP384 },
+    Algorithm::Ecdsa { curve: EcdsaCurve::NistP521 },
+    Algorithm::Rsa { hash: Some(HashAlg::Sha512) },
+    Algorithm::Rsa { hash: Some(HashAlg::Sha256) },
+];
 
-struct SshHandler;
+fn safe_preferred() -> Preferred {
+    Preferred {
+        key: Cow::Borrowed(SAFE_HOST_KEY_ALGOS),
+        ..Preferred::DEFAULT
+    }
+}
+
+// SSH Client Handler — managed known_hosts (sprint 55)
+
+struct SshHandler {
+    host: String,
+    port: u16,
+    decision: Arc<Mutex<Option<Decision>>>,
+}
 
 #[async_trait::async_trait]
 impl client::Handler for SshHandler {
@@ -21,10 +47,24 @@ impl client::Handler for SshHandler {
 
     async fn check_server_key(
         &mut self,
-        _server_public_key: &PublicKey,
+        server_public_key: &PublicKey,
     ) -> Result<bool, Self::Error> {
-        // Accept all server keys (matches ssh2 behavior in the TS version)
-        Ok(true)
+        let path = match default_known_hosts_path() {
+            Ok(p) => p,
+            Err(_) => return Ok(false),
+        };
+        let decision = match check_or_learn(&path, &self.host, self.port, server_public_key) {
+            Ok(d) => d,
+            Err(_) => return Ok(false),
+        };
+        let accept = matches!(
+            decision,
+            Decision::TrustedExisting | Decision::LearnedNew { .. }
+        );
+        if let Ok(mut slot) = self.decision.lock() {
+            *slot = Some(decision);
+        }
+        Ok(accept)
     }
 }
 
@@ -93,16 +133,35 @@ pub async fn connect(config: &SshConnectionConfig) -> Result<SshConnection, Stri
         config.username.clone()
     };
 
-    // Build russh config
+    // Build russh config with host-key allowlist (sprint 55: no ssh-rsa SHA-1, no DSS).
     let russh_config = Arc::new(client::Config {
         inactivity_timeout: Some(std::time::Duration::from_secs(120)),
+        preferred: safe_preferred(),
         ..Default::default()
     });
 
-    // Connect
-    let mut session = client::connect(russh_config, (actual_host.as_str(), actual_port), SshHandler)
+    // Managed known_hosts handler: TOFU + reject-on-change. Agent forwarding is
+    // never requested on any channel below, so it is effectively disabled.
+    let decision_slot = Arc::new(Mutex::new(None));
+    let handler = SshHandler {
+        host: actual_host.clone(),
+        port: actual_port,
+        decision: Arc::clone(&decision_slot),
+    };
+
+    let mut session = client::connect(russh_config, (actual_host.as_str(), actual_port), handler)
         .await
         .map_err(|e| format!("SSH connection failed: {e}"))?;
+
+    if let Some(Decision::KeyChanged { recorded_fingerprint, offered_fingerprint }) =
+        decision_slot.lock().ok().and_then(|g| g.clone())
+    {
+        return Err(format!(
+            "SSH host key changed for {actual_host}:{actual_port} — possible MITM. \
+             recorded={recorded_fingerprint} offered={offered_fingerprint}. \
+             Edit ~/.claude/ssh/known_hosts manually to recover."
+        ));
+    }
 
     // Authenticate
     authenticate(&mut session, config, &ssh_config, &username)
