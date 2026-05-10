@@ -9,10 +9,25 @@ use lru::LruCache;
 use crate::parsing::session_parser::SessionFileMetadata;
 use crate::types::domain::ParsedSession;
 
-/// Cached entry with expiration tracking.
+/// Hard memory budget for the whole session cache (sprint 63).
+/// When `total_byte_estimate` exceeds this, oldest entries are evicted from
+/// the LRU tail until the cache is back under budget. The bytes value is a
+/// coarse heuristic (≈2 KB / message + parsed-session overhead); under-
+/// estimation is preferred over double-counting so the budget acts as a
+/// ceiling, not a floor.
+pub const MAX_CACHE_BYTES: usize = 200 * 1024 * 1024;
+const BYTES_PER_MESSAGE_ESTIMATE: usize = 2048;
+const BASE_SESSION_BYTES: usize = 4096;
+
+fn estimate_session_bytes(value: &ParsedSession) -> usize {
+    BASE_SESSION_BYTES + value.messages.len() * BYTES_PER_MESSAGE_ESTIMATE
+}
+
+/// Cached entry with expiration tracking + coarse byte-budget hint.
 struct CacheEntry {
     value: ParsedSession,
     inserted_at: Instant,
+    byte_estimate: usize,
 }
 
 /// Tracks incremental parsing state for a session file.
@@ -33,6 +48,12 @@ pub struct SessionCache {
     pub hits: u64,
     pub misses: u64,
     pub evicts: u64,
+    /// Sprint 63: byte-budget eviction counter (separate from LRU evicts).
+    pub budget_evicts: u64,
+    /// Sprint 63: total estimated bytes resident in the cache.
+    total_byte_estimate: usize,
+    /// Sprint 63: hard memory cap; insertions evict from the LRU tail.
+    max_bytes: usize,
 }
 
 impl SessionCache {
@@ -44,40 +65,80 @@ impl SessionCache {
             hits: 0,
             misses: 0,
             evicts: 0,
+            budget_evicts: 0,
+            total_byte_estimate: 0,
+            max_bytes: MAX_CACHE_BYTES,
+        }
+    }
+
+    pub fn total_byte_estimate(&self) -> usize {
+        self.total_byte_estimate
+    }
+
+    pub fn max_bytes(&self) -> usize {
+        self.max_bytes
+    }
+
+    pub fn set_max_bytes(&mut self, bytes: usize) {
+        self.max_bytes = bytes.max(1024 * 1024);
+        self.enforce_byte_budget();
+    }
+
+    fn enforce_byte_budget(&mut self) {
+        while self.total_byte_estimate > self.max_bytes && self.inner.len() > 0 {
+            if let Some((_, evicted)) = self.inner.pop_lru() {
+                self.total_byte_estimate = self
+                    .total_byte_estimate
+                    .saturating_sub(evicted.byte_estimate);
+                self.budget_evicts += 1;
+            } else {
+                break;
+            }
         }
     }
 
     pub fn get(&mut self, key: &str) -> Option<&ParsedSession> {
-        let entry = match self.inner.get(key) {
-            Some(e) => e,
+        let expired = match self.inner.get(key) {
+            Some(e) => e.inserted_at.elapsed() > self.ttl,
             None => {
                 self.misses += 1;
                 return None;
             }
         };
-        if entry.inserted_at.elapsed() > self.ttl {
-            self.inner.pop(key);
+        if expired {
+            if let Some(entry) = self.inner.pop(key) {
+                self.total_byte_estimate = self
+                    .total_byte_estimate
+                    .saturating_sub(entry.byte_estimate);
+            }
             self.evicts += 1;
             self.misses += 1;
             return None;
         }
         self.hits += 1;
-        // Re-borrow after mutation check
         self.inner.get(key).map(|e| &e.value)
     }
 
     pub fn insert(&mut self, key: String, value: ParsedSession) {
         let was_full = self.inner.len() == self.inner.cap().get();
+        let byte_estimate = estimate_session_bytes(&value);
+        let prior = self.inner.pop(&key);
+        if let Some(p) = &prior {
+            self.total_byte_estimate = self.total_byte_estimate.saturating_sub(p.byte_estimate);
+        }
+        self.total_byte_estimate += byte_estimate;
         self.inner.put(
             key,
             CacheEntry {
                 value,
                 inserted_at: Instant::now(),
+                byte_estimate,
             },
         );
-        if was_full {
+        if was_full && prior.is_none() {
             self.evicts += 1;
         }
+        self.enforce_byte_budget();
     }
 
     /// Sprint 46: hot-resize the cache. New capacity ≥ 1; entries beyond
@@ -104,6 +165,7 @@ impl SessionCache {
         self.evicts += self.inner.len() as u64;
         self.inner.clear();
         self.incremental.clear();
+        self.total_byte_estimate = 0;
     }
 
     pub fn get_incremental(&self, key: &str) -> Option<&IncrementalState> {
@@ -123,7 +185,11 @@ impl SessionCache {
 #[cfg(test)]
 impl SessionCache {
     pub fn invalidate(&mut self, key: &str) {
-        self.inner.pop(key);
+        if let Some(entry) = self.inner.pop(key) {
+            self.total_byte_estimate = self
+                .total_byte_estimate
+                .saturating_sub(entry.byte_estimate);
+        }
         self.incremental.remove(key);
     }
 
@@ -136,7 +202,11 @@ impl SessionCache {
             .map(|(k, _)| k.clone())
             .collect();
         for key in &keys_to_remove {
-            self.inner.pop(key);
+            if let Some(entry) = self.inner.pop(key) {
+                self.total_byte_estimate = self
+                    .total_byte_estimate
+                    .saturating_sub(entry.byte_estimate);
+            }
             self.incremental.remove(key.as_str());
         }
     }
@@ -288,6 +358,85 @@ mod tests {
         cache.invalidate("proj/sess1");
         assert!(cache.get("proj/sess1").is_none());
         assert!(cache.get_incremental("proj/sess1").is_none());
+    }
+
+    fn session_with_messages(n: usize) -> ParsedSession {
+        let mut s = make_session();
+        s.messages = (0..n)
+            .map(|i| crate::types::messages::ParsedMessage {
+                uuid: format!("u{i}"),
+                parent_uuid: None,
+                message_type: "user".to_string(),
+                timestamp: "2024-01-01T00:00:00Z".to_string(),
+                role: Some("user".to_string()),
+                content: crate::types::messages::ParsedMessageContent::Text("hi".to_string()),
+                usage: None,
+                model: None,
+                cwd: None,
+                git_branch: None,
+                agent_id: None,
+                is_sidechain: false,
+                is_meta: false,
+                user_type: None,
+                tool_calls: vec![],
+                tool_results: vec![],
+                source_tool_use_id: None,
+                source_tool_assistant_uuid: None,
+                tool_use_result: None,
+                is_compact_summary: None,
+                request_id: None,
+                subtype: None,
+                event_data: None,
+            })
+            .collect();
+        s
+    }
+
+    #[test]
+    fn test_byte_estimate_increments_on_insert() {
+        let mut cache = SessionCache::default();
+        let before = cache.total_byte_estimate();
+        cache.insert("proj/s1".to_string(), session_with_messages(10));
+        assert!(cache.total_byte_estimate() > before);
+    }
+
+    #[test]
+    fn test_byte_budget_evicts_lru_tail() {
+        let mut cache = SessionCache::default();
+        // 1 MB cap: forces eviction quickly.
+        cache.set_max_bytes(1024 * 1024);
+
+        // Each session ≈ 100 messages * 2KB = 200KB + base. Insert 10 to overflow.
+        for i in 0..10 {
+            cache.insert(format!("p/s{i}"), session_with_messages(100));
+        }
+        assert!(
+            cache.total_byte_estimate() <= cache.max_bytes(),
+            "total bytes ({}) must stay under cap ({})",
+            cache.total_byte_estimate(),
+            cache.max_bytes()
+        );
+        assert!(
+            cache.budget_evicts > 0,
+            "budget_evicts counter must record evictions"
+        );
+        // Earliest inserts should have been evicted (LRU tail).
+        assert!(cache.get("p/s0").is_none());
+    }
+
+    #[test]
+    fn test_set_max_bytes_re_enforces_immediately() {
+        let mut cache = SessionCache::default();
+        // 10 sessions * 500 msgs * 2KB ≈ 10 MB total to clearly exceed clamp floor.
+        for i in 0..10 {
+            cache.insert(format!("p/s{i}"), session_with_messages(500));
+        }
+        let before_total = cache.total_byte_estimate();
+        let before_evicts = cache.budget_evicts;
+        cache.set_max_bytes(1024 * 1024); // 1 MB cap (the minimum floor)
+        assert!(cache.budget_evicts > before_evicts);
+        assert!(cache.total_byte_estimate() < before_total);
+        assert!(cache.total_byte_estimate() <= cache.max_bytes());
     }
 
     #[test]
