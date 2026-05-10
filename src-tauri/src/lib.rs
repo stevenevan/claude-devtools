@@ -150,6 +150,7 @@ pub fn run() {
             commands::count_tokens_batch,
             commands::window_bus_broadcast,
             commands::window_bus_ready,
+            commands::get_session_tldr,
             snapshots::snapshots_list,
             snapshots::snapshots_create_from_session,
             snapshots::snapshots_delete,

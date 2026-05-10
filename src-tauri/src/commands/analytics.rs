@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex};
 
+use crate::analysis::summarizer;
 use crate::analysis::tokenizer;
 use crate::analysis::tool_linking;
 use crate::cache::SessionCache;
@@ -118,4 +119,25 @@ pub fn count_tokens(text: String) -> Result<usize, String> {
 #[tauri::command]
 pub fn count_tokens_batch(texts: Vec<String>) -> Result<Vec<usize>, String> {
     Ok(tokenizer::count_tokens_batch(&texts))
+}
+
+#[tauri::command]
+pub fn get_session_tldr(
+    project_id: String,
+    session_id: String,
+    cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+) -> Result<summarizer::SessionTldr, String> {
+    let cache_key = format!("{project_id}/{session_id}");
+    let parsed = {
+        let mut cache = cache.lock().map_err(|e| e.to_string())?;
+        if let Some(cached) = cache.get(&cache_key) {
+            cached.clone()
+        } else {
+            let file_path = resolve_session_path(&project_id, &session_id)?;
+            let session = session_parser::parse_session_file(&file_path)?;
+            cache.insert(cache_key, session.clone());
+            session
+        }
+    };
+    Ok(summarizer::build_session_tldr(&parsed.messages))
 }
