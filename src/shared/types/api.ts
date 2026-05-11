@@ -1,7 +1,7 @@
 /**
  * API type definitions — the contract between frontend and Tauri Rust backend.
  *
- * Implemented by TauriAPIClient in src/renderer/api/tauriClient.ts.
+ * Implemented by createTauriClient() factory in src/renderer/api/tauriClient.ts.
  */
 
 import type { ConversationGroup, FileChangeEvent, SessionDetail, SubagentDetail } from './chunks';
