@@ -4,7 +4,22 @@
 /// NEW: {projectId}/{sessionId}/subagents/agent_*.jsonl
 /// OLD: {projectId}/agent_*.jsonl
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+/// Build the NEW-layout subagent JSONL path (single source of truth).
+pub fn subagent_path(
+    projects_dir: &Path,
+    project_id: &str,
+    parent_session_id: &str,
+    subagent_id: &str,
+) -> PathBuf {
+    let base_dir = super::path_decoder::extract_base_dir(project_id);
+    projects_dir
+        .join(base_dir)
+        .join(parent_session_id)
+        .join("subagents")
+        .join(format!("{subagent_id}.jsonl"))
+}
 
 pub fn has_subagents(projects_dir: &Path, project_id: &str, session_id: &str) -> bool {
     let base_dir = super::path_decoder::extract_base_dir(project_id);

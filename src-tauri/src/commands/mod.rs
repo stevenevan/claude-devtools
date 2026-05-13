@@ -1,7 +1,7 @@
 mod agents_search;
 mod analytics;
 mod files;
-mod path_util;
+pub mod path_util;
 mod projects;
 mod sessions;
 mod system;

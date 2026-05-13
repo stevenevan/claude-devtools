@@ -14,6 +14,7 @@ use crate::types::domain::{Session, SessionsPaginationOptions};
 use crate::watcher;
 
 use super::get_session_detail;
+use super::path_util::{resolve_session_path, resolve_subagent_path, validate_session_id_pair};
 
 /// Read agent config files from .claude/agents/*.md.
 #[tauri::command]
@@ -482,13 +483,14 @@ pub fn search_session_content(
     page_size: Option<usize>,
     cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
 ) -> Result<crate::types::search::ContentSearchResult, String> {
+    validate_session_id_pair(&project_id, &session_id)?;
     let cache_key = format!("{project_id}/{session_id}");
     let parsed = {
         let mut cache = cache.lock().map_err(|e| e.to_string())?;
         if let Some(cached) = cache.get(&cache_key) {
             cached.clone()
         } else {
-            let file_path = super::path_util::resolve_session_path(&project_id, &session_id)?;
+            let file_path = resolve_session_path(&project_id, &session_id)?;
             let session = session_parser::parse_session_file(&file_path)?;
             cache.insert(cache_key, session.clone());
             session
@@ -528,15 +530,8 @@ pub fn get_subagent_detail(
     subagent_id: String,
     _cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
 ) -> Result<Option<SessionDetail>, String> {
-    let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
-    let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
-
+    let subagent_path = resolve_subagent_path(&project_id, &session_id, &subagent_id)?;
     let base_dir = path_decoder::extract_base_dir(&project_id);
-    let subagent_path = projects_dir
-        .join(&base_dir)
-        .join(&session_id)
-        .join("subagents")
-        .join(format!("{subagent_id}.jsonl"));
 
     if !subagent_path.exists() {
         return Ok(None);

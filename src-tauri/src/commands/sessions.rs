@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::analysis::chunk_builder;
 use crate::cache::SessionCache;
-use crate::commands::path_util::resolve_session_path;
+use crate::commands::path_util::{resolve_session_path, validate_session_id_pair};
 use crate::discovery::{
     ongoing_detector, path_decoder, session_lister, subagent_resolver,
     subproject_registry::SubprojectRegistry,
@@ -31,6 +31,9 @@ pub fn get_all_todos(project_ids: Vec<String>) -> Result<Vec<AggregatedSessionTo
     let mut out: Vec<AggregatedSessionTodos> = Vec::new();
 
     for project_id in &project_ids {
+        if !path_decoder::is_valid_project_id(project_id) {
+            continue;
+        }
         let base_id = match project_id.find("::") {
             Some(idx) => &project_id[..idx],
             None => project_id.as_str(),
@@ -149,6 +152,7 @@ pub fn get_session_detail(
     timing: tauri::State<'_, Arc<crate::timing::TimingBuffer>>,
 ) -> Result<SessionDetail, String> {
     let _guard = crate::timing::TimingGuard::new(&timing, "get_session_detail");
+    validate_session_id_pair(&project_id, &session_id)?;
     let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
     let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
 
@@ -213,6 +217,7 @@ pub fn get_session_detail_incremental(
     session_id: String,
     cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
 ) -> Result<SessionDetail, String> {
+    validate_session_id_pair(&project_id, &session_id)?;
     let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
     let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
     let file_path = resolve_session_path(&project_id, &session_id)?;

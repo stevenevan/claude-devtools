@@ -74,7 +74,7 @@ pub fn parse_jsonl_file(file_path: &Path) -> Result<(Vec<ParsedMessage>, Session
     }
 
     let file =
-        std::fs::File::open(file_path).map_err(|e| format!("Failed to open {}: {e}", file_path.display()))?;
+        std::fs::File::open(file_path).map_err(|e| format!("failed to open session file: {e}"))?;
 
     let reader = BufReader::new(file);
     let mut messages = Vec::new();
@@ -113,7 +113,7 @@ pub fn parse_jsonl_incremental(
     }
 
     let mut file =
-        std::fs::File::open(file_path).map_err(|e| format!("Failed to open {}: {e}", file_path.display()))?;
+        std::fs::File::open(file_path).map_err(|e| format!("failed to open session file: {e}"))?;
 
     let file_len = file
         .metadata()

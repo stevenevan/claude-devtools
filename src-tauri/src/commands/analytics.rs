@@ -4,7 +4,7 @@ use crate::analysis::summarizer;
 use crate::analysis::tokenizer;
 use crate::analysis::tool_linking;
 use crate::cache::SessionCache;
-use crate::commands::path_util::resolve_session_path;
+use crate::commands::path_util::{resolve_session_path, validate_session_id_pair};
 use crate::discovery::subproject_registry::SubprojectRegistry;
 use crate::parsing::session_parser;
 use crate::types::domain::{ParsedSession, SessionMetrics};
@@ -15,6 +15,7 @@ pub fn parse_session(
     session_id: String,
     cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
 ) -> Result<ParsedSession, String> {
+    validate_session_id_pair(&project_id, &session_id)?;
     let cache_key = format!("{project_id}/{session_id}");
 
     {
@@ -41,6 +42,7 @@ pub fn parse_session_metrics(
     session_id: String,
     cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
 ) -> Result<SessionMetrics, String> {
+    validate_session_id_pair(&project_id, &session_id)?;
     let cache_key = format!("{project_id}/{session_id}");
 
     {
@@ -127,6 +129,7 @@ pub fn get_session_tldr(
     session_id: String,
     cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
 ) -> Result<summarizer::SessionTldr, String> {
+    validate_session_id_pair(&project_id, &session_id)?;
     let cache_key = format!("{project_id}/{session_id}");
     let parsed = {
         let mut cache = cache.lock().map_err(|e| e.to_string())?;

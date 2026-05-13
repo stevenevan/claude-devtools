@@ -12,12 +12,8 @@
 
 use std::collections::{HashMap, HashSet};
 use std::io::{BufRead, BufReader};
-use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
-
-use crate::discovery::path_decoder;
-use crate::watcher;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -90,25 +86,14 @@ fn extract_path(tool_name: &str, input: &serde_json::Value) -> Option<String> {
     None
 }
 
-fn resolve_session_path(project_id: &str, session_id: &str) -> Result<PathBuf, String> {
-    let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
-    let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
-    let base_id = match project_id.find("::") {
-        Some(idx) => &project_id[..idx],
-        None => project_id,
-    };
-    let session_path = projects_dir.join(base_id).join(format!("{session_id}.jsonl"));
-    if !session_path.is_file() {
-        return Err(format!("Session file not found: {}", session_path.display()));
-    }
-    Ok(session_path)
-}
-
 pub fn compute_file_graph(
     project_id: &str,
     session_id: &str,
 ) -> Result<FileGraphResponse, String> {
-    let path = resolve_session_path(project_id, session_id)?;
+    let path = crate::commands::path_util::resolve_session_path(project_id, session_id)?;
+    if !path.is_file() {
+        return Err("session file not readable".to_string());
+    }
     let file = std::fs::File::open(&path).map_err(|e| e.to_string())?;
     let reader = BufReader::with_capacity(64 * 1024, file);
 
@@ -255,6 +240,7 @@ pub fn compute_file_graph(
 mod tests {
     use super::*;
     use std::io::Write;
+    use std::path::{Path, PathBuf};
 
     fn write_fixture(name: &str, lines: &[&str]) -> PathBuf {
         let tmp = std::env::temp_dir().join(format!("file_graph_{}_{}", name, std::process::id()));

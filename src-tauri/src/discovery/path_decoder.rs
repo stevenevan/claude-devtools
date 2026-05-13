@@ -64,11 +64,46 @@ pub fn extract_project_name(encoded_name: &str, cwd_hint: Option<&str>) -> Strin
 
 // Validation
 
+const PROJECT_ID_MAX_LEN: usize = 512;
+const SESSION_ID_LEN: usize = 36;
+
 static VALID_ENCODED: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^-[a-zA-Z0-9_.\s:-]+$").unwrap());
 
 static LEGACY_WIN_VALID: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^[a-zA-Z]--[a-zA-Z0-9_.\s-]+$").unwrap());
+
+static COMPOSITE_HASH: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^[a-f0-9]{8}$").unwrap());
+
+static SESSION_ID_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+    )
+    .unwrap()
+});
+
+/// Validate session id: UUID-shaped (any version), exactly 36 chars hex+dashes.
+pub fn is_valid_session_id(id: &str) -> bool {
+    if id.len() != SESSION_ID_LEN {
+        return false;
+    }
+    SESSION_ID_RE.is_match(id)
+}
+
+/// Validate composite project id `<encoded>` or `<encoded>::<8-hex>`.
+pub fn is_valid_project_id(project_id: &str) -> bool {
+    if project_id.is_empty() || project_id.len() > PROJECT_ID_MAX_LEN {
+        return false;
+    }
+    if let Some(sep) = project_id.find("::") {
+        let base = &project_id[..sep];
+        let hash = &project_id[sep + 2..];
+        is_valid_encoded_path(base) && COMPOSITE_HASH.is_match(hash)
+    } else {
+        is_valid_encoded_path(project_id)
+    }
+}
 
 /// Validate if a directory name follows the Claude Code encoding pattern.
 pub fn is_valid_encoded_path(encoded_name: &str) -> bool {
@@ -185,22 +220,6 @@ mod tests {
         }
     }
 
-    fn is_valid_project_id(project_id: &str) -> bool {
-        static COMPOSITE_HASH: LazyLock<Regex> =
-            LazyLock::new(|| Regex::new(r"^[a-f0-9]{8}$").unwrap());
-
-        if project_id.is_empty() {
-            return false;
-        }
-        if let Some(sep) = project_id.find("::") {
-            let base = &project_id[..sep];
-            let hash = &project_id[sep + 2..];
-            is_valid_encoded_path(base) && COMPOSITE_HASH.is_match(hash)
-        } else {
-            is_valid_encoded_path(project_id)
-        }
-    }
-
     fn build_session_path(base_path: &Path, project_id: &str, session_id: &str) -> PathBuf {
         base_path
             .join(extract_base_dir(project_id))
@@ -255,6 +274,29 @@ mod tests {
         assert!(is_valid_project_id("-Users-name-project::abcdef01"));
         assert!(!is_valid_project_id("-Users-name-project::short"));
         assert!(!is_valid_project_id("-Users-name-project::ABCDEF01")); // uppercase
+    }
+
+    #[test]
+    fn test_is_valid_project_id_rejects_oversize() {
+        let payload = format!("-foo{}", "a".repeat(1024));
+        assert!(!is_valid_project_id(&payload));
+    }
+
+    #[test]
+    fn test_is_valid_session_id_accepts_uuid() {
+        assert!(is_valid_session_id("0123abcd-4567-89ef-abcd-0123456789ab"));
+        assert!(is_valid_session_id("ABCDEF01-2345-6789-abcd-ef0123456789"));
+        assert!(is_valid_session_id("00000000-0000-0000-0000-000000000000"));
+    }
+
+    #[test]
+    fn test_is_valid_session_id_rejects_bad_shapes() {
+        assert!(!is_valid_session_id(""));
+        assert!(!is_valid_session_id("ABCD"));
+        assert!(!is_valid_session_id("../../../etc/passwd"));
+        assert!(!is_valid_session_id("gggggggg-gggg-gggg-gggg-gggggggggggg"));
+        assert!(!is_valid_session_id("0123abcd-4567-89ef-abcd-0123456789a"));
+        assert!(!is_valid_session_id("0123abcd-4567-89ef-abcd-0123456789abc"));
     }
 
     #[test]
