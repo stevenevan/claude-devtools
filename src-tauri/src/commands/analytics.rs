@@ -4,6 +4,7 @@ use crate::analysis::summarizer;
 use crate::analysis::tokenizer;
 use crate::analysis::tool_linking;
 use crate::cache::SessionCache;
+use crate::commands::claude_root::ClaudeRoot;
 use crate::commands::path_util::{resolve_session_path, validate_session_id_pair};
 use crate::discovery::subproject_registry::SubprojectRegistry;
 use crate::parsing::session_parser;
@@ -14,6 +15,7 @@ pub fn parse_session(
     project_id: String,
     session_id: String,
     cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+    claude_root: tauri::State<'_, ClaudeRoot>,
 ) -> Result<ParsedSession, String> {
     validate_session_id_pair(&project_id, &session_id)?;
     let cache_key = format!("{project_id}/{session_id}");
@@ -25,7 +27,7 @@ pub fn parse_session(
         }
     }
 
-    let file_path = resolve_session_path(&project_id, &session_id)?;
+    let file_path = resolve_session_path(claude_root.canonical_projects(), &project_id, &session_id)?;
     let session = session_parser::parse_session_file(&file_path)?;
 
     {
@@ -41,6 +43,7 @@ pub fn parse_session_metrics(
     project_id: String,
     session_id: String,
     cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+    claude_root: tauri::State<'_, ClaudeRoot>,
 ) -> Result<SessionMetrics, String> {
     validate_session_id_pair(&project_id, &session_id)?;
     let cache_key = format!("{project_id}/{session_id}");
@@ -52,7 +55,7 @@ pub fn parse_session_metrics(
         }
     }
 
-    let file_path = resolve_session_path(&project_id, &session_id)?;
+    let file_path = resolve_session_path(claude_root.canonical_projects(), &project_id, &session_id)?;
     let session = session_parser::parse_session_file(&file_path)?;
     let metrics = session.metrics.clone();
 
@@ -128,6 +131,7 @@ pub fn get_session_tldr(
     project_id: String,
     session_id: String,
     cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+    claude_root: tauri::State<'_, ClaudeRoot>,
 ) -> Result<summarizer::SessionTldr, String> {
     validate_session_id_pair(&project_id, &session_id)?;
     let cache_key = format!("{project_id}/{session_id}");
@@ -136,7 +140,7 @@ pub fn get_session_tldr(
         if let Some(cached) = cache.get(&cache_key) {
             cached.clone()
         } else {
-            let file_path = resolve_session_path(&project_id, &session_id)?;
+            let file_path = resolve_session_path(claude_root.canonical_projects(), &project_id, &session_id)?;
             let session = session_parser::parse_session_file(&file_path)?;
             cache.insert(cache_key, session.clone());
             session

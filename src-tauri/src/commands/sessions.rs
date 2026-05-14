@@ -2,6 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::analysis::chunk_builder;
 use crate::cache::SessionCache;
+use crate::commands::claude_root::ClaudeRoot;
 use crate::commands::path_util::{resolve_session_path, validate_session_id_pair};
 use crate::discovery::{
     ongoing_detector, path_decoder, session_lister, subagent_resolver,
@@ -150,11 +151,11 @@ pub fn get_session_detail(
     session_id: String,
     cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
     timing: tauri::State<'_, Arc<crate::timing::TimingBuffer>>,
+    claude_root: tauri::State<'_, ClaudeRoot>,
 ) -> Result<SessionDetail, String> {
     let _guard = crate::timing::TimingGuard::new(&timing, "get_session_detail");
     validate_session_id_pair(&project_id, &session_id)?;
-    let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
-    let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
+    let projects_dir = claude_root.canonical_projects();
 
     let cache_key = format!("{project_id}/{session_id}");
     let parsed = {
@@ -162,7 +163,7 @@ pub fn get_session_detail(
         if let Some(cached) = cache.get(&cache_key) {
             cached.clone()
         } else {
-            let file_path = resolve_session_path(&project_id, &session_id)?;
+            let file_path = resolve_session_path(projects_dir, &project_id, &session_id)?;
             let session = session_parser::parse_session_file(&file_path)?;
             cache.insert(cache_key, session.clone());
             session
@@ -170,7 +171,7 @@ pub fn get_session_detail(
     };
 
     let subagents = subagent_resolver::resolve_subagents(
-        &projects_dir,
+        projects_dir,
         &project_id,
         &session_id,
         &parsed.task_calls,
@@ -181,7 +182,7 @@ pub fn get_session_detail(
         &path_decoder::extract_base_dir(&project_id),
     );
 
-    let session_file_path = resolve_session_path(&project_id, &session_id)?;
+    let session_file_path = resolve_session_path(projects_dir, &project_id, &session_id)?;
     let is_ongoing = ongoing_detector::detect_ongoing(&session_file_path);
 
     let session = Session {
@@ -216,11 +217,11 @@ pub fn get_session_detail_incremental(
     project_id: String,
     session_id: String,
     cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+    claude_root: tauri::State<'_, ClaudeRoot>,
 ) -> Result<SessionDetail, String> {
     validate_session_id_pair(&project_id, &session_id)?;
-    let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
-    let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
-    let file_path = resolve_session_path(&project_id, &session_id)?;
+    let projects_dir = claude_root.canonical_projects();
+    let file_path = resolve_session_path(projects_dir, &project_id, &session_id)?;
     let cache_key = format!("{project_id}/{session_id}");
 
     let parsed = {
@@ -292,7 +293,7 @@ pub fn get_session_detail_incremental(
     };
 
     let subagents = subagent_resolver::resolve_subagents(
-        &projects_dir,
+        projects_dir,
         &project_id,
         &session_id,
         &parsed.task_calls,

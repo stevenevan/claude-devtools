@@ -13,6 +13,7 @@ use crate::types::chunks::SessionDetail;
 use crate::types::domain::{Session, SessionsPaginationOptions};
 use crate::watcher;
 
+use super::claude_root::ClaudeRoot;
 use super::get_session_detail;
 use super::path_util::{resolve_session_path, resolve_subagent_path, validate_session_id_pair};
 
@@ -482,6 +483,7 @@ pub fn search_session_content(
     cursor: Option<usize>,
     page_size: Option<usize>,
     cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+    claude_root: tauri::State<'_, ClaudeRoot>,
 ) -> Result<crate::types::search::ContentSearchResult, String> {
     validate_session_id_pair(&project_id, &session_id)?;
     let cache_key = format!("{project_id}/{session_id}");
@@ -490,7 +492,7 @@ pub fn search_session_content(
         if let Some(cached) = cache.get(&cache_key) {
             cached.clone()
         } else {
-            let file_path = resolve_session_path(&project_id, &session_id)?;
+            let file_path = resolve_session_path(claude_root.canonical_projects(), &project_id, &session_id)?;
             let session = session_parser::parse_session_file(&file_path)?;
             cache.insert(cache_key, session.clone());
             session
@@ -519,8 +521,9 @@ pub fn get_waterfall_data(
     session_id: String,
     cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
     timing: tauri::State<'_, Arc<crate::timing::TimingBuffer>>,
+    claude_root: tauri::State<'_, ClaudeRoot>,
 ) -> Result<Option<SessionDetail>, String> {
-    get_session_detail(project_id, session_id, cache, timing).map(Some)
+    get_session_detail(project_id, session_id, cache, timing, claude_root).map(Some)
 }
 
 #[tauri::command]
@@ -529,8 +532,14 @@ pub fn get_subagent_detail(
     session_id: String,
     subagent_id: String,
     _cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
+    claude_root: tauri::State<'_, ClaudeRoot>,
 ) -> Result<Option<SessionDetail>, String> {
-    let subagent_path = resolve_subagent_path(&project_id, &session_id, &subagent_id)?;
+    let subagent_path = resolve_subagent_path(
+        claude_root.canonical_projects(),
+        &project_id,
+        &session_id,
+        &subagent_id,
+    )?;
     let base_dir = path_decoder::extract_base_dir(&project_id);
 
     if !subagent_path.exists() {

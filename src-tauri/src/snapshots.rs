@@ -139,8 +139,9 @@ pub fn snapshots_create_from_session(
     label: Option<String>,
     cache: tauri::State<'_, std::sync::Arc<std::sync::Mutex<crate::cache::SessionCache>>>,
     timing: tauri::State<'_, std::sync::Arc<crate::timing::TimingBuffer>>,
+    claude_root: tauri::State<'_, crate::commands::claude_root::ClaudeRoot>,
 ) -> Result<SnapshotMeta, String> {
-    let detail = crate::commands::get_session_detail(project_id, session_id, cache, timing)?;
+    let detail = crate::commands::get_session_detail(project_id, session_id, cache, timing, claude_root)?;
     let label = label
         .filter(|l| !l.trim().is_empty())
         .unwrap_or_else(|| detail.session.id.clone());

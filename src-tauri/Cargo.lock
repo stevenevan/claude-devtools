@@ -649,6 +649,7 @@ dependencies = [
  "tauri-plugin-opener",
  "tauri-plugin-process",
  "tauri-plugin-shell",
+ "tempfile",
  "tiktoken-rs",
  "tokio",
  "uuid",

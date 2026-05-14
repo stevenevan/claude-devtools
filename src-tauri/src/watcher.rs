@@ -156,6 +156,12 @@ pub fn resolve_claude_dir() -> Option<PathBuf> {
 // ---------------------------------------------------------------------------
 
 /// Start watching `~/.claude/projects/` and `~/.claude/todos/`.
+///
+/// Sprint 64: `projects_path` is sourced from the startup-captured canonical
+/// `ClaudeRoot` (managed state). The `todos_path` derivation still uses
+/// `resolve_claude_dir()` because todos live one level up and have no
+/// user-controlled join — a symlink swap there cannot widen the IPC trust
+/// boundary the watcher exposes.
 pub fn start_watcher(app: &AppHandle) -> Result<(), String> {
     let state = app.state::<Mutex<WatcherState>>();
     let mut guard = state.lock().map_err(|e| e.to_string())?;
@@ -164,8 +170,9 @@ pub fn start_watcher(app: &AppHandle) -> Result<(), String> {
         return Ok(());
     }
 
+    let claude_root = app.state::<crate::commands::claude_root::ClaudeRoot>();
+    let projects_path = claude_root.canonical_projects().to_path_buf();
     let claude_dir = resolve_claude_dir().ok_or("Cannot resolve home directory")?;
-    let projects_path = claude_dir.join("projects");
     let todos_path = claude_dir.join("todos");
 
     let app_handle = app.clone();

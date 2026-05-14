@@ -1,6 +1,7 @@
 use crate::analysis::error_hotspots::{self, ErrorClustersResponse, ErrorHotspotsResponse};
 use crate::analysis::file_graph::{self, FileGraphResponse};
 use crate::analysis::tool_analytics::{self, ToolAnalyticsResponse, ToolTimeHeatmapResponse};
+use crate::commands::claude_root::ClaudeRoot;
 
 #[tauri::command]
 pub fn get_tool_analytics(
@@ -41,6 +42,7 @@ pub fn get_error_clusters(
 pub fn get_file_graph(
     project_id: String,
     session_id: String,
+    claude_root: tauri::State<'_, ClaudeRoot>,
 ) -> Result<FileGraphResponse, String> {
-    file_graph::compute_file_graph(&project_id, &session_id)
+    file_graph::compute_file_graph(claude_root.canonical_projects(), &project_id, &session_id)
 }

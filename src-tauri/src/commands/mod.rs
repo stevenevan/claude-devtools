@@ -1,5 +1,6 @@
 mod agents_search;
 mod analytics;
+pub mod claude_root;
 mod files;
 pub mod path_util;
 mod projects;

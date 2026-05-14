@@ -87,10 +87,11 @@ fn extract_path(tool_name: &str, input: &serde_json::Value) -> Option<String> {
 }
 
 pub fn compute_file_graph(
+    canonical_root: &std::path::Path,
     project_id: &str,
     session_id: &str,
 ) -> Result<FileGraphResponse, String> {
-    let path = crate::commands::path_util::resolve_session_path(project_id, session_id)?;
+    let path = crate::commands::path_util::resolve_session_path(canonical_root, project_id, session_id)?;
     if !path.is_file() {
         return Err("session file not readable".to_string());
     }

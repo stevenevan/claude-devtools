@@ -6,7 +6,6 @@ pub const ERR_INVALID_SESSION_ID: &str = "invalid session id";
 pub const ERR_INVALID_PROJECT_ID: &str = "invalid project id";
 pub const ERR_INVALID_SUBAGENT_ID: &str = "invalid subagent id";
 pub const ERR_ESCAPES_ROOT: &str = "path escapes session root";
-pub const ERR_NO_HOME: &str = "Cannot resolve home directory";
 
 /// Validate session+project id pair without touching the filesystem.
 /// Call BEFORE any cache lookup keyed on these ids.
@@ -20,32 +19,38 @@ pub fn validate_session_id_pair(project_id: &str, session_id: &str) -> Result<()
     Ok(())
 }
 
-fn projects_root() -> Result<PathBuf, String> {
-    let claude_dir = crate::watcher::resolve_claude_dir().ok_or(ERR_NO_HOME)?;
-    Ok(claude_dir.join("projects"))
-}
-
-fn confine(candidate: PathBuf, root: &Path) -> Result<PathBuf, String> {
+/// Confine `candidate` to `canonical_root`. The root MUST already be
+/// canonical (sprint 64: captured once at startup; see
+/// `commands::claude_root::ClaudeRoot`). Only the candidate is canonicalized
+/// at call time so a symlink swap between startup and call cannot widen
+/// the trust boundary by re-evaluating the root.
+///
+/// Non-existent candidates are returned verbatim — legitimate first-time
+/// create flows rely on this.
+pub fn confine(candidate: PathBuf, canonical_root: &Path) -> Result<PathBuf, String> {
     if !candidate.exists() {
         return Ok(candidate);
     }
     let canonical_candidate = std::fs::canonicalize(&candidate).map_err(|_| ERR_ESCAPES_ROOT)?;
-    let canonical_root = std::fs::canonicalize(root).map_err(|_| ERR_ESCAPES_ROOT)?;
-    if !canonical_candidate.starts_with(&canonical_root) {
+    if !canonical_candidate.starts_with(canonical_root) {
         return Err(ERR_ESCAPES_ROOT.to_string());
     }
     Ok(canonical_candidate)
 }
 
-pub fn resolve_session_path(project_id: &str, session_id: &str) -> Result<PathBuf, String> {
+pub fn resolve_session_path(
+    canonical_root: &Path,
+    project_id: &str,
+    session_id: &str,
+) -> Result<PathBuf, String> {
     validate_session_id_pair(project_id, session_id)?;
-    let root = projects_root()?;
     let base_dir = path_decoder::extract_base_dir(project_id);
-    let candidate = root.join(base_dir).join(format!("{session_id}.jsonl"));
-    confine(candidate, &root)
+    let candidate = canonical_root.join(base_dir).join(format!("{session_id}.jsonl"));
+    confine(candidate, canonical_root)
 }
 
 pub fn resolve_subagent_path(
+    canonical_root: &Path,
     project_id: &str,
     parent_session_id: &str,
     subagent_id: &str,
@@ -54,9 +59,13 @@ pub fn resolve_subagent_path(
     if !path_decoder::is_valid_session_id(subagent_id) {
         return Err(ERR_INVALID_SUBAGENT_ID.to_string());
     }
-    let root = projects_root()?;
-    let candidate = subagent_locator::subagent_path(&root, project_id, parent_session_id, subagent_id);
-    confine(candidate, &root)
+    let candidate = subagent_locator::subagent_path(
+        canonical_root,
+        project_id,
+        parent_session_id,
+        subagent_id,
+    );
+    confine(candidate, canonical_root)
 }
 
 #[cfg(test)]
@@ -65,6 +74,11 @@ mod tests {
 
     const VALID_SESSION: &str = "0123abcd-4567-89ef-abcd-0123456789ab";
     const VALID_PROJECT: &str = "-Users-name-project";
+    const TEST_ROOT: &str = "/tmp/claude/projects";
+
+    fn test_root() -> &'static Path {
+        Path::new(TEST_ROOT)
+    }
 
     fn valid_uuids() -> Vec<&'static str> {
         vec![
@@ -195,19 +209,16 @@ mod tests {
 
     #[test]
     fn validate_pair_accepts_dotdot_dirname() {
-        // "-.." is a literal dir name (passes encoded-path regex); benign.
         let res = validate_session_id_pair("-..", VALID_SESSION);
         assert!(res.is_ok());
     }
 
     #[test]
     fn resolve_subagent_path_matches_locator_layout() {
-        // Cross-reference test against subagent_locator (single source of truth).
-        let root = Path::new("/tmp/claude/projects");
         let project_id = VALID_PROJECT;
         let parent = VALID_SESSION;
         let sub = "fedcba98-7654-3210-fedc-ba9876543210";
-        let direct = subagent_locator::subagent_path(root, project_id, parent, sub);
+        let direct = subagent_locator::subagent_path(test_root(), project_id, parent, sub);
         assert_eq!(
             direct,
             PathBuf::from(
@@ -218,13 +229,13 @@ mod tests {
 
     #[test]
     fn resolve_subagent_rejects_traversal_subagent_id() {
-        let res = resolve_subagent_path(VALID_PROJECT, VALID_SESSION, "../../../etc/passwd");
+        let res = resolve_subagent_path(test_root(), VALID_PROJECT, VALID_SESSION, "../../../etc/passwd");
         assert_eq!(res.unwrap_err(), ERR_INVALID_SUBAGENT_ID);
     }
 
     #[test]
     fn resolve_subagent_rejects_traversal_parent() {
-        let res = resolve_subagent_path(VALID_PROJECT, "../../../etc/passwd", VALID_SESSION);
+        let res = resolve_subagent_path(test_root(), VALID_PROJECT, "../../../etc/passwd", VALID_SESSION);
         assert_eq!(res.unwrap_err(), ERR_INVALID_SESSION_ID);
     }
 }

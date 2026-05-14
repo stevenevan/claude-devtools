@@ -17,6 +17,11 @@ pub mod watcher;
 use tauri_plugin_autostart::MacosLauncher;
 
 pub fn run() {
+    // Sprint 64: capture canonical projects root ONCE at startup; the same
+    // `Arc<PathBuf>` is shared with every spawned task so a mid-flight symlink
+    // swap cannot widen the IPC trust boundary.
+    let claude_root = commands::claude_root::ClaudeRoot::new();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
@@ -27,6 +32,7 @@ pub fn run() {
             None,
         ))
         .plugin(tauri_plugin_process::init())
+        .manage(claude_root)
         .manage(std::sync::Mutex::new(watcher::WatcherState::default()))
         .manage(std::sync::Arc::new(std::sync::Mutex::new(cache::SessionCache::default())))
         .manage(std::sync::Arc::new(std::sync::Mutex::new(discovery::subproject_registry::SubprojectRegistry::new())))
