@@ -342,4 +342,104 @@ mod tests {
         let item = result.get("err-1").unwrap();
         assert!(item.result.as_ref().unwrap().is_error);
     }
+
+    // =========================================================================
+    // Sprint 56 wave 2 — boundary cases (symmetric / default / proportionality)
+    // =========================================================================
+
+    #[test]
+    fn stray_tool_result_without_matching_call_is_ignored() {
+        let steps = vec![make_step("stray-1", "tool_result", Some("Read"))];
+        let result = link_tool_calls_to_results(&steps, None);
+        assert!(
+            result.is_empty(),
+            "stray tool_result must not create a linked entry: {result:?}"
+        );
+    }
+
+    #[test]
+    fn skill_call_without_instructions_response_has_none() {
+        let steps = vec![
+            make_step("skill-noinstr", "tool_call", Some("Skill")),
+            make_step("skill-noinstr", "tool_result", Some("Skill")),
+        ];
+        // Response carries no "Base directory for this skill:" prefix.
+        let responses = vec![ParsedMessageInput {
+            msg_type: "user".to_string(),
+            is_meta: true,
+            source_tool_use_id: Some("skill-noinstr".to_string()),
+            content: Value::Array(vec![serde_json::json!({
+                "type": "text",
+                "text": "Just a regular output, no skill instructions."
+            })]),
+        }];
+        let result = link_tool_calls_to_results(&steps, Some(&responses));
+        let item = result.get("skill-noinstr").unwrap();
+        assert!(item.skill_instructions.is_none());
+        assert!(item.skill_instructions_token_count.is_none());
+    }
+
+    #[test]
+    fn error_result_defaults_to_false_when_unset() {
+        let steps = vec![
+            make_step("ok-1", "tool_call", Some("Read")),
+            make_step("ok-1", "tool_result", Some("Read")),
+        ];
+        // is_error left as None (the make_step default).
+        let result = link_tool_calls_to_results(&steps, None);
+        let item = result.get("ok-1").unwrap();
+        let result_info = item.result.as_ref().expect("result present");
+        assert!(
+            !result_info.is_error,
+            "absent is_error must default to false, got is_error=true"
+        );
+    }
+
+    #[test]
+    fn skill_instructions_token_count_proportional_to_length() {
+        let short_text = "Base directory for this skill: /a";
+        let long_text = format!(
+            "Base directory for this skill: /b\n{}",
+            "padding-line-content-padding-line-content-padding-line-content\n".repeat(40)
+        );
+        let steps = vec![
+            make_step("skill-short", "tool_call", Some("Skill")),
+            make_step("skill-short", "tool_result", Some("Skill")),
+            make_step("skill-long", "tool_call", Some("Skill")),
+            make_step("skill-long", "tool_result", Some("Skill")),
+        ];
+        let responses = vec![
+            ParsedMessageInput {
+                msg_type: "user".to_string(),
+                is_meta: true,
+                source_tool_use_id: Some("skill-short".to_string()),
+                content: Value::Array(vec![serde_json::json!({
+                    "type": "text",
+                    "text": short_text,
+                })]),
+            },
+            ParsedMessageInput {
+                msg_type: "user".to_string(),
+                is_meta: true,
+                source_tool_use_id: Some("skill-long".to_string()),
+                content: Value::Array(vec![serde_json::json!({
+                    "type": "text",
+                    "text": long_text,
+                })]),
+            },
+        ];
+        let result = link_tool_calls_to_results(&steps, Some(&responses));
+        let short = result
+            .get("skill-short")
+            .and_then(|i| i.skill_instructions_token_count)
+            .expect("short token count");
+        let long = result
+            .get("skill-long")
+            .and_then(|i| i.skill_instructions_token_count)
+            .expect("long token count");
+        assert!(
+            long > short,
+            "long instructions ({long}) must produce more tokens than short ({short})"
+        );
+    }
 }

@@ -545,4 +545,129 @@ mod tests {
         assert!(is_user_chunk(&chunks[2]));
         assert!(is_ai_chunk(&chunks[3]));
     }
+
+    // =========================================================================
+    // Sprint 56 wave 2 — boundary cases for state-machine flush triggers
+    // =========================================================================
+
+    #[test]
+    fn test_system_message_flushes_ai_buffer_mid_sequence() {
+        let mut sys = make_msg("s1", "user", false, false);
+        sys.content = ParsedMessageContent::Text(
+            "<local-command-stdout>output</local-command-stdout>".to_string(),
+        );
+        let msgs = vec![
+            make_assistant("a1", "2024-01-01T00:00:00Z"),
+            make_assistant("a2", "2024-01-01T00:00:01Z"),
+            sys,
+            make_assistant("a3", "2024-01-01T00:00:02Z"),
+        ];
+        let chunks = build_chunks(&msgs, &[]);
+        assert_eq!(chunks.len(), 3);
+        assert!(is_ai_chunk(&chunks[0]));
+        assert!(is_system_chunk(&chunks[1]));
+        assert!(is_ai_chunk(&chunks[2]));
+        if let EnhancedChunk::Ai(ref ai) = chunks[0] {
+            assert_eq!(ai.responses.len(), 2);
+        }
+        if let EnhancedChunk::Ai(ref ai) = chunks[2] {
+            assert_eq!(ai.responses.len(), 1);
+        }
+    }
+
+    #[test]
+    fn test_event_message_flushes_ai_buffer_mid_sequence() {
+        let mut event = make_msg("e1", "system", false, false);
+        event.subtype = Some("api_error".to_string());
+        event.event_data = Some(SystemEventData {
+            subtype: "api_error".to_string(),
+            ..Default::default()
+        });
+        let msgs = vec![
+            make_assistant("a1", "2024-01-01T00:00:00Z"),
+            make_assistant("a2", "2024-01-01T00:00:01Z"),
+            event,
+            make_assistant("a3", "2024-01-01T00:00:02Z"),
+        ];
+        let chunks = build_chunks(&msgs, &[]);
+        assert_eq!(chunks.len(), 3);
+        assert!(is_ai_chunk(&chunks[0]));
+        assert!(is_event_chunk(&chunks[1]));
+        assert!(is_ai_chunk(&chunks[2]));
+        if let EnhancedChunk::Ai(ref ai) = chunks[0] {
+            assert_eq!(ai.responses.len(), 2);
+        }
+    }
+
+    #[test]
+    fn test_compact_message_flushes_ai_buffer_mid_sequence() {
+        let mut compact = make_msg("c1", "user", false, false);
+        compact.is_compact_summary = Some(true);
+        let msgs = vec![
+            make_assistant("a1", "2024-01-01T00:00:00Z"),
+            compact,
+            make_assistant("a2", "2024-01-01T00:00:01Z"),
+        ];
+        let chunks = build_chunks(&msgs, &[]);
+        assert_eq!(chunks.len(), 3);
+        assert!(is_ai_chunk(&chunks[0]));
+        assert!(is_compact_chunk(&chunks[1]));
+        assert!(is_ai_chunk(&chunks[2]));
+    }
+
+    #[test]
+    fn test_isolated_meta_user_does_not_create_user_chunk() {
+        let mut meta = make_msg("m1", "user", true, false);
+        meta.content = ParsedMessageContent::Blocks(vec![]);
+        let chunks = build_chunks(&[meta], &[]);
+        // A lone meta user has no preceding AI buffer to flush and no
+        // real-user content; it must NOT emerge as a UserChunk.
+        assert!(
+            chunks.iter().all(|c| !is_user_chunk(c)),
+            "isolated meta user produced a UserChunk: {chunks:?}"
+        );
+    }
+
+    #[test]
+    fn test_incremental_no_new_messages_returns_empty_chunks() {
+        let delta = build_chunks_incremental(&[], &[], 0);
+        assert_eq!(delta.replace_from_index, 0);
+        assert!(delta.chunks.is_empty());
+    }
+
+    #[test]
+    fn test_incremental_matches_full_build() {
+        let msgs = vec![
+            make_msg("u1", "user", false, false),
+            make_assistant("a1", "2024-01-01T00:00:01Z"),
+            make_msg("u2", "user", false, false),
+            make_assistant("a2", "2024-01-01T00:00:02Z"),
+        ];
+        let full = build_chunks(&msgs, &[]);
+        let delta = build_chunks_incremental(&msgs, &[], 0);
+        assert_eq!(delta.replace_from_index, 0);
+        assert_eq!(delta.chunks.len(), full.len());
+        for (i, c) in delta.chunks.iter().enumerate() {
+            assert_eq!(
+                std::mem::discriminant(c),
+                std::mem::discriminant(&full[i]),
+                "chunk {i} variant mismatch incremental vs full"
+            );
+        }
+    }
+
+    #[test]
+    fn test_multiple_sidechain_messages_all_filtered() {
+        let msgs = vec![
+            make_msg("u1", "user", false, false),
+            make_msg("sc1", "user", false, true),
+            make_msg("sc2", "user", false, true),
+            make_msg("sc3", "user", false, true),
+            make_assistant("a1", "2024-01-01T00:01:00Z"),
+        ];
+        let chunks = build_chunks(&msgs, &[]);
+        assert_eq!(chunks.len(), 2);
+        assert!(is_user_chunk(&chunks[0]));
+        assert!(is_ai_chunk(&chunks[1]));
+    }
 }
