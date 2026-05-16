@@ -11,6 +11,7 @@ Review pipeline: metis → security-auditor + architect-reviewer
 | # | Commit | Summary |
 | - | ------ | ------- |
 | 64 (security half) | `feat(security)` | Canonical projects root captured ONCE at app `.setup()` into `Arc<PathBuf>` (`ClaudeRoot` managed state). `path_util::confine()` rewritten to accept a pre-canonical `&Path` root — no more live `canonicalize(root)` on every call (was line 33). `resolve_session_path` / `resolve_subagent_path` collapsed to a single canonical-root-explicit API (no dual `_with_root` variant footgun). 10 IPC handlers across 5 files migrated: `analytics.rs` (3 sites), `sessions.rs` (3 sites + 2 stale `resolve_claude_dir` calls dropped), `agents_search.rs` (3 sites incl. `get_subagent_detail`), `analysis/commands.rs::get_file_graph` (gained `State<ClaudeRoot>`), `analysis/file_graph.rs::compute_file_graph` (gained `&Path` param). `snapshots.rs::snapshots_create_from_session` forwards the new arg into `get_session_detail`. Watcher reads `app.state::<ClaudeRoot>()` instead of re-deriving inline. `tempfile = "3"` added under fresh `[dev-dependencies]` section. 3 real symlink-FS negative tests assert post-swap candidate rejection + captured-root-not-live-derived behavior + end-to-end resolve_session_path swap rejection. CWE-59 (symlink following) + CWE-367 (TOCTOU). |
+| 56 (wave 2) | `test(rust)` | Closes PLAN sprint 56 +20-test target. `chunk_builder.rs` +7 (System/Event/Compact mid-sequence flush-and-resume; isolated meta user; build_chunks_incremental empty + variant-match; multi-sidechain filter). `tool_linking.rs` +4 (stray tool_result ignored; Skill without instructions; is_error default-false; skill_instructions_token_count length-proportional). Metis caught 6/11 originally proposed tests as duplicates of existing 18+7 tests; plan re-targeted to genuine gaps. `message_classifier.rs` (799 lines) intentionally untouched — 1 below 800 hard cap. |
 
 ## Reviewer findings applied
 
@@ -68,10 +69,18 @@ Review pipeline: metis → security-auditor + architect-reviewer
 
 ## Metrics
 
-- cargo lib: 462 → 467 (+5 new claude_root tests; legitimate accept + 3 symlink-swap negative tests + for_test constructor).
-- bun vitest: 668 → 668 (unchanged; pure Rust sprint).
-- bun run typecheck / lint: green.
+- cargo lib: 462 → 467 (sprint 64) → 478 (sprint 56 wave 2). +16 net.
+- bun vitest: 668 → 668 (unchanged; both sprints pure Rust).
+- bun run typecheck / lint: green throughout.
 - `confine()` no longer re-canonicalizes root on each call — single canonicalize at startup, captured into `Arc<PathBuf>`.
+
+## Workaround note (test infra)
+
+Mid-session the sandbox blocked writes to `~/.cargo/registry/src/`, causing
+fresh crate extraction to fail (`aead-0.5.2` etc.). Workaround: invoke
+cargo with `CARGO_HOME=$TMPDIR/cargo_alt` for the wave 2 test run — the
+alternate Cargo home re-extracts to a writable location. No change to
+checked-in tooling.
 
 ## Files modified
 
