@@ -4,6 +4,7 @@ pub mod cache;
 pub mod commands;
 pub mod config;
 pub mod discovery;
+pub mod logging;
 pub mod notifications;
 pub mod nl_query;
 pub mod parsing;
@@ -17,6 +18,8 @@ pub mod watcher;
 use tauri_plugin_autostart::MacosLauncher;
 
 pub fn run() {
+    logging::init();
+
     // Sprint 64: capture canonical projects root ONCE at startup; the same
     // `Arc<PathBuf>` is shared with every spawned task so a mid-flight symlink
     // swap cannot widen the IPC trust boundary.
