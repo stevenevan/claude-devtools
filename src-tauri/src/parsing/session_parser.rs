@@ -36,10 +36,11 @@ pub fn parse_jsonl_line(line: &str, metadata: &mut SessionFileMetadata) -> Optio
         return None;
     }
     if line.len() > MAX_JSONL_LINE_BYTES {
-        eprintln!(
-            "[parser] dropping oversized JSONL line ({} bytes > {} cap)",
-            line.len(),
-            MAX_JSONL_LINE_BYTES
+        tracing::warn!(
+            target: "parser",
+            line_bytes = line.len(),
+            cap_bytes = MAX_JSONL_LINE_BYTES,
+            "dropping oversized JSONL line"
         );
         return None;
     }
@@ -84,9 +85,11 @@ pub fn parse_jsonl_file(file_path: &Path) -> Result<(Vec<ParsedMessage>, Session
         let line = match line {
             Ok(l) => l,
             Err(e) => {
-                eprintln!(
-                    "[parser] Error reading line in {}: {e}",
-                    file_path.display()
+                tracing::warn!(
+                    target: "parser",
+                    path = %crate::logging::Redact(file_path),
+                    error = %e,
+                    "error reading line"
                 );
                 continue;
             }
