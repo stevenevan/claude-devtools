@@ -62,15 +62,13 @@ impl NotificationState {
                 match serde_json::from_str::<Vec<StoredNotification>>(&data) {
                     Ok(parsed) => self.notifications = parsed,
                     Err(e) => {
-                        eprintln!(
-                            "[notifications] Invalid format, starting fresh: {e}"
-                        );
+                        tracing::warn!(target: "notifications", error = %e, "invalid stored format — starting fresh");
                         self.notifications = Vec::new();
                     }
                 }
             }
             Err(e) => {
-                eprintln!("[notifications] Error loading: {e}");
+                tracing::warn!(target: "notifications", error = %e, "failed to load notifications");
             }
         }
     }
@@ -86,15 +84,15 @@ impl NotificationState {
         match serde_json::to_string_pretty(&self.notifications) {
             Ok(json) => {
                 if let Err(e) = std::fs::write(&tmp_path, &json) {
-                    eprintln!("[notifications] Error writing tmp: {e}");
+                    tracing::error!(target: "notifications", error = %e, "failed to write tmp file");
                     return;
                 }
                 if let Err(e) = std::fs::rename(&tmp_path, &self.notification_path) {
-                    eprintln!("[notifications] Error renaming: {e}");
+                    tracing::error!(target: "notifications", error = %e, "failed to rename tmp file");
                 }
             }
             Err(e) => {
-                eprintln!("[notifications] Error serializing: {e}");
+                tracing::error!(target: "notifications", error = %e, "failed to serialize notifications");
             }
         }
     }

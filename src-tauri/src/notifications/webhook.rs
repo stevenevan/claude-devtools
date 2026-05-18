@@ -77,7 +77,7 @@ pub struct LoggingTransport;
 
 impl WebhookTransport for LoggingTransport {
     fn send(&self, url: &str, body: &str) -> AttemptOutcome {
-        eprintln!("[webhook] POST {url} body={body}");
+        tracing::info!(target: "webhook", url = %url, byte_len = body.len(), "webhook POST (logging transport)");
         AttemptOutcome::Success
     }
 }

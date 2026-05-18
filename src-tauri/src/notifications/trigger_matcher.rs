@@ -110,9 +110,8 @@ pub fn dispatch_action(action: &RuleAction) -> Result<(), String> {
         RuleAction::Webhook { url, template } => {
             // Sprint 40: typed stub. Logged only — the real HTTP dispatch
             // is sprint 41's responsibility.
-            let _ = url;
             let _ = template;
-            eprintln!("[notifications] webhook dispatch stub: {url}");
+            tracing::info!(target: "notifications", url = %url, "webhook dispatch stub");
             Ok(())
         }
     }

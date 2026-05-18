@@ -191,6 +191,6 @@ fn show_native_notification(app: &tauri::AppHandle, error: &super::types::Detect
     }
 
     if let Err(e) = builder.show() {
-        eprintln!("[notifications] Failed to show native notification: {e}");
+        tracing::warn!(target: "notifications", error = %e, "failed to show native notification");
     }
 }

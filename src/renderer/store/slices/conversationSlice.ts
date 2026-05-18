@@ -3,6 +3,7 @@
  */
 
 import { api } from '@renderer/api';
+import { logger } from '@renderer/lib/logger';
 import { findLastOutput } from '@renderer/utils/aiGroupEnhancer';
 
 import type { AppState, SearchMatch } from '../types';
@@ -437,7 +438,7 @@ export const createConversationSlice: StateCreator<AppState, [], [], Conversatio
         })
         .catch((err) => {
           if (currentSearchId !== searchIdCounter) return;
-          console.error('[search] Rust search failed, falling back to JS:', err);
+          logger.error('Rust search failed, falling back to JS', { error: String(err) });
           performJsSearch(query, conversation, searchIsRegex, set);
         });
       return;

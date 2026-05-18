@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { api } from '@renderer/api';
+import { logger } from '@renderer/lib/logger';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import {
   Select,
@@ -78,7 +79,7 @@ export const WorkspaceSection = (): React.JSX.Element => {
       const loaded = config.ssh;
       setProfiles(loaded?.profiles ?? []);
     } catch (error) {
-      console.error('[WorkspaceSection] Failed to load profiles:', error);
+      logger.error('failed to load SSH profiles', { error: String(error) });
     } finally {
       setLoading(false);
     }

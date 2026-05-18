@@ -541,7 +541,7 @@ impl ConfigState {
                 }
             }
             Err(e) => {
-                eprintln!("[config] Error serializing config: {e}");
+                tracing::error!(target: "config", error = %e, "failed to serialize config");
             }
         }
     }

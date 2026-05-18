@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import appIcon from '@renderer/favicon.png';
+import { logger } from '@renderer/lib/logger';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { CheckCircle, Code2, Download, Loader2, RefreshCw, Upload } from 'lucide-react';
@@ -50,7 +51,10 @@ export const AdvancedSection = ({
   }, [updateStatus]);
 
   useEffect(() => {
-    api.getAppVersion().then(setVersion).catch(console.error);
+    api
+      .getAppVersion()
+      .then(setVersion)
+      .catch((err: unknown) => logger.error('failed to fetch app version', { error: String(err) }));
   }, []);
 
   const handleCheckForUpdates = useCallback(() => {

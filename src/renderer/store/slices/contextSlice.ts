@@ -6,6 +6,7 @@
  */
 
 import { api } from '@renderer/api';
+import { logger } from '@renderer/lib/logger';
 import { contextStorage } from '@renderer/services/contextStorage';
 
 import { getFullResetState } from '../utils/stateResetHelpers';
@@ -240,7 +241,7 @@ export const createContextSlice: StateCreator<AppState, [], [], ContextSlice> = 
       // Fetch available contexts
       await get().fetchAvailableContexts();
     } catch (error) {
-      console.error('[contextSlice] Failed to initialize context system:', error);
+      logger.error('failed to initialize context system', { error: String(error) });
       set({ contextSnapshotsReady: true }); // Continue anyway
     }
   },
@@ -251,7 +252,7 @@ export const createContextSlice: StateCreator<AppState, [], [], ContextSlice> = 
       const result = await api.context.list();
       set({ availableContexts: result });
     } catch (error) {
-      console.error('[contextSlice] Failed to fetch available contexts:', error);
+      logger.error('failed to fetch available contexts', { error: String(error) });
       // Fallback to local-only
       set({ availableContexts: [{ id: 'local', type: 'local' }] });
     }
@@ -333,8 +334,8 @@ export const createContextSlice: StateCreator<AppState, [], [], ContextSlice> = 
           const freshIsEmpty = freshProjects.length === 0 && freshRepoGroups.length === 0;
 
           if (snapshotHadData && freshIsEmpty) {
-            console.warn(
-              '[contextSlice] Background fetch returned empty but snapshot had data — keeping snapshot'
+            logger.warn(
+              'background fetch returned empty but snapshot had data — keeping snapshot'
             );
           } else {
             set(validateSnapshot(targetSnapshot, freshProjects, freshRepoGroups));
@@ -351,7 +352,7 @@ export const createContextSlice: StateCreator<AppState, [], [], ContextSlice> = 
           });
         }
       } catch (fetchError) {
-        console.error('[contextSlice] Background data refresh failed:', fetchError);
+        logger.error('background data refresh failed', { error: String(fetchError) });
         // Keep snapshot data as fallback — don't wipe user's view
         if (!targetSnapshot) {
           // No snapshot and fetch failed — finalize switch with empty state
@@ -367,7 +368,7 @@ export const createContextSlice: StateCreator<AppState, [], [], ContextSlice> = 
       // Step 4: Fetch notifications in background
       void get().fetchNotifications();
     } catch (error) {
-      console.error('[contextSlice] Failed to switch context:', error);
+      logger.error('failed to switch context', { error: String(error) });
       // Do NOT leave in broken state
       set({
         isContextSwitching: false,

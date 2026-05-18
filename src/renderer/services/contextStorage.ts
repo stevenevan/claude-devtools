@@ -7,6 +7,7 @@
 
 import { del, get, keys, set } from 'idb-keyval';
 
+import { logger } from '@renderer/lib/logger';
 import type { DetectedError, Project, RepositoryGroup, Session } from '@renderer/types/data';
 import type { PaneLayout } from '@renderer/types/panes';
 import type { Tab } from '@renderer/types/tabs';
@@ -82,7 +83,7 @@ async function saveSnapshot(contextId: string, snapshot: ContextSnapshot): Promi
     const key = `${STORAGE_KEY_PREFIX}${contextId}`;
     await set(key, stored);
   } catch (error) {
-    console.error(`[contextStorage] Failed to save snapshot for ${contextId}:`, error);
+    logger.error('failed to save snapshot', { contextId, error: String(error) });
   }
 }
 
@@ -109,16 +110,18 @@ async function loadSnapshot(contextId: string): Promise<ContextSnapshot | null> 
 
     // Check version compatibility (simple check for now)
     if (stored.version !== SNAPSHOT_VERSION) {
-      console.warn(
-        `[contextStorage] Snapshot version mismatch for ${contextId}: expected ${SNAPSHOT_VERSION}, got ${stored.version}`
-      );
+      logger.warn('snapshot version mismatch', {
+        contextId,
+        expected: SNAPSHOT_VERSION,
+        got: stored.version,
+      });
       void deleteSnapshot(contextId);
       return null;
     }
 
     return stored.snapshot;
   } catch (error) {
-    console.error(`[contextStorage] Failed to load snapshot for ${contextId}:`, error);
+    logger.error('failed to load snapshot', { contextId, error: String(error) });
     return null;
   }
 }
@@ -131,7 +134,7 @@ async function deleteSnapshot(contextId: string): Promise<void> {
     const key = `${STORAGE_KEY_PREFIX}${contextId}`;
     await del(key);
   } catch (error) {
-    console.error(`[contextStorage] Failed to delete snapshot for ${contextId}:`, error);
+    logger.error('failed to delete snapshot', { contextId, error: String(error) });
   }
 }
 
@@ -158,12 +161,14 @@ async function cleanupExpired(): Promise<void> {
           }
         }
       } catch (error) {
-        // Skip individual key errors
-        console.error(`[contextStorage] Failed to check/delete key ${String(key)}:`, error);
+        logger.error('failed to check/delete snapshot key', {
+          key: String(key),
+          error: String(error),
+        });
       }
     }
   } catch (error) {
-    console.error('[contextStorage] Failed to cleanup expired snapshots:', error);
+    logger.error('failed to cleanup expired snapshots', { error: String(error) });
   }
 }
 

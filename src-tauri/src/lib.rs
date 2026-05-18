@@ -48,7 +48,7 @@ pub fn run() {
 
             // Start file watcher immediately (fast — just registers OS watchers)
             if let Err(e) = watcher::start_watcher(&handle) {
-                eprintln!("[tauri] WARNING: File watcher failed to start: {e}");
+                tracing::warn!(target: "tauri", error = %e, "file watcher failed to start");
             }
 
             Ok(())
@@ -57,6 +57,7 @@ pub fn run() {
             commands::get_app_version,
             commands::start_watching,
             commands::stop_watching,
+            commands::log_renderer_event,
             commands::parse_session,
             commands::parse_session_metrics,
             commands::get_analytics,

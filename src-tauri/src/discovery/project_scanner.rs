@@ -36,7 +36,7 @@ pub fn scan_projects(
         match scan_project(projects_dir, &name, registry) {
             Ok(projects) => all_projects.extend(projects),
             Err(e) => {
-                eprintln!("[scanner] Error scanning project {name}: {e}");
+                tracing::warn!(target: "scanner", project = %name, error = %e, "error scanning project");
             }
         }
     }

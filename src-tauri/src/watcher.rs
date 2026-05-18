@@ -214,7 +214,7 @@ pub fn start_watcher(app: &AppHandle) -> Result<(), String> {
                                                 if let Err(e) = crate::notifications::commands::detect_and_notify(
                                                     &handle, &fp, &pid, &sid,
                                                 ) {
-                                                    eprintln!("[watcher] Error detection failed: {e}");
+                                                    tracing::warn!(target: "watcher", error = %e, "error detection failed");
                                                 }
                                             });
                                         }
@@ -232,7 +232,7 @@ pub fn start_watcher(app: &AppHandle) -> Result<(), String> {
                 }
                 Err(errors) => {
                     for err in errors {
-                        eprintln!("[watcher] Error: {err:?}");
+                        tracing::warn!(target: "watcher", error = ?err, "watcher event error");
                     }
                 }
             }
@@ -245,15 +245,9 @@ pub fn start_watcher(app: &AppHandle) -> Result<(), String> {
         debouncer
             .watch(&projects_path, RecursiveMode::Recursive)
             .map_err(|e| format!("Failed to watch projects: {e}"))?;
-        eprintln!(
-            "[watcher] Watching projects: {}",
-            projects_path.display()
-        );
+        tracing::info!(target: "watcher", path = %crate::logging::Redact(projects_path.as_path()), "watching projects");
     } else {
-        eprintln!(
-            "[watcher] Projects dir does not exist yet: {}",
-            projects_path.display()
-        );
+        tracing::warn!(target: "watcher", path = %crate::logging::Redact(projects_path.as_path()), "projects dir missing — will retry");
     }
 
     // Watch todos directory non-recursively (flat dir of {sessionId}.json)
@@ -261,12 +255,9 @@ pub fn start_watcher(app: &AppHandle) -> Result<(), String> {
         debouncer
             .watch(&todos_path, RecursiveMode::NonRecursive)
             .map_err(|e| format!("Failed to watch todos: {e}"))?;
-        eprintln!("[watcher] Watching todos: {}", todos_path.display());
+        tracing::info!(target: "watcher", path = %crate::logging::Redact(todos_path.as_path()), "watching todos");
     } else {
-        eprintln!(
-            "[watcher] Todos dir does not exist yet: {}",
-            todos_path.display()
-        );
+        tracing::warn!(target: "watcher", path = %crate::logging::Redact(todos_path.as_path()), "todos dir missing — will retry");
     }
 
     guard.debouncer = Some(debouncer);
@@ -303,7 +294,7 @@ pub fn stop_watcher(app: &AppHandle) -> Result<(), String> {
     guard.debouncer = None;
     guard.watching = false;
 
-    eprintln!("[watcher] Stopped file watching");
+    tracing::info!(target: "watcher", "stopped file watching");
     Ok(())
 }
 
@@ -339,10 +330,7 @@ fn retry_watch(
                     .watch(&projects_path, RecursiveMode::Recursive)
                     .is_ok()
                 {
-                    eprintln!(
-                        "[watcher] Retry: now watching projects: {}",
-                        projects_path.display()
-                    );
+                    tracing::info!(target: "watcher", path = %crate::logging::Redact(projects_path.as_path()), "retry succeeded for projects");
                     need_projects = false;
                 }
             }
@@ -352,10 +340,7 @@ fn retry_watch(
                     .watch(&todos_path, RecursiveMode::NonRecursive)
                     .is_ok()
                 {
-                    eprintln!(
-                        "[watcher] Retry: now watching todos: {}",
-                        todos_path.display()
-                    );
+                    tracing::info!(target: "watcher", path = %crate::logging::Redact(todos_path.as_path()), "retry succeeded for todos");
                     need_todos = false;
                 }
             }
