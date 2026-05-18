@@ -381,6 +381,15 @@ pub fn search_all_projects(
 }
 
 #[tauri::command]
+#[tracing::instrument(
+    skip_all,
+    fields(
+        query_len = query.as_ref().map(|q| q.len()).unwrap_or(0),
+        max_results = max_results.unwrap_or(50),
+        result_count = tracing::field::Empty,
+        elapsed_ms = tracing::field::Empty,
+    )
+)]
 pub fn search_sessions_filtered(
     query: Option<String>,
     max_results: Option<usize>,
@@ -390,6 +399,7 @@ pub fn search_sessions_filtered(
     registry: tauri::State<'_, Arc<Mutex<SubprojectRegistry>>>,
     _cache: tauri::State<'_, Arc<Mutex<SessionCache>>>,
 ) -> Result<Value, String> {
+    let start = std::time::Instant::now();
     let claude_dir = watcher::resolve_claude_dir().ok_or("Cannot resolve home directory")?;
     let projects_dir = path_decoder::get_projects_base_path(&claude_dir);
     let limit = max_results.unwrap_or(50);
@@ -465,6 +475,10 @@ pub fn search_sessions_filtered(
             }
         }
     }
+
+    let span = tracing::Span::current();
+    span.record("result_count", results.len());
+    span.record("elapsed_ms", start.elapsed().as_millis() as u64);
 
     Ok(serde_json::json!({
         "results": results,

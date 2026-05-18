@@ -12,7 +12,17 @@ use super::chunk_factory::{
 };
 
 /// Filters to main thread, classifies, and uses a state machine with AI buffer.
+#[tracing::instrument(
+    skip_all,
+    fields(
+        message_count = messages.len(),
+        subagent_count = subagents.len(),
+        chunk_count = tracing::field::Empty,
+        elapsed_ms = tracing::field::Empty,
+    )
+)]
 pub fn build_chunks(messages: &[ParsedMessage], subagents: &[Process]) -> Vec<EnhancedChunk> {
+    let start = std::time::Instant::now();
     let mut chunks = Vec::new();
 
     let main_messages: Vec<&ParsedMessage> = messages.iter().filter(|m| !m.is_sidechain).collect();
@@ -68,6 +78,9 @@ pub fn build_chunks(messages: &[ParsedMessage], subagents: &[Process]) -> Vec<En
         chunks.push(build_ai_chunk_from_buffer(&ai_buffer, subagents, messages, pc, pt));
     }
 
+    let span = tracing::Span::current();
+    span.record("chunk_count", chunks.len());
+    span.record("elapsed_ms", start.elapsed().as_millis() as u64);
     chunks
 }
 

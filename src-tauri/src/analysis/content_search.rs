@@ -300,6 +300,17 @@ fn chunk_type_str(chunk: &EnhancedChunk) -> &'static str {
 const DEFAULT_PAGE_SIZE: usize = 100;
 const MAX_PAGE_SIZE: usize = 1000;
 
+#[tracing::instrument(
+    skip_all,
+    fields(
+        query_len = query.len(),
+        chunk_count = chunks.len(),
+        is_regex,
+        case_sensitive,
+        total_matches = tracing::field::Empty,
+        elapsed_ms = tracing::field::Empty,
+    )
+)]
 pub fn search_chunks(
     chunks: &[EnhancedChunk],
     query: &str,
@@ -308,6 +319,7 @@ pub fn search_chunks(
     cursor: Option<usize>,
     page_size: Option<usize>,
 ) -> Result<ContentSearchResult, String> {
+    let start = std::time::Instant::now();
     let matcher = SearchMatcher::new(query, is_regex, case_sensitive)?;
     let page_size = page_size.unwrap_or(DEFAULT_PAGE_SIZE).min(MAX_PAGE_SIZE);
     let skip = cursor.unwrap_or(0);
@@ -347,6 +359,10 @@ pub fn search_chunks(
     let consumed = skip + page_matches.len();
     let has_more = consumed < total_matches;
     let next_cursor = if has_more { Some(consumed) } else { None };
+
+    let span = tracing::Span::current();
+    span.record("total_matches", total_matches);
+    span.record("elapsed_ms", start.elapsed().as_millis() as u64);
 
     Ok(ContentSearchResult {
         matches: page_matches,

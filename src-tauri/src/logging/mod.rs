@@ -10,6 +10,7 @@ use tracing_appender::non_blocking::WorkerGuard;
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::fmt::MakeWriter;
+use tracing_subscriber::fmt::format::FmtSpan;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::registry::LookupSpan;
 
@@ -66,7 +67,8 @@ fn build_subscriber(
             .with_writer(NonBlockingMakeWriter(non_blocking))
             .with_ansi(false)
             .with_target(true)
-            .with_current_span(false)
+            .with_span_events(FmtSpan::CLOSE)
+            .with_current_span(true)
             .with_span_list(false),
     );
 
@@ -186,6 +188,36 @@ mod tests {
             body.contains(REDACTED_MARKER),
             "missing redaction marker: {body}"
         );
+    }
+
+    #[test]
+    fn instrumented_function_emits_close_event_with_elapsed_ms() {
+        let dir = tempdir().expect("tempdir");
+        let (subscriber, guard) = build_subscriber(dir.path()).expect("subscriber built");
+
+        #[tracing::instrument(
+            skip_all,
+            fields(label = %label, elapsed_ms = tracing::field::Empty)
+        )]
+        fn do_work(label: &str) -> usize {
+            let start = std::time::Instant::now();
+            let n: usize = (1..=1000).sum();
+            tracing::Span::current()
+                .record("elapsed_ms", start.elapsed().as_millis() as u64);
+            n
+        }
+
+        tracing::subscriber::with_default(subscriber, || {
+            let _ = do_work("hot_path_probe");
+        });
+
+        drop(guard);
+        std::thread::sleep(Duration::from_millis(300));
+
+        let body = read_log_contents(dir.path());
+        assert!(body.contains("do_work"), "instrumented fn span missing: {body}");
+        assert!(body.contains("hot_path_probe"), "fields not captured: {body}");
+        assert!(body.contains("elapsed_ms"), "elapsed_ms field missing: {body}");
     }
 
     #[test]

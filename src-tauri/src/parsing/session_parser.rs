@@ -223,9 +223,23 @@ fn get_task_calls(messages: &[ParsedMessage]) -> Vec<ToolCall> {
         .collect()
 }
 
+#[tracing::instrument(
+    skip_all,
+    fields(
+        path = %crate::logging::Redact(file_path),
+        elapsed_ms = tracing::field::Empty,
+        message_count = tracing::field::Empty,
+    )
+)]
 pub fn parse_session_file(file_path: &Path) -> Result<ParsedSession, String> {
+    let start = std::time::Instant::now();
     let (messages, metadata) = parse_jsonl_file(file_path)?;
-    Ok(process_messages(messages, metadata))
+    let message_count = messages.len();
+    let session = process_messages(messages, metadata);
+    let span = tracing::Span::current();
+    span.record("elapsed_ms", start.elapsed().as_millis() as u64);
+    span.record("message_count", message_count);
+    Ok(session)
 }
 
 #[cfg(test)]
