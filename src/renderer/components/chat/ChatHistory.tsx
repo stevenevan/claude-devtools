@@ -22,8 +22,9 @@ import { ReplayControls } from './ReplayControls';
 import { SessionContextPanel } from './SessionContextPanel/index';
 import { SessionMinimap } from './SessionMinimap';
 import { TodoPanel } from './TodoPanel';
-
-import type { ContextInjection } from '@renderer/types/contextInjection';
+import { computeContextInjectionsForPhase } from './chatHistoryDerivations';
+import { useChatHistoryNavigation } from './useChatHistoryNavigation';
+import { useSearchMatchSync } from './useSearchMatchSync';
 
 const CONTEXT_PANEL_WIDTH_PX = 320;
 
@@ -118,57 +119,16 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
   const thisTab = effectiveTabId ? openTabs.find((t) => t.id === effectiveTabId) : null;
   const pendingNavigation = thisTab?.pendingNavigation;
 
-  const { allContextInjections, lastAiGroupTotalTokens } = useMemo(() => {
-    if (!sessionContextStats || !conversation?.items.length) {
-      return { allContextInjections: [] as ContextInjection[], lastAiGroupTotalTokens: undefined };
-    }
-
-    const effectivePhase = selectedContextPhase;
-
-    let targetAiGroupId: string | undefined;
-    if (effectivePhase !== null && sessionPhaseInfo) {
-      const phase = sessionPhaseInfo.phases.find((p) => p.phaseNumber === effectivePhase);
-      if (phase) {
-        targetAiGroupId = phase.lastAIGroupId;
-      }
-    }
-
-    if (!targetAiGroupId) {
-      const lastAiItem = [...conversation.items].reverse().find((item) => item.type === 'ai');
-      if (lastAiItem?.type !== 'ai') {
-        return {
-          allContextInjections: [] as ContextInjection[],
-          lastAiGroupTotalTokens: undefined,
-        };
-      }
-      targetAiGroupId = lastAiItem.group.id;
-    }
-
-    const stats = sessionContextStats.get(targetAiGroupId);
-    const injections = stats?.accumulatedInjections ?? [];
-
-    let totalTokens: number | undefined;
-    const targetItem = conversation.items.find(
-      (item) => item.type === 'ai' && item.group.id === targetAiGroupId
-    );
-    if (targetItem?.type === 'ai') {
-      const responses = targetItem.group.responses || [];
-      for (let i = responses.length - 1; i >= 0; i--) {
-        const msg = responses[i];
-        if (msg.type === 'assistant' && msg.usage) {
-          const usage = msg.usage;
-          totalTokens =
-            (usage.input_tokens ?? 0) +
-            (usage.output_tokens ?? 0) +
-            (usage.cache_read_input_tokens ?? 0) +
-            (usage.cache_creation_input_tokens ?? 0);
-          break;
-        }
-      }
-    }
-
-    return { allContextInjections: injections, lastAiGroupTotalTokens: totalTokens };
-  }, [sessionContextStats, conversation, selectedContextPhase, sessionPhaseInfo]);
+  const { allContextInjections, lastAiGroupTotalTokens } = useMemo(
+    () =>
+      computeContextInjectionsForPhase({
+        conversation,
+        contextStats: sessionContextStats,
+        phaseInfo: sessionPhaseInfo,
+        selectedPhase: selectedContextPhase,
+      }),
+    [sessionContextStats, conversation, selectedContextPhase, sessionPhaseInfo]
+  );
 
   const todoData = sessionDetail?.session?.todoData;
   const hasTodoData = todoData != null && Array.isArray(todoData) && todoData.length > 0;
@@ -183,7 +143,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
 
   const isSearchActive = searchQuery.trim().length > 0;
   const shouldVirtualize = (conversation?.items.length ?? 0) >= VIRTUALIZATION_THRESHOLD;
-  const emptyRenderedSyncCountRef = useRef(0);
 
   const setSearchQueryForTab = useCallback(
     (query: string): void => {
@@ -267,62 +226,16 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     setSearchQuery(searchQuery, conversation);
   }, [isThisTabActive, searchQuery, conversation, setSearchQuery]);
 
-  useEffect(() => {
-    if (!isThisTabActive || !isSearchActive || !conversation || shouldVirtualize) {
-      emptyRenderedSyncCountRef.current = 0;
-      return;
-    }
-
-    let frameA = 0;
-    let frameB = 0;
-    let cancelled = false;
-
-    const run = (): void => {
-      const container = scrollContainerRef.current;
-      if (!container || cancelled) return;
-
-      const renderedMatches: { itemId: string; matchIndexInItem: number }[] = [];
-      const marks = container.querySelectorAll<HTMLElement>(
-        'mark[data-search-item-id][data-search-match-index]'
-      );
-      for (const mark of marks) {
-        const itemId = mark.dataset.searchItemId;
-        const matchIndexRaw = mark.dataset.searchMatchIndex;
-        const matchIndex = matchIndexRaw !== undefined ? Number(matchIndexRaw) : Number.NaN;
-        if (!itemId || !Number.isFinite(matchIndex)) continue;
-        renderedMatches.push({ itemId, matchIndexInItem: matchIndex });
-      }
-
-      if (renderedMatches.length === 0 && searchMatches.length > 0) {
-        emptyRenderedSyncCountRef.current += 1;
-        if (emptyRenderedSyncCountRef.current < 3) {
-          return;
-        }
-      } else {
-        emptyRenderedSyncCountRef.current = 0;
-      }
-
-      syncSearchMatchesWithRendered(renderedMatches);
-    };
-
-    frameA = requestAnimationFrame(() => {
-      frameB = requestAnimationFrame(run);
-    });
-
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(frameA);
-      cancelAnimationFrame(frameB);
-    };
-  }, [
+  useSearchMatchSync({
     isThisTabActive,
     isSearchActive,
-    shouldVirtualize,
     conversation,
+    shouldVirtualize,
+    scrollContainerRef,
     currentSearchIndex,
     searchMatches,
     syncSearchMatchesWithRendered,
-  ]);
+  });
 
   const { registerAIGroupRef } = useVisibleAIGroup({
     onVisibleChange: (aiGroupId) => {
@@ -375,120 +288,24 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     [registerAIGroupRef]
   );
 
-  const handleNavigateToTurn = useCallback(
-    (turnIndex: number) => {
-      if (!conversation) return;
-      const targetItem = conversation.items.find(
-        (item) => item.type === 'ai' && item.group.turnIndex === turnIndex
-      );
-      if (targetItem?.type !== 'ai') return;
-
-      const run = async (): Promise<void> => {
-        const groupId = targetItem.group.id;
-        await ensureGroupVisible(groupId);
-        const element = aiGroupRefs.current.get(groupId);
-        if (!element) return;
-
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setHighlightedGroupId(groupId);
-        setIsNavigationHighlight(true);
-        if (navigationHighlightTimerRef.current) {
-          clearTimeout(navigationHighlightTimerRef.current);
-        }
-        navigationHighlightTimerRef.current = setTimeout(() => {
-          setHighlightedGroupId(null);
-          setIsNavigationHighlight(false);
-          navigationHighlightTimerRef.current = null;
-        }, 2000);
-      };
-      void run();
-    },
-    [conversation, ensureGroupVisible, setHighlightedGroupId]
-  );
-
-  const handleNavigateToUserGroup = useCallback(
-    (turnIndex: number) => {
-      if (!conversation) return;
-      const aiItemIndex = conversation.items.findIndex(
-        (item) => item.type === 'ai' && item.group.turnIndex === turnIndex
-      );
-      if (aiItemIndex < 0) return;
-
-      const prevItem = aiItemIndex > 0 ? conversation.items[aiItemIndex - 1] : null;
-      if (prevItem?.type !== 'user') return;
-
-      const run = async (): Promise<void> => {
-        const groupId = prevItem.group.id;
-        await ensureGroupVisible(groupId);
-        const element = chatItemRefs.current.get(groupId);
-        if (!element) return;
-
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setHighlightedGroupId(groupId);
-        setIsNavigationHighlight(true);
-        if (navigationHighlightTimerRef.current) {
-          clearTimeout(navigationHighlightTimerRef.current);
-        }
-        navigationHighlightTimerRef.current = setTimeout(() => {
-          setHighlightedGroupId(null);
-          setIsNavigationHighlight(false);
-          navigationHighlightTimerRef.current = null;
-        }, 2000);
-      };
-      void run();
-    },
-    [conversation, ensureGroupVisible, setHighlightedGroupId]
-  );
-
-  const handleNavigateToTool = useCallback(
-    (turnIndex: number, toolUseId: string) => {
-      if (!conversation) return;
-      const targetItem = conversation.items.find(
-        (item) => item.type === 'ai' && item.group.turnIndex === turnIndex
-      );
-      if (targetItem?.type !== 'ai') return;
-
-      const run = async (): Promise<void> => {
-        const groupId = targetItem.group.id;
-        await ensureGroupVisible(groupId);
-
-        setHighlightedGroupId(groupId);
-        setIsNavigationHighlight(true);
-        setContextNavToolUseId(toolUseId);
-
-        let toolElement: HTMLElement | undefined;
-        const startTime = Date.now();
-        while (Date.now() - startTime < 500) {
-          toolElement = toolItemRefs.current.get(toolUseId);
-          if (toolElement) break;
-          await new Promise((resolve) => setTimeout(resolve, 50));
-        }
-
-        const scrollTarget = toolElement ?? aiGroupRefs.current.get(groupId);
-        if (scrollTarget) {
-          scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        if (navigationHighlightTimerRef.current) {
-          clearTimeout(navigationHighlightTimerRef.current);
-        }
-        navigationHighlightTimerRef.current = setTimeout(() => {
-          setHighlightedGroupId(null);
-          setIsNavigationHighlight(false);
-          setContextNavToolUseId(null);
-          navigationHighlightTimerRef.current = null;
-        }, 2000);
-      };
-      void run();
-    },
-    [conversation, ensureGroupVisible, setHighlightedGroupId]
-  );
+  const { handleNavigateToTurn, handleNavigateToUserGroup, handleNavigateToTool } =
+    useChatHistoryNavigation({
+      conversation,
+      ensureGroupVisible,
+      aiGroupRefs,
+      chatItemRefs,
+      toolItemRefs,
+      navigationHighlightTimerRef,
+      setHighlightedGroupId,
+      setIsNavigationHighlight,
+      setContextNavToolUseId,
+    });
 
   useEffect(() => {
+    const ref = navigationHighlightTimerRef;
     return () => {
-      if (navigationHighlightTimerRef.current) {
-        clearTimeout(navigationHighlightTimerRef.current);
-      }
+      const timer = ref.current;
+      if (timer) clearTimeout(timer);
     };
   }, []);
 
