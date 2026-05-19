@@ -12,6 +12,7 @@ import type { ContextSlice } from './slices/contextSlice';
 import type { ConversationSlice } from './slices/conversationSlice';
 import type { NotificationSlice } from './slices/notificationSlice';
 import type { PaneSlice } from './slices/paneSlice';
+import type { ProjectContextSlice } from './slices/projectContextSlice';
 import type { ProjectSlice } from './slices/projectSlice';
 import type { ReplaySlice } from './slices/replaySlice';
 import type { RepositorySlice } from './slices/repositorySlice';
@@ -86,6 +87,7 @@ export type AppState = ProjectSlice &
   TabSlice &
   TabUISlice &
   PaneSlice &
+  ProjectContextSlice &
   UISlice &
   NotificationSlice &
   ConfigSlice &

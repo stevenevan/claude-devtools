@@ -11,6 +11,7 @@ import { createContextSlice } from '../../../src/renderer/store/slices/contextSl
 import { createConversationSlice } from '../../../src/renderer/store/slices/conversationSlice';
 import { createNotificationSlice } from '../../../src/renderer/store/slices/notificationSlice';
 import { createPaneSlice } from '../../../src/renderer/store/slices/paneSlice';
+import { createProjectContextSlice } from '../../../src/renderer/store/slices/projectContextSlice';
 import { createProjectSlice } from '../../../src/renderer/store/slices/projectSlice';
 import { createRepositorySlice } from '../../../src/renderer/store/slices/repositorySlice';
 import { createSessionDetailSlice } from '../../../src/renderer/store/slices/sessionDetailSlice';
@@ -38,6 +39,7 @@ export function createTestStore() {
     ...createTabSlice(...args),
     ...createTabUISlice(...args),
     ...createPaneSlice(...args),
+    ...createProjectContextSlice(...args),
     ...createUISlice(...args),
     ...createNotificationSlice(...args),
     ...createConfigSlice(...args),

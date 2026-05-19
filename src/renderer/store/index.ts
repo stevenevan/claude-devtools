@@ -15,6 +15,7 @@ import { createContextSlice } from './slices/contextSlice';
 import { createConversationSlice } from './slices/conversationSlice';
 import { createNotificationSlice } from './slices/notificationSlice';
 import { createPaneSlice } from './slices/paneSlice';
+import { createProjectContextSlice } from './slices/projectContextSlice';
 import { createProjectSlice } from './slices/projectSlice';
 import { createReplaySlice } from './slices/replaySlice';
 import { createRepositorySlice } from './slices/repositorySlice';
@@ -71,6 +72,7 @@ export const useStore = create<AppState>()(
       ...createTabSlice(...args),
       ...createTabUISlice(...args),
       ...createPaneSlice(...args),
+      ...createProjectContextSlice(...args),
       ...createUISlice(...args),
       ...createNotificationSlice(...args),
       ...createConfigSlice(...args),
