@@ -1,4 +1,5 @@
 pub mod category_rules;
+pub mod content_normalization;
 pub mod content_type;
 pub mod deduplication;
 pub mod entry_parser;
