@@ -16,7 +16,9 @@ Cross-process code used by main and renderer.
 
 ## Structure
 
-- `types/` - Shared type definitions (`api.ts`, `notifications.ts`, `visualization.ts`)
+- `types/` - Shared type definitions
+  - `api/` - Tauri-API contract types, split by domain (barrel at `api/index.ts`; `ElectronAPI` master interface lives here). Type domains that exceed 400 lines may be split into a directory with a barrel `index.ts` (this is the first such case). Deep imports through the directory barrel (e.g., `@shared/types/api/snapshots`) are prohibited — always import via the barrel `@shared/types/api`.
+  - `chunks.ts`, `domain.ts`, `messages.ts`, `notifications.ts`, `jsonl.ts`, `visualization.ts`
 - `utils/` - Pure utility functions
   - `tokenFormatting.ts` - Token formatting and estimation (`estimateTokens`, `formatTokensCompact`)
   - `modelParser.ts` - Model name/family parsing

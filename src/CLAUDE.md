@@ -11,7 +11,7 @@ Backend logic lives in `src-tauri/src/` (Rust).
 
 ## API Communication
 
-Frontend calls Rust backend via Tauri `invoke()`. API defined in `src/shared/types/api.ts` (`ElectronAPI` interface), implemented by `src/renderer/api/tauriClient.ts`.
+Frontend calls Rust backend via Tauri `invoke()`. API defined in `src/shared/types/api/` (`ElectronAPI` interface lives in `src/shared/types/api/index.ts`), implemented by `src/renderer/api/tauriClient.ts`.
 
 | Domain        | Methods | Examples                                                                                                                                                                                    |
 | ------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
