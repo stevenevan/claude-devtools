@@ -4,7 +4,7 @@
 
 import { makeAssistantMessage, makeCompactMessage, makeSystemMessage, makeUserMessage } from './messages';
 
-import type { SessionMetrics } from '../../src/shared/types/domain';
+import type { SessionMetrics } from '../../src/shared/types';
 import type { ParsedMessage } from '../../src/shared/types/messages';
 import type {
   EnhancedAIChunk,

@@ -9,7 +9,7 @@
 export * from './jsonl';
 
 // Domain/business entities
-export type * from './domain';
+export type * from './domain/index';
 
 // Parsed message types and guards
 export * from './messages';

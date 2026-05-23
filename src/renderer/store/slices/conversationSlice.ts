@@ -9,7 +9,7 @@ import { findLastOutput } from '@renderer/utils/aiGroupEnhancer';
 import type { AppState, SearchMatch } from '../types';
 import type { AIGroupExpansionLevel } from '@renderer/types/groups';
 import type { SessionConversation } from '@renderer/types/groups';
-import type { ContentSearchMatch } from '@shared/types/domain';
+import type { ContentSearchMatch } from '@shared/types';
 import type { StateCreator } from 'zustand';
 
 type DetailItemType = 'thinking' | 'text' | 'linked-tool' | 'subagent';

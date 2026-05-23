@@ -25,7 +25,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { ParsedFilterChips } from './ParsedFilterChips';
 
 import type { ParsedNLQuery } from '@shared/types/api';
-import type { FilteredSearchResult, SearchFilters } from '@shared/types/domain';
+import type { FilteredSearchResult, SearchFilters } from '@shared/types';
 
 type StatusFilter = 'all' | 'ongoing' | 'completed';
 type DatePreset = 'any' | 'today' | 'week' | 'month';
