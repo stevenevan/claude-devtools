@@ -8,7 +8,7 @@ import { createClaudeConfigSlice } from '../../../src/renderer/store/slices/clau
 import { createConfigSlice } from '../../../src/renderer/store/slices/configSlice';
 import { createConnectionSlice } from '../../../src/renderer/store/slices/connectionSlice';
 import { createContextSlice } from '../../../src/renderer/store/slices/contextSlice';
-import { createConversationSlice } from '../../../src/renderer/store/slices/conversationSlice';
+import { createConversationSlice } from '../../../src/renderer/store/slices/conversation';
 import { createNotificationSlice } from '../../../src/renderer/store/slices/notificationSlice';
 import { createPaneSlice } from '../../../src/renderer/store/slices/paneSlice';
 import { createProjectContextSlice } from '../../../src/renderer/store/slices/projectContextSlice';

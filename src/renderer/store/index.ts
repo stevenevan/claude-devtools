@@ -12,7 +12,7 @@ import { createComparisonTabSlice } from './slices/comparisonTabSlice';
 import { createConfigSlice } from './slices/configSlice';
 import { createConnectionSlice } from './slices/connectionSlice';
 import { createContextSlice } from './slices/contextSlice';
-import { createConversationSlice } from './slices/conversationSlice';
+import { createConversationSlice } from './slices/conversation';
 import { createNotificationSlice } from './slices/notificationSlice';
 import { createPaneSlice } from './slices/paneSlice';
 import { createProjectContextSlice } from './slices/projectContextSlice';
