@@ -6,8 +6,8 @@ import {
   separatePinnedSessions,
 } from '@renderer/utils/dateGrouping';
 
-import type { VirtualItem } from './constants';
 import type { SidebarFilter } from '../SidebarQuickFilters';
+import type { VirtualItem } from './constants';
 import type { BookmarkEntry } from '@renderer/store/slices/configSlice';
 import type { SessionFilterState } from '@renderer/store/slices/sessionSlice';
 import type { Session, SessionSortMode } from '@renderer/types/data';

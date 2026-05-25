@@ -5,8 +5,8 @@
  * ChatHistory.tsx stays focused on layout and stateful coordination.
  */
 import { useCallback } from 'react';
-
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
+
 import type { SessionConversation } from '@renderer/types/groups';
 
 const HIGHLIGHT_DURATION_MS = 2000;

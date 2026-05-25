@@ -10,10 +10,7 @@ import { refreshSessionInPlaceAction } from './sessionDetailRefresh';
 import type { AppState } from '../types';
 import type { TabSessionData } from './sessionDetailState';
 import type { ClaudeMdStats } from '@renderer/types/claudeMd';
-import type {
-  ContextPhaseInfo,
-  ContextStats,
-} from '@renderer/types/contextInjection';
+import type { ContextPhaseInfo, ContextStats } from '@renderer/types/contextInjection';
 import type { SessionDetail } from '@renderer/types/data';
 import type { AIGroup, SessionConversation } from '@renderer/types/groups';
 import type { AgentConfig } from '@shared/types/api';

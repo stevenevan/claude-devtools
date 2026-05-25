@@ -43,16 +43,6 @@ import {
   YAxis,
 } from 'recharts';
 
-import { BudgetPanel } from './BudgetPanel';
-import { CostTrendChart } from './CostTrendChart';
-import { DashboardCustomizeMenu } from './DashboardCustomizeMenu';
-import { DurationPanel } from './DurationPanel';
-import { ErrorHotspotsPanel } from './ErrorHotspotsPanel';
-import { ModelComparisonPanel } from './ModelComparisonPanel';
-import { ProductivityPanel } from './ProductivityPanel';
-import { SessionSchedule } from './SessionSchedule';
-import { SnapshotsView } from './SnapshotsView';
-import { ToolAnalyticsPanel } from './ToolAnalyticsPanel';
 import {
   ChartSection,
   CustomBarTooltip,
@@ -62,7 +52,17 @@ import {
   StatCard,
   TopSessions,
 } from './analyticsDashboardHelpers';
+import { BudgetPanel } from './BudgetPanel';
+import { CostTrendChart } from './CostTrendChart';
+import { DashboardCustomizeMenu } from './DashboardCustomizeMenu';
 import { formatCost } from './dashboardFormatters';
+import { DurationPanel } from './DurationPanel';
+import { ErrorHotspotsPanel } from './ErrorHotspotsPanel';
+import { ModelComparisonPanel } from './ModelComparisonPanel';
+import { ProductivityPanel } from './ProductivityPanel';
+import { SessionSchedule } from './SessionSchedule';
+import { SnapshotsView } from './SnapshotsView';
+import { ToolAnalyticsPanel } from './ToolAnalyticsPanel';
 import { useWidgetVisible } from './useWidgetVisibility';
 
 export const AnalyticsDashboard = (): React.JSX.Element => {

@@ -214,10 +214,7 @@ export function SidebarFooter({ className, ...props }: React.ComponentProps<'div
   );
 }
 
-export function SidebarSeparator({
-  className,
-  ...props
-}: React.ComponentProps<typeof Separator>) {
+export function SidebarSeparator({ className, ...props }: React.ComponentProps<typeof Separator>) {
   return (
     <Separator
       data-slot="sidebar-separator"

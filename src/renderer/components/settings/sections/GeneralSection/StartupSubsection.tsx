@@ -19,10 +19,7 @@ export const StartupSubsection = ({
   return (
     <>
       <SettingsSectionHeader title="Startup" />
-      <SettingRow
-        label="Launch at login"
-        description="Automatically start the app when you log in"
-      >
+      <SettingRow label="Launch at login" description="Automatically start the app when you log in">
         <Switch
           checked={safeConfig.general.launchAtLogin}
           onCheckedChange={(v) => onGeneralToggle('launchAtLogin', v)}
@@ -30,10 +27,7 @@ export const StartupSubsection = ({
         />
       </SettingRow>
       {window.navigator.userAgent.includes('Macintosh') && (
-        <SettingRow
-          label="Show dock icon"
-          description="Display the app icon in the dock (macOS)"
-        >
+        <SettingRow label="Show dock icon" description="Display the app icon in the dock (macOS)">
           <Switch
             checked={safeConfig.general.showDockIcon}
             onCheckedChange={(v) => onGeneralToggle('showDockIcon', v)}

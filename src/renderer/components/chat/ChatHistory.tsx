@@ -14,6 +14,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { LiveMetricsBar } from '../common/LiveMetricsBar';
 
+import { computeContextInjectionsForPhase } from './chatHistoryDerivations';
 import { ChatHistoryEmptyState } from './ChatHistoryEmptyState';
 import { ChatHistoryLoadingState } from './ChatHistoryLoadingState';
 import { ChatHistoryVirtualizer } from './ChatHistoryVirtualizer';
@@ -22,7 +23,6 @@ import { ReplayControls } from './ReplayControls';
 import { SessionContextPanel } from './SessionContextPanel/index';
 import { SessionMinimap } from './SessionMinimap';
 import { TodoPanel } from './TodoPanel';
-import { computeContextInjectionsForPhase } from './chatHistoryDerivations';
 import { useChatHistoryNavigation } from './useChatHistoryNavigation';
 import { useSearchMatchSync } from './useSearchMatchSync';
 

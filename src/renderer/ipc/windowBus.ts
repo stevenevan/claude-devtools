@@ -57,7 +57,7 @@ export interface WindowBusOptions {
 export function createWindowBus(
   transport: BusTransport,
   windowId: string,
-  options: WindowBusOptions = {},
+  options: WindowBusOptions = {}
 ): WindowBus {
   const seqByTopic = new Map<string, number>();
   const pendingByTopic = new Map<string, PendingEmit>();

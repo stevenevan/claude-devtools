@@ -5,8 +5,8 @@
  * Extracted from ChatHistory to keep that component focused on layout.
  */
 import { useEffect, useRef } from 'react';
-
 import type { MutableRefObject } from 'react';
+
 import type { SearchMatch } from '@renderer/store/types';
 import type { SessionConversation } from '@renderer/types/groups';
 
@@ -20,9 +20,7 @@ export function useSearchMatchSync(args: {
   scrollContainerRef: MutableRefObject<HTMLDivElement | null>;
   currentSearchIndex: number;
   searchMatches: SearchMatch[];
-  syncSearchMatchesWithRendered: (
-    matches: { itemId: string; matchIndexInItem: number }[]
-  ) => void;
+  syncSearchMatchesWithRendered: (matches: { itemId: string; matchIndexInItem: number }[]) => void;
 }): void {
   const {
     isThisTabActive,

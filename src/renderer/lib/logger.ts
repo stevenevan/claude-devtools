@@ -1,5 +1,5 @@
-import pinoBrowser from 'pino/browser';
 import { invoke } from '@tauri-apps/api/core';
+import pinoBrowser from 'pino/browser';
 
 type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 

@@ -9,8 +9,9 @@ import {
 } from '@renderer/components/ui/select';
 import { Switch } from '@renderer/components/ui/switch';
 
-import { THEME_OPTIONS } from './constants';
 import { SettingRow, SettingsSectionHeader } from '../../components';
+
+import { THEME_OPTIONS } from './constants';
 
 import type { SafeConfig } from '../../hooks/useSettingsConfig';
 import type { AppConfig } from '@shared/types/notifications';

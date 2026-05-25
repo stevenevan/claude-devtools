@@ -334,9 +334,7 @@ export const createContextSlice: StateCreator<AppState, [], [], ContextSlice> = 
           const freshIsEmpty = freshProjects.length === 0 && freshRepoGroups.length === 0;
 
           if (snapshotHadData && freshIsEmpty) {
-            logger.warn(
-              'background fetch returned empty but snapshot had data — keeping snapshot'
-            );
+            logger.warn('background fetch returned empty but snapshot had data — keeping snapshot');
           } else {
             set(validateSnapshot(targetSnapshot, freshProjects, freshRepoGroups));
           }

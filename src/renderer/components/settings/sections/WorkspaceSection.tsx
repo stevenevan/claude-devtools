@@ -13,7 +13,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { api } from '@renderer/api';
-import { logger } from '@renderer/lib/logger';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import {
   Select,
@@ -23,6 +22,7 @@ import {
   SelectValue,
 } from '@renderer/components/ui/select';
 import { useDisclosure } from '@renderer/hooks/mantine';
+import { logger } from '@renderer/lib/logger';
 import { useStore } from '@renderer/store';
 import { Edit2, Loader2, Plus, Save, Server, Trash2, X } from 'lucide-react';
 

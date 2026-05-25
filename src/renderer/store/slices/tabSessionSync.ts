@@ -77,9 +77,7 @@ export function syncSidebarForSessionTab(get: Get, set: Set, tab: Tab, tabId: st
     return;
   }
 
-  const project = state.projects.find(
-    (p) => p.id === projectId || p.sessions.includes(sessionId)
-  );
+  const project = state.projects.find((p) => p.id === projectId || p.sessions.includes(sessionId));
   if (project) {
     const projectChanged = state.selectedProjectId !== project.id;
     set({

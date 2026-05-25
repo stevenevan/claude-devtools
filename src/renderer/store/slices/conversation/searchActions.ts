@@ -15,11 +15,7 @@ import type { AppState, SearchMatch } from '../../types';
 import type { SessionConversation } from '@renderer/types/groups';
 
 type Get = () => AppState;
-type Set = (
-  partial:
-    | Partial<AppState>
-    | ((state: AppState) => Partial<AppState>)
-) => void;
+type Set = (partial: Partial<AppState> | ((state: AppState) => Partial<AppState>)) => void;
 
 export function runSetSearchQuery(
   get: Get,

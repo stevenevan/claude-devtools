@@ -5,9 +5,9 @@
  * instant restoration when switching between local and SSH contexts.
  */
 
+import { logger } from '@renderer/lib/logger';
 import { del, get, keys, set } from 'idb-keyval';
 
-import { logger } from '@renderer/lib/logger';
 import type { DetectedError, Project, RepositoryGroup, Session } from '@renderer/types/data';
 import type { PaneLayout } from '@renderer/types/panes';
 import type { Tab } from '@renderer/types/tabs';

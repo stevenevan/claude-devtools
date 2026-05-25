@@ -17,8 +17,8 @@ import {
   runSyncSearchMatchesWithRendered,
 } from './searchActions';
 
-import type { ActiveDetailItem, ConversationSlice } from './types';
 import type { AppState } from '../../types';
+import type { ActiveDetailItem, ConversationSlice } from './types';
 import type { StateCreator } from 'zustand';
 
 export type { ActiveDetailItem, ConversationSlice } from './types';

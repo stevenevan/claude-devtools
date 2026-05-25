@@ -233,9 +233,7 @@ export interface TopSessionsProps {
   sessions: TopSessionEntry[];
 }
 
-export const TopSessions = ({
-  sessions,
-}: Readonly<TopSessionsProps>): React.JSX.Element => (
+export const TopSessions = ({ sessions }: Readonly<TopSessionsProps>): React.JSX.Element => (
   <div className="space-y-1.5">
     {sessions.length === 0 && (
       <p className="text-text-muted py-4 text-center text-xs">No sessions in this period</p>

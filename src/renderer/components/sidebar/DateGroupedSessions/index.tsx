@@ -5,17 +5,13 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { Loader2, MessageSquareOff, Pin } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
+import { SessionItem } from '../SessionItem';
+
 import { BulkActionBar } from './BulkActionBar';
-import {
-  HEADER_HEIGHT,
-  LOADER_HEIGHT,
-  OVERSCAN,
-  SESSION_HEIGHT,
-} from './constants';
+import { HEADER_HEIGHT, LOADER_HEIGHT, OVERSCAN, SESSION_HEIGHT } from './constants';
 import { HeaderToolbar } from './HeaderToolbar';
 import { SkeletonLoader } from './SkeletonLoader';
 import { useSessionListItems } from './useSessionListItems';
-import { SessionItem } from '../SessionItem';
 
 import type { SidebarFilter } from '../SidebarQuickFilters';
 

@@ -1,7 +1,11 @@
 /**
  * Pure derivations used by ChatHistory for context-injection display.
  */
-import type { ContextPhaseInfo, ContextInjection, ContextStats } from '@renderer/types/contextInjection';
+import type {
+  ContextPhaseInfo,
+  ContextInjection,
+  ContextStats,
+} from '@renderer/types/contextInjection';
 import type { SessionConversation } from '@renderer/types/groups';
 
 export interface ContextInjectionsForPhaseResult {

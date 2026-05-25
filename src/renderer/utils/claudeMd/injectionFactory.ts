@@ -1,7 +1,7 @@
 import { generateInjectionId, getDisplayName, joinPaths } from './pathHelpers';
 
-import type { ClaudeMdFileInfo } from '../../types/data';
 import type { ClaudeMdInjection, ClaudeMdSource } from '../../types/claudeMd';
+import type { ClaudeMdFileInfo } from '../../types/data';
 
 /** Default estimated tokens for global CLAUDE.md sources */
 export const DEFAULT_ESTIMATED_TOKENS = 500;

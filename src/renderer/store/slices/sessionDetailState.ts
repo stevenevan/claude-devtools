@@ -3,10 +3,7 @@
  * sibling fetch/refresh action files.
  */
 import type { ClaudeMdStats } from '@renderer/types/claudeMd';
-import type {
-  ContextPhaseInfo,
-  ContextStats,
-} from '@renderer/types/contextInjection';
+import type { ContextPhaseInfo, ContextStats } from '@renderer/types/contextInjection';
 import type { SessionDetail } from '@renderer/types/data';
 import type { AIGroup, SessionConversation } from '@renderer/types/groups';
 

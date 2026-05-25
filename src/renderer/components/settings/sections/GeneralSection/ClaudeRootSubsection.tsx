@@ -208,9 +208,7 @@ export const ClaudeRootSubsection = (): React.JSX.Element => {
         description={isCustomClaudeRoot ? 'Using custom path' : 'Using auto-detected path'}
       >
         <div className="max-w-96 text-right">
-          <div className="text-foreground truncate font-mono text-xs">
-            {resolvedClaudeRootPath}
-          </div>
+          <div className="text-foreground truncate font-mono text-xs">{resolvedClaudeRootPath}</div>
           <div className="text-muted-foreground text-[11px]">
             Auto-detected: {defaultClaudeRootPath}
           </div>

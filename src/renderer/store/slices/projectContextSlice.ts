@@ -14,12 +14,10 @@ export interface ProjectContextSlice {
   clearActiveProject: () => void;
 }
 
-export const createProjectContextSlice: StateCreator<
-  AppState,
-  [],
-  [],
-  ProjectContextSlice
-> = (set, get) => ({
+export const createProjectContextSlice: StateCreator<AppState, [], [], ProjectContextSlice> = (
+  set,
+  get
+) => ({
   activeProjectId: null,
 
   setActiveProject: (projectId: string) => {
