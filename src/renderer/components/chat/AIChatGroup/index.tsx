@@ -1,115 +1,28 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 
 import { useTabUI } from '@renderer/hooks/useTabUI';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
-import { enhanceAIGroup, type PrecedingSlashInfo } from '@renderer/utils/aiGroupEnhancer';
-import { extractSlashInfo, isCommandContent } from '@shared/utils/contentSanitizer';
+import { enhanceAIGroup } from '@renderer/utils/aiGroupEnhancer';
 import { getModelColorClass } from '@shared/utils/modelParser';
-import { estimateTokens } from '@shared/utils/tokenFormatting';
 import { format } from 'date-fns';
-import { Bookmark, BookmarkCheck, Bot, ChevronDown, Clock, Copy } from 'lucide-react';
+import { Bot, ChevronDown, Clock, Copy } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
-import { TokenUsageDisplay } from '../common/TokenUsageDisplay';
+import { TokenUsageDisplay } from '../../common/TokenUsageDisplay';
+import { AnnotationBadge } from '../AnnotationBadge';
+import { ContextBadge } from '../ContextBadge';
+import { DisplayItemList } from '../DisplayItemList';
+import { LastOutputDisplay } from '../LastOutputDisplay';
 
-import { AnnotationBadge } from './AnnotationBadge';
-import { ContextBadge } from './ContextBadge';
-import { DisplayItemList } from './DisplayItemList';
-import { LastOutputDisplay } from './LastOutputDisplay';
+import { BookmarkToggle } from './BookmarkToggle';
+import { containsToolUseId, extractPrecedingSlashInfo, formatDuration } from './helpers';
+import { useAIGroupExpansion } from './useAIGroupExpansion';
+import { useAIGroupTokens } from './useAIGroupTokens';
 
 import type { ContextStats } from '@renderer/types/contextInjection';
-import type {
-  AIGroup,
-  AIGroupDisplayItem,
-  EnhancedAIGroup,
-  UserGroup,
-} from '@renderer/types/groups';
+import type { AIGroup, EnhancedAIGroup } from '@renderer/types/groups';
 import type { TriggerColor } from '@shared/constants/triggerColors';
-
-/**
- * Extract slash info from a UserGroup's message content.
- * Returns PrecedingSlashInfo if the user message was a slash invocation,
- * null otherwise.
- */
-function extractPrecedingSlashInfo(
-  userGroup: UserGroup | undefined
-): PrecedingSlashInfo | undefined {
-  if (!userGroup) return undefined;
-
-  const msg = userGroup.message;
-  const content = msg.content;
-
-  // Check if this is a slash message (has <command-name> tags)
-  if (typeof content === 'string' && isCommandContent(content)) {
-    const slashInfo = extractSlashInfo(content);
-    if (slashInfo) {
-      return {
-        name: slashInfo.name,
-        message: slashInfo.message,
-        args: slashInfo.args,
-        commandMessageUuid: msg.uuid,
-        timestamp: new Date(msg.timestamp),
-      };
-    }
-  }
-
-  return undefined;
-}
-
-/**
- * Format duration in milliseconds to human-readable string.
- * Examples: "1.2s", "45s", "1m 30s", "5m"
- */
-function formatDuration(ms: number): string {
-  if (ms < 1000) {
-    return `${ms}ms`;
-  }
-  const seconds = Math.floor(ms / 1000);
-  if (seconds < 60) {
-    const decimal = ms % 1000 >= 100 ? `.${Math.floor((ms % 1000) / 100)}` : '';
-    return `${seconds}${decimal}s`;
-  }
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  if (remainingSeconds === 0) {
-    return `${minutes}m`;
-  }
-  return `${minutes}m ${remainingSeconds}s`;
-}
-
-/**
- * Bookmark toggle button for AI groups.
- * Shows filled icon when bookmarked, toggles add/remove on click.
- */
-const BookmarkToggle = ({ groupId }: Readonly<{ groupId: string }>): React.JSX.Element => {
-  const isBookmarked = useStore(
-    useCallback((s) => s.bookmarks.some((b) => b.groupId === groupId), [groupId])
-  );
-  const toggleBookmark = useStore((s) => s.toggleBookmark);
-  const sessionId = useStore((s) => s.selectedSessionId);
-  const projectId = useStore((s) => s.selectedProjectId);
-
-  return (
-    <button
-      onClick={(e) => {
-        e.stopPropagation();
-        if (sessionId && projectId) {
-          void toggleBookmark(sessionId, projectId, groupId);
-        }
-      }}
-      className={cn(
-        'shrink-0 transition-opacity',
-        isBookmarked
-          ? 'text-amber-400 opacity-100'
-          : 'text-muted-foreground hover:text-amber-400 opacity-0 group-hover:opacity-100'
-      )}
-      title={isBookmarked ? 'Remove bookmark' : 'Bookmark this turn'}
-    >
-      {isBookmarked ? <BookmarkCheck className="size-3.5" /> : <Bookmark className="size-3.5" />}
-    </button>
-  );
-};
 
 interface AIChatGroupProps {
   aiGroup: AIGroup;
@@ -119,29 +32,6 @@ interface AIChatGroupProps {
   highlightColor?: TriggerColor;
   /** Register ref for individual tool items (for precise scroll targeting) */
   registerToolRef?: (toolId: string, el: HTMLElement | null) => void;
-}
-
-/**
- * Checks if a tool ID exists within the display items (including nested subagents).
- */
-function containsToolUseId(items: AIGroupDisplayItem[], toolUseId: string): boolean {
-  for (const item of items) {
-    if (item.type === 'tool' && item.tool.id === toolUseId) {
-      return true;
-    }
-    // Check nested subagent messages for the tool ID
-    if (item.type === 'subagent' && item.subagent.messages) {
-      for (const msg of item.subagent.messages) {
-        if (msg.toolCalls?.some((tc) => tc.id === toolUseId)) {
-          return true;
-        }
-        if (msg.toolResults?.some((tr) => tr.toolUseId === toolUseId)) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
 }
 
 /**
@@ -265,153 +155,28 @@ const AIChatGroupInner = ({
     return containsToolUseId(enhanced.displayItems, highlightToolUseId);
   }, [enhanced.displayItems, highlightToolUseId]);
 
-  // Get the LAST assistant message's usage (represents current context window snapshot)
-  // This is the correct metric to display - not the summed values across all messages
-  const lastUsage = useMemo(() => {
-    const responses = aiGroup.responses || [];
-    // Find the last assistant message with usage data
-    for (let i = responses.length - 1; i >= 0; i--) {
-      const msg = responses[i];
-      if (msg.type === 'assistant' && msg.usage) {
-        return msg.usage;
-      }
-    }
-    return null;
-  }, [aiGroup.responses]);
-
-  // Calculate thinking and text output tokens from assistant message content blocks
-  // These are estimated from the actual content, providing breakdown of output token usage
-  const { thinkingTokens, textOutputTokens } = useMemo(() => {
-    let thinking = 0;
-    let textOutput = 0;
-
-    const responses = aiGroup.responses || [];
-    for (const msg of responses) {
-      if (msg.type === 'assistant' && Array.isArray(msg.content)) {
-        for (const block of msg.content) {
-          if (block.type === 'thinking' && block.thinking) {
-            thinking += estimateTokens(block.thinking);
-          } else if (block.type === 'text' && block.text) {
-            textOutput += estimateTokens(block.text);
-          }
-        }
-      }
-    }
-
-    return { thinkingTokens: thinking, textOutputTokens: textOutput };
-  }, [aiGroup.responses]);
+  const { lastUsage, thinkingTokens, textOutputTokens } = useAIGroupTokens(aiGroup.responses);
 
   // Auto-expand if contains error or search result, or if manually expanded
   const isExpanded =
     isAIGroupExpandedForTab(aiGroup.id) || containsHighlightedError || shouldExpandForSearch;
 
-  // Helper function to find the item ID containing the highlighted tool
-  const findHighlightedItemId = useCallback(
-    (toolUseId: string): string | null => {
-      for (let i = 0; i < enhanced.displayItems.length; i++) {
-        const item = enhanced.displayItems[i];
-        if (item.type === 'tool' && item.tool.id === toolUseId) {
-          return `tool-${item.tool.id}-${i}`;
-        }
-        // For subagents, expand the subagent item
-        if (item.type === 'subagent' && item.subagent.messages) {
-          for (const msg of item.subagent.messages) {
-            if (
-              msg.toolCalls?.some((tc) => tc.id === toolUseId) ||
-              msg.toolResults?.some((tr) => tr.toolUseId === toolUseId)
-            ) {
-              return `subagent-${item.subagent.id}-${i}`;
-            }
-          }
-        }
-      }
-      return null;
-    },
-    [enhanced.displayItems]
-  );
+  useAIGroupExpansion({
+    aiGroupId: aiGroup.id,
+    displayItems: enhanced.displayItems,
+    highlightToolUseId,
+    containsHighlightedError,
+    shouldExpandForSearch,
+    searchCurrentDisplayItemId,
+    searchExpandedSubagentIds,
+    expandDisplayItem,
+  });
 
   // Get expanded item IDs for this AI group (per-tab)
   const expandedItemIds = useMemo(
     () => getExpandedDisplayItemIds(aiGroup.id),
     [getExpandedDisplayItemIds, aiGroup.id]
   );
-
-  // Track which highlightToolUseId we've already processed to prevent infinite loops
-  const processedHighlightRef = useRef<string | null>(null);
-
-  // Effect to auto-expand display item when highlightToolUseId is set
-  // AI group expansion is now handled by the navigation coordinator
-  // This only handles display item expansion which requires enhanced data
-  useEffect(() => {
-    if (!highlightToolUseId || !containsHighlightedError) {
-      // Reset ref when highlight is cleared
-      if (!highlightToolUseId) {
-        processedHighlightRef.current = null;
-      }
-      return;
-    }
-
-    // Skip if we've already processed this exact highlight
-    if (processedHighlightRef.current === highlightToolUseId) {
-      return;
-    }
-
-    // Mark as processed BEFORE making any state changes
-    processedHighlightRef.current = highlightToolUseId;
-
-    // Find and expand the display item containing the highlighted tool
-    // No delay needed - navigation coordinator ensures DOM is stable before highlight
-    const itemId = findHighlightedItemId(highlightToolUseId);
-    if (itemId) {
-      expandDisplayItem(aiGroup.id, itemId);
-    }
-  }, [
-    highlightToolUseId,
-    containsHighlightedError,
-    aiGroup.id,
-    expandDisplayItem,
-    findHighlightedItemId,
-  ]);
-
-  // Track which search we've already processed to prevent infinite loops
-  const processedSearchRef = useRef<string | null>(null);
-
-  // Effect to auto-expand display items when search navigates to this group
-  // Note: AI group expansion is handled by derived isExpanded (shouldExpandForSearch)
-  useEffect(() => {
-    if (!shouldExpandForSearch) {
-      processedSearchRef.current = null;
-      return;
-    }
-
-    // Create a unique key for this search state
-    const searchKey = `${searchCurrentDisplayItemId ?? ''}-${Array.from(searchExpandedSubagentIds).join(',')}`;
-    if (processedSearchRef.current === searchKey) {
-      return;
-    }
-    processedSearchRef.current = searchKey;
-
-    // Expand the specific display item containing the search result (uses per-tab state)
-    if (searchCurrentDisplayItemId) {
-      expandDisplayItem(aiGroup.id, searchCurrentDisplayItemId);
-    }
-
-    // If any subagents in this group need their trace expanded for search, expand them
-    for (let i = 0; i < enhanced.displayItems.length; i++) {
-      const item = enhanced.displayItems[i];
-      if (item.type === 'subagent' && searchExpandedSubagentIds.has(item.subagent.id)) {
-        const subagentItemId = `subagent-${item.subagent.id}-${i}`;
-        expandDisplayItem(aiGroup.id, subagentItemId);
-      }
-    }
-  }, [
-    shouldExpandForSearch,
-    searchCurrentDisplayItemId,
-    searchExpandedSubagentIds,
-    enhanced.displayItems,
-    aiGroup.id,
-    expandDisplayItem,
-  ]);
 
   // Determine if there's content to toggle
   const hasToggleContent = enhanced.displayItems.length > 0;
