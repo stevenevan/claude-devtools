@@ -2,8 +2,8 @@ import { api } from '@renderer/api';
 
 import { useStore } from '../useStore';
 
-import type { ListenerContext } from './types';
 import type { DetectedError } from '../../types/data';
+import type { ListenerContext } from './types';
 
 export function attachNotificationListeners(ctx: ListenerContext): void {
   // Listen for new notifications from main process

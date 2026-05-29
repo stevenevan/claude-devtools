@@ -5,8 +5,8 @@ import { createPinActions } from './pinActions';
 import { createSelectionActions } from './selectionActions';
 import { createUiActions } from './uiActions';
 
-import type { SessionSlice } from './types';
 import type { AppState } from '../../types';
+import type { SessionSlice } from './types';
 import type { SessionSortMode } from '@renderer/types/data';
 import type { StateCreator } from 'zustand';
 
