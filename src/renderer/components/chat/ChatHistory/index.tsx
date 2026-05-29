@@ -9,30 +9,24 @@ import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { countPendingTodos } from '@renderer/types/todos';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { ChevronsDown } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
-import { LiveMetricsBar } from '../common/LiveMetricsBar';
+import { LiveMetricsBar } from '../../common/LiveMetricsBar';
+import { computeContextInjectionsForPhase } from '../chatHistoryDerivations';
+import { ChatHistoryEmptyState } from '../ChatHistoryEmptyState';
+import { ChatHistoryLoadingState } from '../ChatHistoryLoadingState';
+import { ChatHistoryVirtualizer } from '../ChatHistoryVirtualizer';
+import { ContextHeatmap } from '../ContextHeatmap';
+import { ReplayControls } from '../ReplayControls';
+import { useChatHistoryNavigation } from '../useChatHistoryNavigation';
+import { useSearchMatchSync } from '../useSearchMatchSync';
 
-import { computeContextInjectionsForPhase } from './chatHistoryDerivations';
-import { ChatHistoryEmptyState } from './ChatHistoryEmptyState';
-import { ChatHistoryLoadingState } from './ChatHistoryLoadingState';
-import { ChatHistoryVirtualizer } from './ChatHistoryVirtualizer';
-import { ContextHeatmap } from './ContextHeatmap';
-import { ReplayControls } from './ReplayControls';
-import { SessionContextPanel } from './SessionContextPanel/index';
-import { SessionMinimap } from './SessionMinimap';
-import { TodoPanel } from './TodoPanel';
-import { useChatHistoryNavigation } from './useChatHistoryNavigation';
-import { useSearchMatchSync } from './useSearchMatchSync';
-
-const CONTEXT_PANEL_WIDTH_PX = 320;
-
-function waitForDoubleRaf(): Promise<void> {
-  return new Promise((resolve) =>
-    requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
-  );
-}
+import { ChatHistorySidePanels } from './ChatHistorySidePanels';
+import { ChatHistoryToolbar } from './ChatHistoryToolbar';
+import { CONTEXT_PANEL_WIDTH_PX, waitForDoubleRaf } from './helpers';
+import { ScrollToBottomButton } from './ScrollToBottomButton';
+import { SessionTitleHeader } from './SessionTitleHeader';
+import { useChatHistoryRefs } from './useChatHistoryRefs';
 
 interface ChatHistoryProps {
   tabId?: string;
@@ -276,16 +270,11 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     setIsNavigationHighlight,
   });
 
-  const registerAIGroupRefCombined = useCallback(
-    (groupId: string) => {
-      const visibilityRef = registerAIGroupRef(groupId);
-      return (el: HTMLElement | null) => {
-        if (typeof visibilityRef === 'function') visibilityRef(el);
-        if (el) aiGroupRefs.current.set(groupId, el);
-        else aiGroupRefs.current.delete(groupId);
-      };
-    },
-    [registerAIGroupRef]
+  const { registerAIGroupRefCombined, registerChatItemRef, registerToolRef } = useChatHistoryRefs(
+    registerAIGroupRef,
+    aiGroupRefs,
+    chatItemRefs,
+    toolItemRefs
   );
 
   const { handleNavigateToTurn, handleNavigateToUserGroup, handleNavigateToTool } =
@@ -307,18 +296,6 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
       const timer = ref.current;
       if (timer) clearTimeout(timer);
     };
-  }, []);
-
-  const registerChatItemRef = useCallback((groupId: string) => {
-    return (el: HTMLElement | null) => {
-      if (el) chatItemRefs.current.set(groupId, el);
-      else chatItemRefs.current.delete(groupId);
-    };
-  }, []);
-
-  const registerToolRef = useCallback((toolId: string, el: HTMLElement | null) => {
-    if (el) toolItemRefs.current.set(toolId, el);
-    else toolItemRefs.current.delete(toolId);
   }, []);
 
   const handleMinimapJump = useCallback(
@@ -361,52 +338,20 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
           onScroll={checkScrollButton}
         >
           {(allContextInjections.length > 0 || hasTodoData) && (
-            <div className="pointer-events-none sticky top-0 z-10 flex justify-end gap-1.5 px-4 pt-3 pb-0">
-              {sessionContextStats && sessionContextStats.size > 0 && (
-                <button
-                  onClick={() => toggleContextHeatmap()}
-                  className={cn(
-                    'pointer-events-auto flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs shadow-lg backdrop-blur-md transition-colors',
-                    contextHeatmapVisible
-                      ? 'bg-violet-500/45 text-violet-100'
-                      : 'bg-muted text-muted-foreground hover:bg-accent'
-                  )}
-                  title={contextHeatmapVisible ? 'Hide context heatmap' : 'Show context heatmap'}
-                >
-                  Heatmap
-                </button>
-              )}
-              {hasTodoData && (
-                <button
-                  onClick={() => setIsTodoPanelVisible(!isTodoPanelVisible)}
-                  className={cn(
-                    'pointer-events-auto flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs shadow-lg backdrop-blur-md transition-colors',
-                    isTodoPanelVisible
-                      ? 'bg-emerald-500/45 text-emerald-100'
-                      : 'bg-muted text-muted-foreground hover:bg-accent'
-                  )}
-                >
-                  Tasks ({todoPendingCount})
-                </button>
-              )}
-              {allContextInjections.length > 0 && (
-                <button
-                  onClick={() => setContextPanelVisible(!isContextPanelVisible)}
-                  onMouseEnter={() => setIsContextButtonHovered(true)}
-                  onMouseLeave={() => setIsContextButtonHovered(false)}
-                  className={cn(
-                    'pointer-events-auto flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs shadow-lg backdrop-blur-md transition-colors',
-                    isContextPanelVisible
-                      ? 'bg-indigo-500/45 text-indigo-100'
-                      : isContextButtonHovered
-                        ? 'hover:bg-accent text-muted-foreground'
-                        : 'bg-muted text-muted-foreground'
-                  )}
-                >
-                  Context ({allContextInjections.length})
-                </button>
-              )}
-            </div>
+            <ChatHistoryToolbar
+              showHeatmapButton={!!sessionContextStats && sessionContextStats.size > 0}
+              contextHeatmapVisible={contextHeatmapVisible}
+              onToggleHeatmap={() => toggleContextHeatmap()}
+              hasTodoData={hasTodoData}
+              isTodoPanelVisible={isTodoPanelVisible}
+              onToggleTodo={() => setIsTodoPanelVisible(!isTodoPanelVisible)}
+              todoPendingCount={todoPendingCount}
+              contextInjectionCount={allContextInjections.length}
+              isContextPanelVisible={isContextPanelVisible}
+              onToggleContext={() => setContextPanelVisible(!isContextPanelVisible)}
+              isContextButtonHovered={isContextButtonHovered}
+              setIsContextButtonHovered={setIsContextButtonHovered}
+            />
           )}
           {contextHeatmapVisible && sessionContextStats && conversation.items.length > 0 && (
             <div className="sticky top-12 z-10 mx-auto max-w-5xl px-6 pt-2 pb-1">
@@ -423,21 +368,10 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
               allContextInjections.length > 0 && '-mt-8'
             )}
           >
-            {(sessionDetail?.session?.customTitle || sessionDetail?.session?.agentName) && (
-              <div className="mb-6">
-                {sessionDetail.session.customTitle && (
-                  <h1 className="text-foreground text-lg font-semibold">
-                    {sessionDetail.session.customTitle}
-                  </h1>
-                )}
-                {sessionDetail.session.agentName &&
-                  sessionDetail.session.agentName !== sessionDetail.session.customTitle && (
-                    <p className="text-muted-foreground mt-1 text-sm">
-                      Agent: {sessionDetail.session.agentName}
-                    </p>
-                  )}
-              </div>
-            )}
+            <SessionTitleHeader
+              customTitle={sessionDetail?.session?.customTitle}
+              agentName={sessionDetail?.session?.agentName}
+            />
             <div className="space-y-6">
               <ChatHistoryVirtualizer
                 items={conversation.items}
@@ -459,56 +393,39 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
         </div>
 
         {showScrollButton && (
-          <button
+          <ScrollToBottomButton
             onClick={() => {
               scrollToBottom('smooth');
               setShowScrollButton(false);
             }}
-            className="text-muted-foreground border-border bg-muted absolute bottom-5 z-20 flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs shadow-lg backdrop-blur-md transition-all"
-            style={{
-              right:
-                isContextPanelVisible && allContextInjections.length > 0
-                  ? `calc(${CONTEXT_PANEL_WIDTH_PX}px + 1rem)`
-                  : '1rem',
-            }}
-            title="Scroll to bottom"
-          >
-            <ChevronsDown className="size-3.5" />
-            <span>Bottom</span>
-          </button>
-        )}
-
-        {conversation.items.length >= 5 && (
-          <SessionMinimap
-            items={conversation.items}
-            scrollContainerRef={scrollContainerRef}
-            onJumpToIndex={handleMinimapJump}
-            className="border-border/30 border-l"
+            rightOffset={
+              isContextPanelVisible && allContextInjections.length > 0
+                ? `calc(${CONTEXT_PANEL_WIDTH_PX}px + 1rem)`
+                : '1rem'
+            }
           />
         )}
 
-        {isTodoPanelVisible && hasTodoData && (
-          <div className="border-border w-72 shrink-0 border-l">
-            <TodoPanel todoData={todoData} onClose={() => setIsTodoPanelVisible(false)} />
-          </div>
-        )}
-
-        {isContextPanelVisible && allContextInjections.length > 0 && (
-          <div className="w-80 shrink-0">
-            <SessionContextPanel
-              injections={allContextInjections}
-              onClose={() => setContextPanelVisible(false)}
-              projectRoot={sessionDetail?.session?.projectPath}
-              onNavigateToTurn={handleNavigateToTurn}
-              onNavigateToTool={handleNavigateToTool}
-              onNavigateToUserGroup={handleNavigateToUserGroup}
-              totalSessionTokens={lastAiGroupTotalTokens}
-              phaseInfo={sessionPhaseInfo ?? undefined}
-              selectedPhase={selectedContextPhase}
-              onPhaseChange={setSelectedContextPhase}
-            />
-          </div>
-        )}
+        <ChatHistorySidePanels
+          items={conversation.items}
+          scrollContainerRef={scrollContainerRef}
+          onMinimapJump={handleMinimapJump}
+          isTodoPanelVisible={isTodoPanelVisible}
+          hasTodoData={hasTodoData}
+          todoData={todoData}
+          onCloseTodo={() => setIsTodoPanelVisible(false)}
+          isContextPanelVisible={isContextPanelVisible}
+          contextInjections={allContextInjections}
+          onCloseContext={() => setContextPanelVisible(false)}
+          projectRoot={sessionDetail?.session?.projectPath}
+          onNavigateToTurn={handleNavigateToTurn}
+          onNavigateToTool={handleNavigateToTool}
+          onNavigateToUserGroup={handleNavigateToUserGroup}
+          totalSessionTokens={lastAiGroupTotalTokens}
+          phaseInfo={sessionPhaseInfo ?? undefined}
+          selectedPhase={selectedContextPhase}
+          onPhaseChange={setSelectedContextPhase}
+        />
       </div>
     </div>
   );
