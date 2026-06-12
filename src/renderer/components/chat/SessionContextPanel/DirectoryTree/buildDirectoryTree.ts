@@ -1,13 +1,6 @@
-/**
- * Build a directory tree structure from CLAUDE.md injections.
- */
-
 import type { TreeNode } from './types';
 import type { ClaudeMdContextInjection } from '@renderer/types/contextInjection';
 
-/**
- * Build a tree structure from a list of directory CLAUDE.md injections.
- */
 export function buildDirectoryTree(
   injections: ClaudeMdContextInjection[],
   projectRoot: string

@@ -1,0 +1,46 @@
+import { useCallback } from 'react';
+
+interface ChatHistoryRefs {
+  registerAIGroupRefCombined: (groupId: string) => (el: HTMLElement | null) => void;
+  registerChatItemRef: (groupId: string) => (el: HTMLElement | null) => void;
+  registerToolRef: (toolId: string, el: HTMLElement | null) => void;
+}
+
+export const useChatHistoryRefs = (
+  registerAIGroupRef: (groupId: string) => ((el: HTMLElement | null) => void) | void,
+  aiGroupRefs: React.MutableRefObject<Map<string, HTMLElement>>,
+  chatItemRefs: React.MutableRefObject<Map<string, HTMLElement>>,
+  toolItemRefs: React.MutableRefObject<Map<string, HTMLElement>>
+): ChatHistoryRefs => {
+  const registerAIGroupRefCombined = useCallback(
+    (groupId: string) => {
+      const visibilityRef = registerAIGroupRef(groupId);
+      return (el: HTMLElement | null) => {
+        if (typeof visibilityRef === 'function') visibilityRef(el);
+        if (el) aiGroupRefs.current.set(groupId, el);
+        else aiGroupRefs.current.delete(groupId);
+      };
+    },
+    [registerAIGroupRef, aiGroupRefs]
+  );
+
+  const registerChatItemRef = useCallback(
+    (groupId: string) => {
+      return (el: HTMLElement | null) => {
+        if (el) chatItemRefs.current.set(groupId, el);
+        else chatItemRefs.current.delete(groupId);
+      };
+    },
+    [chatItemRefs]
+  );
+
+  const registerToolRef = useCallback(
+    (toolId: string, el: HTMLElement | null) => {
+      if (el) toolItemRefs.current.set(toolId, el);
+      else toolItemRefs.current.delete(toolId);
+    },
+    [toolItemRefs]
+  );
+
+  return { registerAIGroupRefCombined, registerChatItemRef, registerToolRef };
+};

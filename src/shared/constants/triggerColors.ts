@@ -1,10 +1,3 @@
-/**
- * Preset color palette for notification triggers.
- * Shared between main and renderer processes.
- *
- * Supports both preset color keys and custom hex strings (e.g., '#ff6600').
- */
-
 export type TriggerColorKey =
   | 'red'
   | 'orange'
@@ -15,7 +8,6 @@ export type TriggerColorKey =
   | 'pink'
   | 'cyan';
 
-/** Color value: either a preset key or a custom hex string like '#ff6600'. */
 export type TriggerColor = TriggerColorKey | `#${string}`;
 
 export interface TriggerColorDef {
@@ -45,10 +37,6 @@ export function isPresetColorKey(value: string | undefined): value is TriggerCol
   return TRIGGER_COLOR_MAP.has(value ?? '');
 }
 
-/**
- * Resolve a color value (preset key or hex string) to a TriggerColorDef.
- * Custom hex strings return a synthetic def with key and label set to the hex value.
- */
 export function getTriggerColorDef(color: TriggerColor | undefined): TriggerColorDef {
   if (!color) return TRIGGER_COLOR_MAP.get(DEFAULT_TRIGGER_COLOR) ?? TRIGGER_COLORS[0];
   const preset = TRIGGER_COLOR_MAP.get(color);
@@ -58,14 +46,10 @@ export function getTriggerColorDef(color: TriggerColor | undefined): TriggerColo
   return TRIGGER_COLOR_MAP.get(DEFAULT_TRIGGER_COLOR) ?? TRIGGER_COLORS[0];
 }
 
-/** Resolve any TriggerColor to its hex value. */
 export function resolveColorHex(color: TriggerColor | undefined): string {
   return getTriggerColorDef(color).hex;
 }
 
-/**
- * Tailwind highlight classes for chat group rings (error navigation).
- */
 export const HIGHLIGHT_CLASSES: Record<TriggerColorKey, string> = {
   red: 'ring-2 ring-red-500/30 bg-red-500/5',
   orange: 'ring-2 ring-orange-500/30 bg-orange-500/5',
@@ -77,10 +61,6 @@ export const HIGHLIGHT_CLASSES: Record<TriggerColorKey, string> = {
   cyan: 'ring-2 ring-cyan-500/30 bg-cyan-500/5',
 };
 
-/**
- * Get highlight classes for a color, supporting custom hex.
- * Returns { className, style } — use className for presets, style for custom hex.
- */
 export function getHighlightProps(color: TriggerColor | undefined): {
   className: string;
   style?: React.CSSProperties;
@@ -94,9 +74,6 @@ export function getHighlightProps(color: TriggerColor | undefined): {
   };
 }
 
-/**
- * Tailwind highlight classes for tool item rings (pulsing highlight).
- */
 export const TOOL_HIGHLIGHT_CLASSES: Record<TriggerColorKey, string> = {
   red: 'ring-2 ring-red-500 bg-red-500/10 animate-pulse',
   orange: 'ring-2 ring-orange-500 bg-orange-500/10 animate-pulse',
@@ -108,9 +85,6 @@ export const TOOL_HIGHLIGHT_CLASSES: Record<TriggerColorKey, string> = {
   cyan: 'ring-2 ring-cyan-500 bg-cyan-500/10 animate-pulse',
 };
 
-/**
- * Get tool highlight classes for a color, supporting custom hex.
- */
 export function getToolHighlightProps(color: TriggerColor | undefined): {
   className: string;
   style?: React.CSSProperties;

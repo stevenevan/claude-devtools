@@ -1,8 +1,3 @@
-/**
- * NotificationRow - Linear Inbox-style notification row.
- * Compact, high-density layout with hover actions.
- */
-
 import { useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';
@@ -19,9 +14,6 @@ interface NotificationRowProps {
   onDelete: () => void;
 }
 
-/**
- * Truncates a string to a maximum length, adding ellipsis if truncated.
- */
 function truncateMessage(message: string, maxLength: number = 100): string {
   if (message.length <= maxLength) return message;
   return message.slice(0, maxLength).trim() + '...';
@@ -77,7 +69,6 @@ export const NotificationRow = ({
         !isUnread && 'opacity-50'
       )}
     >
-      {/* Color Dot — always visible, opacity indicates read state */}
       <div className="flex w-3 shrink-0 justify-center">
         <span
           className={cn('size-2.5 rounded-full', !isUnread && 'opacity-40')}
@@ -85,9 +76,7 @@ export const NotificationRow = ({
         />
       </div>
 
-      {/* Content */}
       <div className="min-w-0 flex-1 py-2">
-        {/* Title Row */}
         <div className="flex items-center gap-1.5">
           <span
             className={cn(
@@ -106,11 +95,9 @@ export const NotificationRow = ({
             </span>
           )}
         </div>
-        {/* Description */}
         <p className="text-muted-foreground mt-0.5 truncate text-xs">{truncatedMessage}</p>
       </div>
 
-      {/* Right Side: Time or Hover Actions */}
       <div className="flex shrink-0 items-center gap-1">
         {isHovered ? (
           <HoverActions
@@ -129,9 +116,6 @@ export const NotificationRow = ({
   );
 };
 
-/**
- * HoverActions - Action buttons shown on hover.
- */
 interface HoverActionsProps {
   isUnread: boolean;
   onArchiveClick: (e: React.MouseEvent) => void;
@@ -147,7 +131,6 @@ const HoverActions = ({
 }: HoverActionsProps): React.JSX.Element => {
   return (
     <>
-      {/* Archive Button (mark as read) */}
       {isUnread && (
         <button
           onClick={onArchiveClick}
@@ -157,7 +140,6 @@ const HoverActions = ({
           <Check className="size-4" />
         </button>
       )}
-      {/* Delete Button */}
       <button
         onClick={onDeleteClick}
         className="text-muted-foreground hover:bg-muted rounded-sm p-1.5 transition-colors hover:text-red-400"
@@ -165,7 +147,6 @@ const HoverActions = ({
       >
         <Trash2 className="size-4" />
       </button>
-      {/* Navigate Button */}
       <button
         onClick={onNavigateClick}
         className="text-muted-foreground hover:bg-border-emphasis hover:text-foreground rounded-sm p-1.5 transition-colors"

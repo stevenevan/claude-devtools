@@ -1,10 +1,3 @@
-/**
- * UpdateDialog - Modal dialog shown when a new version is available.
- *
- * Prompts the user to download the update or dismiss it.
- * Release notes may be HTML from the updater; we normalize to text and render as markdown.
- */
-
 import { markdownComponents } from '@renderer/components/chat/markdownComponents';
 import { Button } from '@renderer/components/ui/button';
 import {
@@ -19,10 +12,7 @@ import { useStore } from '@renderer/store';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-/**
- * Normalize release notes: strip HTML tags and convert block elements to newlines.
- * Uses DOMParser for proper HTML entity decoding (handles all entities like &mdash;, &#39;, etc.)
- */
+// Strips HTML and converts block elements to newlines; uses DOMParser for entity decoding.
 function normalizeReleaseNotes(html: string): string {
   if (!html?.trim()) return '';
 

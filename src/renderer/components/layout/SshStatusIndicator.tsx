@@ -1,10 +1,3 @@
-/**
- * SSH connection status indicator (sprint 45). Renders in the app
- * header when running in SSH mode. Maps the typed connection state to
- * a coloured pill so users can see whether reconnect is in progress
- * versus fully online.
- */
-
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Loader2, Plug, ServerCrash, Wifi, WifiOff } from 'lucide-react';

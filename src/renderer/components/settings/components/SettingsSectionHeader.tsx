@@ -1,8 +1,3 @@
-/**
- * SettingsSectionHeader - Section header component.
- * Linear-style subtle label.
- */
-
 interface SettingsSectionHeaderProps {
   readonly title: string;
 }

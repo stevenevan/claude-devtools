@@ -45,7 +45,7 @@
     "build/",
     "out/",
     "node_modules/",
-    "pnpm-lock.yaml",
+    "bun.lock",
     "*.min.js",
     "*.min.css",
     "*.config.js",

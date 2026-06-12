@@ -11,9 +11,10 @@ import { ToolFlameGraph } from '../chat/ToolFlameGraph';
 import { SearchBar } from '../search/SearchBar';
 
 interface MiddlePanelProps {
-  /** Tab ID for per-tab state isolation (scroll position, etc.) */
   tabId?: string;
 }
+
+const EMPTY_ARRAY: never[] = [];
 
 export const MiddlePanel: React.FC<MiddlePanelProps> = ({ tabId }) => {
   const {
@@ -32,8 +33,8 @@ export const MiddlePanel: React.FC<MiddlePanelProps> = ({ tabId }) => {
         flameGraphVisible: s.flameGraphVisible,
         teamTreeVisible: s.teamTreeVisible,
         fileGraphVisible: s.fileGraphVisible,
-        chunks: detail?.chunks ?? [],
-        processes: detail?.processes ?? [],
+        chunks: detail?.chunks ?? EMPTY_ARRAY,
+        processes: detail?.processes ?? EMPTY_ARRAY,
         sessionProjectId: detail?.session?.projectId ?? null,
         sessionId: detail?.session?.id ?? null,
       };

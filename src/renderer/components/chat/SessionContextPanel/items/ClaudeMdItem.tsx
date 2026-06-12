@@ -1,7 +1,3 @@
-/**
- * ClaudeMdItem - Single CLAUDE.md file item display.
- */
-
 import React from 'react';
 
 import { CopyablePath } from '@renderer/components/common/CopyablePath';

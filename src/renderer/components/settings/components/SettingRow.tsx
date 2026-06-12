@@ -1,8 +1,3 @@
-/**
- * SettingRow - Setting row component for consistent layout.
- * Linear-style clean row without icons.
- */
-
 interface SettingRowProps {
   readonly label: string;
   readonly description?: string;

@@ -8,10 +8,6 @@ import { attachUpdaterListeners } from './updater';
 
 import type { ListenerContext } from './types';
 
-/**
- * Initialize notification event listeners and fetch initial notification count.
- * Call this once when the app starts (e.g., in App.tsx useEffect).
- */
 export function initializeNotificationListeners(): () => void {
   const helpers = createRefreshHelpers();
   const ctx: ListenerContext = {

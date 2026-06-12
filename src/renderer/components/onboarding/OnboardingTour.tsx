@@ -1,9 +1,3 @@
-/**
- * Onboarding tour overlay (sprint 49). Auto-starts on the first launch
- * after a fresh config; users can skip, replay later from the Help
- * menu, and any explicit completion is persisted via configSlice.
- */
-
 import { useEffect, useReducer } from 'react';
 
 import { Button } from '@renderer/components/ui/button';

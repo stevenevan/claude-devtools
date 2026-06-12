@@ -1,9 +1,3 @@
-/**
- * SortableTab - A draggable tab item used within SortableContext.
- * Wraps useSortable from @dnd-kit for tab reordering and cross-pane movement.
- * Includes a right-click context menu via shadcn ContextMenu.
- */
-
 import { useCallback } from 'react';
 
 import { useSortable } from '@dnd-kit/sortable';
@@ -229,9 +223,6 @@ export const SortableTab = ({
   );
 };
 
-/**
- * DragOverlayTab - Semi-transparent ghost of a tab shown during drag.
- */
 export const DragOverlayTab = ({ tab }: { tab: Tab }): React.JSX.Element => {
   const Icon = TAB_ICONS[tab.type];
 

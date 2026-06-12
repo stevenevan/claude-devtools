@@ -18,27 +18,20 @@ import { highlightLine } from '../viewers/syntaxHighlighter';
 
 import type { SearchMatch } from '@renderer/store/types';
 
-// Types
-
 interface MarkdownViewerProps {
   content: string;
-  maxHeight?: string; // e.g., "max-h-64" or "max-h-96"
+  maxHeight?: string;
   className?: string;
-  label?: string; // Optional label like "Thinking", "Output", etc.
-  /** When provided, enables search term highlighting within the markdown */
+  label?: string;
   itemId?: string;
-  /** When true, shows a copy button (overlay when no label, inline in header when label exists) */
   copyable?: boolean;
 }
-
-// Component factories
 
 function createViewerMarkdownComponents(searchCtx: SearchContext | null): Components {
   const hl = (children: React.ReactNode): React.ReactNode =>
     searchCtx ? highlightSearchInChildren(children, searchCtx) : children;
 
   return {
-    // Headings
     h1: ({ children }) => (
       <h1 className="text-foreground mt-4 mb-2 text-xl font-semibold first:mt-0">{hl(children)}</h1>
     ),
@@ -60,7 +53,6 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
       <h6 className="text-foreground mt-2 mb-1 text-xs font-medium first:mt-0">{hl(children)}</h6>
     ),
 
-    // Paragraphs
     p: ({ children }) => (
       <p className="text-foreground my-2 text-sm leading-relaxed first:mt-0 last:mb-0">
         {hl(children)}
@@ -83,13 +75,8 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
       </a>
     ),
 
-    // Strong/Bold — inline element, no hl()
     strong: ({ children }) => <strong className="text-foreground font-semibold">{children}</strong>,
-
-    // Emphasis/Italic — inline element, no hl()
     em: ({ children }) => <em className="text-foreground italic">{children}</em>,
-
-    // Strikethrough — inline element, no hl()
     del: ({ children }) => <del className="text-foreground line-through">{children}</del>,
 
     // Code: inline vs block detection
@@ -134,21 +121,18 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
       );
     },
 
-    // Code blocks
     pre: ({ children }) => (
       <pre className="border-border bg-muted my-3 overflow-x-auto rounded-lg border p-3 text-xs leading-relaxed">
         {children}
       </pre>
     ),
 
-    // Blockquotes
     blockquote: ({ children }) => (
       <blockquote className="border-border text-muted-foreground my-3 border-l-4 pl-4 italic">
         {hl(children)}
       </blockquote>
     ),
 
-    // Lists
     ul: ({ children }) => (
       <ul className="text-foreground my-2 list-disc space-y-1 pl-5">{children}</ul>
     ),
@@ -157,7 +141,6 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
     ),
     li: ({ children }) => <li className="text-foreground text-sm">{hl(children)}</li>,
 
-    // Tables
     table: ({ children }) => (
       <div className="my-3 overflow-x-auto">
         <table className="border-border/50 min-w-full border-collapse text-sm">{children}</table>
@@ -173,22 +156,18 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
       <td className="border-border/50 text-foreground border px-3 py-2">{hl(children)}</td>
     ),
 
-    // Horizontal rule
     hr: () => <hr className="border-border/50 my-4" />,
   };
 }
 
-/** Default components without search highlighting */
 const defaultComponents = createViewerMarkdownComponents(null);
 
-/** Stable default to avoid infinite re-renders when itemId is falsy */
+// Stable default to avoid re-renders when itemId is falsy (empty itemId → no store subscription)
 const EMPTY_SEARCH_STATE = {
   searchQuery: '',
   searchMatches: [] as SearchMatch[],
   currentSearchIndex: -1,
 };
-
-// Component
 
 export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
   content,
@@ -198,7 +177,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
   itemId,
   copyable = false,
 }) => {
-  // Only re-render if THIS item has search matches
+  'use no memo'; // counter in createSearchContext must reset each render; compiler memoization would stale it
   const { searchQuery, searchMatches, currentSearchIndex } = useStore(
     useShallow((s) =>
       itemId
@@ -211,15 +190,12 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
     )
   );
 
-  // Create search context (fresh each render so counter starts at 0)
   const searchCtx =
     searchQuery && itemId
       ? createSearchContext(searchQuery, itemId, searchMatches, currentSearchIndex)
       : null;
 
-  // Create markdown components with optional search highlighting
-  // When search is active, create fresh each render (match counter is stateful and must start at 0)
-  // useMemo would cache stale closures when parent re-renders without search deps changing
+  // Create fresh each render when search active — match counter is stateful and must start at 0
   const components = searchCtx ? createViewerMarkdownComponents(searchCtx) : defaultComponents;
 
   return (
@@ -230,10 +206,8 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         className
       )}
     >
-      {/* Copy button overlay (when no label header) */}
       {copyable && !label && <CopyButton text={content} />}
 
-      {/* Optional header - matches CodeBlockViewer style */}
       {label && (
         <div className="border-border bg-muted flex items-center gap-2 border-b px-3 py-2">
           <FileText className="text-muted-foreground size-4 shrink-0" />
@@ -247,7 +221,6 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         </div>
       )}
 
-      {/* Markdown content with scroll */}
       <div className={cn('overflow-auto', maxHeight)}>
         <div className="p-4">
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>

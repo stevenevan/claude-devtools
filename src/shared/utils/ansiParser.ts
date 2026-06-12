@@ -1,20 +1,6 @@
-/**
- * Bash output ANSI escape parser (sprint 42).
- *
- * Two responsibilities:
- *   1. parseAnsiToSegments — convert SGR codes (basic 8 + bold/reset)
- *      into typed spans. Unknown codes are dropped, raw text preserved.
- *   2. collapseProgressBars — fold repeated `\r`-terminated updates on
- *      the same line into the final state, so a 100-step progress bar
- *      shows once instead of 100 times.
- *
- * Token accounting in `contextTracker` continues to use the pre-collapse
- * raw text — the collapse is a render-only concern.
- */
-
 export interface AnsiSegment {
   text: string;
-  /** CSS variable name (e.g. `--ansi-red`) — undefined means default. */
+  // CSS variable name (e.g. `--ansi-red`) — undefined means default.
   color?: string;
   bold?: boolean;
 }
@@ -107,10 +93,7 @@ function mergeAdjacent(segments: AnsiSegment[]): AnsiSegment[] {
   return merged;
 }
 
-/**
- * Collapse `\r` overwrites within a single line. `loading 10%\rloading 20%\r…\rloading 100%\n`
- * becomes `loading 100%\n`. Lines without trailing `\r` updates are preserved verbatim.
- */
+// Folds repeated `\r`-terminated line updates into final state; render-only (token accounting uses raw text).
 export function collapseProgressBars(input: string): string {
   if (!input.includes('\r')) return input;
   const lines = input.split('\n');

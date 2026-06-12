@@ -1,9 +1,3 @@
-/**
- * FlatInjectionList - Completely denested view where every individual tool call,
- * thinking block, and coordination item is its own row, sorted by token size descending.
- * Makes it obvious whether a single large tool or many small ones are consuming tokens.
- */
-
 import React, { useMemo } from 'react';
 
 import { CopyButton } from '@renderer/components/common/CopyButton';
@@ -12,8 +6,6 @@ import { formatTokens } from '../utils/formatting';
 import { parseTurnIndex } from '../utils/pathParsing';
 
 import type { ContextInjection } from '@renderer/types/contextInjection';
-
-// Constants
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   'claude-md': {
@@ -31,8 +23,6 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string 
   'task-coordination': { bg: 'rgb(20 184 166 / 0.15)', text: 'rgb(94 234 212)', label: 'Team' },
   'user-message': { bg: 'rgb(34 197 94 / 0.15)', text: 'rgb(134 239 172)', label: 'User' },
 };
-
-// Types
 
 interface FlatRow {
   key: string;
@@ -53,8 +43,6 @@ interface FlatInjectionListProps {
   onNavigateToTool?: (turnIndex: number, toolUseId: string) => void;
   onNavigateToUserGroup?: (turnIndex: number) => void;
 }
-
-// Helpers
 
 function flattenInjections(injections: ContextInjection[]): FlatRow[] {
   const rows: FlatRow[] = [];
@@ -160,8 +148,6 @@ function flattenInjections(injections: ContextInjection[]): FlatRow[] {
   return rows.sort((a, b) => b.tokens - a.tokens);
 }
 
-// Component
-
 export const FlatInjectionList = ({
   injections,
   onNavigateToTurn,
@@ -190,7 +176,7 @@ export const FlatInjectionList = ({
           }
         };
 
-        const displayText = row.description ? `${row.label} \u2014 ${row.description}` : row.label;
+        const displayText = row.description ? `${row.label} — ${row.description}` : row.label;
 
         return (
           <div key={row.key} className="flex items-center gap-0.5">
@@ -198,29 +184,24 @@ export const FlatInjectionList = ({
               onClick={handleClick}
               className="flex min-w-0 flex-1 items-center gap-2 rounded-sm px-2 py-1.5 text-left transition-colors hover:bg-white/5"
             >
-              {/* Category pill */}
               <span
                 className="shrink-0 rounded-sm px-1.5 py-0.5 text-[9px] font-medium"
                 style={{ backgroundColor: categoryInfo.bg, color: categoryInfo.text }}
               >
                 {categoryInfo.label}
               </span>
-              {/* Description */}
               <span className="text-muted-foreground min-w-0 flex-1 truncate text-xs">
                 {displayText}
               </span>
-              {/* Error badge */}
               {row.isError && (
                 <span className="shrink-0 rounded-sm bg-red-900/30 px-1 py-0.5 text-[10px] text-red-300">
                   error
                 </span>
               )}
-              {/* Token count */}
               <span className="text-muted-foreground shrink-0 text-xs font-medium tabular-nums">
                 {formatTokens(row.tokens)}
               </span>
             </button>
-            {/* Copy path button for CLAUDE.md and File items */}
             {row.copyPath && (
               <span className="shrink-0">
                 <CopyButton text={row.copyPath} inline />

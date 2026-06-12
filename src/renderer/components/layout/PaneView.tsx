@@ -1,9 +1,3 @@
-/**
- * PaneView - Single pane wrapper with focus management.
- * Handles click-to-focus, visual focus indicator, width,
- * and edge split drop zones for DnD.
- */
-
 import { useDndContext } from '@dnd-kit/core';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';

@@ -1,15 +1,3 @@
-/**
- * WorkspaceSection - Settings section for managing saved SSH connection profiles.
- *
- * Provides CRUD UI for:
- * - Listing saved SSH profiles
- * - Adding new profiles (name, host, port, username, auth method)
- * - Inline editing existing profile fields
- * - Deleting profiles with confirmation
- *
- * Profile changes persist via ConfigManager and trigger context list refresh.
- */
-
 import { useCallback, useEffect, useState } from 'react';
 
 import { api } from '@renderer/api';
@@ -55,7 +43,6 @@ export const WorkspaceSection = (): React.JSX.Element => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddForm, { open: openAddForm, close: closeAddForm }] = useDisclosure(false);
 
-  // Form state
   const [formName, setFormName] = useState(defaultForm.name);
   const [formHost, setFormHost] = useState(defaultForm.host);
   const [formPort, setFormPort] = useState(defaultForm.port);
@@ -75,7 +62,6 @@ export const WorkspaceSection = (): React.JSX.Element => {
   const loadProfiles = useCallback(async () => {
     try {
       const config = await api.config.get();
-      // AppConfig type doesn't include ssh field, but ConfigManager returns it at runtime
       const loaded = config.ssh;
       setProfiles(loaded?.profiles ?? []);
     } catch (error) {
@@ -89,7 +75,6 @@ export const WorkspaceSection = (): React.JSX.Element => {
     void loadProfiles();
   }, [loadProfiles]);
 
-  // Populate form when editing starts
   useEffect(() => {
     if (editingId) {
       const profile = profiles.find((p) => p.id === editingId);

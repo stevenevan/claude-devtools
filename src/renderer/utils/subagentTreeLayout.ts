@@ -1,9 +1,5 @@
-/**
- * subagentTreeLayout — builds an N-level nested process tree from a flat
- * Process list using `parentTaskId` → owning tool_use id on a parent
- * process. Used by the spawn-tree explorer (sprint 31) to replace the old
- * 2-level rendering.
- */
+// Builds an N-level nested process tree from a flat Process list using
+// parentTaskId → owning tool_use id. Used by the spawn-tree explorer.
 
 import type { Process } from '@shared/types/chunks';
 
@@ -24,7 +20,7 @@ function countToolUses(p: Process): number {
   return total;
 }
 
-/** Build a reverse index: tool_use id → owning process id. */
+// Build a reverse index: tool_use id → owning process id.
 function buildToolUseOwnerIndex(processes: Process[]): Map<string, string> {
   const map = new Map<string, string>();
   for (const p of processes) {
@@ -42,7 +38,6 @@ function buildToolUseOwnerIndex(processes: Process[]): Map<string, string> {
 }
 
 export interface BuildOptions {
-  /** When true, hide subagents with zero tool calls from the returned tree. */
   hideEmpty?: boolean;
 }
 
@@ -90,7 +85,6 @@ export function buildSubagentTree(
   return roots;
 }
 
-/** Drop nodes with zero tool uses and no surviving descendants. */
 function filterEmpty(nodes: SubagentTreeNode[]): SubagentTreeNode[] {
   const out: SubagentTreeNode[] = [];
   for (const node of nodes) {
@@ -102,7 +96,6 @@ function filterEmpty(nodes: SubagentTreeNode[]): SubagentTreeNode[] {
   return out;
 }
 
-/** Walk tree counting total nodes (for tests + display). */
 export function totalNodes(nodes: SubagentTreeNode[]): number {
   let count = 0;
   for (const n of nodes) {
@@ -111,7 +104,6 @@ export function totalNodes(nodes: SubagentTreeNode[]): number {
   return count;
 }
 
-/** Compute max depth of the tree (0 when empty, 1 for single-level). */
 export function maxDepth(nodes: SubagentTreeNode[]): number {
   if (nodes.length === 0) return 0;
   let max = 0;

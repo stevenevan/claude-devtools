@@ -1,8 +1,3 @@
-/**
- * TriggerPreview - Displays test results for a trigger.
- * Used by both TriggerCard and AddTriggerForm.
- */
-
 import { Button } from '@renderer/components/ui/button';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 
@@ -14,7 +9,7 @@ interface TriggerPreviewProps {
   loading?: boolean;
   onTest: () => void;
   onViewSession: (error: TriggerTestResult['errors'][0]) => void;
-  /** Whether this is inside a form (affects button type) */
+  // When true, buttons use type="button" to prevent accidental form submission
   isFormContext?: boolean;
 }
 
@@ -63,7 +58,6 @@ export const TriggerPreview = ({
             errors would have been detected
           </p>
 
-          {/* Truncation warning - only shown when timeout or count limit hit */}
           {previewResult.truncated && (
             <div className="flex items-center gap-2 rounded-sm border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-400">
               <AlertTriangle className="size-4 shrink-0" />

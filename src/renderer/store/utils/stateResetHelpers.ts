@@ -1,15 +1,5 @@
-/**
- * Shared state reset helpers to eliminate duplicated reset blocks across slices.
- *
- * These return partial state objects that can be spread into Zustand `set()` calls.
- */
-
 import type { AppState } from '../types';
 
-/**
- * Reset session-related state (sessions list, detail, pagination, context stats).
- * Used when switching projects, worktrees, or repositories.
- */
 export function getSessionResetState(): Partial<AppState> {
   return {
     selectedSessionId: null,
@@ -24,10 +14,6 @@ export function getSessionResetState(): Partial<AppState> {
   };
 }
 
-/**
- * Full state reset (session + project + repository + conversation).
- * Used when closing all tabs or resetting to initial state.
- */
 export function getFullResetState(): Partial<AppState> {
   return {
     ...getSessionResetState(),

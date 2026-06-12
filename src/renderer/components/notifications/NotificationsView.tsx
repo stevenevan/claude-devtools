@@ -1,9 +1,3 @@
-/**
- * NotificationsView - Linear Inbox-style notifications page.
- * Single list showing all notifications with unread indicator.
- * Includes a filter chip bar to filter by trigger name.
- */
-
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';
@@ -17,11 +11,9 @@ import { NotificationRow } from './NotificationRow';
 
 import type { DetectedError } from '@renderer/types/data';
 
-// Virtual list constants
 const ROW_HEIGHT = 56;
 const OVERSCAN = 5;
 
-/** Label used for notifications without a triggerName */
 const OTHER_LABEL = 'Other';
 
 interface FilterChip {
@@ -190,10 +182,8 @@ export const NotificationsView = (): React.JSX.Element => {
 
   return (
     <div className="bg-background flex flex-1 flex-col overflow-hidden">
-      {/* Header */}
       <div className="border-border/50 shrink-0 border-b">
         <div className="flex items-center justify-between px-4 py-3">
-          {/* Title */}
           <div className="flex items-center gap-2">
             <Inbox className="text-muted-foreground size-4" />
             <span className="text-foreground text-sm font-medium">Notifications</span>
@@ -210,10 +200,8 @@ export const NotificationsView = (): React.JSX.Element => {
             )}
           </div>
 
-          {/* Action Buttons */}
           {notifications.length > 0 && (
             <div className="flex items-center gap-1">
-              {/* Mark all/filtered read */}
               {filteredUnreadCount > 0 && (
                 <button
                   onClick={handleMarkAllRead}
@@ -226,7 +214,6 @@ export const NotificationsView = (): React.JSX.Element => {
                   </span>
                 </button>
               )}
-              {/* Clear all/filtered */}
               <button
                 onClick={handleClearAll}
                 className={cn(
@@ -253,11 +240,9 @@ export const NotificationsView = (): React.JSX.Element => {
         </div>
       </div>
 
-      {/* Filter Chip Bar */}
       {filterChips.length > 1 && (
         <div className="scrollbar-none border-border/50 shrink-0 overflow-x-auto border-b">
           <div className="flex items-center gap-1.5 px-4 py-2">
-            {/* All chip */}
             <button
               onClick={() => setActiveFilter(null)}
               className={cn(
@@ -270,7 +255,6 @@ export const NotificationsView = (): React.JSX.Element => {
               All
               <span className="opacity-60">({sortedNotifications.length})</span>
             </button>
-            {/* Trigger chips */}
             {filterChips.map((chip) => (
               <button
                 key={chip.label}
@@ -291,7 +275,6 @@ export const NotificationsView = (): React.JSX.Element => {
         </div>
       )}
 
-      {/* Notifications List */}
       <div ref={parentRef} className="flex-1 overflow-y-auto">
         {filteredNotifications.length === 0 ? (
           <div className="text-muted-foreground flex flex-col items-center justify-center py-16">

@@ -1,8 +1,3 @@
-/**
- * DynamicConfigSection - Mode-specific configuration for AddTriggerForm.
- * Renders different UI based on the selected trigger mode.
- */
-
 import { cn } from '@renderer/lib/utils';
 
 const SELECT_INPUT_BASE =

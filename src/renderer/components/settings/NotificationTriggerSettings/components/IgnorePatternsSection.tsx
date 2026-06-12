@@ -1,7 +1,3 @@
-/**
- * IgnorePatternsSection - Collapsible section for ignore patterns - Linear style.
- */
-
 import { cn } from '@renderer/lib/utils';
 import { X } from 'lucide-react';
 

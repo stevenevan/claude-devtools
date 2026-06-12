@@ -1,7 +1,3 @@
-/**
- * NotificationsSection - Notification settings including triggers and ignored repositories.
- */
-
 import {
   RepositoryDropdown,
   SelectedRepositoryItem,
@@ -25,7 +21,6 @@ import { WebhookSettings } from './WebhookSettings';
 import type { RepositoryDropdownItem, SafeConfig } from '../hooks/useSettingsConfig';
 import type { NotificationTrigger } from '@renderer/types/data';
 
-// Snooze duration options
 const SNOOZE_OPTIONS = [
   { value: 15, label: '15 minutes' },
   { value: 30, label: '30 minutes' },
@@ -74,7 +69,6 @@ export const NotificationsSection = ({
 }: NotificationsSectionProps): React.JSX.Element => {
   return (
     <div>
-      {/* Notification Triggers */}
       <NotificationTriggerSettings
         triggers={safeConfig.notifications.triggers || []}
         saving={saving}
@@ -83,15 +77,12 @@ export const NotificationsSection = ({
         onRemoveTrigger={onRemoveTrigger}
       />
 
-      {/* Notification Rules (sprint 40) */}
       <SettingsSectionHeader title="Notification Rules" />
       <RulesEditor />
 
-      {/* Webhook Endpoints (sprint 41) */}
       <SettingsSectionHeader title="Webhook Endpoints" />
       <WebhookSettings />
 
-      {/* Notification Settings */}
       <SettingsSectionHeader title="Notification Settings" />
       <SettingRow
         label="Enable System Notifications"

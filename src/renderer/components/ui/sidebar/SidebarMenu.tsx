@@ -156,8 +156,7 @@ export function SidebarMenuSkeleton({
 }: React.ComponentProps<'div'> & {
   showIcon?: boolean;
 }) {
-  // Random width between 50 to 90%. Visual-only skeleton; pseudo-random is fine.
-  // oxlint-disable-next-line sonarjs/pseudo-random
+  // oxlint-disable-next-line sonarjs/pseudo-random -- visual-only skeleton, pseudo-random is fine
   const [width] = React.useState(() => `${Math.floor(Math.random() * 40) + 50}%`);
 
   return (

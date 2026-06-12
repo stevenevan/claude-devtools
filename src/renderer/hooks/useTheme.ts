@@ -20,13 +20,6 @@ export const THEME_PRESETS: { value: ThemePreset; label: string }[] = [
 const THEME_CACHE_KEY = 'claude-devtools-theme-cache';
 const PRESET_CACHE_KEY = 'claude-devtools-theme-preset';
 
-/**
- * Hook to manage theme state and application.
- * - Fetches theme preference from config on mount
- * - Listens to system theme changes when set to 'system'
- * - Applies theme class to document root
- * - Caches theme in localStorage for flash prevention
- */
 export function useTheme(): {
   theme: Theme;
   resolvedTheme: ResolvedTheme;

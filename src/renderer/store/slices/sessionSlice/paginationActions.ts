@@ -5,10 +5,7 @@ import type { SessionSlice, SessionSliceGet, SessionSliceSet } from './types';
 
 const logger = createLogger('Store:session');
 
-/**
- * Tracks the latest in-place refresh generation per project.
- * Used to guarantee last-write-wins under rapid file change events.
- */
+// Tracks latest in-place refresh generation per project to guarantee last-write-wins under rapid file change events.
 const projectRefreshGeneration = new Map<string, number>();
 
 export function createPaginationActions(
@@ -23,12 +20,10 @@ export function createPaginationActions(
   | 'refreshSessionsInPlace'
 > {
   return {
-    // Fetch sessions for a specific project (legacy - not paginated)
     fetchSessions: async (projectId: string) => {
       set({ sessionsLoading: true, sessionsError: null });
       try {
         const sessions = await api.getSessions(projectId);
-        // Sort by createdAt (descending)
         const sorted = [...sessions].sort((a, b) => b.createdAt - a.createdAt);
         set({ sessions: sorted, sessionsLoading: false });
       } catch (error) {
@@ -39,7 +34,6 @@ export function createPaginationActions(
       }
     },
 
-    // Fetch initial page of sessions (paginated)
     fetchSessionsInitial: async (projectId: string) => {
       set({
         sessionsLoading: true,
@@ -74,7 +68,6 @@ export function createPaginationActions(
           });
         }
 
-        // Load pinned and hidden sessions after fetching session list
         void get().loadPinnedSessions();
         void get().loadHiddenSessions();
       } catch (error) {
@@ -85,12 +78,10 @@ export function createPaginationActions(
       }
     },
 
-    // Fetch more sessions (next page)
     fetchSessionsMore: async () => {
       const state = get();
       const { selectedProjectId, sessionsCursor, sessionsHasMore, sessionsLoadingMore } = state;
 
-      // Guard: don't fetch if already loading, no more pages, or no project
       if (!selectedProjectId || !sessionsHasMore || sessionsLoadingMore || !sessionsCursor) {
         return;
       }
@@ -129,7 +120,6 @@ export function createPaginationActions(
       }
     },
 
-    // Reset pagination state
     resetSessionsPagination: () => {
       set({
         sessions: [],
@@ -141,12 +131,9 @@ export function createPaginationActions(
       });
     },
 
-    // Refresh sessions list in place without loading states
-    // Used for real-time updates when new sessions are added
     refreshSessionsInPlace: async (projectId: string) => {
       const currentState = get();
 
-      // Only refresh if viewing this project
       if (currentState.selectedProjectId !== projectId) {
         return;
       }
@@ -166,7 +153,6 @@ export function createPaginationActions(
           return;
         }
 
-        // Update sessions without loading state
         set({
           sessions: result.sessions,
           sessionsCursor: result.nextCursor,

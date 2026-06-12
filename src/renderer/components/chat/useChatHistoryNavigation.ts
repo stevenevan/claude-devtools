@@ -1,9 +1,3 @@
-/**
- * Navigation handlers extracted from ChatHistory.
- *
- * Owns the turn / user-group / tool jump-and-highlight behavior so
- * ChatHistory.tsx stays focused on layout and stateful coordination.
- */
 import { useCallback } from 'react';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 

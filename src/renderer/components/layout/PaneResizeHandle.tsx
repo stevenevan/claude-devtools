@@ -1,8 +1,3 @@
-/**
- * PaneResizeHandle - Draggable divider between adjacent panes.
- * Uses the same mouse-event pattern as Sidebar.tsx for resize.
- */
-
 import { useCallback, useEffect, useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';

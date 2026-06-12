@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
 import { cn } from '@renderer/lib/utils';
@@ -20,10 +20,10 @@ export const AnnotationBadge = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [addingNew, setAddingNew] = useState(false);
 
-  const { annotations, sessionId, projectId, addAnnotation, updateAnnotation, removeAnnotation } =
+  const { allAnnotations, sessionId, projectId, addAnnotation, updateAnnotation, removeAnnotation } =
     useStore(
       useShallow((s) => ({
-        annotations: s.annotations.filter((a) => a.targetId === targetId),
+        allAnnotations: s.annotations,
         sessionId: s.selectedSessionId,
         projectId: s.selectedProjectId,
         addAnnotation: s.addAnnotation,
@@ -31,6 +31,11 @@ export const AnnotationBadge = ({
         removeAnnotation: s.removeAnnotation,
       }))
     );
+
+  const annotations = useMemo(
+    () => allAnnotations.filter((a) => a.targetId === targetId),
+    [allAnnotations, targetId]
+  );
 
   if (!sessionId || !projectId) return null;
 

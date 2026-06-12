@@ -1,10 +1,3 @@
-/**
- * Connection Slice - Manages SSH connection state.
- *
- * Tracks connection mode (local/ssh), connection state,
- * and provides actions for connecting/disconnecting.
- */
-
 import { api } from '@renderer/api';
 
 import { getFullResetState } from '../utils/stateResetHelpers';
@@ -64,7 +57,6 @@ export const createConnectionSlice: StateCreator<AppState, [], [], ConnectionSli
         connectionState: status.state,
         connectedHost: status.host,
         connectionError: status.error,
-        // On connect: sync context ID + clear all stale local data including tabs
         ...(status.state === 'connected'
           ? {
               activeContextId: `ssh-${config.host}`,
@@ -90,13 +82,11 @@ export const createConnectionSlice: StateCreator<AppState, [], [], ConnectionSli
           : {}),
       });
 
-      // Re-fetch all data and persist config when connected
       if (status.state === 'connected') {
         const state = get();
         void state.fetchProjects();
         void state.fetchRepositoryGroups();
 
-        // Save connection config (without password) for form pre-fill on next launch
         const saved: SshLastConnection = {
           host: config.host,
           port: config.port,
@@ -125,7 +115,6 @@ export const createConnectionSlice: StateCreator<AppState, [], [], ConnectionSli
         connectedHost: null,
         connectionError: null,
         activeContextId: 'local',
-        // Clear all stale SSH data including tabs so dashboard shows fresh local data
         projects: [],
         repositoryGroups: [],
         openTabs: [],
@@ -146,7 +135,6 @@ export const createConnectionSlice: StateCreator<AppState, [], [], ConnectionSli
         ...getFullResetState(),
       });
 
-      // Re-fetch local data
       const state = get();
       void state.fetchProjects();
       void state.fetchRepositoryGroups();

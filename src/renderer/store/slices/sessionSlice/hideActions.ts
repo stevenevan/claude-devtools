@@ -17,7 +17,6 @@ export function createHideActions(
   | 'toggleShowHiddenSessions'
 > {
   return {
-    // Toggle hide/unhide for a session (optimistic update)
     toggleHideSession: async (sessionId: string) => {
       const state = get();
       const projectId = state.selectedProjectId;
@@ -26,7 +25,6 @@ export function createHideActions(
       const isHidden = state.hiddenSessionIds.includes(sessionId);
       const previousHiddenIds = state.hiddenSessionIds;
 
-      // Optimistic: update UI immediately
       if (isHidden) {
         set({ hiddenSessionIds: previousHiddenIds.filter((id) => id !== sessionId) });
       } else {
@@ -46,7 +44,6 @@ export function createHideActions(
       }
     },
 
-    // Bulk hide sessions
     hideMultipleSessions: async (sessionIds: string[]) => {
       const state = get();
       const projectId = state.selectedProjectId;
@@ -56,7 +53,6 @@ export function createHideActions(
       const existingSet = new Set(previousHiddenIds);
       const newIds = sessionIds.filter((id) => !existingSet.has(id));
 
-      // Optimistic update
       set({ hiddenSessionIds: [...newIds, ...previousHiddenIds] });
 
       try {
@@ -67,7 +63,6 @@ export function createHideActions(
       }
     },
 
-    // Bulk unhide sessions
     unhideMultipleSessions: async (sessionIds: string[]) => {
       const state = get();
       const projectId = state.selectedProjectId;
@@ -76,7 +71,6 @@ export function createHideActions(
       const previousHiddenIds = state.hiddenSessionIds;
       const toRemove = new Set(sessionIds);
 
-      // Optimistic update
       set({ hiddenSessionIds: previousHiddenIds.filter((id) => !toRemove.has(id)) });
 
       try {
@@ -87,7 +81,6 @@ export function createHideActions(
       }
     },
 
-    // Load hidden sessions from config for current project
     loadHiddenSessions: async () => {
       const state = get();
       const projectId = state.selectedProjectId;
@@ -107,7 +100,6 @@ export function createHideActions(
       }
     },
 
-    // Toggle showing hidden sessions in sidebar
     toggleShowHiddenSessions: () => {
       set((prev) => ({ showHiddenSessions: !prev.showHiddenSessions }));
     },

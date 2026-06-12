@@ -1,9 +1,3 @@
-/**
- * Dashboard widget registry helpers — sprint 32 makes the seam introduced in
- * sprint 18 a live runtime. Provides ordering, hide/show, and reset-to-defaults
- * operations over the static `registerDashboardWidget` registry.
- */
-
 import { getRegisteredWidgets, type DashboardWidgetMeta } from './widgetContract';
 
 export interface DashboardLayoutState {
@@ -16,11 +10,6 @@ export const defaultDashboardLayout = (): DashboardLayoutState => ({
   hiddenWidgets: [],
 });
 
-/**
- * Merge user-saved layout state with the registry so widgets added after the
- * last save still appear. Returns an ordered list of visible + hidden widgets
- * for rendering.
- */
 export function applyLayoutToRegistry(layout: DashboardLayoutState): {
   visible: DashboardWidgetMeta[];
   hidden: DashboardWidgetMeta[];
@@ -48,10 +37,6 @@ export function applyLayoutToRegistry(layout: DashboardLayoutState): {
   return { visible, hidden };
 }
 
-/**
- * Pure layout reducer — used by the customize menu and unit tests to avoid
- * coupling to Zustand.
- */
 export function layoutReduce(
   layout: DashboardLayoutState,
   action:

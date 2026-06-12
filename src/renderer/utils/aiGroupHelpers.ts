@@ -1,9 +1,3 @@
-/**
- * AI Group Helpers - Utility functions for AI Group enhancement
- *
- * Small, focused utility functions used across the AI Group enhancement modules.
- */
-
 import { createLogger } from '@shared/utils/logger';
 import { estimateTokens } from '@shared/utils/tokenFormatting';
 
@@ -12,13 +6,9 @@ import type { LinkedToolItem } from '../types/groups';
 
 const logger = createLogger('Util:aiGroupHelpers');
 
-// Re-export for backwards compatibility
 export { estimateTokens };
 
-/**
- * Safely converts a timestamp to a Date object.
- * Handles both Date objects and ISO string timestamps (from IPC serialization).
- */
+// Handles both Date objects and ISO string timestamps from IPC serialization
 export function toDate(timestamp: Date | string | number): Date {
   if (timestamp instanceof Date) {
     return timestamp;
@@ -26,9 +16,6 @@ export function toDate(timestamp: Date | string | number): Date {
   return new Date(timestamp);
 }
 
-/**
- * Truncates text to a maximum length and adds ellipsis if needed.
- */
 export function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) {
     return text;
@@ -36,9 +23,6 @@ export function truncateText(text: string, maxLength: number): string {
   return text.substring(0, maxLength) + '...';
 }
 
-/**
- * Converts tool input object to a preview string.
- */
 export function formatToolInput(input: Record<string, unknown>): string {
   try {
     const json = JSON.stringify(input, null, 2);
@@ -49,9 +33,6 @@ export function formatToolInput(input: Record<string, unknown>): string {
   }
 }
 
-/**
- * Converts tool result content to a preview string.
- */
 export function formatToolResult(content: string | unknown[]): string {
   try {
     if (typeof content === 'string') {
@@ -65,19 +46,8 @@ export function formatToolResult(content: string | unknown[]): string {
   }
 }
 
-/**
- * Attaches main session impact tokens to subagents.
- * For each subagent with a parentTaskId, finds the matching Task tool
- * and extracts the callTokens and resultTokens that affect the main session.
- *
- * This allows SubagentItem to display both:
- * - Main session impact: tokens consumed by the Task tool_call + tool_result in the parent session
- * - Subagent isolated context: the subagent's internal token usage
- *
- * @param subagents - Array of subagents to enhance
- * @param linkedTools - Map of tool IDs to LinkedToolItem (includes Task tools)
- * @returns The same subagents array with mainSessionImpact populated
- */
+// Populates mainSessionImpact on each subagent: tokens from the Task tool_call + tool_result
+// in the parent session, so SubagentItem can show both parent impact and subagent-internal usage.
 export function attachMainSessionImpact(
   subagents: Process[],
   linkedTools: Map<string, LinkedToolItem>
@@ -99,16 +69,8 @@ export function attachMainSessionImpact(
   return subagents;
 }
 
-/**
- * Computes multi-phase context breakdown for a subagent session.
- * Mirrors the algorithm in src/main/utils/jsonl.ts:500-576.
- *
- * Tracks assistant input tokens across compaction events to compute
- * per-phase contribution and total consumption across all phases.
- *
- * @param messages - Subagent's ParsedMessages
- * @returns Phase breakdown with total consumption, or null if no usage data
- */
+// Mirrors the algorithm in src/main/utils/jsonl.ts:500-576.
+// Tracks assistant input tokens across compaction events to compute per-phase contribution.
 export function computeSubagentPhaseBreakdown(messages: ParsedMessage[]): {
   phases: PhaseTokenBreakdown[];
   totalConsumption: number;
@@ -119,9 +81,7 @@ export function computeSubagentPhaseBreakdown(messages: ParsedMessage[]): {
   const compactionPhases: { pre: number; post: number }[] = [];
 
   for (const msg of messages) {
-    // Track assistant input tokens.
-    // Unlike jsonl.ts, we don't filter by isSidechain here because subagent messages
-    // all have isSidechain=true (from the parent session's perspective).
+    // Unlike jsonl.ts, don't filter by isSidechain — subagent messages all have isSidechain=true
     if (msg.type === 'assistant' && msg.model !== '<synthetic>') {
       const inputTokens =
         (msg.usage?.input_tokens ?? 0) +
@@ -150,7 +110,6 @@ export function computeSubagentPhaseBreakdown(messages: ParsedMessage[]): {
   let phaseBreakdown: PhaseTokenBreakdown[];
 
   if (compactionPhases.length === 0) {
-    // No compaction: single phase
     phaseBreakdown = [
       {
         phaseNumber: 1,

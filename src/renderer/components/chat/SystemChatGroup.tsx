@@ -12,10 +12,6 @@ interface SystemChatGroupProps {
   systemGroup: SystemGroup;
 }
 
-/**
- * SystemChatGroup displays command output (e.g., /model response).
- * Renders on LEFT side like AI, but with neutral/gray styling.
- */
 const SystemChatGroupInner = ({
   systemGroup,
 }: Readonly<SystemChatGroupProps>): React.JSX.Element => {
@@ -26,7 +22,6 @@ const SystemChatGroupInner = ({
   return (
     <div className="flex justify-start">
       <div className="max-w-[85%] space-y-2">
-        {/* Header - system icon */}
         <div className="text-muted-foreground flex items-center gap-2 text-xs">
           <Terminal className="text-muted-foreground size-3.5" />
           <span className="text-muted-foreground font-medium">System</span>
@@ -34,7 +29,6 @@ const SystemChatGroupInner = ({
           <span>{format(timestamp, 'h:mm:ss a')}</span>
         </div>
 
-        {/* Content - theme-aware neutral styling */}
         <div className="bg-card/50 rounded-lg px-4 py-3">
           <pre className="text-muted-foreground font-mono text-sm whitespace-pre-wrap">
             {cleanOutput}

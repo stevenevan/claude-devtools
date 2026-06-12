@@ -1,14 +1,8 @@
-/**
- * Search highlighting utilities for use within ReactMarkdown components.
- * Recursively processes React children to highlight search term matches
- * while preserving the markdown-rendered element tree.
- */
-
 import React from 'react';
 
 import type { SearchMatch } from '@renderer/store/types';
 
-/** Stable empty array for item-scoped search selectors (avoids re-renders) */
+// Stable empty array for item-scoped search selectors (avoids re-renders when no matches)
 export const EMPTY_SEARCH_MATCHES: SearchMatch[] = [];
 
 // Highlight styles matching SearchHighlight.tsx
@@ -34,16 +28,12 @@ export interface SearchContext {
   itemId: string;
   query: string;
   lowerQuery: string;
-  /** Mutable counter tracking match index within the item, incremented as text nodes are processed */
+  // Mutable counter: incremented as text nodes are processed (cannot use useMemo — must start at 0 each render)
   matchCounter: { current: number };
   isCurrentItem: boolean;
   currentMatchIndexInItem: number | null;
 }
 
-/**
- * Create a SearchContext from store state.
- * Returns null if no search is active.
- */
 export function createSearchContext(
   searchQuery: string,
   itemId: string,
@@ -65,10 +55,6 @@ export function createSearchContext(
   };
 }
 
-/**
- * Highlight search term matches in a text string.
- * Increments matchCounter for each match found.
- */
 // eslint-disable-next-line sonarjs/function-return-type -- mixed text/element return
 function highlightSearchText(text: string, ctx: SearchContext): React.ReactNode {
   const lowerText = text.toLowerCase();
@@ -112,11 +98,6 @@ function highlightSearchText(text: string, ctx: SearchContext): React.ReactNode 
   return parts;
 }
 
-/**
- * Recursively process React children to highlight search terms in text nodes.
- * Preserves the React element tree structure (markdown components, etc.)
- * while adding <mark> tags to text content.
- */
 // eslint-disable-next-line sonarjs/function-return-type -- React child manipulation inherently returns mixed node types
 export function highlightSearchInChildren(
   children: React.ReactNode,

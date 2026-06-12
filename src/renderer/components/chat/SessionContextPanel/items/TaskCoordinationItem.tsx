@@ -1,7 +1,3 @@
-/**
- * TaskCoordinationItem - Single task coordination injection with expandable breakdown.
- */
-
 import React, { useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';

@@ -11,9 +11,6 @@ import type { ClaudeMdInjection, ClaudeMdStats } from '../../types/claudeMd';
 import type { ClaudeMdFileInfo } from '../../types/data';
 import type { AIGroup, ChatItem, UserGroup } from '../../types/groups';
 
-/**
- * Parameters for computing CLAUDE.md stats for an AI group.
- */
 interface ComputeClaudeMdStatsParams {
   aiGroup: AIGroup;
   userGroup: UserGroup | null;
@@ -24,9 +21,6 @@ interface ComputeClaudeMdStatsParams {
   tokenData?: Record<string, ClaudeMdFileInfo>;
 }
 
-/**
- * Compute CLAUDE.md injection statistics for an AI group.
- */
 function computeClaudeMdStats(params: ComputeClaudeMdStatsParams): ClaudeMdStats {
   const {
     aiGroup,
@@ -41,8 +35,7 @@ function computeClaudeMdStats(params: ComputeClaudeMdStatsParams): ClaudeMdStats
   const newInjections: ClaudeMdInjection[] = [];
   const previousPaths = new Set(previousInjections.map((inj) => inj.path));
 
-  // For the first group, add global injections
-  // Use "ai-N" format for firstSeenInGroup to enable turn navigation in SessionClaudeMdPanel
+  // "ai-N" format for firstSeenInGroup enables turn navigation in SessionClaudeMdPanel
   const turnGroupId = `ai-${aiGroup.turnIndex}`;
   if (isFirstGroup) {
     const globalInjections = createGlobalInjections(projectRoot, turnGroupId, tokenData);
@@ -54,14 +47,11 @@ function computeClaudeMdStats(params: ComputeClaudeMdStatsParams): ClaudeMdStats
     }
   }
 
-  // Collect all file paths from Read tools and user @ mentions
   const allFilePaths: string[] = [];
 
-  // Extract from Read tool calls in semantic steps
   const readPaths = extractReadToolPaths(aiGroup.steps);
   allFilePaths.push(...readPaths);
 
-  // Extract from user @ mentions
   const mentionPaths = extractUserMentionPaths(userGroup, projectRoot);
   allFilePaths.push(...mentionPaths);
 
@@ -74,12 +64,10 @@ function computeClaudeMdStats(params: ComputeClaudeMdStatsParams): ClaudeMdStats
     }
   }
 
-  // For each file path, detect potential CLAUDE.md files
   for (const filePath of allFilePaths) {
     const claudeMdPaths = detectClaudeMdFromFilePath(filePath, projectRoot);
 
     for (const claudeMdPath of claudeMdPaths) {
-      // Skip if already seen
       if (previousPaths.has(claudeMdPath)) {
         continue;
       }
@@ -97,23 +85,19 @@ function computeClaudeMdStats(params: ComputeClaudeMdStatsParams): ClaudeMdStats
         continue;
       }
 
-      // Create directory injection
       const injection = createDirectoryInjection(claudeMdPath, turnGroupId);
       newInjections.push(injection);
       previousPaths.add(claudeMdPath);
     }
   }
 
-  // Build accumulated injections
   const accumulatedInjections = [...previousInjections, ...newInjections];
 
-  // Calculate totals
   const totalEstimatedTokens = accumulatedInjections.reduce(
     (sum, inj) => sum + inj.estimatedTokens,
     0
   );
 
-  // Calculate percentage of context
   const percentageOfContext = contextTokens > 0 ? (totalEstimatedTokens / contextTokens) * 100 : 0;
 
   return {
@@ -126,10 +110,6 @@ function computeClaudeMdStats(params: ComputeClaudeMdStatsParams): ClaudeMdStats
   };
 }
 
-/**
- * Process all chat items in a session and compute CLAUDE.md stats for each AI group.
- * Returns a map of aiGroupId -> ClaudeMdStats.
- */
 export function processSessionClaudeMd(
   items: ChatItem[],
   projectRoot: string,
@@ -141,7 +121,6 @@ export function processSessionClaudeMd(
   let previousUserGroup: UserGroup | null = null;
 
   for (const item of items) {
-    // Track user groups for pairing with subsequent AI groups
     if (item.type === 'user') {
       previousUserGroup = item.group;
       continue;
@@ -159,11 +138,9 @@ export function processSessionClaudeMd(
     if (item.type === 'ai') {
       const aiGroup = item.group;
 
-      // Get context tokens from the AI group's metrics
-      // Use input tokens as a proxy for context window usage
+      // Input tokens as proxy for context window usage
       const contextTokens = aiGroup.tokens.input || 0;
 
-      // Compute stats for this group
       const stats = computeClaudeMdStats({
         aiGroup,
         userGroup: previousUserGroup,
@@ -174,14 +151,11 @@ export function processSessionClaudeMd(
         tokenData,
       });
 
-      // Store stats
       statsMap.set(aiGroup.id, stats);
 
-      // Update accumulated state for next iteration
       accumulatedInjections = stats.accumulatedInjections;
       isFirstAiGroup = false;
 
-      // Clear the user group pairing after processing
       previousUserGroup = null;
     }
   }

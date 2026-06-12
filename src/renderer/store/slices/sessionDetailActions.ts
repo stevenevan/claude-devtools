@@ -1,10 +1,3 @@
-/**
- * Pure helpers extracted from sessionDetailSlice.ts (sprint 26 prerequisite
- * split). These are behaviour-preserving — same inputs, same outputs — and
- * are imported back into the slice so the async orchestration stays intact
- * while the slice file stays comfortably under the 800-line cap.
- */
-
 import { extractFileReferences } from '@renderer/utils/groupTransformer';
 
 import { resolveFilePath } from '../utils/pathResolution';
@@ -13,18 +6,10 @@ import type { ClaudeMdStats } from '@renderer/types/claudeMd';
 import type { ChatItem } from '@renderer/types/groups';
 
 export interface DirectoryTokenUpdate {
-  /** Full CLAUDE.md path → measured token count. */
   directoryTokens: Map<string, number>;
-  /** Paths that failed to read or came back empty — these rows are dropped. */
   nonExistentPaths: Set<string>;
 }
 
-/**
- * Apply the validated directory CLAUDE.md token counts back onto every
- * accumulated/new injection in `statsMap`, removing injections for paths that
- * were flagged non-existent and recomputing totals. Mutates in place for
- * parity with the prior inline implementation.
- */
 export function applyDirectoryTokenData(
   statsMap: Map<string, ClaudeMdStats>,
   update: DirectoryTokenUpdate
@@ -58,11 +43,6 @@ export function applyDirectoryTokenData(
   }
 }
 
-/**
- * Walk all items in a conversation and collect every absolute mentioned-file
- * path — from user-group `fileReferences` and from `@`-mentions inside meta
- * user messages embedded in AI responses.
- */
 export function collectMentionedFilePaths(items: ChatItem[], projectRoot: string): Set<string> {
   const paths = new Set<string>();
   for (const item of items) {

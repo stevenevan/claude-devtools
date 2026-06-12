@@ -1,8 +1,3 @@
-/**
- * Hook for AddTriggerForm event handlers.
- * Extracts handler logic from AddTriggerForm for mode changes, content type changes, etc.
- */
-
 import { useCallback } from 'react';
 
 import { getAvailableMatchFields } from '../utils/trigger';
@@ -36,9 +31,6 @@ export interface AddTriggerFormHandlersReturn {
   buildNewTrigger: (generateId: () => string) => Omit<NotificationTrigger, 'isBuiltin'>;
 }
 
-/**
- * Hook for managing AddTriggerForm event handlers.
- */
 export function useAddTriggerFormHandlers({
   formState,
   validatePattern,
@@ -68,7 +60,6 @@ export function useAddTriggerFormHandlers({
     resetForm,
   } = formState;
 
-  // When mode changes, adjust content type defaults
   const handleModeChange = useCallback(
     (newMode: TriggerMode) => {
       setMode(newMode);
@@ -79,13 +70,11 @@ export function useAddTriggerFormHandlers({
     [setMode, setContentType]
   );
 
-  // When content type changes, reset matchField to first available option
   const handleContentTypeChange = useCallback(
     (newContentType: TriggerContentType) => {
       setContentType(newContentType);
       const newMatchFields = getAvailableMatchFields(newContentType, toolName || undefined);
       setMatchField(newMatchFields[0]?.value || '');
-      // Reset tool name if not applicable
       if (newContentType !== 'tool_use' && newContentType !== 'tool_result') {
         setToolName('');
       }
@@ -93,7 +82,6 @@ export function useAddTriggerFormHandlers({
     [toolName, setContentType, setMatchField, setToolName]
   );
 
-  // When tool name changes, reset matchField to first available option
   const handleToolNameChange = useCallback(
     (newToolName: string) => {
       setToolName(newToolName);
@@ -103,7 +91,6 @@ export function useAddTriggerFormHandlers({
     [contentType, setToolName, setMatchField]
   );
 
-  // Handler for adding repository
   const handleAddRepository = useCallback(
     (item: RepositoryDropdownItem) => {
       if (!repositoryIds.includes(item.id)) {
@@ -113,7 +100,6 @@ export function useAddTriggerFormHandlers({
     [repositoryIds, setRepositoryIds]
   );
 
-  // Handler for removing ignore pattern
   const handleRemoveIgnorePattern = useCallback(
     (idx: number) => {
       const newPatterns = [...ignorePatterns];
@@ -123,7 +109,6 @@ export function useAddTriggerFormHandlers({
     [ignorePatterns, setIgnorePatterns]
   );
 
-  // Handler for adding ignore pattern
   const handleAddIgnorePattern = useCallback(
     (pattern: string) => {
       setIgnorePatterns([...ignorePatterns, pattern]);
@@ -131,7 +116,6 @@ export function useAddTriggerFormHandlers({
     [ignorePatterns, setIgnorePatterns]
   );
 
-  // Handler for removing repository
   const handleRemoveRepository = useCallback(
     (idx: number) => {
       const newIds = [...repositoryIds];
@@ -141,7 +125,6 @@ export function useAddTriggerFormHandlers({
     [repositoryIds, setRepositoryIds]
   );
 
-  // Handler for match pattern change with validation
   const handleMatchPatternChange = useCallback(
     (value: string) => {
       setMatchPattern(value);
@@ -150,7 +133,6 @@ export function useAddTriggerFormHandlers({
     [setMatchPattern, validatePattern]
   );
 
-  // Handler for token threshold change
   const handleTokenThresholdChange = useCallback(
     (value: string) => {
       const val = value.replace(/\D/g, '');
@@ -159,14 +141,12 @@ export function useAddTriggerFormHandlers({
     [setTokenThreshold]
   );
 
-  // Handler for cancel button
   const handleCancel = useCallback(() => {
     resetForm();
     clearPreview();
     setIsExpanded(false);
   }, [resetForm, clearPreview, setIsExpanded]);
 
-  // Build new trigger object from form state
   const buildNewTrigger = useCallback(
     (generateId: () => string): Omit<NotificationTrigger, 'isBuiltin'> => {
       return {

@@ -1,9 +1,3 @@
-/**
- * Slash Command Extractor - Handle slash command extraction from AI Group responses
- *
- * Extracts and processes slash command invocations and their follow-up instructions.
- */
-
 import { extractSlashInfo, isCommandContent } from '@shared/utils/contentSanitizer';
 
 import { estimateTokens, toDate } from './aiGroupHelpers';
@@ -11,48 +5,21 @@ import { estimateTokens, toDate } from './aiGroupHelpers';
 import type { ParsedMessage } from '@renderer/types/data';
 import type { SlashItem } from '@renderer/types/groups';
 
-/**
- * Info about the preceding user message's slash invocation.
- * This is passed from the UserGroup to help link slash outputs to slash names.
- */
 export interface PrecedingSlashInfo {
-  /** Slash name (e.g., "claude-hud:setup", "isolate-context", "model") */
   name: string;
-  /** Message content from <command-message> */
   message?: string;
-  /** Arguments from <command-args> */
   args?: string;
-  /** UUID of the slash command message */
   commandMessageUuid: string;
-  /** Timestamp of the slash command message */
   timestamp: Date;
 }
 
-/**
- * Extract slash items from AI group responses.
- *
- * All slash invocations follow the same format:
- *   <command-name>/xxx</command-name>
- *   <command-message>xxx</command-message>
- *   <command-args>optional</command-args>
- *
- * Strategy:
- * 1. Build a map of follow-up messages (isMeta:true with parentUuid) by their parentUuid
- * 2. If precedingSlash is provided, create a SlashItem with its follow-up instructions
- * 3. Also check for any slash invocations in responses (fallback)
- *
- * @param responses - All response messages in the AI group
- * @param precedingSlash - Optional slash info from the preceding UserGroup
- * @returns Array of SlashItem objects ready for display
- */
 export function extractSlashes(
   responses: ParsedMessage[],
   precedingSlash?: PrecedingSlashInfo
 ): SlashItem[] {
   const slashes: SlashItem[] = [];
 
-  // Build a map of follow-up messages by their parentUuid
-  // These are isMeta:true messages that contain slash instructions/output
+  // isMeta:true messages keyed by parentUuid contain slash instructions/output
   const followUpsByParentUuid = new Map<
     string,
     {
@@ -61,7 +28,7 @@ export function extractSlashes(
     }
   >();
 
-  // Also build a map of potential slash messages from responses (fallback)
+  // Fallback: slash messages that appear inside responses rather than preceding the turn
   const slashMessagesById = new Map<
     string,
     {
@@ -74,8 +41,6 @@ export function extractSlashes(
   >();
 
   for (const msg of responses) {
-    // Look for slash messages (user messages with string content containing <command-name>)
-    // This is a fallback in case the slash invocation is somehow in responses
     if (msg.type === 'user' && typeof msg.content === 'string' && isCommandContent(msg.content)) {
       const slashInfo = extractSlashInfo(msg.content);
       if (slashInfo) {
@@ -89,7 +54,6 @@ export function extractSlashes(
       }
     }
 
-    // Look for follow-up isMeta messages with parentUuid
     if (
       msg.type === 'user' &&
       msg.isMeta === true &&
@@ -97,7 +61,6 @@ export function extractSlashes(
       !msg.sourceToolUseID && // Exclude tool-call related messages
       Array.isArray(msg.content)
     ) {
-      // Extract text from the message
       for (const block of msg.content) {
         if (block.type === 'text' && block.text) {
           const text = block.text;
@@ -111,7 +74,7 @@ export function extractSlashes(
     }
   }
 
-  // Strategy 1: If we have precedingSlash info, create a SlashItem with its follow-up
+  // Strategy 1: link precedingSlash to its follow-up instructions
   if (precedingSlash) {
     const followUp = followUpsByParentUuid.get(precedingSlash.commandMessageUuid);
 
@@ -123,15 +86,13 @@ export function extractSlashes(
       commandMessageUuid: precedingSlash.commandMessageUuid,
       instructions: followUp?.text,
       instructionsTokenCount: followUp ? estimateTokens(followUp.text) : undefined,
-      // Use follow-up timestamp if available (sorts with other AI items),
-      // otherwise fall back to slash invocation timestamp
+      // Use follow-up timestamp if available so it sorts correctly with other AI items
       timestamp: followUp?.timestamp ?? precedingSlash.timestamp,
     });
   }
 
-  // Strategy 2: Fallback - match slash messages found in responses to their follow-ups
+  // Strategy 2: fallback — slash messages found inside responses
   for (const [uuid, slashMsg] of slashMessagesById.entries()) {
-    // Skip if we already added this slash via precedingSlash
     if (uuid === precedingSlash?.commandMessageUuid) {
       continue;
     }

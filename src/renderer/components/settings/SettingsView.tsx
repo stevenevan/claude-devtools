@@ -1,8 +1,3 @@
-/**
- * SettingsView - Main settings panel with all app configuration options.
- * Provides UI for managing notifications, display settings, and advanced options.
- */
-
 import { useState } from 'react';
 
 import { Button } from '@renderer/components/ui/button';
@@ -62,7 +57,6 @@ export const SettingsView = (): React.JSX.Element | null => {
     updateConfig,
   });
 
-  // Loading state
   if (loading) {
     return (
       <div className="bg-background flex flex-1 items-center justify-center">
@@ -74,7 +68,6 @@ export const SettingsView = (): React.JSX.Element | null => {
     );
   }
 
-  // Error state
   if (error && !config) {
     return (
       <div className="bg-background flex flex-1 items-center justify-center">
@@ -93,7 +86,6 @@ export const SettingsView = (): React.JSX.Element | null => {
   return (
     <div className="bg-background flex-1 overflow-auto">
       <div className="mx-auto max-w-2xl px-6 py-8">
-        {/* Header */}
         <div className="mb-6">
           <h1 className="text-foreground text-lg font-medium">Settings</h1>
           <p className="text-muted-foreground text-sm">Manage your app preferences</p>
@@ -104,7 +96,6 @@ export const SettingsView = (): React.JSX.Element | null => {
           )}
         </div>
 
-        {/* Tabs + Content */}
         <SettingsTabs activeSection={activeSection} onSectionChange={setActiveSection}>
           <SettingsTabContent value="general" className="mt-4">
             <GeneralSection

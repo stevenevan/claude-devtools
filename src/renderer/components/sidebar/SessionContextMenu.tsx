@@ -1,10 +1,3 @@
-/**
- * SessionContextMenu - Right-click context menu content for sidebar session items.
- * Uses shadcn ContextMenu primitives.
- * Supports opening in current pane, new tab, and split right.
- * Shows keyboard shortcut hints for actions that have them.
- */
-
 import {
   ContextMenuContent,
   ContextMenuItem,

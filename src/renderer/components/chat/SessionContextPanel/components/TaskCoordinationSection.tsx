@@ -1,7 +1,3 @@
-/**
- * TaskCoordinationSection - Section for displaying task coordination injections.
- */
-
 import React from 'react';
 
 import { TaskCoordinationItem } from '../items/TaskCoordinationItem';

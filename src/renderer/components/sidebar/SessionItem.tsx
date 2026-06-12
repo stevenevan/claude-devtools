@@ -1,9 +1,3 @@
-/**
- * SessionItem - Compact session row in the session list.
- * Shows title, message count, and time ago.
- * Supports right-click context menu for pane management.
- */
-
 import React, { useCallback, useMemo } from 'react';
 
 import { ContextMenu, ContextMenuTrigger } from '@renderer/components/ui/context-menu';
@@ -32,9 +26,6 @@ interface SessionItemProps {
   onToggleSelect?: () => void;
 }
 
-/**
- * Format time distance in short form (e.g., "4m", "2h", "1d")
- */
 function formatShortTime(date: Date): string {
   const distance = formatDistanceToNowStrict(date, { addSuffix: false });
   return distance
@@ -54,9 +45,6 @@ function formatShortTime(date: Date): string {
     .replace(' year', 'y');
 }
 
-/**
- * Consumption badge with hover tooltip showing phase breakdown.
- */
 const ConsumptionBadge = ({
   contextConsumption,
   phaseBreakdown,
@@ -147,7 +135,6 @@ export const SessionItem = React.memo(function SessionItem({
   const handleClick = (event: React.MouseEvent): void => {
     if (!activeProjectId) return;
 
-    // In multi-select mode, clicks toggle selection
     if (multiSelectActive && onToggleSelect) {
       onToggleSelect();
       return;
@@ -248,7 +235,6 @@ export const SessionItem = React.memo(function SessionItem({
           />
         }
       >
-        {/* First line: title + ongoing indicator + pin/hidden icons */}
         <div className="flex items-center gap-1.5">
           {multiSelectActive && (
             <input
@@ -277,7 +263,6 @@ export const SessionItem = React.memo(function SessionItem({
           </span>
         </div>
 
-        {/* Second line: message count + time + context consumption */}
         <div className="text-muted-foreground mt-0.5 flex items-center gap-2 text-[11px] leading-tight">
           <span className="flex items-center gap-0.5">
             <MessageSquare className="size-2.5" />

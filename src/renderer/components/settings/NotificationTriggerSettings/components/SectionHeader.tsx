@@ -1,7 +1,3 @@
-/**
- * Section header component - Linear style.
- */
-
 interface SectionHeaderProps {
   title: string;
 }

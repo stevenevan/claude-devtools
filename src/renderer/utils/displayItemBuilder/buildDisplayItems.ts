@@ -9,24 +9,6 @@ import { linkTeammateReplies, sortDisplayItemsChronologically } from './helpers'
 import type { ParsedMessage, Process, SemanticStep } from '../../types/data';
 import type { AIGroupDisplayItem, AIGroupLastOutput } from '../../types/groups';
 
-/**
- * Build a flat chronological list of display items for the AI Group.
- *
- * Strategy:
- * 1. Skip the step that represents lastOutput (to avoid duplication)
- * 2. For tool_call steps, use the LinkedToolItem (which includes the result)
- * 3. Skip standalone tool_result steps (already linked to calls)
- * 4. Skip Task tool_call steps that have associated subagents (avoid duplication)
- * 5. Include thinking, subagent, and output steps
- * 6. Return items in chronological order
- *
- * @param steps - Semantic steps from the AI Group
- * @param lastOutput - The last output to skip
- * @param subagents - Subagents associated with this group
- * @param responses - Optional raw messages for extracting slash instructions
- * @param precedingSlash - Optional slash info from the preceding UserGroup
- * @returns Flat array of display items
- */
 export function buildDisplayItems(
   steps: SemanticStep[],
   lastOutput: AIGroupLastOutput | null,
@@ -37,13 +19,10 @@ export function buildDisplayItems(
   const displayItems: AIGroupDisplayItem[] = [];
   const linkedTools = linkToolCallsToResults(steps, responses);
 
-  // Build set of Task IDs that have associated subagents
-  // This prevents duplicate display of Task tool calls when subagents are shown
   const taskIdsWithSubagents = new Set<string>(
     subagents.map((s) => s.parentTaskId).filter((id): id is string => !!id)
   );
 
-  // Find the step ID of lastOutput to skip it
   let lastOutputStepId: string | undefined;
   if (lastOutput) {
     for (let i = steps.length - 1; i >= 0; i--) {
@@ -75,9 +54,7 @@ export function buildDisplayItems(
     }
   }
 
-  // Build display items
   for (const step of steps) {
-    // Skip the last output step
     if (lastOutputStepId && step.id === lastOutputStepId) {
       continue;
     }
@@ -97,8 +74,6 @@ export function buildDisplayItems(
       case 'tool_call': {
         const linkedTool = linkedTools.get(step.id);
         if (linkedTool) {
-          // Skip Task tool calls that have associated subagents
-          // The subagent will be shown separately, so showing the Task call is redundant
           const isTaskWithSubagent =
             linkedTool.name === 'Task' && taskIdsWithSubagents.has(step.id);
           if (!isTaskWithSubagent) {
@@ -112,7 +87,7 @@ export function buildDisplayItems(
       }
 
       case 'tool_result':
-        // Skip - these are already included in LinkedToolItem
+        // already linked into LinkedToolItem
         break;
 
       case 'subagent': {
@@ -161,7 +136,6 @@ export function buildDisplayItems(
     }
   }
 
-  // Add teammate messages from responses (one user message may contain multiple blocks)
   if (responses) {
     for (const msg of responses) {
       if (msg.type !== 'user' || msg.isMeta) continue;
@@ -192,10 +166,8 @@ export function buildDisplayItems(
     }
   }
 
-  // Sort all items chronologically to ensure slashes appear in correct order
   sortDisplayItemsChronologically(displayItems);
 
-  // Link TeammateMessages to their triggering SendMessage calls
   linkTeammateReplies(displayItems);
 
   return displayItems;

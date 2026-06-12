@@ -1,8 +1,3 @@
-/**
- * TriggerCard - Individual trigger display/edit card component.
- * Memoized to prevent unnecessary re-renders when other triggers change.
- */
-
 import { memo, useCallback } from 'react';
 
 import { useRepositoryLookup } from '../hooks/useRepositoryLookup';

@@ -1,41 +1,20 @@
-/**
- * Hook for AddTriggerForm state management.
- * Extracts all useState calls and resetForm logic from AddTriggerForm.
- */
-
 import { useCallback, useState } from 'react';
 
 import type { TriggerContentType, TriggerMode, TriggerTokenType } from '@renderer/types/data';
 import type { TriggerColor } from '@shared/constants/triggerColors';
 
 interface AddTriggerFormState {
-  // Section 1: General Info
   name: string;
   toolName: string;
-
-  // Section 2: Trigger Condition
   mode: TriggerMode;
-
-  // Section 3: Dynamic Configuration
-  // Content match settings
   contentType: TriggerContentType;
   matchField: string;
   matchPattern: string;
-
-  // Token threshold settings
   tokenThreshold: number;
   tokenType: TriggerTokenType;
-
-  // Section 4: Advanced
   ignorePatterns: string[];
-
-  // Section 5: Repository Scope
   repositoryIds: string[];
-
-  // Display
   color: TriggerColor;
-
-  // UI state
   isExpanded: boolean;
 }
 
@@ -55,37 +34,18 @@ export interface AddTriggerFormStateReturn extends AddTriggerFormState {
   resetForm: () => void;
 }
 
-/**
- * Hook for managing AddTriggerForm state.
- */
 export function useAddTriggerFormState(): AddTriggerFormStateReturn {
-  // Section 1: General Info
   const [name, setName] = useState('');
   const [toolName, setToolName] = useState<string>('');
-
-  // Section 2: Trigger Condition
   const [mode, setMode] = useState<TriggerMode>('error_status');
-
-  // Section 3: Dynamic Configuration
-  // Content match settings
   const [contentType, setContentType] = useState<TriggerContentType>('tool_result');
   const [matchField, setMatchField] = useState<string>('content');
   const [matchPattern, setMatchPattern] = useState('');
-
-  // Token threshold settings
   const [tokenThreshold, setTokenThreshold] = useState<number>(1000);
   const [tokenType, setTokenType] = useState<TriggerTokenType>('total');
-
-  // Section 4: Advanced
   const [ignorePatterns, setIgnorePatterns] = useState<string[]>([]);
-
-  // Section 5: Repository Scope
   const [repositoryIds, setRepositoryIds] = useState<string[]>([]);
-
-  // Display
   const [color, setColor] = useState<TriggerColor>('red');
-
-  // UI state
   const [isExpanded, setIsExpanded] = useState(false);
 
   const resetForm = useCallback(() => {
@@ -103,7 +63,6 @@ export function useAddTriggerFormState(): AddTriggerFormStateReturn {
   }, []);
 
   return {
-    // State values
     name,
     toolName,
     mode,
@@ -116,8 +75,6 @@ export function useAddTriggerFormState(): AddTriggerFormStateReturn {
     repositoryIds,
     color,
     isExpanded,
-
-    // Setters
     setName,
     setToolName,
     setMode,

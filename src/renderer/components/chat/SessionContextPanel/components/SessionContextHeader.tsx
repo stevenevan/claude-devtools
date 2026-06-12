@@ -1,7 +1,3 @@
-/**
- * SessionContextHeader - Header component with title, help tooltip, and token stats.
- */
-
 import React from 'react';
 
 import { cn } from '@renderer/lib/utils';
@@ -39,7 +35,6 @@ export const SessionContextHeader = ({
 }: Readonly<SessionContextHeaderProps>): React.ReactElement => {
   return (
     <div className="border-border shrink-0 border-b px-4 py-3">
-      {/* Title row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <FileText size={16} className="text-muted-foreground" />
@@ -62,17 +57,14 @@ export const SessionContextHeader = ({
         </div>
       </div>
 
-      {/* Token comparison stats */}
       <div className="border-border mt-2 flex items-center justify-between border-t pt-2 text-xs">
         <div className="flex items-center gap-4">
-          {/* Visible Context tokens */}
           <div>
             <span className="text-muted-foreground">Visible: </span>
             <span className="text-muted-foreground font-medium tabular-nums">
               ~{formatTokens(totalTokens)}
             </span>
           </div>
-          {/* Total Session tokens (if provided) */}
           {totalSessionTokens !== undefined && totalSessionTokens > 0 && (
             <div>
               <span className="text-muted-foreground">Total: </span>
@@ -82,7 +74,6 @@ export const SessionContextHeader = ({
             </div>
           )}
         </div>
-        {/* Percentage of total */}
         {totalSessionTokens !== undefined && totalSessionTokens > 0 && (
           <span className="bg-popover text-muted-foreground rounded-sm px-1.5 py-0.5 tabular-nums">
             {Math.min((totalTokens / totalSessionTokens) * 100, 100).toFixed(1)}% of total
@@ -90,7 +81,6 @@ export const SessionContextHeader = ({
         )}
       </div>
 
-      {/* Phase selector - only shown when compactions exist */}
       {phaseInfo && phaseInfo.phases.length > 1 && (
         <div className="border-border/50 mt-2 flex flex-wrap items-center gap-1 border-t pt-2">
           <span className="text-muted-foreground mr-1 text-[10px]">Phase:</span>
@@ -124,7 +114,6 @@ export const SessionContextHeader = ({
         </div>
       )}
 
-      {/* View mode toggle */}
       <div className="border-border/50 mt-2 flex items-center gap-1 border-t pt-2">
         <span className="text-muted-foreground mr-1 text-[10px]">View:</span>
         <button

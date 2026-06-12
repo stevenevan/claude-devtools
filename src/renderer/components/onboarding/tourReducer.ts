@@ -1,8 +1,3 @@
-/**
- * Onboarding tour state reducer (sprint 49). Pure logic split from the
- * UI so it can be unit-tested.
- */
-
 export interface TourStep {
   id: string;
   title: string;

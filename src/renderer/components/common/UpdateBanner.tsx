@@ -1,9 +1,3 @@
-/**
- * UpdateBanner - Slim top banner for download progress and restart prompt.
- *
- * Visible during download and after the update is ready to install.
- */
-
 import { useStore } from '@renderer/store';
 import { CheckCircle, Loader2, X } from 'lucide-react';
 
@@ -57,7 +51,6 @@ export const UpdateBanner = (): React.JSX.Element | null => {
         </div>
       )}
 
-      {/* Dismiss */}
       <button
         onClick={dismissUpdateBanner}
         className="text-muted-foreground absolute top-1/2 right-3 shrink-0 -translate-y-1/2 rounded-sm p-0.5 transition-colors hover:bg-white/10"

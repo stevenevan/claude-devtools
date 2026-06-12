@@ -1,7 +1,3 @@
-/**
- * DirectoryTreeNode - Recursive component for rendering directory tree nodes.
- */
-
 import React, { useState } from 'react';
 
 import { CopyablePath } from '@renderer/components/common/CopyablePath';

@@ -4,17 +4,11 @@ import { highlightSearchInChildren, type SearchContext } from './searchHighlight
 
 import type { Components } from 'react-markdown';
 
-/**
- * Create inline markdown components for rendering prose content.
- * When searchCtx is provided, search term highlighting is applied
- * to text nodes while preserving full markdown rendering.
- */
 export function createMarkdownComponents(searchCtx: SearchContext | null): Components {
   const hl = (children: React.ReactNode): React.ReactNode =>
     searchCtx ? highlightSearchInChildren(children, searchCtx) : children;
 
   return {
-    // Headings - Bold text with generous spacing to break up content
     h1: ({ children }) => (
       <h1 className="text-foreground mt-6 mb-3 text-lg font-semibold first:mt-0">{hl(children)}</h1>
     ),
@@ -38,7 +32,6 @@ export function createMarkdownComponents(searchCtx: SearchContext | null): Compo
       <h6 className="text-foreground mt-2 mb-1 text-xs font-medium first:mt-0">{hl(children)}</h6>
     ),
 
-    // Paragraphs
     p: ({ children }) => (
       <p className="text-foreground my-2 text-sm leading-relaxed first:mt-0 last:mb-0">
         {hl(children)}
@@ -57,13 +50,8 @@ export function createMarkdownComponents(searchCtx: SearchContext | null): Compo
       </a>
     ),
 
-    // Strong/Bold — inline element, no hl()
     strong: ({ children }) => <strong className="text-foreground font-semibold">{children}</strong>,
-
-    // Emphasis/Italic — inline element, no hl()
     em: ({ children }) => <em className="text-foreground italic">{children}</em>,
-
-    // Strikethrough — inline element, no hl()
     del: ({ children }) => <del className="text-foreground line-through">{children}</del>,
 
     // Inline code vs block code
@@ -84,21 +72,18 @@ export function createMarkdownComponents(searchCtx: SearchContext | null): Compo
       );
     },
 
-    // Code blocks
     pre: ({ children }) => (
       <pre className="text-foreground border-border bg-muted my-3 overflow-x-auto rounded-lg border p-3 font-mono text-xs leading-relaxed">
         {children}
       </pre>
     ),
 
-    // Blockquotes
     blockquote: ({ children }) => (
       <blockquote className="border-border text-muted-foreground my-3 border-l-4 pl-4 italic">
         {hl(children)}
       </blockquote>
     ),
 
-    // Lists
     ul: ({ children }) => (
       <ul className="text-foreground my-2 list-disc space-y-1 pl-5">{children}</ul>
     ),
@@ -107,7 +92,6 @@ export function createMarkdownComponents(searchCtx: SearchContext | null): Compo
     ),
     li: ({ children }) => <li className="text-foreground text-sm">{hl(children)}</li>,
 
-    // Tables
     table: ({ children }) => (
       <div className="my-3 overflow-x-auto">
         <table className="border-border/50 min-w-full border-collapse text-sm">{children}</table>
@@ -123,10 +107,8 @@ export function createMarkdownComponents(searchCtx: SearchContext | null): Compo
       <td className="border-border/50 text-foreground border px-3 py-2">{hl(children)}</td>
     ),
 
-    // Horizontal rule
     hr: () => <hr className="border-border/50 my-4" />,
   };
 }
 
-/** Default markdown components without search highlighting (used by CompactBoundary) */
 export const markdownComponents: Components = createMarkdownComponents(null);

@@ -3,10 +3,6 @@ import { findPaneByTabId, syncFocusedPaneState, updatePane } from './paneHelpers
 import type { PaneLayout } from '@renderer/types/panes';
 import type { Tab } from '@renderer/types/tabs';
 
-/**
- * Sync root-level state (openTabs, activeTabId, selectedTabIds) from the
- * focused pane and return the patch to splat into the store.
- */
 export function syncFromLayout(layout: PaneLayout): Record<string, unknown> {
   const synced = syncFocusedPaneState(layout);
   return {
@@ -17,9 +13,6 @@ export function syncFromLayout(layout: PaneLayout): Record<string, unknown> {
   };
 }
 
-/**
- * Update a tab in whichever pane contains it, returning the new layout.
- */
 export function updateTabInLayout(
   layout: PaneLayout,
   tabId: string,

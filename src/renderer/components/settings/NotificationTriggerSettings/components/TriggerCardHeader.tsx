@@ -1,7 +1,3 @@
-/**
- * TriggerCardHeader - Header row for TriggerCard with name, badges, toggle, and actions.
- */
-
 import { Switch } from '@renderer/components/ui/switch';
 import { cn } from '@renderer/lib/utils';
 import { getTriggerColorDef } from '@shared/constants/triggerColors';

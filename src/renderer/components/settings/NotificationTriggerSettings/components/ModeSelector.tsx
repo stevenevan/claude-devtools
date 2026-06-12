@@ -1,7 +1,3 @@
-/**
- * ModeSelector - Segmented control for selecting trigger mode - Linear style.
- */
-
 import { cn } from '@renderer/lib/utils';
 
 import { MODE_OPTIONS } from '../utils/constants';

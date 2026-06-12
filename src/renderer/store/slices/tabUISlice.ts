@@ -1,25 +1,8 @@
-/**
- * Tab UI slice - manages per-tab UI state (expansion states, scroll positions, etc.)
- *
- * This slice provides COMPLETE isolation of UI state between tabs. Each tab has its
- * own independent state for:
- * - AI group expansion (collapsed/expanded)
- * - Display item expansion within AI groups
- * - Subagent trace expansion
- * - Context panel visibility
- * - Scroll position
- *
- * The state is keyed by tabId, so opening the same session in two tabs gives each
- * tab its own independent UI state.
- */
+// Per-tab UI state is keyed by tabId, so the same session in two tabs gets independent state.
 
 import type { AppState } from '../types';
 import type { StateCreator } from 'zustand';
 
-/**
- * UI state for a single tab.
- * All values are optional - defaults are applied when reading.
- */
 export interface TabUIState {
   /** Which AI groups are expanded (by aiGroupId) */
   expandedAIGroupIds: Set<string>;
@@ -43,9 +26,6 @@ export interface TabUIState {
   focusedTurnIndex: number;
 }
 
-/**
- * Creates a default/empty TabUIState.
- */
 function createDefaultTabUIState(): TabUIState {
   return {
     expandedAIGroupIds: new Set(),
@@ -59,70 +39,41 @@ function createDefaultTabUIState(): TabUIState {
 }
 
 export interface TabUISlice {
-  /** Per-tab UI states: Map<tabId, TabUIState> */
   tabUIStates: Map<string, TabUIState>;
 
-  // Initialization & cleanup
-  /** Initialize UI state for a new tab */
   initTabUIState: (tabId: string) => void;
-  /** Clean up UI state when a tab is closed */
   cleanupTabUIState: (tabId: string) => void;
 
-  // AI Group expansion (per-tab)
-  /** Toggle AI group expansion for a specific tab */
   toggleAIGroupExpansionForTab: (tabId: string, aiGroupId: string) => void;
-  /** Check if AI group is expanded for a specific tab */
   isAIGroupExpandedForTab: (tabId: string, aiGroupId: string) => boolean;
-  /** Expand AI group for a specific tab (for auto-expand scenarios) */
   expandAIGroupForTab: (tabId: string, aiGroupId: string) => void;
 
-  // Display item expansion (per-tab)
-  /** Toggle display item expansion within an AI group for a specific tab */
   toggleDisplayItemExpansionForTab: (tabId: string, aiGroupId: string, itemId: string) => void;
-  /** Get expanded display item IDs for an AI group in a specific tab */
   getExpandedDisplayItemIdsForTab: (tabId: string, aiGroupId: string) => Set<string>;
-  /** Expand a display item for a specific tab (for auto-expand scenarios) */
   expandDisplayItemForTab: (tabId: string, aiGroupId: string, itemId: string) => void;
 
-  // Subagent trace expansion (per-tab)
-  /** Toggle subagent trace expansion for a specific tab */
   toggleSubagentTraceExpansionForTab: (tabId: string, subagentId: string) => void;
-  /** Expand subagent trace for a specific tab (no-op if already expanded) */
   expandSubagentTraceForTab: (tabId: string, subagentId: string) => void;
-  /** Check if subagent trace is expanded for a specific tab */
   isSubagentTraceExpandedForTab: (tabId: string, subagentId: string) => boolean;
 
-  // Context panel (per-tab)
-  /** Set context panel visibility for a specific tab */
   setContextPanelVisibleForTab: (tabId: string, visible: boolean) => void;
-  /** Get context panel visibility for a specific tab */
   isContextPanelVisibleForTab: (tabId: string) => boolean;
 
-  // Context phase selection (per-tab)
-  /** Set the selected context phase for a specific tab */
   setSelectedContextPhaseForTab: (tabId: string, phase: number | null) => void;
 
-  // Scroll position (per-tab)
-  /** Save scroll position for a specific tab */
   saveScrollPositionForTab: (tabId: string, scrollTop: number) => void;
-  /** Get saved scroll position for a specific tab */
   getScrollPositionForTab: (tabId: string) => number | undefined;
 
-  // Turn navigation (per-tab)
-  /** Get the focused turn index for a tab (-1 = none) */
   getFocusedTurnIndexForTab: (tabId: string) => number;
-  /** Set the focused turn index for a tab */
   setFocusedTurnIndexForTab: (tabId: string, index: number) => void;
 }
 
 export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set, get) => ({
   tabUIStates: new Map<string, TabUIState>(),
 
-  // Initialization & Cleanup
-
   initTabUIState: (tabId: string) => {
     const state = get();
-    if (state.tabUIStates.has(tabId)) return; // Already initialized
+    if (state.tabUIStates.has(tabId)) return;
 
     const newMap = new Map(state.tabUIStates);
     newMap.set(tabId, createDefaultTabUIState());
@@ -137,8 +88,6 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
     newMap.delete(tabId);
     set({ tabUIStates: newMap });
   },
-
-  // AI Group Expansion
 
   toggleAIGroupExpansionForTab: (tabId: string, aiGroupId: string) => {
     const state = get();
@@ -164,7 +113,7 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
   expandAIGroupForTab: (tabId: string, aiGroupId: string) => {
     const state = get();
     const tabState = state.tabUIStates.get(tabId);
-    if (tabState?.expandedAIGroupIds.has(aiGroupId)) return; // Already expanded
+    if (tabState?.expandedAIGroupIds.has(aiGroupId)) return;
 
     const newMap = new Map(state.tabUIStates);
     const currentTabState = newMap.get(tabId) ?? createDefaultTabUIState();
@@ -175,8 +124,6 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
     newMap.set(tabId, { ...currentTabState, expandedAIGroupIds: newExpandedIds });
     set({ tabUIStates: newMap });
   },
-
-  // Display Item Expansion
 
   toggleDisplayItemExpansionForTab: (tabId: string, aiGroupId: string, itemId: string) => {
     const state = get();
@@ -207,7 +154,7 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
     const state = get();
     const tabState = state.tabUIStates.get(tabId);
     const currentSet = tabState?.expandedDisplayItemIds.get(aiGroupId);
-    if (currentSet?.has(itemId)) return; // Already expanded
+    if (currentSet?.has(itemId)) return;
 
     const newMap = new Map(state.tabUIStates);
     const currentTabState = newMap.get(tabId) ?? createDefaultTabUIState();
@@ -220,8 +167,6 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
     newMap.set(tabId, { ...currentTabState, expandedDisplayItemIds: newDisplayItemMap });
     set({ tabUIStates: newMap });
   },
-
-  // Subagent Trace Expansion
 
   toggleSubagentTraceExpansionForTab: (tabId: string, subagentId: string) => {
     const state = get();
@@ -243,7 +188,6 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
     const state = get();
     const tabState = state.tabUIStates.get(tabId) ?? createDefaultTabUIState();
 
-    // No-op if already expanded
     if (tabState.expandedSubagentTraceIds.has(subagentId)) return;
 
     const newExpandedIds = new Set(tabState.expandedSubagentTraceIds);
@@ -259,8 +203,6 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
     return tabState?.expandedSubagentTraceIds.has(subagentId) ?? false;
   },
 
-  // Context Panel
-
   setContextPanelVisibleForTab: (tabId: string, visible: boolean) => {
     const state = get();
     const newMap = new Map(state.tabUIStates);
@@ -275,8 +217,6 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
     return tabState?.showContextPanel ?? false;
   },
 
-  // Context Phase Selection
-
   setSelectedContextPhaseForTab: (tabId: string, phase: number | null) => {
     const state = get();
     const newMap = new Map(state.tabUIStates);
@@ -284,8 +224,6 @@ export const createTabUISlice: StateCreator<AppState, [], [], TabUISlice> = (set
     newMap.set(tabId, { ...tabState, selectedContextPhase: phase });
     set({ tabUIStates: newMap });
   },
-
-  // Scroll Position
 
   saveScrollPositionForTab: (tabId: string, scrollTop: number) => {
     const state = get();
