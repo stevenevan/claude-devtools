@@ -1,22 +1,14 @@
-/**
- * Type definitions for the new chat history architecture.
- * These types separate user input from AI responses for a chat-style display.
- */
+import type { ModelInfo } from '@shared/utils/modelParser';
 
+import type { ClaudeMdStats } from '../claudeMd';
+import type { CompactionTokenDelta } from '../contextInjection';
 import type {
   ParsedMessage,
   Process,
   SemanticStep,
   SessionMetrics,
   ToolUseResultData,
-} from './data';
-import type { SystemEventData } from '@shared/types/messages';
-export type { SemanticStep };
-import type { ClaudeMdStats } from './claudeMd';
-import type { CompactionTokenDelta } from './contextInjection';
-import type { ModelInfo } from '@shared/utils/modelParser';
-
-// Expansion Levels
+} from '../data';
 
 /**
  * AI Group expansion levels for the collapsible UI.
@@ -25,97 +17,6 @@ import type { ModelInfo } from '@shared/utils/modelParser';
  * - full: Show full content of each item
  */
 export type AIGroupExpansionLevel = 'collapsed' | 'items' | 'full';
-
-// User Group Types
-
-/**
- * Command reference extracted from user input (e.g., /isolate-context, /context).
- */
-export interface CommandInfo {
-  /** Command name without slash (e.g., "isolate-context") */
-  name: string;
-  /** Optional arguments after the command */
-  args?: string;
-  /** Full raw text including slash */
-  raw: string;
-  /** Position in the text where command starts */
-  startIndex: number;
-  /** Position in the text where command ends */
-  endIndex: number;
-}
-
-/**
- * Image data from user message.
- */
-export interface ImageData {
-  /** Unique identifier */
-  id: string;
-  /** MIME type */
-  mediaType: 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp';
-  /** Base64 encoded data for display */
-  data?: string;
-}
-
-/**
- * File reference mentioned in user message (e.g., @file.ts).
- */
-export interface FileReference {
-  /** File path */
-  path: string;
-  /** Optional line range */
-  lineRange?: {
-    start: number;
-    end?: number;
-  };
-  /** Raw text as written */
-  raw: string;
-}
-
-/**
- * Parsed content from a user message.
- */
-export interface UserGroupContent {
-  /** Plain text content (with commands removed for display) */
-  text?: string;
-  /** Raw text content (original) */
-  rawText?: string;
-  /** Extracted commands */
-  commands: CommandInfo[];
-  /** Extracted images */
-  images: ImageData[];
-  /** Extracted file references */
-  fileReferences: FileReference[];
-}
-
-/**
- * User Group - represents a user's complete input.
- * This is one side of a conversation turn.
- */
-export interface UserGroup {
-  /** Unique identifier */
-  id: string;
-  /** Original ParsedMessage */
-  message: ParsedMessage;
-  /** Timestamp of the message */
-  timestamp: Date;
-  /** Parsed content */
-  content: UserGroupContent;
-  /** Index within the session (for ordering) */
-  index: number;
-}
-
-/**
- * System Group - represents command output rendered like AI.
- */
-export interface SystemGroup {
-  id: string;
-  message: ParsedMessage;
-  timestamp: Date;
-  commandOutput: string; // Raw output text
-  commandName?: string; // Optional: extracted command name
-}
-
-// AI Group Types
 
 /**
  * Summary statistics for the collapsed AI Group view.
@@ -357,60 +258,4 @@ export interface AIGroup {
   progressCount?: number;
   /** Progress message texts during this response */
   progressTexts?: string[];
-}
-
-// Conversation Types
-
-/**
- * Compact Group - marks where conversation was compacted.
- * Contains the compact summary message with the conversation summary.
- */
-export interface CompactGroup {
-  id: string;
-  timestamp: Date;
-  message: ParsedMessage; // Contains compact summary in message.content
-  tokenDelta?: CompactionTokenDelta;
-  startingPhaseNumber?: number;
-}
-
-/**
- * Chat item - can be user, system, ai, or compact.
- * These are INDEPENDENT items in a flat list, not paired turns.
- */
-/**
- * Event group — a system event displayed as an inline marker.
- */
-export interface EventGroup {
-  id: string;
-  timestamp: Date;
-  message: ParsedMessage;
-  eventData: SystemEventData;
-}
-
-export type ChatItem =
-  | { type: 'user'; group: UserGroup }
-  | { type: 'system'; group: SystemGroup }
-  | { type: 'ai'; group: AIGroup }
-  | { type: 'compact'; group: CompactGroup }
-  | { type: 'event'; group: EventGroup };
-
-/**
- * Session conversation as a flat list of independent chat items.
- * NO LONGER uses turns - each item stands alone.
- */
-export interface SessionConversation {
-  /** Session ID */
-  sessionId: string;
-  /** All chat items in chronological order */
-  items: ChatItem[];
-  /** Total count of user groups */
-  totalUserGroups: number;
-  /** Total count of system groups */
-  totalSystemGroups: number;
-  /** Total count of AI groups */
-  totalAIGroups: number;
-  /** Total count of compact groups */
-  totalCompactGroups: number;
-  /** Total count of event groups */
-  totalEventGroups: number;
 }
