@@ -8,7 +8,7 @@ import type { ChatItem } from '@renderer/types/groups';
 const SCROLL_THRESHOLD = 300;
 
 interface UseChatHistoryScrollOptions {
-  scrollContainerRef: React.RefObject<HTMLDivElement>;
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   conversation: { items: ChatItem[] } | null;
   conversationLoading: boolean;
   isThisTabActive: boolean;

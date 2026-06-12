@@ -78,6 +78,7 @@ export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext
   if (!isMod && !event.altKey && !event.shiftKey) {
     const tag = (event.target as HTMLElement)?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+      // Skip navigation shortcuts while typing in form fields
     } else if (event.key === 'j' || event.key === 'k') {
       const activeTab = ctx.getActiveTab();
       if (activeTab?.type === 'session') {

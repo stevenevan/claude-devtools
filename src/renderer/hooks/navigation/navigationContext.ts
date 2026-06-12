@@ -7,7 +7,7 @@ export interface NavigationContext {
   aiGroupRefs: React.MutableRefObject<Map<string, HTMLElement>>;
   chatItemRefs: React.MutableRefObject<Map<string, HTMLElement>>;
   toolItemRefs: React.MutableRefObject<Map<string, HTMLElement>>;
-  scrollContainerRef: React.RefObject<HTMLDivElement>;
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   stickyOffset: number;
   ensureGroupVisible?: (groupId: string) => Promise<void> | void;
   expandAIGroup: (groupId: string) => void;
