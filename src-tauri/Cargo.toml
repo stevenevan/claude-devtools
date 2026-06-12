@@ -4,6 +4,9 @@ version = "0.4.8"
 description = "Desktop app that visualizes Claude Code session execution"
 authors = ["claude-devtools contributors"]
 edition = "2021"
+# Disambiguate the app binary (src/main.rs) from the claude-devtools-cli bin
+# so `tauri build` knows which binary to bundle.
+default-run = "claude-devtools"
 
 [lib]
 name = "claude_devtools_lib"

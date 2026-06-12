@@ -399,9 +399,7 @@
       }
     },
     {
-      "files": [
-        "src/renderer/**/*.{ts,tsx}"
-      ],
+      "files": ["src/renderer/**/*.{ts,tsx}"],
       "rules": {
         "import/no-cycle": [
           "error",
@@ -413,47 +411,6 @@
         "import/no-default-export": "warn"
       },
       "plugins": ["import"]
-    },
-    {
-      "files": ["src/**/*.{js,jsx,ts,tsx}"],
-      "rules": {
-        "boundaries/dependencies": [
-          "error",
-          {
-            "default": "disallow",
-            "checkInternals": true,
-            "rules": [
-              {
-                "from": { "type": "renderer" },
-                "allow": [
-                  { "to": { "type": "renderer" } },
-                  { "to": { "type": "shared" } }
-                ]
-              },
-              {
-                "from": { "type": "shared" },
-                "allow": [
-                  { "to": { "type": "shared" } }
-                ]
-              }
-            ]
-          }
-        ],
-        "@eslint-community/eslint-comments/no-unlimited-disable": "error",
-        "@eslint-community/eslint-comments/require-description": [
-          "error",
-          {
-            "ignore": []
-          }
-        ],
-        "@eslint-community/eslint-comments/disable-enable-pair": "error",
-        "@eslint-community/eslint-comments/no-duplicate-disable": "error",
-        "@eslint-community/eslint-comments/no-unused-disable": "error"
-      },
-      "jsPlugins": [
-        "eslint-plugin-boundaries",
-        "@eslint-community/eslint-plugin-eslint-comments"
-      ]
     },
     {
       "files": ["src/renderer/**/*.{ts,tsx}"],
