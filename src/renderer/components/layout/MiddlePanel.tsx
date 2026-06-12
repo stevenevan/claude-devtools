@@ -15,6 +15,8 @@ interface MiddlePanelProps {
   tabId?: string;
 }
 
+const EMPTY_ARRAY: never[] = [];
+
 export const MiddlePanel: React.FC<MiddlePanelProps> = ({ tabId }) => {
   const {
     flameGraphVisible,
@@ -32,8 +34,8 @@ export const MiddlePanel: React.FC<MiddlePanelProps> = ({ tabId }) => {
         flameGraphVisible: s.flameGraphVisible,
         teamTreeVisible: s.teamTreeVisible,
         fileGraphVisible: s.fileGraphVisible,
-        chunks: detail?.chunks ?? [],
-        processes: detail?.processes ?? [],
+        chunks: detail?.chunks ?? EMPTY_ARRAY,
+        processes: detail?.processes ?? EMPTY_ARRAY,
         sessionProjectId: detail?.session?.projectId ?? null,
         sessionId: detail?.session?.id ?? null,
       };

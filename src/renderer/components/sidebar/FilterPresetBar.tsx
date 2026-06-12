@@ -13,6 +13,8 @@ import { PresetChip } from './PresetChip';
 
 import type { FilterPresetEntry } from '@shared/types/notifications';
 
+const EMPTY_ARRAY: never[] = [];
+
 export const FilterPresetBar = (): React.JSX.Element | null => {
   const {
     activeFilters,
@@ -31,7 +33,7 @@ export const FilterPresetBar = (): React.JSX.Element | null => {
       removeFilterPreset: s.removeFilterPreset,
       renameFilterPreset: s.renameFilterPreset,
       setDefaultFilterPreset: s.setDefaultFilterPreset,
-      rawPresets: s.appConfig?.sessions?.filterPresets ?? [],
+      rawPresets: s.appConfig?.sessions?.filterPresets ?? EMPTY_ARRAY,
       defaultPresetId: s.appConfig?.sessions?.defaultFilterPresetId ?? null,
     }))
   );

@@ -11,10 +11,12 @@ import type { PluginEntry } from '@shared/types/api';
 
 const logger = createLogger('PluginsSettings');
 
+const EMPTY_ARRAY: never[] = [];
+
 export const PluginsSettings = (): React.JSX.Element => {
   const { enabledIds, setPluginEnabled } = useStore(
     useShallow((s) => ({
-      enabledIds: s.appConfig?.plugins?.enabled ?? [],
+      enabledIds: s.appConfig?.plugins?.enabled ?? EMPTY_ARRAY,
       setPluginEnabled: s.setPluginEnabled,
     }))
   );

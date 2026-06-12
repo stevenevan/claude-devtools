@@ -12,12 +12,14 @@ interface SessionTagEditorProps {
  * SessionTagEditor - Inline tag editor for sessions.
  * Shows existing tags with an input to add new ones.
  */
+const EMPTY_ARRAY: never[] = [];
+
 export const SessionTagEditor = ({
   sessionId,
 }: Readonly<SessionTagEditorProps>): React.JSX.Element => {
   const { tags, fetchSessionTags, setSessionTags } = useStore(
     useShallow((s) => ({
-      tags: s.sessionTags.get(sessionId) ?? [],
+      tags: s.sessionTags.get(sessionId) ?? EMPTY_ARRAY,
       fetchSessionTags: s.fetchSessionTags,
       setSessionTags: s.setSessionTags,
     }))
