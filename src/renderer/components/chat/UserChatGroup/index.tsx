@@ -6,19 +6,16 @@ import { useStore } from '@renderer/store';
 import { createLogger } from '@shared/utils/logger';
 import { format } from 'date-fns';
 import { User } from 'lucide-react';
-import ReactMarkdown, { type Components } from 'react-markdown';
+import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useShallow } from 'zustand/react/shallow';
 
-import { CopyButton } from '../common/CopyButton';
+import { CopyButton } from '../../common/CopyButton';
 
-import { AnnotationBadge } from './AnnotationBadge';
-import {
-  createSearchContext,
-  EMPTY_SEARCH_MATCHES,
-  highlightSearchInChildren,
-  type SearchContext,
-} from './searchHighlightUtils';
+import { AnnotationBadge } from '../AnnotationBadge';
+import { createSearchContext, EMPTY_SEARCH_MATCHES } from '../searchHighlightUtils';
+
+import { createUserMarkdownComponents } from './userMarkdownComponents';
 
 import type { UserGroup } from '@renderer/types/groups';
 
@@ -29,207 +26,6 @@ const PATH_PATTERN = /@([^\s,)}\]]+)/g;
 
 interface UserChatGroupProps {
   userGroup: UserGroup;
-}
-
-/**
- * Recursively walks React children and replaces text nodes containing @path
- * references with styled spans using validated path state.
- */
-// eslint-disable-next-line sonarjs/function-return-type -- React child manipulation inherently returns mixed node types
-function highlightTextNode(text: string, validatedPaths: Record<string, boolean>): React.ReactNode {
-  const pathPattern = /@[^\s,)}\]]+/g;
-  const parts: React.ReactNode[] = [];
-  let lastIndex = 0;
-  let match;
-
-  pathPattern.lastIndex = 0;
-  while ((match = pathPattern.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
-    }
-
-    const fullMatch = match[0];
-    const isValid = validatedPaths[fullMatch] === true;
-
-    if (isValid) {
-      parts.push(
-        <span
-          key={match.index}
-          className="border-border bg-muted text-foreground rounded border px-1.5 py-0.5 font-mono text-[0.8125em]"
-        >
-          {fullMatch}
-        </span>
-      );
-    } else {
-      parts.push(fullMatch);
-    }
-
-    lastIndex = match.index + fullMatch.length;
-  }
-
-  if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
-  }
-
-  if (parts.length === 0) return text;
-  if (parts.length === 1) return parts[0];
-  return parts;
-}
-
-// eslint-disable-next-line sonarjs/function-return-type -- React child manipulation inherently returns mixed node types
-function highlightPaths(
-  children: React.ReactNode,
-  validatedPaths: Record<string, boolean>
-): React.ReactNode {
-  // eslint-disable-next-line sonarjs/function-return-type -- React child manipulation inherently returns mixed node types
-  return React.Children.map(children, (child): React.ReactNode => {
-    if (typeof child === 'string') {
-      return highlightTextNode(child, validatedPaths);
-    }
-
-    if (React.isValidElement<{ children?: React.ReactNode }>(child) && child.props.children) {
-      return React.cloneElement(
-        child,
-        undefined,
-        highlightPaths(child.props.children, validatedPaths)
-      );
-    }
-
-    return child;
-  });
-}
-
-/**
- * Creates markdown components for user bubble rendering.
- * Uses chat-user CSS variables for consistent styling and wraps
- * text-bearing elements through highlightPaths for @path tag injection
- * and optional search term highlighting.
- */
-function createUserMarkdownComponents(
-  validatedPaths: Record<string, boolean>,
-  searchCtx: SearchContext | null
-): Components {
-  // Compose path highlighting with optional search highlighting
-  // eslint-disable-next-line sonarjs/function-return-type -- React child manipulation inherently returns mixed node types
-  const hl = (children: React.ReactNode): React.ReactNode => {
-    const withPaths = highlightPaths(children, validatedPaths);
-    return searchCtx ? highlightSearchInChildren(withPaths, searchCtx) : withPaths;
-  };
-
-  return {
-    h1: ({ children }) => (
-      <h1 className="text-muted-foreground mt-6 mb-3 text-lg font-semibold first:mt-0">
-        {hl(children)}
-      </h1>
-    ),
-    h2: ({ children }) => (
-      <h2 className="text-muted-foreground mt-5 mb-2 text-base font-semibold first:mt-0">
-        {hl(children)}
-      </h2>
-    ),
-    h3: ({ children }) => (
-      <h3 className="text-muted-foreground mt-4 mb-2 text-sm font-semibold first:mt-0">
-        {hl(children)}
-      </h3>
-    ),
-    h4: ({ children }) => (
-      <h4 className="text-muted-foreground mt-3 mb-1.5 text-sm font-semibold first:mt-0">
-        {hl(children)}
-      </h4>
-    ),
-    h5: ({ children }) => (
-      <h5 className="text-muted-foreground mt-2 mb-1 text-sm font-medium first:mt-0">
-        {hl(children)}
-      </h5>
-    ),
-    h6: ({ children }) => (
-      <h6 className="text-muted-foreground mt-2 mb-1 text-xs font-medium first:mt-0">
-        {hl(children)}
-      </h6>
-    ),
-
-    p: ({ children }) => (
-      <p className="text-muted-foreground my-2 text-sm leading-relaxed first:mt-0 last:mb-0">
-        {hl(children)}
-      </p>
-    ),
-
-    // Inline elements — no hl(); parent block element's hl() descends here
-    a: ({ href, children }) => (
-      <a
-        href={href}
-        className="text-foreground no-underline hover:underline"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {children}
-      </a>
-    ),
-
-    strong: ({ children }) => (
-      <strong className="text-muted-foreground font-semibold">{children}</strong>
-    ),
-
-    em: ({ children }) => <em className="text-muted-foreground italic">{children}</em>,
-
-    del: ({ children }) => <del className="text-muted-foreground line-through">{children}</del>,
-
-    code: ({ className, children }) => {
-      const hasLanguageClass = className?.includes('language-');
-      const content = typeof children === 'string' ? children : '';
-      const isMultiLine = content.includes('\n');
-      const isBlock = (hasLanguageClass ?? false) || isMultiLine;
-
-      if (isBlock) {
-        return (
-          <code className="text-muted-foreground block font-mono text-xs">{hl(children)}</code>
-        );
-      }
-      // Inline code — no hl()
-      return (
-        <code className="border-border bg-muted text-foreground rounded-sm border px-1.5 py-0.5 font-mono text-xs">
-          {children}
-        </code>
-      );
-    },
-
-    pre: ({ children }) => (
-      <pre className="border-border text-muted-foreground my-3 overflow-x-auto rounded-lg border bg-[rgba(0,0,0,0.15)] p-3 font-mono text-xs leading-relaxed">
-        {children}
-      </pre>
-    ),
-
-    blockquote: ({ children }) => (
-      <blockquote className="border-border text-muted-foreground my-3 border-l-4 pl-4 italic">
-        {hl(children)}
-      </blockquote>
-    ),
-
-    ul: ({ children }) => (
-      <ul className="text-muted-foreground my-2 list-disc space-y-1 pl-5">{children}</ul>
-    ),
-    ol: ({ children }) => (
-      <ol className="text-muted-foreground my-2 list-decimal space-y-1 pl-5">{children}</ol>
-    ),
-    li: ({ children }) => <li className="text-muted-foreground text-sm">{hl(children)}</li>,
-
-    table: ({ children }) => (
-      <div className="my-3 overflow-x-auto">
-        <table className="border-border min-w-full border-collapse text-sm">{children}</table>
-      </div>
-    ),
-    thead: ({ children }) => <thead className="bg-[rgba(0,0,0,0.1)]">{children}</thead>,
-    th: ({ children }) => (
-      <th className="border-border text-muted-foreground border px-3 py-2 text-left font-semibold">
-        {hl(children)}
-      </th>
-    ),
-    td: ({ children }) => (
-      <td className="border-border text-muted-foreground border px-3 py-2">{hl(children)}</td>
-    ),
-
-    hr: () => <hr className="border-border my-4" />,
-  };
 }
 
 /**
