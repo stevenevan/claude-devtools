@@ -1,9 +1,3 @@
-/**
- * ShortcutCheatSheet - Modal overlay showing all keyboard shortcuts.
- * Opened via ? key. Organized by category.
- * Uses the Dialog component for proper focus trapping and ARIA semantics.
- */
-
 import { useEffect } from 'react';
 
 import {
@@ -75,7 +69,6 @@ export const ShortcutCheatSheet = ({
   open,
   onClose,
 }: Readonly<ShortcutCheatSheetProps>): React.JSX.Element => {
-  // Also close on ? key (in addition to Escape handled by Dialog)
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent): void => {
@@ -98,7 +91,6 @@ export const ShortcutCheatSheet = ({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Content */}
         <div className="max-h-[60vh] overflow-y-auto">
           <div className="grid grid-cols-2 gap-6">
             {SECTIONS.map((section) => (
@@ -121,7 +113,6 @@ export const ShortcutCheatSheet = ({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="border-border border-t pt-2.5">
           <span className="text-muted-foreground text-[10px]">
             Press{' '}

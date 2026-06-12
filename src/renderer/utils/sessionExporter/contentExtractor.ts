@@ -4,13 +4,6 @@ interface ExtractOptions {
   includeThinking?: boolean;
 }
 
-/**
- * Extract readable text from message content (string or ContentBlock[]).
- *
- * @param content - String content or array of ContentBlocks
- * @param options - Options controlling extraction behavior
- * @returns Extracted text with newlines between blocks
- */
 export function extractTextFromContent(
   content: string | ContentBlock[],
   options?: ExtractOptions
@@ -43,8 +36,7 @@ export function extractTextFromContent(
         if (typeof resultContent === 'string') {
           parts.push(resultContent);
         } else if (Array.isArray(resultContent)) {
-          // Recursively extract from nested content blocks
-          const nested = extractTextFromContent(resultContent);
+            const nested = extractTextFromContent(resultContent);
           if (nested) parts.push(nested);
         }
         break;

@@ -8,10 +8,6 @@ interface SessionTagEditorProps {
   sessionId: string;
 }
 
-/**
- * SessionTagEditor - Inline tag editor for sessions.
- * Shows existing tags with an input to add new ones.
- */
 const EMPTY_ARRAY: never[] = [];
 
 export const SessionTagEditor = ({

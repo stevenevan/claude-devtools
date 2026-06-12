@@ -10,7 +10,6 @@ const G_SEQUENCE_WINDOW_MS = 750;
 let pendingGAt: number | null = null;
 
 export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext): void {
-  // Check if Cmd (macOS) or Ctrl (Windows/Linux) is pressed
   const isMod = event.metaKey || event.ctrlKey;
 
   // Ctrl+Tab / Ctrl+Shift+Tab: Switch tabs within focused pane (universal shortcut)
@@ -19,19 +18,15 @@ export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext
     const currentIndex = ctx.openTabs.findIndex((t) => t.id === ctx.activeTabId);
 
     if (event.shiftKey) {
-      // Ctrl+Shift+Tab: Previous tab (with wrap-around)
       if (currentIndex > 0) {
         ctx.setActiveTab(ctx.openTabs[currentIndex - 1].id);
       } else if (ctx.openTabs.length > 0) {
-        // Wrap to last tab
         ctx.setActiveTab(ctx.openTabs[ctx.openTabs.length - 1].id);
       }
     } else {
-      // Ctrl+Tab: Next tab (with wrap-around)
       if (currentIndex !== -1 && currentIndex < ctx.openTabs.length - 1) {
         ctx.setActiveTab(ctx.openTabs[currentIndex + 1].id);
       } else if (ctx.openTabs.length > 0) {
-        // Wrap to first tab
         ctx.setActiveTab(ctx.openTabs[0].id);
       }
     }
@@ -80,12 +75,9 @@ export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext
     }
   }
 
-  // --- J/K turn navigation + F flame graph (no modifier, only in session tabs) ---
   if (!isMod && !event.altKey && !event.shiftKey) {
-    // Skip if an input/textarea is focused
     const tag = (event.target as HTMLElement)?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
-      // Don't intercept typing
     } else if (event.key === 'j' || event.key === 'k') {
       const activeTab = ctx.getActiveTab();
       if (activeTab?.type === 'session') {
@@ -133,8 +125,6 @@ export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext
   }
 
   if (!isMod) return;
-
-  // --- Pane management shortcuts (Cmd+Option) ---
 
   // Cmd+Option+1-4: Focus pane by index
   if (event.altKey && !event.shiftKey) {
@@ -280,7 +270,6 @@ export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext
   if (event.key === 'f') {
     event.preventDefault();
     const activeTab = ctx.getActiveTab();
-    // Only enable search in session views, not dashboard
     if (activeTab?.type === 'session') {
       ctx.showSearch();
     }

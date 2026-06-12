@@ -24,11 +24,9 @@ export const DiffLineRow: React.FC<DiffLineRowProps> = ({ line }): React.JSX.Ele
         isContext && 'bg-transparent border-transparent'
       )}
     >
-      {/* Line number */}
       <span className="w-10 shrink-0 px-2 text-right text-zinc-600 select-none">
         {line.lineNumber}
       </span>
-      {/* Prefix */}
       <span
         className={cn(
           'w-6 shrink-0 select-none',
@@ -39,7 +37,6 @@ export const DiffLineRow: React.FC<DiffLineRowProps> = ({ line }): React.JSX.Ele
       >
         {prefix}
       </span>
-      {/* Content */}
       <span
         className={cn(
           'flex-1 whitespace-pre',

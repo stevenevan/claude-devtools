@@ -1,17 +1,5 @@
-/**
- * Shared navigation utilities for scroll/highlight orchestration.
- *
- * These helpers are used by useTabNavigationController and can be
- * reused by other navigation-related hooks.
- */
-
 import type { ChatItem } from '@renderer/types/groups';
 
-// Target Resolution
-
-/**
- * Find the AI group that contains or is closest to the given error timestamp.
- */
 export function findAIGroupByTimestamp(items: ChatItem[], errorTimestamp: number): string | null {
   if (items.length === 0) return null;
 
@@ -25,12 +13,10 @@ export function findAIGroupByTimestamp(items: ChatItem[], errorTimestamp: number
     const startMs = group.startTime.getTime();
     const endMs = group.endTime.getTime();
 
-    // Check if error timestamp is within this group's time range
     if (errorTimestamp >= startMs && errorTimestamp <= endMs) {
-      return group.id; // Exact match
+      return group.id;
     }
 
-    // Track closest group for fallback
     const startDiff = Math.abs(errorTimestamp - startMs);
     const endDiff = Math.abs(errorTimestamp - endMs);
     const minDiff = Math.min(startDiff, endDiff);
@@ -44,10 +30,6 @@ export function findAIGroupByTimestamp(items: ChatItem[], errorTimestamp: number
   return bestGroupId;
 }
 
-/**
- * Find the chat item (any type) that contains or is closest to the given timestamp.
- * Returns the item's group ID and type.
- */
 export function findChatItemByTimestamp(
   items: ChatItem[],
   targetTimestamp: number
@@ -87,12 +69,6 @@ export function findChatItemByTimestamp(
   return bestMatch;
 }
 
-// Subagent Group Resolution
-
-/**
- * Find the AI group that contains a subagent with the given ID.
- * Looks through each AI group's processes array for a matching process ID.
- */
 export function findAIGroupBySubagentId(items: ChatItem[], subagentId: string): string | null {
   for (const item of items) {
     if (item.type !== 'ai') continue;
@@ -103,12 +79,7 @@ export function findAIGroupBySubagentId(items: ChatItem[], subagentId: string): 
   return null;
 }
 
-// DOM Readiness Helpers
-
-/**
- * Wait for element size to stabilize using ResizeObserver.
- * More reliable than timer-based approaches because it detects actual DOM changes.
- */
+// More reliable than timer-based approaches: detects actual DOM changes via ResizeObserver.
 export function waitForElementStability(
   element: HTMLElement,
   timeoutMs = 250,
@@ -144,11 +115,9 @@ export function waitForElementStability(
 
     observer.observe(element);
 
-    // Initial size reading to bootstrap comparison
     const rect = element.getBoundingClientRect();
     lastSize = { width: Math.round(rect.width), height: Math.round(rect.height) };
 
-    // Timeout fallback to prevent infinite waiting
     setTimeout(() => {
       if (!resolved) {
         resolved = true;
@@ -159,10 +128,6 @@ export function waitForElementStability(
   });
 }
 
-/**
- * Wait for scroll animation to complete.
- * Detects completion by monitoring when scrollTop stops changing.
- */
 export function waitForScrollEnd(container: HTMLElement, timeoutMs = 400): Promise<void> {
   return new Promise((resolve) => {
     let lastScrollTop = container.scrollTop;
@@ -203,12 +168,6 @@ export function waitForScrollEnd(container: HTMLElement, timeoutMs = 400): Promi
   });
 }
 
-// Visibility and Scroll Calculation
-
-/**
- * Calculate the scrollTop value to center an element in the visible area
- * of a scroll container, accounting for sticky offset.
- */
 export function calculateCenteredScrollTop(
   element: HTMLElement,
   container: HTMLElement,
@@ -225,10 +184,6 @@ export function calculateCenteredScrollTop(
   return Math.max(0, targetScrollTop);
 }
 
-/**
- * Find the current search result element within a container.
- * When item identity is provided, resolves the exact current match for that item/index.
- */
 export function findCurrentSearchResultInContainer(
   container: HTMLElement | null | undefined,
   itemId?: string,

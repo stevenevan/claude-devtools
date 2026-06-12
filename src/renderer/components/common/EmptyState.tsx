@@ -16,11 +16,6 @@ interface EmptyStateProps {
   className?: string;
 }
 
-/**
- * Sprint 49 — unified empty-state. Used across no-sessions,
- * no-search-results, no-annotations, no-bookmarks, no-dashboard-data,
- * etc. so blank views look intentional rather than broken.
- */
 export const EmptyState = ({
   Icon,
   title,

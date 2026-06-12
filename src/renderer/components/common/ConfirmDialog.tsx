@@ -1,10 +1,3 @@
-/**
- * ConfirmDialog - Reusable themed confirmation dialog.
- *
- * Replaces native window.confirm() with a styled AlertDialog.
- * Controlled via imperative confirm() function.
- */
-
 import { useEffect, useState } from 'react';
 
 import {
@@ -41,10 +34,7 @@ const initialState: ConfirmDialogState = {
 let globalSetState: ((state: ConfirmDialogState) => void) | null = null;
 let globalResolver: ConfirmResolver = null;
 
-/**
- * Imperatively show a themed confirm dialog. Returns a promise that resolves
- * to true (confirmed) or false (cancelled).
- */
+// Imperatively show a themed confirm dialog; resolves to true (confirmed) or false (cancelled).
 // eslint-disable-next-line react-refresh/only-export-components -- imperative API shares singleton state with component
 export async function confirm(opts: {
   title: string;
@@ -70,9 +60,7 @@ export async function confirm(opts: {
   });
 }
 
-/**
- * ConfirmDialog component. Mount once at the app root (e.g. in App.tsx).
- */
+// Mount once at the app root (e.g. in App.tsx).
 export const ConfirmDialog = (): React.JSX.Element => {
   const [state, setState] = useState<ConfirmDialogState>(initialState);
 

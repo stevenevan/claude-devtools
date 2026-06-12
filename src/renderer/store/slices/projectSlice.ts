@@ -1,7 +1,3 @@
-/**
- * Project slice - manages project list state and selection.
- */
-
 import { api } from '@renderer/api';
 
 import { getSessionResetState } from '../utils/stateResetHelpers';
@@ -41,7 +37,6 @@ export const createProjectSlice: StateCreator<AppState, [], [], ProjectSlice> = 
     set({ projectsLoading: true, projectsError: null });
     try {
       const projects = await api.getProjects();
-      // Sort by most recent session (descending)
       const sorted = [...projects].sort(
         (a, b) => (b.mostRecentSession ?? 0) - (a.mostRecentSession ?? 0)
       );

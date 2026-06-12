@@ -1,21 +1,9 @@
-/**
- * Tool Content Check Helpers
- *
- * Utilities for checking if tool items have specific types of content.
- */
-
 import type { LinkedToolItem } from '@renderer/types/groups';
 
-/**
- * Checks if a Skill tool has skill instructions.
- */
 export function hasSkillInstructions(linkedTool: LinkedToolItem): boolean {
   return !!linkedTool.skillInstructions;
 }
 
-/**
- * Checks if a Read tool has content to display.
- */
 export function hasReadContent(linkedTool: LinkedToolItem): boolean {
   if (!linkedTool.result) return false;
 
@@ -33,9 +21,6 @@ export function hasReadContent(linkedTool: LinkedToolItem): boolean {
   return false;
 }
 
-/**
- * Checks if an Edit tool has content to display.
- */
 export function hasEditContent(linkedTool: LinkedToolItem): boolean {
   if (linkedTool.input.old_string != null) return true;
 
@@ -45,9 +30,6 @@ export function hasEditContent(linkedTool: LinkedToolItem): boolean {
   return false;
 }
 
-/**
- * Checks if a Write tool has content to display.
- */
 export function hasWriteContent(linkedTool: LinkedToolItem): boolean {
   if (linkedTool.input.content != null || linkedTool.input.file_path != null) return true;
 

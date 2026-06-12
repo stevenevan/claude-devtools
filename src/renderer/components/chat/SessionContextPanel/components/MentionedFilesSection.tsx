@@ -1,7 +1,3 @@
-/**
- * MentionedFilesSection - Section for displaying mentioned files.
- */
-
 import React from 'react';
 
 import { MentionedFileItem } from '../items/MentionedFileItem';

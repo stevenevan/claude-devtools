@@ -18,7 +18,7 @@ interface ToolTimeHeatmapProps {
 
 function cellIntensity(count: number, max: number): number {
   if (max <= 0 || count <= 0) return 0;
-  // Log-ish scale to keep busy hours readable when a few cells dwarf the rest.
+  // log scale so a few outlier cells don't wash out the rest
   const normalized = Math.log1p(count) / Math.log1p(max);
   return Math.min(1, Math.max(0.05, normalized));
 }
@@ -121,7 +121,6 @@ export const ToolTimeHeatmap = ({
               className="grid grid-cols-24 gap-[3px]"
               style={{ gridTemplateColumns: 'repeat(24, minmax(10px, 1fr))' }}
             >
-              {/* Hour labels row */}
               {Array.from({ length: 24 }).map((_, h) => (
                 <div
                   key={`h-${h}`}
@@ -130,7 +129,6 @@ export const ToolTimeHeatmap = ({
                   {h % 3 === 0 ? h : ''}
                 </div>
               ))}
-              {/* 7 rows × 24 cols */}
               {DAY_LABELS.map((_, day) =>
                 Array.from({ length: 24 }).map((__, hour) => {
                   const cell = cellMap.get(day * 24 + hour);

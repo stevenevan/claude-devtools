@@ -1,23 +1,5 @@
-/**
- * Path display utilities for shortening file paths in tight UI spaces.
- *
- * Strategy:
- * 1. Strip project root to make relative
- * 2. Replace home directory with ~
- * 3. Middle-truncate if still too long, preserving first and last segments
- *
- * Also provides resolveAbsolutePath() for clipboard copy (~ → real home, relative → absolute).
- */
-
-/**
- * Shorten a file path for display in compact UI elements.
- * Full path should still be available via tooltip (title attribute).
- *
- * Examples:
- * - `/Users/name/.claude/projects/-Users-name-project/memory/MEMORY.md` → `~/.claude/…/memory/MEMORY.md`
- * - `/Users/name/project/.claude/rules/tailwind.md` (with projectRoot) → `.claude/rules/tailwind.md`
- * - `~/.claude/CLAUDE.md` → `~/.claude/CLAUDE.md` (already short)
- */
+// Strategy: strip project root → replace home with ~ → middle-truncate if still too long.
+// resolveAbsolutePath() reverses this for clipboard copy.
 export function shortenDisplayPath(fullPath: string, projectRoot?: string, maxLength = 40): string {
   let p = fullPath;
 
@@ -42,11 +24,10 @@ export function shortenDisplayPath(fullPath: string, projectRoot?: string, maxLe
   const sep = p.includes('\\') ? '\\' : '/';
   const segments = p.split(sep);
 
-  // Determine where content starts (skip leading empty segment from absolute paths or ~)
+  // Skip leading empty segment from absolute paths, or "~"
   let startIdx = 0;
   if (segments[0] === '' || segments[0] === '~') startIdx = 1;
 
-  // Need at least 4 content segments to truncate the middle
   if (segments.length - startIdx <= 3) return p;
 
   const head = segments.slice(0, startIdx + 1).join(sep);
@@ -67,17 +48,9 @@ function inferHomeDir(projectRoot: string): string | null {
   return match?.[1] ?? null;
 }
 
-/**
- * Resolve a possibly-shortened path to its full absolute form for clipboard copy.
- *
- * - `~/...` → `/Users/username/...` (home dir inferred from projectRoot)
- * - `src/foo/bar` → `{projectRoot}/src/foo/bar`
- * - Already absolute → returned as-is
- */
 export function resolveAbsolutePath(filePath: string, projectRoot?: string): string {
   let p = filePath;
 
-  // Resolve ~ using home dir inferred from projectRoot
   if (p.startsWith('~/') && projectRoot) {
     const homeDir = inferHomeDir(projectRoot);
     if (homeDir) {
@@ -85,7 +58,6 @@ export function resolveAbsolutePath(filePath: string, projectRoot?: string): str
     }
   }
 
-  // Make relative paths absolute by prepending projectRoot
   if (projectRoot && !p.startsWith('/') && !p.startsWith('~') && !/^[A-Z]:[/\\]/.test(p)) {
     p = projectRoot.replace(/[/\\]$/, '') + '/' + p;
   }

@@ -27,7 +27,7 @@ import type { ChatItem } from '@renderer/types/groups';
 
 interface SessionMinimapProps {
   items: ChatItem[];
-  scrollContainerRef: React.RefObject<HTMLDivElement>;
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   onJumpToIndex: (index: number) => void;
   className?: string;
 }

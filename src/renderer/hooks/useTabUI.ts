@@ -1,32 +1,11 @@
-/**
- * useTabUI - Hook for accessing per-tab UI state.
- *
- * This hook combines the TabUIContext (for tabId) with the tabUISlice (for state/actions).
- * It provides a simple interface for components to access their tab-specific UI state.
- *
- * IMPORTANT: This hook subscribes to `tabUIStates` directly to ensure proper reactivity.
- * Using getter functions (like isContextPanelVisibleForTab) in useMemo doesn't work
- * because the function reference doesn't change when the underlying state changes.
- *
- * Usage:
- * ```tsx
- * const { isAIGroupExpanded, toggleAIGroupExpansion } = useTabUI();
- *
- * // Check if a group is expanded in THIS tab
- * if (isAIGroupExpanded(groupId)) { ... }
- *
- * // Toggle expansion in THIS tab only
- * toggleAIGroupExpansion(groupId);
- * ```
- */
+// IMPORTANT: subscribes to `tabUIStates` map directly (not getters) for proper reactivity.
+// Getter function refs don't change when underlying state changes, so useMemo on them won't re-render.
 
 import { useCallback, useMemo } from 'react';
 
 import { useTabIdOptional } from '@renderer/contexts/useTabUIContext';
 import { useStore } from '@renderer/store';
 import { useShallow } from 'zustand/react/shallow';
-
-// Types
 
 interface UseTabUIReturn {
   tabId: string | null;
@@ -48,28 +27,16 @@ interface UseTabUIReturn {
   initializeTabUI: () => void;
 }
 
-// Main Hook
-
-/**
- * Hook for accessing per-tab UI state and actions.
- *
- * @returns Object containing per-tab state getters and actions
- */
 export function useTabUI(): UseTabUIReturn {
-  // Get tabId from context (null if not in a tab)
   const tabId = useTabIdOptional();
 
-  // Subscribe to tabUIStates MAP directly for reactivity
-  // This ensures re-renders when any tab state changes
   const tabUIStates = useStore((s) => s.tabUIStates);
 
-  // Get the current tab's state (derived from subscribed state)
   const tabState = useMemo(() => {
     if (!tabId) return null;
     return tabUIStates.get(tabId) ?? null;
   }, [tabId, tabUIStates]);
 
-  // Get all tab UI actions from store (these are stable function references)
   const {
     toggleAIGroupExpansionForTab,
     expandAIGroupForTab,
@@ -96,9 +63,6 @@ export function useTabUI(): UseTabUIReturn {
     }))
   );
 
-  // Derived state from tabState (reactive!)
-
-  // AI Group expansion - check directly from tabState
   const isAIGroupExpanded = useCallback(
     (aiGroupId: string): boolean => {
       return tabState?.expandedAIGroupIds.has(aiGroupId) ?? false;
@@ -122,7 +86,6 @@ export function useTabUI(): UseTabUIReturn {
     [tabId, expandAIGroupForTab]
   );
 
-  // Display item expansion - derive from tabState
   const getExpandedDisplayItemIds = useCallback(
     (aiGroupId: string): Set<string> => {
       return tabState?.expandedDisplayItemIds.get(aiGroupId) ?? new Set<string>();
@@ -146,7 +109,6 @@ export function useTabUI(): UseTabUIReturn {
     [tabId, expandDisplayItemForTab]
   );
 
-  // Subagent trace expansion - derive from tabState
   const isSubagentTraceExpanded = useCallback(
     (subagentId: string): boolean => {
       return tabState?.expandedSubagentTraceIds.has(subagentId) ?? false;
@@ -170,7 +132,6 @@ export function useTabUI(): UseTabUIReturn {
     [tabId, expandSubagentTraceForTab]
   );
 
-  // Context panel - derive directly from tabState (reactive!)
   const isContextPanelVisible = tabState?.showContextPanel ?? false;
 
   const setContextPanelVisible = useCallback(
@@ -181,7 +142,6 @@ export function useTabUI(): UseTabUIReturn {
     [tabId, setContextPanelVisibleForTab]
   );
 
-  // Context phase selection - derive from tabState
   const selectedContextPhase = tabState?.selectedContextPhase ?? null;
 
   const setSelectedContextPhase = useCallback(
@@ -192,7 +152,6 @@ export function useTabUI(): UseTabUIReturn {
     [tabId, setSelectedContextPhaseForTab]
   );
 
-  // Scroll position - derive from tabState
   const savedScrollTop = tabState?.savedScrollTop;
 
   const saveScrollPosition = useCallback(
@@ -203,44 +162,28 @@ export function useTabUI(): UseTabUIReturn {
     [tabId, saveScrollPositionForTab]
   );
 
-  // Initialize tab UI state (call once when tab is mounted)
   const initializeTabUI = useCallback((): void => {
     if (!tabId) return;
     initTabUIState(tabId);
   }, [tabId, initTabUIState]);
 
   return {
-    // Current tab ID
     tabId,
-
-    // AI Group expansion
     isAIGroupExpanded,
     toggleAIGroupExpansion,
     expandAIGroup,
-
-    // Display item expansion
     getExpandedDisplayItemIds,
     toggleDisplayItemExpansion,
     expandDisplayItem,
-
-    // Subagent trace expansion
     isSubagentTraceExpanded,
     toggleSubagentTraceExpansion,
     expandSubagentTrace,
-
-    // Context panel
     isContextPanelVisible,
     setContextPanelVisible,
-
-    // Context phase selection
     selectedContextPhase,
     setSelectedContextPhase,
-
-    // Scroll position
     savedScrollTop,
     saveScrollPosition,
-
-    // Initialization
     initializeTabUI,
   };
 }

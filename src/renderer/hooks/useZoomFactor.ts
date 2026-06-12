@@ -2,9 +2,6 @@ import { useEffect, useState } from 'react';
 
 import { api } from '@renderer/api';
 
-/**
- * Reads current zoom factor and stays subscribed to zoom updates from main.
- */
 export function useZoomFactor(): number {
   const [zoomFactor, setZoomFactor] = useState(1);
 

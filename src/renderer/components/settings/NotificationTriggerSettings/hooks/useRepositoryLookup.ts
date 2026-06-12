@@ -1,18 +1,9 @@
-/**
- * Hook to convert repository IDs to RepositoryDropdownItem[] for display.
- * Used by TriggerCard and AddTriggerForm to show selected repositories.
- */
-
 import { useMemo } from 'react';
 
 import { useStore } from '@renderer/store';
 
 import type { RepositoryDropdownItem } from '@renderer/components/settings/hooks/useSettingsConfig';
 
-/**
- * Converts an array of repository IDs to RepositoryDropdownItem[] for display.
- * Searches repository groups to find matching repositories.
- */
 export function useRepositoryLookup(repositoryIds: string[]): RepositoryDropdownItem[] {
   const repositoryGroups = useStore((state) => state.repositoryGroups);
 

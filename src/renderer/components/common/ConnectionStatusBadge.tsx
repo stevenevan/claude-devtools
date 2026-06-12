@@ -1,14 +1,3 @@
-/**
- * ConnectionStatusBadge - Visual indicator for workspace connection status.
- *
- * Renders appropriate icon based on connection state:
- * - Local: Monitor icon (muted)
- * - SSH connected: Wifi icon (green)
- * - SSH connecting: Animated spinner (muted)
- * - SSH disconnected: WifiOff icon (muted)
- * - SSH error: WifiOff icon (red)
- */
-
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Loader2, Monitor, RefreshCw, Wifi, WifiOff } from 'lucide-react';
@@ -30,18 +19,13 @@ export const ConnectionStatusBadge = ({
     }))
   );
 
-  // Local context always shows Monitor icon
   if (contextId === 'local') {
     return <Monitor className={cn('text-muted-foreground size-3.5', className)} />;
   }
 
-  // SSH context - determine if this specific SSH context matches connected host
   const isConnectedToThisHost = connectedHost != null && contextId === `ssh-${connectedHost}`;
-
-  // If this SSH context doesn't match the connected host, treat as disconnected
   const effectiveState = isConnectedToThisHost ? connectionState : 'disconnected';
 
-  // Render icon based on connection state
   switch (effectiveState) {
     case 'connected':
       return <Wifi className={cn('size-3.5 text-green-400', className)} />;

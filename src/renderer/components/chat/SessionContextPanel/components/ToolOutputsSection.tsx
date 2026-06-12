@@ -1,7 +1,3 @@
-/**
- * ToolOutputsSection - Section for displaying tool outputs.
- */
-
 import React from 'react';
 
 import { ToolOutputItem } from '../items/ToolOutputItem';

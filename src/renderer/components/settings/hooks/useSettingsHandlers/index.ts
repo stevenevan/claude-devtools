@@ -1,8 +1,3 @@
-/**
- * useSettingsHandlers - Hook for all settings action handlers.
- * Groups handlers by section for better organization.
- */
-
 import { useRef } from 'react';
 
 import { useAdvancedHandlers } from './useAdvancedHandlers';

@@ -1,14 +1,3 @@
-/**
- * NotificationTriggerSettings - Component for managing notification triggers.
- * Allows users to configure when notifications should be generated.
- *
- * Uses intent-first design pattern with 4 sections:
- * 1. General Info (always visible)
- * 2. Trigger Condition (mode selector)
- * 3. Dynamic Configuration (based on mode)
- * 4. Advanced (collapsible)
- */
-
 import { AddTriggerForm } from './components/AddTriggerForm';
 import { SectionHeader } from './components/SectionHeader';
 import { TriggerCard } from './components/TriggerCard';
@@ -18,9 +7,6 @@ import type { NotificationTriggerSettingsProps } from './types';
 // Stable no-op function for builtin triggers that can't be removed
 const noopRemove = (_triggerId: string): Promise<void> => Promise.resolve();
 
-/**
- * Main component for managing notification triggers.
- */
 export const NotificationTriggerSettings = ({
   triggers,
   saving,
@@ -28,13 +14,11 @@ export const NotificationTriggerSettings = ({
   onAddTrigger,
   onRemoveTrigger,
 }: Readonly<NotificationTriggerSettingsProps>): React.JSX.Element => {
-  // Separate builtin and custom triggers
   const builtinTriggers = triggers.filter((t) => t.isBuiltin);
   const customTriggers = triggers.filter((t) => !t.isBuiltin);
 
   return (
     <div className="space-y-8">
-      {/* Builtin Triggers */}
       {builtinTriggers.length > 0 && (
         <div>
           <SectionHeader title="Built-in Triggers" />
@@ -56,7 +40,6 @@ export const NotificationTriggerSettings = ({
         </div>
       )}
 
-      {/* Custom Triggers */}
       <div>
         <SectionHeader title="Custom Triggers" />
         <p className="text-muted-foreground mb-4 text-xs">

@@ -1,12 +1,3 @@
-/**
- * TabBar - Displays open tabs with close buttons and action buttons.
- * Accepts a paneId prop to scope to a specific pane's tabs.
- * Supports tab switching, closing, horizontal scrolling on overflow,
- * right-click context menu, middle-click to close, Shift/Ctrl+click multi-select,
- * and drag-and-drop reordering/cross-pane movement via @dnd-kit.
- * When sidebar is collapsed, shows expand button on the left with macOS traffic light spacing.
- */
-
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { useDroppable } from '@dnd-kit/core';
@@ -105,7 +96,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
     }
   }, [activeTabId]);
 
-  // Clear selection on Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
       if (e.key === 'Escape' && selectedTabIds.length > 0) {
@@ -116,14 +106,12 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [selectedTabIds.length, clearTabSelection]);
 
-  // Handle tab click with multi-select support
   const handleTabClick = useCallback(
     (tabId: string, e: React.MouseEvent) => {
       const isMeta = e.metaKey || e.ctrlKey;
       const isShift = e.shiftKey;
 
       if (isMeta) {
-        // Ctrl/Cmd+click: toggle tab in selection
         if (selectedSet.has(tabId)) {
           setSelectedTabIds(selectedTabIds.filter((id) => id !== tabId));
         } else {
@@ -134,21 +122,18 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
       }
 
       if (isShift && lastClickedTabIdRef.current) {
-        // Shift+click: range selection from last clicked to current
         const lastIndex = openTabs.findIndex((t) => t.id === lastClickedTabIdRef.current);
         const currentIndex = openTabs.findIndex((t) => t.id === tabId);
         if (lastIndex !== -1 && currentIndex !== -1) {
           const start = Math.min(lastIndex, currentIndex);
           const end = Math.max(lastIndex, currentIndex);
           const rangeIds = openTabs.slice(start, end + 1).map((t) => t.id);
-          // Merge with existing selection
           const merged = new Set([...selectedTabIds, ...rangeIds]);
           setSelectedTabIds([...merged]);
         }
         return;
       }
 
-      // Plain click: clear selection, switch tab
       clearTabSelection();
       lastClickedTabIdRef.current = tabId;
       setActiveTab(tabId);
@@ -156,7 +141,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
     [openTabs, selectedTabIds, selectedSet, setActiveTab, setSelectedTabIds, clearTabSelection]
   );
 
-  // Middle-click to close + prevent text selection on Shift/Cmd click
   const handleMouseDown = useCallback(
     (tabId: string, e: React.MouseEvent) => {
       if (e.button === 1) {
@@ -164,7 +148,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         closeTab(tabId);
         return;
       }
-      // Prevent native text selection when Shift or Cmd/Ctrl clicking tabs
       if (e.button === 0 && (e.shiftKey || e.metaKey || e.ctrlKey)) {
         e.preventDefault();
       }
@@ -172,7 +155,6 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
     [closeTab]
   );
 
-  // Handle refresh for active session tab
   const handleRefresh = async (): Promise<void> => {
     if (activeTab?.type === 'session' && activeTab.projectId && activeTab.sessionId) {
       await Promise.all([

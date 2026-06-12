@@ -11,7 +11,6 @@ import { ToolFlameGraph } from '../chat/ToolFlameGraph';
 import { SearchBar } from '../search/SearchBar';
 
 interface MiddlePanelProps {
-  /** Tab ID for per-tab state isolation (scroll position, etc.) */
   tabId?: string;
 }
 

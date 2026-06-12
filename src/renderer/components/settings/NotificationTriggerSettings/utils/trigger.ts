@@ -1,19 +1,9 @@
-/**
- * Utility functions for notification triggers.
- */
-
 import type { NotificationTrigger, TriggerContentType, TriggerMode } from '@renderer/types/data';
 
-/**
- * Generates a UUID v4 for new triggers.
- */
 export function generateId(): string {
   return crypto.randomUUID();
 }
 
-/**
- * Get available match fields based on content type and tool name.
- */
 export function getAvailableMatchFields(
   contentType: TriggerContentType,
   toolName?: string
@@ -76,7 +66,6 @@ export function getAvailableMatchFields(
           { value: 'args', label: 'Arguments' },
         ];
       default:
-        // "Any Tool" - match against the entire JSON-serialized input
         return [{ value: '', label: 'Full Input (JSON)' }];
     }
   }
@@ -84,22 +73,15 @@ export function getAvailableMatchFields(
   return [];
 }
 
-/**
- * Derive the effective mode from trigger configuration for backward compatibility.
- */
 export function deriveMode(trigger: NotificationTrigger): TriggerMode {
   if (trigger.mode) return trigger.mode;
-  // Backward compatibility: if requireError is true and no mode, default to error_status
+  // Backward compatibility: requireError + tool_result → error_status
   if (trigger.requireError && trigger.contentType === 'tool_result') {
     return 'error_status';
   }
   return 'content_match';
 }
 
-/**
- * Validates a regex pattern.
- * @returns null if valid, error message if invalid
- */
 export function validateRegexPattern(pattern: string): string | null {
   if (!pattern) {
     return null;

@@ -32,7 +32,6 @@ export const MonthView = ({ events, monthCount }: Readonly<MonthViewProps>): Rea
     setCurrentMonth(new Date(d.getFullYear(), d.getMonth(), 1));
   };
 
-  // Build month grids
   const monthGrids = useMemo(() => {
     const grids: {
       label: string;
@@ -90,7 +89,6 @@ export const MonthView = ({ events, monthCount }: Readonly<MonthViewProps>): Rea
 
   return (
     <div className="border-border flex flex-col overflow-hidden rounded-xs border">
-      {/* Header */}
       <div className="border-border bg-surface-raised flex items-center justify-between border-b px-4 py-2">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="xs" onClick={() => navigate(-1)}>
@@ -106,7 +104,6 @@ export const MonthView = ({ events, monthCount }: Readonly<MonthViewProps>): Rea
         <span className="text-text-secondary text-xs font-medium">{headerLabel}</span>
       </div>
 
-      {/* Month grids */}
       <div className={cn('gap-4 p-3', monthCount > 1 ? 'grid grid-cols-3' : '')}>
         {monthGrids.map((grid, gi) => (
           <div key={gi}>
@@ -116,7 +113,6 @@ export const MonthView = ({ events, monthCount }: Readonly<MonthViewProps>): Rea
               </p>
             )}
 
-            {/* Weekday headers */}
             <div className="border-border mb-px grid grid-cols-7 border-b">
               {WEEKDAY_LABELS.map((wd) => (
                 <div
@@ -128,7 +124,6 @@ export const MonthView = ({ events, monthCount }: Readonly<MonthViewProps>): Rea
               ))}
             </div>
 
-            {/* Weeks */}
             {grid.weeks.map((week, wi) => (
               <div key={wi} className="grid grid-cols-7">
                 {week.map((day, di) => (

@@ -1,5 +1,3 @@
-// Scripting-language keyword sets (Python, Ruby, PHP).
-
 export const PYTHON_KEYWORDS = new Set([
   'import',
   'from',

@@ -1,11 +1,3 @@
-/**
- * WorkspaceIndicator - Floating bottom-right pill badge for workspace switching.
- *
- * Shows active workspace (Local or SSH host) with connection status badge.
- * Clicking opens an upward popover to switch between available workspaces.
- * Only renders when multiple contexts are available (hidden in local-only mode).
- */
-
 import { useState } from 'react';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
@@ -28,7 +20,6 @@ export const WorkspaceIndicator = (): React.JSX.Element | null => {
 
   const [isOpen, setIsOpen] = useState(false);
 
-  // Only show when multiple contexts exist
   if (availableContexts.length <= 1) return null;
 
   const getContextLabel = (contextId: string): string => {

@@ -21,7 +21,7 @@ export interface DayViewProps {
 
 export interface MonthViewProps {
   events: ScheduleEvent[];
-  monthCount: number; // 1 or 3
+  monthCount: number;
 }
 
 export interface MonthDayCellProps {

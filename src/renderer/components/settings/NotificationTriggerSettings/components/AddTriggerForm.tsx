@@ -1,7 +1,3 @@
-/**
- * AddTriggerForm - Form to add a new custom trigger.
- */
-
 import { useCallback } from 'react';
 
 import { Button } from '@renderer/components/ui/button';

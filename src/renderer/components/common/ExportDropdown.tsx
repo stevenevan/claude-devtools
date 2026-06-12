@@ -1,9 +1,3 @@
-/**
- * ExportDropdown - Download icon button with dropdown for exporting session data.
- *
- * Supports three formats: Markdown (.md), JSON (.json), Plain Text (.txt).
- */
-
 import { useCallback } from 'react';
 
 import { Button } from '@renderer/components/ui/button';

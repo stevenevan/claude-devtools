@@ -1,7 +1,3 @@
-/**
- * ThinkingTextSection - Section for displaying thinking text.
- */
-
 import React from 'react';
 
 import { ThinkingTextItem } from '../items/ThinkingTextItem';

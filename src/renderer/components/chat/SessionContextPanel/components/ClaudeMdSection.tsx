@@ -1,7 +1,3 @@
-/**
- * ClaudeMdSection - CLAUDE.md files section with nested Global/Project/Directory groups.
- */
-
 import React, { useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';

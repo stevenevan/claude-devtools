@@ -1,11 +1,4 @@
-/**
- * ColorPaletteSelector - Color picker with preset palette and custom hex input.
- * Renders a row of preset colored circles plus a hex input for custom colors.
- *
- * Hex input commits on blur/Enter only (not on every keystroke) to avoid
- * triggering config saves while the user is still typing.
- */
-
+// Hex input commits on blur/Enter only — avoids config saves while typing.
 import { useCallback, useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';

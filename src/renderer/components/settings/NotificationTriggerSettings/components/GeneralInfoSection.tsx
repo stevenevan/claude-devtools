@@ -1,7 +1,3 @@
-/**
- * GeneralInfoSection - Name input and tool select for AddTriggerForm.
- */
-
 import { cn } from '@renderer/lib/utils';
 
 import { TOOL_NAME_OPTIONS } from '../utils/constants';

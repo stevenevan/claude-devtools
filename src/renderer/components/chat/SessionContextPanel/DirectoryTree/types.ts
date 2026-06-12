@@ -1,7 +1,3 @@
-/**
- * Type definitions for DirectoryTree components.
- */
-
 export interface TreeNode {
   name: string;
   path: string;

@@ -6,10 +6,8 @@ import type { DetectedError } from '../../types/data';
 import type { ListenerContext } from './types';
 
 export function attachNotificationListeners(ctx: ListenerContext): void {
-  // Listen for new notifications from main process
   if (api.notifications?.onNew) {
     const cleanup = api.notifications.onNew((_event: unknown, error: unknown) => {
-      // Cast the error to DetectedError type
       const notification = error as DetectedError;
       if (notification?.id) {
         // Keep list in sync immediately; unread count is synced via notification:updated/fetch.
@@ -26,7 +24,6 @@ export function attachNotificationListeners(ctx: ListenerContext): void {
     }
   }
 
-  // Listen for notification updates from main process
   if (api.notifications?.onUpdated) {
     const cleanup = api.notifications.onUpdated(
       (_event: unknown, payload: { total: number; unreadCount: number }) => {

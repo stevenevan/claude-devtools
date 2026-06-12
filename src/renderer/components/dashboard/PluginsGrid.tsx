@@ -8,8 +8,6 @@ import { useShallow } from 'zustand/react/shallow';
 
 import type { GlobalPlugin } from '@shared/types/api';
 
-// Helpers
-
 function formatPluginName(name: string): string {
   return name
     .split(/[-_]/)
@@ -37,8 +35,6 @@ function formatDate(isoDate: string): string {
     return isoDate;
   }
 }
-
-// Plugin Card
 
 interface PluginCardProps {
   plugin: GlobalPlugin;
@@ -94,8 +90,6 @@ const PluginCard = ({ plugin, isHighlighted }: Readonly<PluginCardProps>): React
   );
 };
 
-// Skeleton
-
 const PluginsGridSkeleton = (): React.JSX.Element => {
   const titleWidths = [55, 65, 50, 70, 60, 45];
   const metaWidths = [70, 60, 80, 65, 75, 55];
@@ -125,8 +119,6 @@ const PluginsGridSkeleton = (): React.JSX.Element => {
     </div>
   );
 };
-
-// Plugins Grid
 
 interface PluginsGridProps {
   searchQuery: string;

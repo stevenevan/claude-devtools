@@ -1,9 +1,4 @@
-/**
- * Pull rendered <mark data-search-item-id> nodes back into the store so
- * the global searchMatches list matches what's actually painted.
- *
- * Extracted from ChatHistory to keep that component focused on layout.
- */
+// Syncs rendered <mark data-search-item-id> nodes back into the store so searchMatches reflects what's actually painted.
 import { useEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
 

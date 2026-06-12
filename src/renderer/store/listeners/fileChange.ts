@@ -5,7 +5,6 @@ import { useStore } from '../useStore';
 import type { ListenerContext } from './types';
 
 export function attachFileChangeListeners(ctx: ListenerContext): void {
-  // Listen for task-list file changes to refresh currently viewed session metadata
   if (api.onTodoChange) {
     const cleanup = api.onTodoChange((event) => {
       if (!event.sessionId || event.type === 'unlink') {
@@ -18,7 +17,6 @@ export function attachFileChangeListeners(ctx: ListenerContext): void {
         ctx.isSessionVisibleInAnyPane(event.sessionId);
 
       if (isViewingSession) {
-        // Find the project ID from any pane's tab that shows this session
         const allTabs = state.getAllPaneTabs();
         const sessionTab = allTabs.find(
           (t) => t.type === 'session' && t.sessionId === event.sessionId
@@ -28,7 +26,6 @@ export function attachFileChangeListeners(ctx: ListenerContext): void {
         }
       }
 
-      // Refresh project sessions list if applicable
       const activeTab = state.getActiveTab();
       const activeProjectId =
         activeTab?.type === 'session' && typeof activeTab.projectId === 'string'
@@ -43,10 +40,8 @@ export function attachFileChangeListeners(ctx: ListenerContext): void {
     }
   }
 
-  // Listen for file changes to auto-refresh current session and detect new sessions
   if (api.onFileChange) {
     const cleanup = api.onFileChange((event) => {
-      // Skip unlink events
       if (event.type === 'unlink') {
         return;
       }
@@ -110,7 +105,6 @@ export function attachFileChangeListeners(ctx: ListenerContext): void {
           );
           const refreshProjectId = visibleSessionTab?.projectId ?? selectedProjectId;
 
-          // Use refreshSessionInPlace to avoid flickering and preserve UI state
           ctx.scheduleSessionRefresh(refreshProjectId, sessionIdToRefresh);
         }
       }

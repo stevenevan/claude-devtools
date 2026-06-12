@@ -1,22 +1,10 @@
-/**
- * Tool Summary Helpers
- *
- * Utilities for generating human-readable summaries for tool calls.
- */
-
 import { getBaseName } from '@renderer/utils/pathUtils';
 
-/**
- * Truncates a string to a maximum length with ellipsis.
- */
 function truncate(str: string, maxLength: number): string {
   if (str.length <= maxLength) return str;
   return str.slice(0, maxLength) + '...';
 }
 
-/**
- * Generates a human-readable summary for a tool call.
- */
 export function getToolSummary(toolName: string, input: Record<string, unknown>): string {
   switch (toolName) {
     case 'Edit': {
@@ -28,7 +16,6 @@ export function getToolSummary(toolName: string, input: Record<string, unknown>)
 
       const fileName = getBaseName(filePath);
 
-      // Count line changes if we have old/new strings
       if (oldString && newString) {
         const oldLines = oldString.split('\n').length;
         const newLines = newString.split('\n').length;
@@ -247,17 +234,14 @@ export function getToolSummary(toolName: string, input: Record<string, unknown>)
       return 'Delete team';
 
     default: {
-      // For unknown tools, try to extract a meaningful summary
       const keys = Object.keys(input);
       if (keys.length === 0) return toolName;
 
-      // Try common parameter names
       const nameField = input.name ?? input.path ?? input.file ?? input.query ?? input.command;
       if (typeof nameField === 'string') {
         return truncate(nameField, 50);
       }
 
-      // Fallback to showing first parameter
       const firstValue = input[keys[0]];
       if (typeof firstValue === 'string') {
         return truncate(firstValue, 40);

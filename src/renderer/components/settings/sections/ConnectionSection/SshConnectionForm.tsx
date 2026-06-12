@@ -30,8 +30,8 @@ interface SshConnectionFormProps {
   showDropdown: boolean;
   setShowDropdown: React.Dispatch<React.SetStateAction<boolean>>;
   setTestResult: React.Dispatch<React.SetStateAction<{ success: boolean; error?: string } | null>>;
-  hostInputRef: React.RefObject<HTMLInputElement>;
-  dropdownRef: React.RefObject<HTMLDivElement>;
+  hostInputRef: React.RefObject<HTMLInputElement | null>;
+  dropdownRef: React.RefObject<HTMLDivElement | null>;
   filteredHosts: SshConfigHostEntry[];
   inputClass: string;
   testing: boolean;

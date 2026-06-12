@@ -1,5 +1,3 @@
-// Systems / data-language keyword sets (Rust, Go, R, SQL).
-
 export const RUST_KEYWORDS = new Set([
   'fn',
   'let',

@@ -17,7 +17,6 @@ const CATEGORY_LABEL: Record<ContextCategoryKey, string> = {
   userMessages: 'User messages',
 };
 
-/** Category → base hue class. Fill strength scales with turn's share of session max. */
 const CATEGORY_HUE: Record<ContextCategoryKey, string> = {
   claudeMd: 'bg-sky-500',
   mentionedFiles: 'bg-emerald-500',
@@ -30,7 +29,6 @@ const CATEGORY_HUE: Record<ContextCategoryKey, string> = {
 interface ContextHeatmapProps {
   items: ChatItem[];
   statsMap: Map<string, ContextStats>;
-  /** Optional handler called when user clicks a segment. */
   onSelectTurn?: (aiGroupId: string, turnIndex: number) => void;
   className?: string;
 }

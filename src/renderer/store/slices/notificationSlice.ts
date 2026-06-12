@@ -1,7 +1,3 @@
-/**
- * Notification slice - manages notifications state and actions.
- */
-
 import { api } from '@renderer/api';
 import { createErrorNavigationRequest, findTabBySessionAndProject } from '@renderer/types/tabs';
 import { createLogger } from '@shared/utils/logger';
@@ -39,7 +35,6 @@ export const createNotificationSlice: StateCreator<AppState, [], [], Notificatio
   notificationsLoading: false,
   notificationsError: null,
 
-  // Fetch all notifications from main process
   fetchNotifications: async () => {
     set({ notificationsLoading: true, notificationsError: null });
     try {
@@ -67,7 +62,6 @@ export const createNotificationSlice: StateCreator<AppState, [], [], Notificatio
     }
   },
 
-  // Mark a single notification as read
   markNotificationRead: async (id: string) => {
     try {
       const success = await api.notifications.markRead(id);
@@ -75,7 +69,6 @@ export const createNotificationSlice: StateCreator<AppState, [], [], Notificatio
         await get().fetchNotifications();
         return;
       }
-      // Optimistically update local state
       set((state) => {
         const notifications = state.notifications.map((n) =>
           n.id === id ? { ...n, isRead: true } : n
@@ -88,7 +81,6 @@ export const createNotificationSlice: StateCreator<AppState, [], [], Notificatio
     }
   },
 
-  // Mark all notifications as read (optionally scoped to a trigger)
   markAllNotificationsRead: async (triggerName?: string) => {
     try {
       if (triggerName !== undefined) {
@@ -128,7 +120,6 @@ export const createNotificationSlice: StateCreator<AppState, [], [], Notificatio
     }
   },
 
-  // Delete a single notification
   deleteNotification: async (id: string) => {
     try {
       const success = await api.notifications.delete(id);
@@ -136,7 +127,6 @@ export const createNotificationSlice: StateCreator<AppState, [], [], Notificatio
         await get().fetchNotifications();
         return;
       }
-      // Optimistically update local state
       set((state) => {
         const notifications = state.notifications.filter((n) => n.id !== id);
         const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -147,7 +137,6 @@ export const createNotificationSlice: StateCreator<AppState, [], [], Notificatio
     }
   },
 
-  // Clear all notifications (optionally scoped to a trigger)
   clearNotifications: async (triggerName?: string) => {
     try {
       if (triggerName !== undefined) {
@@ -188,14 +177,12 @@ export const createNotificationSlice: StateCreator<AppState, [], [], Notificatio
     }
   },
 
-  // Navigate to error location in session (deep linking)
   navigateToError: (error: DetectedError) => {
     const state = get();
 
     // Switch away from global activity (e.g. notifications) so session tab is visible
     set({ activeActivity: 'projects' });
 
-    // Mark the notification as read
     void state.markNotificationRead(error.id);
 
     const navRequest = createErrorNavigationRequest(
@@ -210,17 +197,13 @@ export const createNotificationSlice: StateCreator<AppState, [], [], Notificatio
       error.triggerColor
     );
 
-    // Check if session tab is already open across all panes
     const allTabs = getAllTabs(state.paneLayout);
     const existingTab = findTabBySessionAndProject(allTabs, error.sessionId, error.projectId);
 
     if (existingTab) {
-      // Focus existing tab via setActiveTab for proper sidebar sync
       state.setActiveTab(existingTab.id);
-      // Enqueue navigation request with fresh nonce
       state.enqueueTabNavigation(existingTab.id, navRequest);
     } else {
-      // Open new session tab via openTab (properly adds to focused pane)
       state.openTab({
         type: 'session',
         label: 'Loading...',
@@ -228,8 +211,6 @@ export const createNotificationSlice: StateCreator<AppState, [], [], Notificatio
         sessionId: error.sessionId,
       });
 
-      // Enqueue navigation on the newly created tab, then trigger sidebar
-      // sync + session data fetch via setActiveTab
       const newTabId = get().activeTabId;
       if (newTabId) {
         state.enqueueTabNavigation(newTabId, navRequest);
@@ -238,21 +219,17 @@ export const createNotificationSlice: StateCreator<AppState, [], [], Notificatio
     }
   },
 
-  // Open or focus the notifications tab (per-pane singleton)
   openNotificationsTab: () => {
     const state = get();
 
-    // Check if notifications tab exists in focused pane
     const focusedPane = state.paneLayout.panes.find((p) => p.id === state.paneLayout.focusedPaneId);
     const notificationsTab = focusedPane?.tabs.find((t) => t.type === 'notifications');
     if (notificationsTab) {
       state.setActiveTab(notificationsTab.id);
-      // Re-sync in case updates happened while tab was inactive.
       void state.fetchNotifications();
       return;
     }
 
-    // Create new notifications tab via openTab (which adds to focused pane)
     state.openTab({
       type: 'notifications',
       label: 'Notifications',

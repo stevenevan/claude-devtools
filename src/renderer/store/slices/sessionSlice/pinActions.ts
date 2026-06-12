@@ -10,7 +10,6 @@ export function createPinActions(
   get: SessionSliceGet
 ): Pick<SessionSlice, 'togglePinSession' | 'loadPinnedSessions' | 'pinMultipleSessions'> {
   return {
-    // Toggle pin/unpin for a session (optimistic update)
     togglePinSession: async (sessionId: string) => {
       const state = get();
       const projectId = state.selectedProjectId;
@@ -19,7 +18,6 @@ export function createPinActions(
       const isPinned = state.pinnedSessionIds.includes(sessionId);
       const previousPinnedIds = state.pinnedSessionIds;
 
-      // Optimistic: update UI immediately
       if (isPinned) {
         set({ pinnedSessionIds: previousPinnedIds.filter((id) => id !== sessionId) });
       } else {
@@ -39,7 +37,6 @@ export function createPinActions(
       }
     },
 
-    // Load pinned sessions from config for current project
     // Fetches missing pinned session data that may be beyond the paginated page
     loadPinnedSessions: async () => {
       const state = get();
@@ -55,7 +52,6 @@ export function createPinActions(
         const pinnedIds = pins.map((p) => p.sessionId);
         set({ pinnedSessionIds: pinnedIds });
 
-        // Determine which pinned sessions are missing from the loaded sessions array
         const currentSessions = get().sessions;
         const loadedIds = new Set(currentSessions.map((s) => s.id));
         const missingIds = pinnedIds.filter((id) => !loadedIds.has(id));
@@ -65,7 +61,6 @@ export function createPinActions(
             metadataLevel: 'light',
           });
           if (missingSessions.length > 0) {
-            // Re-read sessions in case they changed during the async call
             const latestSessions = get().sessions;
             const latestIds = new Set(latestSessions.map((s) => s.id));
             const toAppend = missingSessions.filter((s) => !latestIds.has(s.id));
@@ -80,7 +75,6 @@ export function createPinActions(
       }
     },
 
-    // Bulk pin for multi-select
     pinMultipleSessions: async (sessionIds: string[]) => {
       const state = get();
       const projectId = state.selectedProjectId;
@@ -94,7 +88,6 @@ export function createPinActions(
       set({ pinnedSessionIds: [...newIds, ...previousPinnedIds] });
 
       try {
-        // Pin each session individually (no bulk pin IPC)
         await Promise.all(newIds.map((sessionId) => api.config.pinSession(projectId, sessionId)));
       } catch (error) {
         set({ pinnedSessionIds: previousPinnedIds });

@@ -1,41 +1,15 @@
-/**
- * Last Output Detector - Find the last visible output in an AI Group
- *
- * Uses a state machine approach to find the last meaningful output
- * for display in the chat UI.
- */
-
 import { toDate } from './aiGroupHelpers';
 
 import type { SemanticStep } from '../types/data';
 import type { AIGroupLastOutput } from '../types/groups';
 
-/**
- * Find the last visible output in the AI Group.
- *
- * Strategy:
- * 1. If isOngoing is true, return 'ongoing' type (session still in progress)
- * 2. Check for ExitPlanMode tool_call as special 'plan_exit' type
- * 3. Iterate through steps in reverse order
- * 4. Find the last 'output' step with outputText
- * 5. If no output found, find the last 'tool_result' step
- * 6. If no tool_result found, find the last 'interruption' step
- * 7. Return null if none exists
- *
- * Special case: ExitPlanMode
- * When the last tool_call is ExitPlanMode, return 'plan_exit' type with the plan content.
- * The preamble text (if any) is captured from the preceding output step.
- *
- * @param steps - Semantic steps from the AI Group
- * @param isOngoing - Whether this AI group is still in progress
- * @returns The last output or null
- */
+// Special case: when the last tool_call is ExitPlanMode, return 'plan_exit' with plan content.
+// Preamble text (if any) is captured from the preceding output step.
 export function findLastOutput(
   steps: SemanticStep[],
   isOngoing: boolean = false
 ): AIGroupLastOutput | null {
-  // Check for interruption first - interruption takes precedence over ongoing status
-  // This ensures user interruptions are always visible even if session appears ongoing
+  // Interruption takes precedence over ongoing status — always visible even if session appears ongoing
   for (let i = steps.length - 1; i >= 0; i--) {
     const step = steps[i];
     if (step.type === 'interruption') {
@@ -46,7 +20,6 @@ export function findLastOutput(
     }
   }
 
-  // If session is ongoing (and no interruption), return 'ongoing' type
   if (isOngoing) {
     return {
       type: 'ongoing',
@@ -54,8 +27,6 @@ export function findLastOutput(
     };
   }
 
-  // Check for ExitPlanMode as the last significant activity
-  // ExitPlanMode is a special ending tool that signals plan completion
   let lastExitPlanModeStep: SemanticStep | null = null;
   let lastOutputBeforeExitPlanMode: SemanticStep | null = null;
 
@@ -63,7 +34,6 @@ export function findLastOutput(
     const step = steps[i];
     if (step.type === 'tool_call' && step.content.toolName === 'ExitPlanMode') {
       lastExitPlanModeStep = step;
-      // Look for the preceding output step (preamble text)
       for (let j = i - 1; j >= 0; j--) {
         if (steps[j].type === 'output' && steps[j].content.outputText) {
           lastOutputBeforeExitPlanMode = steps[j];
@@ -74,8 +44,7 @@ export function findLastOutput(
     }
   }
 
-  // If ExitPlanMode is found, check if it's the "last" activity
-  // (no other output or tool_result comes after it)
+  // Only emit plan_exit if no output or tool_result comes after ExitPlanMode
   if (lastExitPlanModeStep) {
     const exitPlanModeIndex = steps.indexOf(lastExitPlanModeStep);
     let hasLaterEnding = false;
@@ -93,7 +62,6 @@ export function findLastOutput(
     }
 
     if (!hasLaterEnding) {
-      // ExitPlanMode is the last significant activity - return plan_exit
       const toolInput = lastExitPlanModeStep.content.toolInput as
         | Record<string, unknown>
         | undefined;
@@ -108,7 +76,7 @@ export function findLastOutput(
     }
   }
 
-  // First pass: look for last 'output' step with outputText
+  // Pass 1: last output step with text
   for (let i = steps.length - 1; i >= 0; i--) {
     const step = steps[i];
     if (step.type === 'output' && step.content.outputText) {
@@ -120,7 +88,7 @@ export function findLastOutput(
     }
   }
 
-  // Second pass: look for last 'tool_result' step
+  // Pass 2: last tool_result step
   for (let i = steps.length - 1; i >= 0; i--) {
     const step = steps[i];
     if (step.type === 'tool_result' && step.content.toolResultContent) {
@@ -134,7 +102,7 @@ export function findLastOutput(
     }
   }
 
-  // Third pass: look for last 'interruption' step
+  // Pass 3: last interruption step
   for (let i = steps.length - 1; i >= 0; i--) {
     const step = steps[i];
     if (step.type === 'interruption' && step.content.interruptionText) {

@@ -1,7 +1,3 @@
-/**
- * UserMessagesSection - Section for displaying user message injections.
- */
-
 import React from 'react';
 
 import { UserMessageItem } from '../items/UserMessageItem';

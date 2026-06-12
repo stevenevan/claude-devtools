@@ -1,8 +1,3 @@
-/**
- * TriggerConfiguration - Mode-specific configuration sections for TriggerCard.
- * Handles error status, content match, and token threshold mode configurations.
- */
-
 import { cn } from '@renderer/lib/utils';
 
 const SELECT_INPUT_BASE =

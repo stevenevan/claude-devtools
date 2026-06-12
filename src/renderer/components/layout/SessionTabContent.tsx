@@ -1,8 +1,3 @@
-/**
- * SessionTabContent - Renders session content with loading/error states.
- * Each session tab has its own instance to preserve state.
- */
-
 import { useEffect } from 'react';
 
 import { useStore } from '@renderer/store';

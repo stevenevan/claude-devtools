@@ -1,7 +1,3 @@
-/**
- * Empty state for ChatHistory when no conversation exists.
- */
-
 import { MessageSquare } from 'lucide-react';
 
 export const ChatHistoryEmptyState = (): JSX.Element => {

@@ -1,8 +1,3 @@
-/**
- * SubagentBreadcrumb - Shows navigation breadcrumb for subagent context.
- * Displays: Main Session > Task "description" > Subagent ID
- */
-
 import { cn } from '@renderer/lib/utils';
 import { ChevronRight, Home } from 'lucide-react';
 

@@ -3,17 +3,10 @@ import { generateInjectionId, getDisplayName, joinPaths } from './pathHelpers';
 import type { ClaudeMdInjection, ClaudeMdSource } from '../../types/claudeMd';
 import type { ClaudeMdFileInfo } from '../../types/data';
 
-/** Default estimated tokens for global CLAUDE.md sources */
 export const DEFAULT_ESTIMATED_TOKENS = 500;
 
-/** Source identifier for project memory CLAUDE.md files */
 const SOURCE_PROJECT_MEMORY: ClaudeMdSource = 'project-memory';
 
-/**
- * Create injection entries for global CLAUDE.md sources.
- * These are injected at the start of every session.
- * Only includes files that actually exist (tokens > 0).
- */
 export function createGlobalInjections(
   projectRoot: string,
   aiGroupId: string,
@@ -21,7 +14,6 @@ export function createGlobalInjections(
 ): ClaudeMdInjection[] {
   const injections: ClaudeMdInjection[] = [];
 
-  // Helper to get token count from tokenData or fallback to default
   const getTokens = (key: string): number => {
     return tokenData?.[key]?.estimatedTokens ?? DEFAULT_ESTIMATED_TOKENS;
   };
@@ -42,8 +34,7 @@ export function createGlobalInjections(
     });
   }
 
-  // 2. User memory (~/.claude/CLAUDE.md)
-  // Use ~ for display purposes (renderer cannot access Node.js process.env)
+  // 2. User memory (~/.claude/CLAUDE.md) — use ~ since renderer can't access process.env
   const userMemoryPath = '~/.claude/CLAUDE.md';
   const userTokens = getTokens('user');
   if (userTokens > 0) {
@@ -61,7 +52,6 @@ export function createGlobalInjections(
   // 3. Project memory - could be at root or in .claude folder
   const projectMemoryPath = joinPaths(projectRoot, 'CLAUDE.md');
   const projectMemoryAltPath = joinPaths(projectRoot, '.claude/CLAUDE.md');
-  // Add the main project CLAUDE.md
   const projectTokens = getTokens('project');
   if (projectTokens > 0) {
     injections.push({
@@ -74,7 +64,6 @@ export function createGlobalInjections(
       firstSeenInGroup: aiGroupId,
     });
   }
-  // Also add the .claude folder variant
   const projectAltTokens = getTokens('project-alt');
   if (projectAltTokens > 0) {
     injections.push({
@@ -152,9 +141,6 @@ export function createGlobalInjections(
   return injections;
 }
 
-/**
- * Create an injection entry for a directory-specific CLAUDE.md.
- */
 export function createDirectoryInjection(path: string, aiGroupId: string): ClaudeMdInjection {
   return {
     id: generateInjectionId(path),

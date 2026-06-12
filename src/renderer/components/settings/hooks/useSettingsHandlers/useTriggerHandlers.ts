@@ -6,7 +6,7 @@ import { useStore } from '@renderer/store';
 import type { SettingsHandlers, UseSettingsHandlersProps } from './types';
 import type { AppConfig, NotificationTrigger } from '@renderer/types/data';
 
-// Get the setState function from the store to update appConfig globally.
+// Zustand's setState is a plain function; binding keeps oxlint happy.
 const setStoreState = useStore.setState.bind(useStore);
 
 type TriggerHandlersProps = Pick<
@@ -43,7 +43,6 @@ export function useTriggerHandlers({
 
   const handleUpdateTrigger = useCallback(
     async (triggerId: string, updates: Partial<NotificationTrigger>) => {
-      // Optimistic update - immediately reflect the change in UI
       setOptimisticConfig((prev) => {
         if (!prev) return prev;
         const updatedTriggers =
@@ -66,7 +65,7 @@ export function useTriggerHandlers({
         setOptimisticConfig(updatedConfig);
         setStoreState({ appConfig: updatedConfig });
       } catch (err) {
-        // Revert optimistic update on error using ref to avoid stale closure
+        // Revert via ref to avoid stale closure
         setOptimisticConfig(configRef.current);
         setError(err instanceof Error ? err.message : 'Failed to update trigger');
       } finally {

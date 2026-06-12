@@ -57,7 +57,6 @@ function formatChunkMarkdown(chunk: Chunk, turnNum: number): string[] {
 
       for (const response of chunk.responses) {
         if (Array.isArray(response.content)) {
-          // Thinking blocks as blockquotes
           for (const block of response.content) {
             if (block.type === 'thinking') {
               lines.push('> *Thinking:*');
@@ -67,7 +66,6 @@ function formatChunkMarkdown(chunk: Chunk, turnNum: number): string[] {
               lines.push('');
             }
           }
-          // Text content
           const text = extractTextFromContent(response.content);
           if (text) {
             lines.push(text);
@@ -79,7 +77,6 @@ function formatChunkMarkdown(chunk: Chunk, turnNum: number): string[] {
         }
       }
 
-      // Tool executions
       for (const exec of chunk.toolExecutions) {
         lines.push(...formatToolExecutionMarkdown(exec));
         lines.push('');
@@ -105,21 +102,13 @@ function formatChunkMarkdown(chunk: Chunk, turnNum: number): string[] {
   return lines;
 }
 
-/**
- * Export session as structured Markdown.
- *
- * Produces Markdown with headings, tables, code blocks, and blockquotes
- * suitable for viewing in any Markdown renderer.
- */
 export function exportAsMarkdown(detail: SessionDetail): string {
   const { session, metrics, chunks } = detail;
   const lines: string[] = [];
 
-  // Title
   lines.push('# Session Export');
   lines.push('');
 
-  // Property table
   lines.push('| Property | Value |');
   lines.push('|----------|-------|');
   lines.push(`| Session | \`${session.id}\` |`);
@@ -130,7 +119,6 @@ export function exportAsMarkdown(detail: SessionDetail): string {
   lines.push(`| Date | ${formatTimestamp(new Date(session.createdAt))} |`);
   lines.push('');
 
-  // Metrics table
   lines.push('## Metrics');
   lines.push('');
   lines.push('| Metric | Value |');
@@ -145,7 +133,6 @@ export function exportAsMarkdown(detail: SessionDetail): string {
   lines.push(`| Cost | ${formatCost(metrics.costUsd)} |`);
   lines.push('');
 
-  // Conversation
   lines.push('## Conversation');
   lines.push('');
 
@@ -158,13 +145,9 @@ export function exportAsMarkdown(detail: SessionDetail): string {
   return lines.join('\n');
 }
 
-/**
- * Export a single AI chunk as Markdown (for "Copy as Markdown" on AI groups).
- */
 export function exportAIChunkAsMarkdown(chunk: Chunk): string {
   if (chunk.chunkType !== 'ai') return '';
   const lines = formatChunkMarkdown(chunk, 0);
-  // Remove the "### Assistant (Turn 0)" header, just return content
   const filtered = lines.filter((l) => !l.startsWith('### Assistant'));
   return filtered.join('\n').trim();
 }

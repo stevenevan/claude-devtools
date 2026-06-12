@@ -38,16 +38,13 @@ function formatChunkPlainText(chunk: Chunk): string[] {
       break;
     }
     case 'ai': {
-      // Render thinking blocks first, then text
       for (const response of chunk.responses) {
         if (Array.isArray(response.content)) {
-          // Check for thinking blocks
           for (const block of response.content) {
             if (block.type === 'thinking') {
               lines.push(`THINKING: ${block.thinking}`);
             }
           }
-          // Then text
           const text = extractTextFromContent(response.content);
           if (text) {
             lines.push(`ASSISTANT: ${text}`);
@@ -57,7 +54,6 @@ function formatChunkPlainText(chunk: Chunk): string[] {
         }
       }
 
-      // Tool executions
       for (const exec of chunk.toolExecutions) {
         lines.push(...formatToolExecutionPlainText(exec));
       }
@@ -76,17 +72,10 @@ function formatChunkPlainText(chunk: Chunk): string[] {
   return lines;
 }
 
-/**
- * Export session as plain text transcript.
- *
- * Produces a flat text format with clear labels (USER:, ASSISTANT:, TOOL:, etc.)
- * and separator lines between sections.
- */
 export function exportAsPlainText(detail: SessionDetail): string {
   const { session, metrics, chunks } = detail;
   const lines: string[] = [];
 
-  // Header
   lines.push('═'.repeat(60));
   lines.push('SESSION EXPORT');
   lines.push('═'.repeat(60));
@@ -98,7 +87,6 @@ export function exportAsPlainText(detail: SessionDetail): string {
   lines.push(`Date:     ${formatTimestamp(new Date(session.createdAt))}`);
   lines.push('');
 
-  // Metrics
   lines.push('─'.repeat(40));
   lines.push('METRICS');
   lines.push('─'.repeat(40));
@@ -112,7 +100,6 @@ export function exportAsPlainText(detail: SessionDetail): string {
   lines.push(`Cost:           ${formatCost(metrics.costUsd)}`);
   lines.push('');
 
-  // Conversation
   lines.push('═'.repeat(60));
   lines.push('CONVERSATION');
   lines.push('═'.repeat(60));

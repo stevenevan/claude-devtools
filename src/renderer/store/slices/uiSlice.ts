@@ -1,7 +1,3 @@
-/**
- * UI slice - manages command palette, sidebar, and activity bar state.
- */
-
 import type { AppState } from '../types';
 import type { StateCreator } from 'zustand';
 

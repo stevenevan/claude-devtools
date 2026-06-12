@@ -1,7 +1,3 @@
-/**
- * Repository slice - manages repository grouping state (worktree support).
- */
-
 import { api } from '@renderer/api';
 import { createLogger } from '@shared/utils/logger';
 
@@ -38,7 +34,6 @@ export const createRepositorySlice: StateCreator<AppState, [], [], RepositorySli
   repositoryGroupsError: null,
   viewMode: 'flat', // Default to flat view (grouped requires git identity resolution)
 
-  // Fetch all repository groups (projects grouped by git repo)
   fetchRepositoryGroups: async () => {
     set({ repositoryGroupsLoading: true, repositoryGroupsError: null });
     try {
@@ -61,7 +56,6 @@ export const createRepositorySlice: StateCreator<AppState, [], [], RepositorySli
     }
   },
 
-  // Select a repository group and auto-select a worktree
   selectRepository: (repositoryId: string) => {
     const { repositoryGroups } = get();
     const repo = repositoryGroups.find((r) => r.id === repositoryId);
@@ -71,9 +65,7 @@ export const createRepositorySlice: StateCreator<AppState, [], [], RepositorySli
       return;
     }
 
-    // Auto-select worktree:
-    // 1. Prefer the "Default" worktree (isMainWorktree = true)
-    // 2. Otherwise, select the first worktree (already sorted by most recent)
+    // Prefer the "Default" worktree (isMainWorktree); otherwise first worktree (sorted by recency)
     const defaultWorktree = repo.worktrees.find((w) => w.isMainWorktree);
     const worktreeToSelect = defaultWorktree ?? repo.worktrees[0];
 
@@ -83,13 +75,11 @@ export const createRepositorySlice: StateCreator<AppState, [], [], RepositorySli
         selectedWorktreeId: worktreeToSelect.id,
         selectedProjectId: worktreeToSelect.id,
         activeProjectId: worktreeToSelect.id,
-        sidebarCollapsed: false, // Ensure session list is visible when a project is selected
+        sidebarCollapsed: false,
         ...getSessionResetState(),
       });
-      // Fetch sessions for this worktree
       void get().fetchSessionsInitial(worktreeToSelect.id);
     } else {
-      // No worktrees available (shouldn't happen normally)
       set({
         selectedRepositoryId: repositoryId,
         selectedWorktreeId: null,
@@ -98,7 +88,6 @@ export const createRepositorySlice: StateCreator<AppState, [], [], RepositorySli
     }
   },
 
-  // Select a worktree within a repository group
   selectWorktree: (worktreeId: string) => {
     set({
       selectedWorktreeId: worktreeId,
@@ -107,11 +96,9 @@ export const createRepositorySlice: StateCreator<AppState, [], [], RepositorySli
       ...getSessionResetState(),
     });
 
-    // Fetch sessions for this worktree
     void get().fetchSessionsInitial(worktreeId);
   },
 
-  // Toggle between flat and grouped view modes
   setViewMode: (mode: 'flat' | 'grouped') => {
     set({
       viewMode: mode,
@@ -121,7 +108,6 @@ export const createRepositorySlice: StateCreator<AppState, [], [], RepositorySli
       ...getSessionResetState(),
     });
 
-    // Fetch the appropriate data for the new mode
     if (mode === 'grouped') {
       void get().fetchRepositoryGroups();
     } else {

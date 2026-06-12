@@ -1,8 +1,3 @@
-/**
- * Hook for TriggerCard local state and callback handlers.
- * Extracts state management logic from TriggerCard component.
- */
-
 import { useCallback, useState } from 'react';
 
 import { deriveMode, getAvailableMatchFields } from '../utils/trigger';
@@ -57,9 +52,6 @@ interface UseTriggerCardStateReturn {
   handleColorChange: (color: TriggerColor) => void;
 }
 
-/**
- * Manages TriggerCard local state and provides memoized callback handlers.
- */
 export function useTriggerCardState({
   trigger,
   onUpdate,

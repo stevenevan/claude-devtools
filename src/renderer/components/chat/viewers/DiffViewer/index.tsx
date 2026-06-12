@@ -11,11 +11,11 @@ import { inferLanguage } from './languageDetection';
 import { SplitDiffView } from './SplitDiffView';
 
 interface DiffViewerProps {
-  fileName: string; // The file being edited
-  oldString: string; // The original text being replaced
-  newString: string; // The new text
-  maxHeight?: string; // CSS max-height class (default: "max-h-96")
-  tokenCount?: number; // Optional token count to display in header
+  fileName: string;
+  oldString: string;
+  newString: string;
+  maxHeight?: string;
+  tokenCount?: number;
 }
 
 export const DiffViewer: React.FC<DiffViewerProps> = ({
@@ -27,21 +27,15 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
 }): React.JSX.Element => {
   const [mode, setMode] = React.useState<'unified' | 'split'>('unified');
 
-  // Compute diff
   const oldLines = oldString.split('\n');
   const newLines = newString.split('\n');
   const diffLines = generateDiff(oldLines, newLines);
   const stats = computeStats(diffLines);
-
-  // Infer language from file extension
   const detectedLanguage = inferLanguage(fileName);
-
-  // Format summary
   const displayName = getBaseName(fileName);
 
   return (
     <div className="border-border bg-muted overflow-hidden rounded-lg border shadow-xs">
-      {/* Header - matches CodeBlockViewer style */}
       <div className="border-border bg-muted flex items-center gap-2 border-b px-3 py-2">
         <Pencil className="text-muted-foreground size-4 shrink-0" />
         <span className="truncate font-mono text-sm text-blue-400">{displayName}</span>
@@ -61,7 +55,6 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
             ~{formatTokens(tokenCount)} tokens
           </span>
         )}
-        {/* Unified / Split toggle */}
         <button
           onClick={() => setMode(mode === 'unified' ? 'split' : 'unified')}
           className="text-muted-foreground hover:text-foreground ml-auto shrink-0 transition-colors"
@@ -71,7 +64,6 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
         </button>
       </div>
 
-      {/* Diff content */}
       {mode === 'unified' ? (
         <div className={cn('overflow-auto font-mono text-xs', maxHeight)}>
           <div className="inline-block min-w-full">

@@ -1,7 +1,3 @@
-/**
- * ToolOutputItem - Single tool output item with expandable breakdown.
- */
-
 import React, { useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';

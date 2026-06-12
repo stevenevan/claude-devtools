@@ -1,8 +1,3 @@
-/**
- * useSettingsConfig - Hook for managing settings configuration state.
- * Handles loading, saving, and providing safe defaults for config.
- */
-
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { api } from '@renderer/api';
@@ -11,11 +6,9 @@ import { useShallow } from 'zustand/react/shallow';
 
 import type { AppConfig } from '@renderer/types/data';
 
-// Get the setState function from the store to update appConfig globally.
-// Zustand's setState is a plain function that doesn't use `this`; binding keeps oxlint happy.
+// Zustand's setState is a plain function; binding keeps oxlint happy.
 const setStoreState = useStore.setState.bind(useStore);
 
-/** Repository item for ignored repositories list */
 export interface RepositoryDropdownItem {
   id: string;
   name: string;
@@ -86,10 +79,8 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Local optimistic state for immediate visual feedback on toggles
   const [optimisticConfig, setOptimisticConfig] = useState<AppConfig | null>(null);
 
-  // Fetch config on mount
   useEffect(() => {
     const loadConfig = async (): Promise<void> => {
       try {
@@ -108,14 +99,12 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
     void loadConfig();
   }, []);
 
-  // Fetch repository groups for ignored repositories dropdown
   useEffect(() => {
     if (repositoryGroups.length === 0) {
       void fetchRepositoryGroups();
     }
   }, [repositoryGroups.length, fetchRepositoryGroups]);
 
-  // Update a config section with optimistic update for immediate UI feedback
   const updateConfig = useCallback(
     async (section: keyof AppConfig, data: Partial<AppConfig[keyof AppConfig]>) => {
       // Optimistic update - immediately reflect the change in UI
@@ -150,10 +139,7 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
     [config]
   );
 
-  // Use optimistic config for UI display (falls back to config if not set)
   const displayConfig = optimisticConfig ?? config;
-
-  // Create safe config with defaults to prevent null reference errors
   const safeConfig = useMemo(
     (): SafeConfig => ({
       general: {
@@ -187,13 +173,11 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
     [displayConfig]
   );
 
-  // Convert ignored repository IDs to RepositoryDropdownItem[] for display
   const ignoredRepositoryItems = useMemo((): RepositoryDropdownItem[] => {
     const items: RepositoryDropdownItem[] = [];
     const ignoredRepositories = safeConfig.notifications.ignoredRepositories;
 
     for (const repositoryId of ignoredRepositories) {
-      // Find repository group by ID
       const group = repositoryGroups.find((g) => g.id === repositoryId);
       if (group) {
         items.push({
@@ -204,7 +188,6 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
           totalSessions: group.totalSessions,
         });
       } else {
-        // If not found, create a placeholder item
         items.push({
           id: repositoryId,
           name: repositoryId,
@@ -218,10 +201,7 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
     return items;
   }, [safeConfig.notifications.ignoredRepositories, repositoryGroups]);
 
-  // Get excluded repository IDs for dropdown
   const excludedRepositoryIds = safeConfig.notifications.ignoredRepositories;
-
-  // Check if snoozed
   const isSnoozed =
     safeConfig.notifications.snoozedUntil !== null &&
     safeConfig.notifications.snoozedUntil > Date.now();

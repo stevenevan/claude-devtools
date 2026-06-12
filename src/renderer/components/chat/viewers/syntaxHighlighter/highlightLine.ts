@@ -2,14 +2,9 @@ import React from 'react';
 
 import { KEYWORDS } from './keywords';
 
-/**
- * Very basic tokenization for syntax highlighting.
- * This is a simple approach without a full parser.
- */
 export function highlightLine(line: string, language: string): React.ReactNode[] {
   const keywords = KEYWORDS[language] || new Set();
 
-  // If no highlighting support, return plain text as single-element array
   if (keywords.size === 0 && !['json', 'css', 'html', 'bash', 'markdown'].includes(language)) {
     return [line];
   }
@@ -21,7 +16,6 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
   while (currentPos < lineLength) {
     const remaining = line.slice(currentPos);
 
-    // Check for string (double quote)
     if (remaining.startsWith('"')) {
       const endQuote = remaining.indexOf('"', 1);
       if (endQuote !== -1) {
@@ -34,7 +28,6 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       }
     }
 
-    // Check for string (single quote)
     if (remaining.startsWith("'")) {
       const endQuote = remaining.indexOf("'", 1);
       if (endQuote !== -1) {
@@ -47,7 +40,6 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       }
     }
 
-    // Check for template literal (backtick)
     if (remaining.startsWith('`')) {
       const endQuote = remaining.indexOf('`', 1);
       if (endQuote !== -1) {
@@ -60,7 +52,6 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       }
     }
 
-    // Check for comment (// style)
     if (remaining.startsWith('//')) {
       segments.push(
         React.createElement(
@@ -72,7 +63,6 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       break;
     }
 
-    // Check for comment (# style for Python/Shell/R/Ruby/PHP)
     if (
       (language === 'python' ||
         language === 'bash' ||
@@ -91,7 +81,6 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       break;
     }
 
-    // Check for comment (-- style for SQL)
     if (language === 'sql' && remaining.startsWith('--')) {
       segments.push(
         React.createElement(
@@ -103,7 +92,6 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       break;
     }
 
-    // Check for numbers
     const numberMatch = /^(\d+\.?\d*)/.exec(remaining);
     if (numberMatch && (currentPos === 0 || /\W/.test(line[currentPos - 1]))) {
       segments.push(
@@ -117,11 +105,9 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       continue;
     }
 
-    // Check for keywords and identifiers
     const wordMatch = /^([a-zA-Z_$][a-zA-Z0-9_$]*)/.exec(remaining);
     if (wordMatch) {
       const word = wordMatch[1];
-      // SQL keywords are case-insensitive
       if (keywords.has(word) || (language === 'sql' && keywords.has(word.toUpperCase()))) {
         segments.push(
           React.createElement(
@@ -131,7 +117,6 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
           )
         );
       } else if ((word[0]?.toUpperCase() ?? '') === word[0] && word.length > 1) {
-        // Likely a type/class name
         segments.push(
           React.createElement(
             'span',
@@ -146,7 +131,6 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       continue;
     }
 
-    // Check for operators and punctuation
     const opMatch = /^([=<>!+\-*/%&|^~?:;,.{}()[\]])/.exec(remaining);
     if (opMatch) {
       segments.push(
@@ -160,7 +144,6 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       continue;
     }
 
-    // Default: just add the character
     segments.push(remaining[0]);
     currentPos += 1;
   }

@@ -7,7 +7,7 @@ import type { RepositoryDropdownItem } from '../useSettingsConfig';
 import type { SettingsHandlers, UseSettingsHandlersProps } from './types';
 import type { AppConfig } from '@renderer/types/data';
 
-// Get the setState function from the store to update appConfig globally.
+// Zustand's setState is a plain function; binding keeps oxlint happy.
 const setStoreState = useStore.setState.bind(useStore);
 
 type NotificationHandlersProps = Pick<

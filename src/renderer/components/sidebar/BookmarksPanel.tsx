@@ -10,9 +10,6 @@ import { Button } from '../ui/button';
 
 import type { BookmarkEntry } from '@renderer/store/slices/configSlice';
 
-/**
- * BookmarksPanel - Lists all bookmarks with navigation to their AI groups.
- */
 export const BookmarksPanel = (): React.JSX.Element => {
   const { bookmarks, bookmarksLoading, fetchBookmarks, removeBookmark, navigateToSession } =
     useStore(

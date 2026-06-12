@@ -1,7 +1,3 @@
-/**
- * MentionedFileItem - Single mentioned file item display.
- */
-
 import React from 'react';
 
 import { CopyablePath } from '@renderer/components/common/CopyablePath';

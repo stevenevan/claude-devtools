@@ -1,11 +1,3 @@
-/**
- * SearchBar - In-session search interface component.
- * Appears at the top of the chat view when Cmd+F is pressed.
- *
- * Uses a local input state with debouncing to avoid triggering expensive
- * markdown-aware search on every keystroke.
- */
-
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@renderer/components/ui/button';
@@ -54,7 +46,6 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
     }))
   );
 
-  // Local input value for responsive typing — debounced before triggering search
   const [localQuery, setLocalQuery] = useState(searchQuery);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -69,12 +60,10 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
     SEARCH_DEBOUNCE_MS
   );
 
-  // Debounced search dispatch
   const handleChange = useCallback(
     (value: string) => {
       setLocalQuery(value);
 
-      // Clear immediately when input is emptied
       if (!value.trim()) {
         debouncedSetSearch.cancel();
         setSearchQuery('', conversation);
@@ -86,7 +75,6 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
     [conversation, setSearchQuery, debouncedSetSearch]
   );
 
-  // Auto-focus input when search becomes visible
   useEffect(() => {
     if (searchVisible && inputRef.current) {
       inputRef.current.focus();
@@ -94,12 +82,10 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
     }
   }, [searchVisible]);
 
-  // Handle keyboard shortcuts within search bar
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Escape') {
       hideSearch();
     } else if (e.key === 'Enter') {
-      // Flush any pending debounce immediately on Enter
       debouncedSetSearch.flush();
       if (localQuery !== searchQuery) {
         setSearchQuery(localQuery, conversation);

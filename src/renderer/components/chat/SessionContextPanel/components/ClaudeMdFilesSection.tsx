@@ -1,7 +1,3 @@
-/**
- * ClaudeMdFilesSection - Section for displaying CLAUDE.md files with nested groups.
- */
-
 import React, { useMemo } from 'react';
 
 import { CLAUDE_MD_GROUP_CONFIG, CLAUDE_MD_GROUP_ORDER } from '../types';
@@ -29,7 +25,6 @@ export const ClaudeMdFilesSection = ({
   projectRoot,
   onNavigateToTurn,
 }: Readonly<ClaudeMdFilesSectionProps>): React.ReactElement | null => {
-  // Group CLAUDE.md injections by category
   const claudeMdGroups = useMemo(() => {
     const groups = new Map<ClaudeMdGroupCategory, ClaudeMdContextInjection[]>();
 
@@ -51,7 +46,6 @@ export const ClaudeMdFilesSection = ({
     return groups;
   }, [injections]);
 
-  // Get non-empty CLAUDE.md groups
   const nonEmptyClaudeMdGroups = useMemo(
     () =>
       CLAUDE_MD_GROUP_ORDER.filter((category) => {

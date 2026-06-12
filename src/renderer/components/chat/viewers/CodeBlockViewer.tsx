@@ -8,18 +8,14 @@ import { Check, ClipboardCopy, Copy, FileCode } from 'lucide-react';
 
 import { highlightLine } from './syntaxHighlighter';
 
-// Types
-
 interface CodeBlockViewerProps {
-  fileName: string; // e.g., "src/components/Header.tsx"
-  content: string; // The actual file content
-  language?: string; // Inferred from file extension if not provided
-  startLine?: number; // If partial read, starting line
-  endLine?: number; // If partial read, ending line
-  maxHeight?: string; // CSS max-height class (default: "max-h-96")
+  fileName: string;
+  content: string;
+  language?: string;
+  startLine?: number;
+  endLine?: number;
+  maxHeight?: string;
 }
-
-// Language Detection
 
 const EXTENSION_LANGUAGE_MAP: Record<string, string> = {
   // JavaScript/TypeScript
@@ -89,17 +85,12 @@ const EXTENSION_LANGUAGE_MAP: Record<string, string> = {
   '.R': 'r',
 };
 
-/**
- * Infer language from file name/extension.
- */
 function inferLanguage(fileName: string): string {
-  // Check for dotfiles with specific names
   const baseName = getBaseName(fileName);
   if (baseName === 'Dockerfile') return 'dockerfile';
   if (baseName === 'Makefile') return 'makefile';
   if (baseName.startsWith('.env')) return 'env';
 
-  // Extract extension
   const extMatch = /(\.[^./]+)$/.exec(fileName);
   if (extMatch) {
     const ext = extMatch[1].toLowerCase();
@@ -167,8 +158,6 @@ function buildCopyWithContextText(
   return `// File: ${fileName} (lines ${startLine}-${actualEndLine}) @ ${timestamp}\n${content}`;
 }
 
-// Component
-
 export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
   fileName,
   content,
@@ -185,22 +174,14 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
   const showLineNumbers = displaySettings?.showLineNumbers ?? true;
   const wordWrap = displaySettings?.wordWrap ?? false;
 
-  // Infer language from file extension if not provided
   const detectedLanguage = language ?? inferLanguage(fileName);
-
-  // Split content into lines
   const lines = useMemo(() => content.split('\n'), [content]);
   const totalLines = lines.length;
-
-  // Calculate the actual line range for display
   const actualEndLine = endLine ?? startLine + totalLines - 1;
-
-  // Extract just the filename for display
   const displayFileName = getBaseName(fileName) || fileName;
 
   return (
     <div className={cn('overflow-hidden rounded-lg border shadow-xs', theme.wrapper)}>
-      {/* Header */}
       <div className={cn('flex items-center justify-between border-b px-3 py-2', theme.header)}>
         <div className="flex min-w-0 items-center gap-2">
           <FileCode className="text-muted-foreground size-4 shrink-0" />
@@ -218,7 +199,6 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
         </div>
 
         <div className="flex items-center gap-1">
-          {/* Copy with context */}
           <button
             onClick={() =>
               copyWithContext(buildCopyWithContextText(fileName, content, startLine, actualEndLine))
@@ -232,7 +212,6 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
               <ClipboardCopy className="text-muted-foreground size-4" />
             )}
           </button>
-          {/* Copy raw */}
           <button
             onClick={() => copy(content)}
             className="rounded-sm bg-transparent p-1 transition-colors hover:opacity-80"
@@ -247,7 +226,6 @@ export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
         </div>
       </div>
 
-      {/* Code content */}
       <div className={cn('overflow-auto', maxHeight, theme.codeBg)}>
         <pre className="m-0 bg-transparent p-0">
           <code className="block font-mono text-xs leading-relaxed">

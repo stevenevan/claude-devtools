@@ -1,12 +1,5 @@
-/**
- * Build a hierarchical team tree from a flat Process list.
- *
- * Each team becomes a root node with its members as children. Nested subagent
- * spawns (Process.parentTaskId pointing to another process's Task call) hang
- * off the originating member. Orphan processes (no team, no parent) are
- * emitted as top-level `solo` nodes so the tree is a complete view of
- * session-level coordination.
- */
+// Build a hierarchical team tree from flat Process list.
+// Orphan processes (no team, no parent) become top-level `solo` nodes.
 
 import type { Process } from '@shared/types/chunks';
 
@@ -43,7 +36,6 @@ function processStatus(p: Process): 'active' | 'completed' {
 }
 
 export function buildTeamTree(processes: Process[]): TeamTreeNode[] {
-  // Group processes: (a) by team name if present; (b) leftover soloists.
   const teams = new Map<string, Process[]>();
   const soloists: Process[] = [];
   for (const p of processes) {
@@ -58,7 +50,6 @@ export function buildTeamTree(processes: Process[]): TeamTreeNode[] {
 
   const allRoots: TeamTreeNode[] = [];
 
-  // For each team, build members and attach nested subagents.
   for (const [teamName, members] of teams.entries()) {
     const memberNodes: TeamTreeNode[] = members.map((m) => ({
       id: `member:${m.id}`,
@@ -71,7 +62,6 @@ export function buildTeamTree(processes: Process[]): TeamTreeNode[] {
       children: [],
     }));
 
-    // Attach nested child processes to their parent task owner.
     attachNested(members, memberNodes);
 
     allRoots.push({
@@ -99,18 +89,13 @@ export function buildTeamTree(processes: Process[]): TeamTreeNode[] {
   return allRoots;
 }
 
-/**
- * For processes that have `parentTaskId` matching some tool_use inside another
- * process's message stream, attach them as children of that owning member
- * node.
- */
+// Attach nested subagent processes as children of the member that spawned them.
 function attachNested(processes: Process[], memberNodes: TeamTreeNode[]): void {
   const nodeByProcessId = new Map<string, TeamTreeNode>();
   for (const node of memberNodes) {
     if (node.process) nodeByProcessId.set(node.process.id, node);
   }
 
-  // Build a reverse index: tool_use id → owning process id.
   const toolUseOwner = new Map<string, string>();
   for (const p of processes) {
     for (const msg of p.messages) {
@@ -125,7 +110,6 @@ function attachNested(processes: Process[], memberNodes: TeamTreeNode[]): void {
     }
   }
 
-  // Move nested nodes under their parent member.
   for (const p of processes) {
     if (!p.parentTaskId) continue;
     const ownerProcessId = toolUseOwner.get(p.parentTaskId);

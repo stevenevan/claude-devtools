@@ -1,7 +1,5 @@
 import { getBaseName } from '@renderer/utils/pathUtils';
 
-// Language Detection
-
 const EXTENSION_LANGUAGE_MAP: Record<string, string> = {
   // JavaScript/TypeScript
   '.ts': 'typescript',
@@ -70,17 +68,12 @@ const EXTENSION_LANGUAGE_MAP: Record<string, string> = {
   '.R': 'r',
 };
 
-/**
- * Infer language from file name/extension.
- */
 export function inferLanguage(fileName: string): string {
-  // Check for dotfiles with specific names
   const baseName = getBaseName(fileName);
   if (baseName === 'Dockerfile') return 'dockerfile';
   if (baseName === 'Makefile') return 'makefile';
   if (baseName.startsWith('.env')) return 'env';
 
-  // Extract extension
   const extMatch = /(\.[^./]+)$/.exec(fileName);
   if (extMatch) {
     const ext = extMatch[1].toLowerCase();

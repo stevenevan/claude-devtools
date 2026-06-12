@@ -1,10 +1,3 @@
-/**
- * Session export utilities for claude-devtools.
- *
- * Provides formatters to export session data as plain text, Markdown, or JSON,
- * and a download trigger for browser-based file saving.
- */
-
 import type { SessionDetail } from '@renderer/types/data';
 
 import { exportAIChunkAsMarkdown, exportAsMarkdown } from './markdownExporter';
@@ -15,19 +8,10 @@ export { exportAsMarkdown, exportAIChunkAsMarkdown, exportAsPlainText };
 
 export type ExportFormat = 'markdown' | 'json' | 'plaintext';
 
-/**
- * Export session as pretty-printed JSON.
- */
 export function exportAsJson(detail: SessionDetail): string {
   return JSON.stringify(detail, null, 2);
 }
 
-/**
- * Trigger a browser file download for the given session in the specified format.
- *
- * Creates a Blob, generates an object URL, and simulates an anchor click
- * to initiate the download.
- */
 export function triggerDownload(detail: SessionDetail, format: ExportFormat): void {
   const formatters: Record<
     ExportFormat,

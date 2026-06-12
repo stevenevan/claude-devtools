@@ -1,14 +1,3 @@
-/**
- * PaneContainer - Horizontal flex container that renders panes side by side.
- * Wraps children with @dnd-kit DndContext provider for tab drag-and-drop.
- *
- * DnD interactions:
- * - Drag within same TabBar → reorder tabs (reorderTabInPane)
- * - Drag to another pane's TabBar → move tab to target pane (moveTabToPane)
- * - Drag to pane edge zone → create new split pane (moveTabToNewPane)
- * - Drag last tab out of pane → source pane auto-closes
- */
-
 import { Fragment, useCallback, useState } from 'react';
 
 import {
@@ -31,14 +20,13 @@ import type { Tab } from '@renderer/types/tabs';
 export const PaneContainer = (): React.JSX.Element => {
   const panes = useStore((s) => s.paneLayout.panes);
 
-  // Track the currently dragged tab for DragOverlay
   const [activeTab, setActiveTab] = useState<Tab | null>(null);
 
-  // Configure pointer sensor with activation distance to avoid conflict with clicks
+  // 8px drag distance before activating to avoid conflict with clicks
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // 8px drag distance before activating
+        distance: 8,
       },
     })
   );
@@ -52,7 +40,6 @@ export const PaneContainer = (): React.JSX.Element => {
         const sourcePaneId = data.paneId as string;
         const tabId = data.tabId as string;
 
-        // Find the tab in the source pane
         const pane = panes.find((p) => p.id === sourcePaneId);
         const tab = pane?.tabs.find((t) => t.id === tabId);
         if (tab) {
@@ -143,7 +130,6 @@ export const PaneContainer = (): React.JSX.Element => {
         ))}
       </main>
 
-      {/* Drag overlay - semi-transparent ghost of the dragged tab */}
       <DragOverlay dropAnimation={null}>
         {activeTab ? <DragOverlayTab tab={activeTab} /> : null}
       </DragOverlay>

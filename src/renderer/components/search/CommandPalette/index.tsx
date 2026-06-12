@@ -157,7 +157,6 @@ export const CommandPalette = (): React.JSX.Element | null => {
               onSelect={handleSessionSelect}
             />
           )}
-          {/* Export actions (when a session is loaded) */}
           {sessionDetail && query.trim() === '' && (
             <CommandGroup heading="Export Session">
               <CommandItem

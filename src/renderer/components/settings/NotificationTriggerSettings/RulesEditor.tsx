@@ -1,12 +1,3 @@
-/**
- * Notification rules editor (sprint 40).
- *
- * Sprint 40 ships the rule DSL + a minimal JSON-text editor; the visual
- * AND/OR builder is pre-staged here as a future iteration. The editor
- * already round-trips through `appConfig.notificationRules` via
- * `api.config.update('notificationRules', …)`.
- */
-
 import { useEffect, useMemo, useState } from 'react';
 
 import { api } from '@renderer/api';

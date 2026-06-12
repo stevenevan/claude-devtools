@@ -1,8 +1,3 @@
-/**
- * RepositoryScopeSection - Section for limiting trigger to specific repositories.
- * Uses the shared RepositoryDropdown component.
- */
-
 import {
   RepositoryDropdown,
   SelectedRepositoryItem,

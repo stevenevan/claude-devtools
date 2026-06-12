@@ -1,7 +1,3 @@
-/**
- * UserMessageItem - Single user message item showing turn link, tokens, and preview.
- */
-
 import React from 'react';
 
 import { MessageSquare } from 'lucide-react';

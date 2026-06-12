@@ -1,11 +1,3 @@
-/**
- * RankedInjectionList - All context injections sorted by token size descending.
- * Injections are shown as grouped rows (e.g., "Tool output in Turn N").
- * Tool-output rows are expandable to reveal individual tool breakdowns sorted desc.
- * Individual tools support deep-link navigation to the exact tool in chat.
- * CLAUDE.md and File items show a copy-path button.
- */
-
 import React, { useMemo, useState } from 'react';
 
 import { CopyButton } from '@renderer/components/common/CopyButton';
@@ -16,8 +8,6 @@ import { formatTokens } from '../utils/formatting';
 import { parseTurnIndex } from '../utils/pathParsing';
 
 import type { ContextInjection, ToolOutputInjection } from '@renderer/types/contextInjection';
-
-// Constants
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string }> = {
   'claude-md': {
@@ -36,16 +26,12 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string 
   'user-message': { bg: 'rgb(34 197 94 / 0.15)', text: 'rgb(134 239 172)', label: 'User' },
 };
 
-// Props
-
 interface RankedInjectionListProps {
   injections: ContextInjection[];
   onNavigateToTurn?: (turnIndex: number) => void;
   onNavigateToTool?: (turnIndex: number, toolUseId: string) => void;
   onNavigateToUserGroup?: (turnIndex: number) => void;
 }
-
-// Helpers
 
 function getInjectionDescription(injection: ContextInjection): string {
   switch (injection.category) {
@@ -78,16 +64,12 @@ function getInjectionTurnIndex(injection: ContextInjection): number {
   }
 }
 
-/** Get copyable path for path-based injections. */
 function getCopyablePath(injection: ContextInjection): string | null {
   if (injection.category === 'claude-md') return injection.path;
   if (injection.category === 'mentioned-file') return injection.path;
   return null;
 }
 
-// Sub-components
-
-/** Expandable tool-output row with breakdown sorted by token count desc. */
 const ToolOutputRankedItem = ({
   injection,
   onNavigateToTurn,
@@ -119,7 +101,6 @@ const ToolOutputRankedItem = ({
         }}
         className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left transition-colors hover:bg-white/5"
       >
-        {/* Expand chevron */}
         {hasBreakdown && (
           <ChevronRight
             className={cn(
@@ -128,24 +109,20 @@ const ToolOutputRankedItem = ({
             )}
           />
         )}
-        {/* Category pill */}
         <span
           className="shrink-0 rounded-sm px-1.5 py-0.5 text-[9px] font-medium"
           style={{ backgroundColor: categoryInfo.bg, color: categoryInfo.text }}
         >
           {categoryInfo.label}
         </span>
-        {/* Description */}
         <span className="text-muted-foreground min-w-0 flex-1 truncate text-xs">
           {getInjectionDescription(injection)}
         </span>
-        {/* Token count */}
         <span className="text-muted-foreground shrink-0 text-xs font-medium tabular-nums">
           {formatTokens(injection.estimatedTokens)}
         </span>
       </button>
 
-      {/* Expanded tool breakdown */}
       {expanded && hasBreakdown && (
         <div className="ml-7 space-y-0.5 pb-1">
           {sortedBreakdown.map((tool, idx) => (
@@ -182,8 +159,6 @@ const ToolOutputRankedItem = ({
     </div>
   );
 };
-
-// Component
 
 export const RankedInjectionList = ({
   injections,
@@ -235,23 +210,19 @@ export const RankedInjectionList = ({
               onClick={handleClick}
               className="flex min-w-0 flex-1 items-center gap-2 rounded-sm px-2 py-1.5 text-left transition-colors hover:bg-white/5"
             >
-              {/* Category pill */}
               <span
                 className="shrink-0 rounded-sm px-1.5 py-0.5 text-[9px] font-medium"
                 style={{ backgroundColor: categoryInfo.bg, color: categoryInfo.text }}
               >
                 {categoryInfo.label}
               </span>
-              {/* Description */}
               <span className="text-muted-foreground min-w-0 flex-1 truncate text-xs">
                 {getInjectionDescription(inj)}
               </span>
-              {/* Token count */}
               <span className="text-muted-foreground shrink-0 text-xs font-medium tabular-nums">
                 {formatTokens(inj.estimatedTokens)}
               </span>
             </button>
-            {/* Copy path button for CLAUDE.md and File items */}
             {copyPath && (
               <span className="shrink-0">
                 <CopyButton text={copyPath} inline />

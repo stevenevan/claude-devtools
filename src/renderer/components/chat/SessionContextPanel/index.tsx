@@ -1,8 +1,3 @@
-/**
- * SessionContextPanel - Panel showing all context injections for a session.
- * Displays CLAUDE.md files, mentioned files, and tool outputs in collapsible sections.
- */
-
 import React, { useMemo, useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';
@@ -47,12 +42,9 @@ export const SessionContextPanel = ({
   selectedPhase,
   onPhaseChange,
 }: Readonly<SessionContextPanelProps>): React.ReactElement => {
-  // View mode: category sections or ranked list
   const [viewMode, setViewMode] = useState<ContextViewMode>('category');
-  // Flat sub-toggle within "By Size" view
   const [flatMode, setFlatMode] = useState(false);
 
-  // Track which main sections are expanded
   const [expandedSections, setExpandedSections] = useState<Set<SectionType>>(
     new Set([
       SECTION_USER_MESSAGES,
@@ -64,7 +56,6 @@ export const SessionContextPanel = ({
     ])
   );
 
-  // Separate injections by category
   const {
     claudeMdInjections,
     mentionedFileInjections,
@@ -103,14 +94,10 @@ export const SessionContextPanel = ({
       }
     }
 
-    // Sort mentioned files and tool outputs by tokens descending
     mentionedFiles.sort((a, b) => b.estimatedTokens - a.estimatedTokens);
     toolOutputs.sort((a, b) => b.estimatedTokens - a.estimatedTokens);
-    // Sort task coordination by tokens descending
     taskCoordination.sort((a, b) => b.estimatedTokens - a.estimatedTokens);
-    // Sort thinking-text by turn index ascending
     thinkingText.sort((a, b) => a.turnIndex - b.turnIndex);
-    // Sort user messages by turn index ascending
     userMessages.sort((a, b) => a.turnIndex - b.turnIndex);
 
     return {
@@ -123,13 +110,11 @@ export const SessionContextPanel = ({
     };
   }, [injections]);
 
-  // Calculate total tokens
   const totalTokens = useMemo(
     () => injections.reduce((sum, inj) => sum + inj.estimatedTokens, 0),
     [injections]
   );
 
-  // Section token counts
   const claudeMdTokens = useMemo(
     () => claudeMdInjections.reduce((sum, inj) => sum + inj.estimatedTokens, 0),
     [claudeMdInjections]
@@ -160,7 +145,6 @@ export const SessionContextPanel = ({
     [userMessageInjections]
   );
 
-  // Toggle section expansion
   const toggleSection = (section: SectionType): void => {
     setExpandedSections((prev) => {
       const next = new Set(prev);
@@ -187,7 +171,6 @@ export const SessionContextPanel = ({
         onViewModeChange={setViewMode}
       />
 
-      {/* Content */}
       <div className="flex-1 space-y-2 overflow-y-auto p-3">
         {injections.length === 0 ? (
           <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
@@ -247,7 +230,6 @@ export const SessionContextPanel = ({
           </>
         ) : (
           <>
-            {/* Grouped / Flat sub-toggle */}
             <div className="flex items-center gap-1 pb-1">
               <button
                 onClick={() => setFlatMode(false)}

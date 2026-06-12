@@ -29,8 +29,8 @@ interface UseSshConnectionForm {
   setTestResult: React.Dispatch<React.SetStateAction<{ success: boolean; error?: string } | null>>;
   showDropdown: boolean;
   setShowDropdown: React.Dispatch<React.SetStateAction<boolean>>;
-  hostInputRef: React.RefObject<HTMLInputElement>;
-  dropdownRef: React.RefObject<HTMLDivElement>;
+  hostInputRef: React.RefObject<HTMLInputElement | null>;
+  dropdownRef: React.RefObject<HTMLDivElement | null>;
   savedProfiles: SshConnectionProfile[];
   selectedProfileId: string | null;
   filteredHosts: SshConfigHostEntry[];
@@ -60,7 +60,6 @@ export const useSshConnectionForm = (): UseSshConnectionForm => {
   const lastSshConfig = useStore((s) => s.lastSshConfig);
   const loadLastConnection = useStore((s) => s.loadLastConnection);
 
-  // Form state
   const [host, setHost] = useState('');
   const [port, setPort] = useState('22');
   const [username, setUsername] = useState('');
@@ -70,12 +69,10 @@ export const useSshConnectionForm = (): UseSshConnectionForm => {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; error?: string } | null>(null);
 
-  // Combobox state
   const [showDropdown, setShowDropdown] = useState(false);
   const hostInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Saved profiles
   const [savedProfiles, setSavedProfiles] = useState<SshConnectionProfile[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [claudeRootInfo, setClaudeRootInfo] = useState<ClaudeRootInfo | null>(null);
@@ -99,7 +96,6 @@ export const useSshConnectionForm = (): UseSshConnectionForm => {
     }
   }, []);
 
-  // Fetch SSH config hosts, saved profiles, and load last connection on mount
   useEffect(() => {
     void fetchSshConfigHosts();
     void loadLastConnection();
@@ -125,7 +121,6 @@ export const useSshConnectionForm = (): UseSshConnectionForm => {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-time prefill when async data arrives
   }, [lastSshConfig]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent): void => {
       if (
@@ -141,7 +136,6 @@ export const useSshConnectionForm = (): UseSshConnectionForm => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Filter config hosts based on input
   const filteredHosts = useMemo(() => {
     if (!host.trim()) return sshConfigHosts;
     const lower = host.toLowerCase();

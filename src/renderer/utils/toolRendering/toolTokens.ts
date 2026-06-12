@@ -1,17 +1,8 @@
-/**
- * Tool Token Utilities
- *
- * Functions for estimating and calculating token counts for tool operations.
- */
-
 import { estimateTokens } from '@shared/utils/tokenFormatting';
 
 import type { ItemStatus } from '@renderer/components/chat/items/BaseItem';
 import type { LinkedToolItem } from '@renderer/types/groups';
 
-/**
- * Calculates total context tokens consumed by a tool operation.
- */
 export function getToolContextTokens(linkedTool: LinkedToolItem): number {
   let totalTokens = 0;
 
@@ -47,9 +38,6 @@ export function getToolContextTokens(linkedTool: LinkedToolItem): number {
   return totalTokens;
 }
 
-/**
- * Gets the status of a tool execution.
- */
 export function getToolStatus(linkedTool: LinkedToolItem): ItemStatus {
   if (linkedTool.isOrphaned) return 'orphaned';
   if (linkedTool.result?.isError) return 'error';

@@ -28,8 +28,6 @@ import type { AppState } from './types';
 import type { PaneLayout } from '@renderer/types/panes';
 import type { Tab } from '@renderer/types/tabs';
 
-// Persisted State Shape
-
 interface PersistedState {
   paneLayout: PaneLayout;
   sidebarCollapsed: boolean;
@@ -50,8 +48,6 @@ function sanitizeTabForPersist(tab: Tab): Tab {
   const { pendingNavigation, lastConsumedNavigationId, savedScrollTop, ...rest } = tab;
   return rest;
 }
-
-// Store Creation
 
 export const useStore = create<AppState>()(
   persist(
@@ -114,23 +110,17 @@ export const useStore = create<AppState>()(
   )
 );
 
-/**
- * After Zustand rehydrates persisted pane layout, sync root-level openTabs/activeTabId
- * from the focused pane and kick off session detail fetch for the active session tab.
- */
 function rehydratePersistedTabs(state: AppState): void {
   const { paneLayout } = state;
   const focusedPane = paneLayout.panes.find((p) => p.id === paneLayout.focusedPaneId);
   if (!focusedPane) return;
 
-  // Sync root-level state from focused pane
   useStore.setState({
     openTabs: focusedPane.tabs,
     activeTabId: focusedPane.activeTabId,
     selectedTabIds: focusedPane.selectedTabIds,
   });
 
-  // Fetch session detail for the active tab if it's a session
   const activeTab = focusedPane.tabs.find((t) => t.id === focusedPane.activeTabId);
   if (activeTab?.type === 'session' && activeTab.projectId && activeTab.sessionId) {
     void useStore

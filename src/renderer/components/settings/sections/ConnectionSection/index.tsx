@@ -1,13 +1,3 @@
-/**
- * ConnectionSection - Settings section for SSH connection management.
- *
- * Provides UI for:
- * - Toggling between local and SSH modes
- * - Configuring SSH connection (host, port, username, auth)
- * - SSH config host alias combobox with auto-fill
- * - Testing and connecting to remote hosts
- */
-
 import { Monitor } from 'lucide-react';
 
 import { SettingRow } from '../../components/SettingRow';

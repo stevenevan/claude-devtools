@@ -1,7 +1,3 @@
-/**
- * AdvancedSection - Advanced settings including config management and about info.
- */
-
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { api, isDesktopMode } from '@renderer/api';
@@ -37,8 +33,8 @@ export const AdvancedSection = ({
   const availableVersion = useStore((s) => s.availableVersion);
   const checkForUpdates = useStore((s) => s.checkForUpdates);
 
-  // Auto-revert "not-available" / "error" status back to idle after a brief display
-  const revertTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  // Auto-revert transient statuses back to idle after brief display
+  const revertTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {
     if (updateStatus === 'not-available' || updateStatus === 'error') {
       revertTimerRef.current = setTimeout(() => {

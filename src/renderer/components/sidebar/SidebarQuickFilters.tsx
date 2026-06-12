@@ -1,8 +1,3 @@
-/**
- * SidebarQuickFilters - Toggleable filter chips for the session list.
- * Filters: Ongoing, With Subagents
- */
-
 import { cn } from '@renderer/lib/utils';
 import { Activity, Bookmark, GitBranch } from 'lucide-react';
 

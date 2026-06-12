@@ -1,8 +1,3 @@
-/**
- * Pane slice - manages multi-pane split layout state and actions.
- * Each pane has its own tab bar, active tab, and selected tabs.
- */
-
 import { MAX_PANES } from '@renderer/types/panes';
 
 import {
@@ -24,12 +19,10 @@ import type { StateCreator } from 'zustand';
 export interface PaneSlice {
   paneLayout: PaneLayout;
 
-  // Pane lifecycle
   focusPane: (paneId: string) => void;
   splitPane: (sourcePaneId: string, tabId: string, direction: 'left' | 'right') => void;
   closePane: (paneId: string) => void;
 
-  // Tab movement
   moveTabToPane: (
     tabId: string,
     sourcePaneId: string,
@@ -44,20 +37,12 @@ export interface PaneSlice {
   ) => void;
   reorderTabInPane: (paneId: string, fromIndex: number, toIndex: number) => void;
 
-  // Resize
   resizePanes: (paneId: string, newWidthFraction: number) => void;
 
-  // Queries
   getPaneForTab: (tabId: string) => string | null;
   getAllPaneTabs: () => Tab[];
 }
 
-// Helpers
-
-/**
- * Sync root-level openTabs/activeTabId/selectedTabIds from the focused pane.
- * This maintains backward compatibility for consumers that read root-level state.
- */
 function syncRootState(layout: PaneLayout): Record<string, unknown> {
   const synced = syncFocusedPaneState(layout);
   return {
@@ -69,7 +54,6 @@ function syncRootState(layout: PaneLayout): Record<string, unknown> {
 }
 
 export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, get) => ({
-  // Initial state: single pane (populated by tabSlice init or first openTab)
   paneLayout: {
     panes: [
       {
@@ -94,7 +78,6 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
     const newLayout: PaneLayout = { ...paneLayout, focusedPaneId: paneId };
     set(syncRootState(newLayout));
 
-    // Trigger sidebar sync for the focused pane's active tab
     if (pane.activeTabId) {
       get().setActiveTab(pane.activeTabId);
     }
@@ -115,7 +98,6 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
     const newSourceTabs = sourcePane.tabs.filter((t) => t.id !== tabId);
     let newSourceActiveTabId = sourcePane.activeTabId;
     if (sourcePane.activeTabId === tabId) {
-      // Focus adjacent tab in source
       const oldIndex = sourcePane.tabs.findIndex((t) => t.id === tabId);
       newSourceActiveTabId = newSourceTabs[oldIndex]?.id ?? newSourceTabs[oldIndex - 1]?.id ?? null;
     }
@@ -136,7 +118,6 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
 
     let newLayout = updatePane(paneLayout, updatedSource);
 
-    // If source pane is now empty, remove it
     if (newSourceTabs.length === 0 && paneLayout.panes.length > 1) {
       newLayout = removePane(newLayout, sourcePaneId);
     }
@@ -151,7 +132,6 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
 
     set(syncRootState(newLayout));
 
-    // Sync sidebar for the new pane's active tab
     if (tab.type === 'session') {
       get().setActiveTab(tab.id);
     }
@@ -161,12 +141,11 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
     const state = get();
     const { paneLayout } = state;
 
-    if (paneLayout.panes.length <= 1) return; // Can't close the last pane
+    if (paneLayout.panes.length <= 1) return;
 
     const pane = findPane(paneLayout, paneId);
     if (!pane) return;
 
-    // Cleanup tab UI state for all tabs in the pane
     for (const tab of pane.tabs) {
       state.cleanupTabUIState(tab.id);
     }
@@ -174,7 +153,6 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
     const newLayout = removePane(paneLayout, paneId);
     set(syncRootState(newLayout));
 
-    // Sync sidebar for the newly focused pane
     const focusedPane = findPane(newLayout, newLayout.focusedPaneId);
     if (focusedPane?.activeTabId) {
       get().setActiveTab(focusedPane.activeTabId);
@@ -199,7 +177,6 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
     const tab = sourcePane.tabs.find((t) => t.id === tabId);
     if (!tab) return;
 
-    // Remove from source
     const newSourceTabs = sourcePane.tabs.filter((t) => t.id !== tabId);
     let newSourceActiveTabId = sourcePane.activeTabId;
     if (sourcePane.activeTabId === tabId) {
@@ -207,7 +184,6 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
       newSourceActiveTabId = newSourceTabs[oldIndex]?.id ?? newSourceTabs[oldIndex - 1]?.id ?? null;
     }
 
-    // Add to target at insertion index
     const newTargetTabs = [...targetPane.tabs];
     if (insertIndex !== undefined && insertIndex >= 0 && insertIndex <= newTargetTabs.length) {
       newTargetTabs.splice(insertIndex, 0, tab);
@@ -227,12 +203,10 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
       activeTabId: tab.id,
     });
 
-    // Auto-close source pane if it's empty and not the sole pane
     if (newSourceTabs.length === 0 && newLayout.panes.length > 1) {
       newLayout = removePane(newLayout, sourcePaneId);
     }
 
-    // Focus the target pane
     newLayout = { ...newLayout, focusedPaneId: targetPaneId };
 
     set(syncRootState(newLayout));
@@ -255,7 +229,6 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
     const tab = sourcePane.tabs.find((t) => t.id === tabId);
     if (!tab) return;
 
-    // Remove from source
     const newSourceTabs = sourcePane.tabs.filter((t) => t.id !== tabId);
     let newSourceActiveTabId = sourcePane.activeTabId;
     if (sourcePane.activeTabId === tabId) {
@@ -277,7 +250,6 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
       selectedTabIds: sourcePane.selectedTabIds.filter((id) => id !== tabId),
     });
 
-    // Auto-close source pane if it's empty and not the sole pane
     if (newSourceTabs.length === 0 && newLayout.panes.length > 1) {
       newLayout = removePane(newLayout, sourcePaneId);
     }

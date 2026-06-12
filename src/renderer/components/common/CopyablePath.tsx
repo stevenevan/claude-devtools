@@ -1,9 +1,3 @@
-/**
- * CopyablePath - Path display with copy-to-clipboard on hover.
- * Click anywhere on the path row to copy the full absolute path.
- * A small icon appears on hover as visual affordance.
- */
-
 import React, { useCallback } from 'react';
 
 import { useClipboard } from '@renderer/hooks/mantine';
@@ -11,13 +5,9 @@ import { cn } from '@renderer/lib/utils';
 import { Check, Copy } from 'lucide-react';
 
 interface CopyablePathProps {
-  /** Shortened path for display */
   displayText: string;
-  /** Full absolute path for clipboard */
   copyText: string;
-  /** CSS classes for the text span */
   className?: string;
-  /** Inline style for the text span */
   style?: React.CSSProperties;
 }
 

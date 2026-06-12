@@ -7,7 +7,7 @@ import type { ChatItem } from '@renderer/types/groups';
 
 interface ChatHistorySidePanelsProps {
   items: ChatItem[];
-  scrollContainerRef: React.RefObject<HTMLDivElement>;
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   onMinimapJump: (index: number) => void;
   isTodoPanelVisible: boolean;
   hasTodoData: boolean;

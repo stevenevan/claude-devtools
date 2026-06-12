@@ -1,7 +1,3 @@
-// Basic keyword sets for common languages.
-// Wrapped in IIFE to preserve alias semantics (k.tsx → k.typescript) without
-// breaking const immutability of a top-level export.
-
 import { JAVASCRIPT_KEYWORDS, TYPESCRIPT_KEYWORDS } from './jsFamilyKeywords';
 import { PHP_KEYWORDS, PYTHON_KEYWORDS, RUBY_KEYWORDS } from './scriptingKeywords';
 import { GO_KEYWORDS, R_KEYWORDS, RUST_KEYWORDS, SQL_KEYWORDS } from './systemsKeywords';
@@ -19,7 +15,6 @@ export const KEYWORDS: Record<string, Set<string>> = (() => {
     sql: SQL_KEYWORDS,
   };
 
-  // Extend tsx/jsx to use typescript/javascript keywords
   k.tsx = k.typescript;
   k.jsx = k.javascript;
   return k;

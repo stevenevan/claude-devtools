@@ -1,7 +1,3 @@
-/**
- * ToolBreakdownItem - Single tool breakdown item display.
- */
-
 import React from 'react';
 
 import { formatTokens } from '../utils/formatting';

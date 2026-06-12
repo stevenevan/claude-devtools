@@ -1,8 +1,3 @@
-/**
- * Internal formatting helpers for session export (numbers, cost, timestamps,
- * durations, truncation). Consumed by the plain-text and Markdown exporters.
- */
-
 export function formatNumber(n: number): string {
   return n.toLocaleString('en-US');
 }

@@ -1,8 +1,3 @@
-/**
- * Store type definitions.
- * Contains the combined AppState interface and shared types used across slices.
- */
-
 import type { AnnotationSlice } from './slices/annotationSlice';
 import type { ClaudeConfigSlice } from './slices/claudeConfigSlice';
 import type { ComparisonTabSlice } from './slices/comparisonTabSlice';
@@ -25,20 +20,11 @@ import type { TabUISlice } from './slices/tabUISlice';
 import type { UISlice } from './slices/uiSlice';
 import type { UpdateSlice } from './slices/updateSlice';
 
-// Shared Types
-
-/**
- * Breadcrumb item for subagent drill-down navigation.
- */
 export interface BreadcrumbItem {
   id: string;
   description: string;
 }
 
-/**
- * Represents a single search match in the conversation.
- * Only searches: user message text and AI lastOutput text (not tool results, thinking, or subagents)
- */
 export interface SearchMatch {
   /** ID of the chat item containing this match */
   itemId: string;
@@ -52,9 +38,6 @@ export interface SearchMatch {
   displayItemId?: string;
 }
 
-/**
- * Search context for navigating from Command Palette results.
- */
 export interface SearchNavigationContext {
   /** The search query */
   query: string;
@@ -72,12 +55,6 @@ export interface SearchNavigationContext {
   targetMessageUuid?: string;
 }
 
-// Combined AppState Type
-
-/**
- * Combined application state type.
- * Combines all slice interfaces into a single unified state type.
- */
 export type AppState = ProjectSlice &
   RepositorySlice &
   SessionSlice &

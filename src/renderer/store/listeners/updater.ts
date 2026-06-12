@@ -6,7 +6,6 @@ import type { ListenerContext } from './types';
 import type { UpdaterStatus } from '@shared/types';
 
 export function attachUpdaterListeners(ctx: ListenerContext): void {
-  // Listen for updater status events from main process
   if (api.updater?.onStatus) {
     const cleanup = api.updater.onStatus((_event: unknown, status: unknown) => {
       const s = status as UpdaterStatus;

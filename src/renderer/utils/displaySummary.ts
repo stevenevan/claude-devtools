@@ -1,23 +1,5 @@
-/**
- * Display Summary - Build human-readable summaries of display items
- *
- * Creates formatted summary strings for AI Group display item counts.
- */
-
 import type { AIGroupDisplayItem } from '../types/groups';
 
-/**
- * Build a human-readable summary of display items.
- *
- * Strategy:
- * 1. Count items by type (thinking, tool, output, subagent, slash)
- * 2. Format as "X thinking, Y tool calls, Z messages, N subagents, M slashes"
- * 3. Skip counts that are zero
- * 4. Return formatted string
- *
- * @param items - Display items to summarize
- * @returns Formatted summary string
- */
 export function buildSummary(items: AIGroupDisplayItem[]): string {
   const counts = {
     thinking: 0,

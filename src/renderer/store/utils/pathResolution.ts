@@ -1,16 +1,3 @@
-/**
- * Path resolution utilities for the store.
- */
-
-/**
- * Resolves a relative path against a base path, handling various path formats.
- * Handles:
- * - Absolute paths: /full/path/file.tsx (returned as-is)
- * - Relative paths with ./: ./apps/foo/bar.tsx (strips ./)
- * - Parent paths with ../: ../other/file.tsx (walks up directories)
- * - Plain paths: apps/foo/bar.tsx (joins with base)
- * - Paths with @ prefix: @apps/foo/bar.tsx (strips @ then joins)
- */
 export function resolveFilePath(base: string, relativePath: string): string {
   // If already absolute, return as-is
   if (isAbsolutePath(relativePath)) {

@@ -1,7 +1,3 @@
-/**
- * Config slice - manages app configuration state and actions.
- */
-
 import { api } from '@renderer/api';
 import { createLogger } from '@shared/utils/logger';
 
@@ -31,11 +27,9 @@ export interface ConfigSlice {
   configError: string | null;
   pendingSettingsSection: string | null;
 
-  // Bookmark state
   bookmarks: BookmarkEntry[];
   bookmarksLoading: boolean;
 
-  // Tag state
   sessionTags: Map<string, string[]>;
 
   fetchConfig: () => Promise<void>;
@@ -43,37 +37,30 @@ export interface ConfigSlice {
   openSettingsTab: (section?: string) => void;
   clearPendingSettingsSection: () => void;
 
-  // Dashboard layout (sprint 32)
   updateDashboardLayout: (patch: {
     widgetOrder?: string[];
     hiddenWidgets?: string[];
   }) => Promise<void>;
 
-  // Shortcut overrides (sprint 33)
   setShortcutOverride: (actionId: string, combo: string | null) => Promise<void>;
   resetAllShortcuts: () => Promise<void>;
 
-  // Custom themes (sprint 34)
   saveCustomTheme: (theme: CustomTheme) => Promise<void>;
   deleteCustomTheme: (themeId: string) => Promise<void>;
   setActiveTheme: (themeId: string | null) => Promise<void>;
 
-  // Filter presets (sprint 35)
   addFilterPreset: (name: string, filter: FilterPresetPayload) => Promise<FilterPresetEntry>;
   removeFilterPreset: (presetId: string) => Promise<void>;
   renameFilterPreset: (presetId: string, name: string) => Promise<void>;
   setDefaultFilterPreset: (presetId: string | null) => Promise<void>;
 
-  // Plugins (sprint 39)
   setPluginEnabled: (pluginId: string, enabled: boolean) => Promise<void>;
 
-  // Bookmark actions
   fetchBookmarks: () => Promise<void>;
   toggleBookmark: (sessionId: string, projectId: string, groupId: string) => Promise<void>;
   removeBookmark: (bookmarkId: string) => Promise<void>;
   isGroupBookmarked: (groupId: string) => boolean;
 
-  // Tag actions
   fetchSessionTags: (sessionId: string) => Promise<void>;
   setSessionTags: (sessionId: string, tags: string[]) => Promise<void>;
   getSessionTags: (sessionId: string) => string[];
@@ -88,7 +75,6 @@ export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (s
   bookmarksLoading: false,
   sessionTags: new Map(),
 
-  // Fetch app configuration from main process
   fetchConfig: async () => {
     set({ configLoading: true, configError: null });
     try {
@@ -105,11 +91,9 @@ export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (s
     }
   },
 
-  // Update a section of the app configuration
   updateConfig: async (section: string, data: Record<string, unknown>) => {
     try {
       await api.config.update(section, data);
-      // Refresh config after update
       const config = await api.config.get();
       set({ appConfig: config });
     } catch (error) {
@@ -120,7 +104,6 @@ export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (s
     }
   },
 
-  // Open or focus the settings tab (per-pane singleton)
   openSettingsTab: (section?: string) => {
     const state = get();
 
@@ -128,7 +111,6 @@ export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (s
       set({ pendingSettingsSection: section });
     }
 
-    // Check if settings tab exists in focused pane
     const focusedPane = state.paneLayout.panes.find((p) => p.id === state.paneLayout.focusedPaneId);
     const settingsTab = focusedPane?.tabs.find((t) => t.type === 'settings');
     if (settingsTab) {
@@ -136,7 +118,6 @@ export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (s
       return;
     }
 
-    // Create new settings tab via openTab (which adds to focused pane)
     state.openTab({
       type: 'settings',
       label: 'Settings',
@@ -259,7 +240,6 @@ export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (s
     }
   },
 
-  // Bookmark actions
   fetchBookmarks: async () => {
     set({ bookmarksLoading: true });
     try {
@@ -302,7 +282,6 @@ export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (s
     return get().bookmarks.some((b) => b.groupId === groupId);
   },
 
-  // Tag actions
   fetchSessionTags: async (sessionId: string) => {
     try {
       const tags = await api.config.getSessionTags(sessionId);

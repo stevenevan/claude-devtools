@@ -1,9 +1,3 @@
-/**
- * LiveMetricsBar — real-time metrics display for ongoing/streaming sessions.
- * Shows token count, cost, tool call count, and elapsed time.
- * Only visible when the session is actively streaming.
- */
-
 import React, { useEffect, useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';

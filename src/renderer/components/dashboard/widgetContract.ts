@@ -1,12 +1,4 @@
-/**
- * DashboardWidget contract — stable seam shared across sprints 18–25 & 32.
- *
- * Sprint 18 ships the full-shape contract (not a minimal stub) so that downstream
- * sprints registering panels don't need retroactive field additions when sprint 32
- * turns this registry into a runtime. The `registerDashboardWidget` implementation
- * is intentionally a no-op here — the runtime lands in sprint 32.
- */
-
+// registerDashboardWidget is intentionally a no-op; the runtime registry lands in sprint 32.
 export type DashboardWidgetCategory = 'analytics' | 'session' | 'tools' | 'custom';
 
 export interface DashboardWidgetSize {

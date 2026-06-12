@@ -5,7 +5,6 @@ import { useStore } from '../useStore';
 import type { ListenerContext } from './types';
 
 export function attachConnectionListeners(ctx: ListenerContext): void {
-  // Listen for SSH connection status changes from main process
   // NOTE: Only syncs connection status here. Data fetching is handled by
   // connectionSlice.connectSsh/disconnectSsh and contextSlice.switchContext.
   if (api.ssh?.onStatus) {
@@ -24,14 +23,12 @@ export function attachConnectionListeners(ctx: ListenerContext): void {
     }
   }
 
-  // Listen for context changes from main process (e.g., SSH disconnect)
   if (api.context?.onChanged) {
     const cleanup = api.context.onChanged((_event: unknown, data: unknown) => {
       const { id } = data as { id: string; type: string };
       const currentContextId = useStore.getState().activeContextId;
       if (id !== currentContextId) {
         // Main process switched context externally (e.g., SSH disconnect)
-        // Trigger renderer-side context switch to sync state
         void useStore.getState().switchContext(id);
       }
     });

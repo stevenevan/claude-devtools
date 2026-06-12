@@ -1,6 +1,3 @@
-/**
- * Pure derivations used by ChatHistory for context-injection display.
- */
 import type {
   ContextPhaseInfo,
   ContextInjection,
@@ -13,12 +10,6 @@ export interface ContextInjectionsForPhaseResult {
   lastAiGroupTotalTokens: number | undefined;
 }
 
-/**
- * For a given conversation + accumulated context stats, return the
- * injection list (and last-AI-group total tokens) to show in the
- * context badges / panel. If `selectedPhase` is set we target that
- * phase's last AI group; otherwise the latest AI item overall.
- */
 export function computeContextInjectionsForPhase(args: {
   conversation: SessionConversation | null;
   contextStats: Map<string, ContextStats> | null;

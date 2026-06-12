@@ -1,31 +1,21 @@
-/**
- * LiveActivityBar - Shows real-time activity status for ongoing sessions.
- * Displays what the AI is currently doing: "Thinking...", "Running Bash...", etc.
- */
-
 import { cn } from '@renderer/lib/utils';
 import { Brain, Code, FileText, Loader2, Pencil, Search, Terminal } from 'lucide-react';
 
 import type { SemanticStep } from '@shared/types/chunks';
 
 interface LiveActivityBarProps {
-  /** The last semantic step (or in-progress step) from the current AI group */
   lastStep?: SemanticStep | null;
-  /** Optional custom class */
   className?: string;
 }
 
-/** Extract a tool input preview string from a SemanticStep's toolInput. */
 function getInputPreview(step: SemanticStep): string {
   const input = step.content.toolInput;
   if (!input || typeof input !== 'object') return '';
   const obj = input as Record<string, unknown>;
-  // Common tool input patterns: file_path, path, pattern, command
   const path = obj.file_path ?? obj.path ?? obj.pattern ?? obj.command;
   return typeof path === 'string' ? path : '';
 }
 
-/** Map tool names to icons and human-readable activity descriptions. */
 function getActivityFromStep(step: SemanticStep | null | undefined): {
   icon: React.ElementType;
   label: string;
@@ -79,9 +69,7 @@ function getActivityFromStep(step: SemanticStep | null | undefined): {
   return { icon: Loader2, label: 'Working...' };
 }
 
-/** Truncate a file path to show just the last 2 segments. */
 function truncatePath(pathOrInput: string): string {
-  // Try to extract a file path from the input preview
   const pathMatch = /\/[\w/.-]+/.exec(pathOrInput);
   if (pathMatch) {
     const segments = pathMatch[0].split('/').filter(Boolean);
@@ -90,13 +78,9 @@ function truncatePath(pathOrInput: string): string {
     }
     return pathMatch[0];
   }
-  // If no path found, truncate the input
   return pathOrInput.length > 40 ? `${pathOrInput.slice(0, 40)}...` : pathOrInput;
 }
 
-/**
- * Animated banner showing what the AI is currently doing in an ongoing session.
- */
 export const LiveActivityBar = ({
   lastStep,
   className,

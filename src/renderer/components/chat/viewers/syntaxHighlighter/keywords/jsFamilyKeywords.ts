@@ -1,6 +1,3 @@
-// JavaScript-family keyword sets (TypeScript, JavaScript). tsx/jsx alias to
-// these via the barrel.
-
 export const TYPESCRIPT_KEYWORDS = new Set([
   'import',
   'export',

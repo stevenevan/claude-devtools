@@ -29,7 +29,6 @@ export function createRefreshHelpers(): RefreshHelpers {
   const pendingProjectRefreshTimers = new Map<string, ReturnType<typeof setTimeout>>();
   const sessionLastActivityAt = new Map<string, number>();
 
-  /** Mark a known sidebar session as ongoing and record activity time. */
   const markSessionOngoing = (sessionId: string): void => {
     sessionLastActivityAt.set(sessionId, Date.now());
     const state = useStore.getState();
@@ -41,7 +40,6 @@ export function createRefreshHelpers(): RefreshHelpers {
     }
   };
 
-  /** Clear isOngoing for sessions with no recent file activity. */
   const clearStaleOngoingSessions = (): void => {
     const now = Date.now();
     const staleSessionIds: string[] = [];

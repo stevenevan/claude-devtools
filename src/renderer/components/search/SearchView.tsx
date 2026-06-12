@@ -1,9 +1,3 @@
-/**
- * SearchView - Dedicated advanced search panel with filters.
- * Accessible via Cmd+Shift+F. Searches across all projects with
- * filters for date range, session status, and text query.
- */
-
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { api } from '@renderer/api';
@@ -88,7 +82,7 @@ export const SearchView = (): React.JSX.Element => {
   const [nlMode, setNlMode] = useState(false);
   const [parsed, setParsed] = useState<ParsedNLQuery | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const runSearch = useCallback(async (q: string, date: DatePreset, status: StatusFilter) => {
     setLoading(true);
@@ -110,7 +104,6 @@ export const SearchView = (): React.JSX.Element => {
     }
   }, []);
 
-  // Auto-search with debounce when query/filters change
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -126,7 +119,6 @@ export const SearchView = (): React.JSX.Element => {
     };
   }, [query, datePreset, statusFilter, runSearch]);
 
-  // Focus input on mount
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
@@ -161,7 +153,6 @@ export const SearchView = (): React.JSX.Element => {
       />
 
       <div className="relative mx-auto max-w-3xl px-8 py-12">
-        {/* Search input */}
         <div className="bg-card border-border group relative mb-6 flex items-center gap-3 rounded-xs border px-4 py-3 transition-all focus-within:border-zinc-500 focus-within:shadow-[0_0_20px_rgba(255,255,255,0.04)] focus-within:ring-1 focus-within:ring-zinc-600/30">
           <Search className="text-muted-foreground size-4 shrink-0" />
           <input
@@ -229,11 +220,9 @@ export const SearchView = (): React.JSX.Element => {
           </div>
         )}
 
-        {/* Filter chips */}
         <div className="mb-6 flex flex-wrap items-center gap-2">
           <Filter className="text-muted-foreground size-3.5" />
 
-          {/* Date presets */}
           {DATE_PRESETS.map((preset) => (
             <button
               key={preset.value}
@@ -251,7 +240,6 @@ export const SearchView = (): React.JSX.Element => {
 
           <span className="text-border mx-1">|</span>
 
-          {/* Status filter */}
           {STATUS_OPTIONS.map((opt) => (
             <button
               key={opt.value}
@@ -268,7 +256,6 @@ export const SearchView = (): React.JSX.Element => {
           ))}
         </div>
 
-        {/* Results header */}
         {hasSearched && (
           <div className="text-muted-foreground mb-4 flex items-center justify-between text-xs">
             <span>
@@ -279,14 +266,12 @@ export const SearchView = (): React.JSX.Element => {
           </div>
         )}
 
-        {/* Loading */}
         {loading && (
           <div className="flex justify-center py-12">
             <Loader2 className="text-muted-foreground size-6 animate-spin" />
           </div>
         )}
 
-        {/* Results list */}
         {!loading && results.length > 0 && (
           <div className="space-y-2">
             {results.map((result) => (
@@ -343,7 +328,6 @@ export const SearchView = (): React.JSX.Element => {
           </div>
         )}
 
-        {/* Empty state */}
         {!loading && hasSearched && results.length === 0 && (
           <div className="py-16 text-center">
             <Search className="text-muted-foreground mx-auto mb-3 size-8 opacity-50" />
@@ -361,7 +345,6 @@ export const SearchView = (): React.JSX.Element => {
           </div>
         )}
 
-        {/* Initial state */}
         {!hasSearched && (
           <div className="py-16 text-center">
             <Search className="text-muted-foreground mx-auto mb-3 size-8 opacity-50" />
