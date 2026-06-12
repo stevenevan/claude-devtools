@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 interface SessionTitleHeaderProps {
   customTitle?: string;
   agentName?: string;

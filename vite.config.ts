@@ -5,8 +5,9 @@
  * Replaces the `renderer` section of the old `electron.vite.config.ts`.
  */
 
+import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
-import react from '@vitejs/plugin-react'
+import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import { resolve } from 'path'
 import { analyzer } from 'vite-bundle-analyzer'
 import { defineConfig } from 'vite'
@@ -15,6 +16,7 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     react(),
+    babel({ presets: [reactCompilerPreset({ compilationMode: 'infer' })] }),
     process.env.ANALYZE === 'true' && analyzer(),
   ].filter(Boolean),
   resolve: {

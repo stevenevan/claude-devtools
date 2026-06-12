@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { type getTeamColorSet } from '@renderer/constants/teamColors';
 import { formatDuration } from '@renderer/utils/formatters';
 

@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 
 export const ChatHistoryLoadingState = (): JSX.Element => {

@@ -39,6 +39,7 @@ interface UserChatGroupProps {
  * - Shows image count indicator
  */
 const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): React.JSX.Element => {
+  'use no memo'; // counter in createSearchContext must reset each render; compiler memoization would stale it
   const { content, timestamp, id: groupId } = userGroup;
   const [isManuallyExpanded, setIsManuallyExpanded] = useState(false);
   const [validatedPaths, setValidatedPaths] = useState<Record<string, boolean>>({});

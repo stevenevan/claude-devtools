@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { ChevronsDown } from 'lucide-react';
 
 interface ScrollToBottomButtonProps {

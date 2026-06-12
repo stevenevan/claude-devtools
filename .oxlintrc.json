@@ -13,7 +13,7 @@
   },
   "settings": {
     "react": {
-      "version": "18"
+      "version": "19"
     },
     "boundaries/elements": [
       { "type": "renderer", "pattern": "src/renderer/**", "mode": "folder" },

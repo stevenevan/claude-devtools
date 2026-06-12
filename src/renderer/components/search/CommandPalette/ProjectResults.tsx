@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { CommandEmpty, CommandGroup, CommandItem } from '@renderer/components/ui/command';
 import { formatDistanceToNow } from 'date-fns';
 import { FolderGit2 } from 'lucide-react';

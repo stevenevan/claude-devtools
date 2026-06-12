@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { Wifi } from 'lucide-react';
 
 interface ConnectionStatusProps {

@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 /**
  * TabUIContext - Provides the current tab's ID to all descendant components.
  *

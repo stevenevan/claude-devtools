@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { CommandGroup, CommandItem } from '@renderer/components/ui/command';
 import { cn } from '@renderer/lib/utils';
 import { Bot, FileText, FolderGit2, User } from 'lucide-react';

@@ -45,6 +45,7 @@ export const LastOutputDisplay = ({
   isSessionOngoing = false,
   lastStep,
 }: Readonly<LastOutputDisplayProps>): React.JSX.Element | null => {
+  'use no memo'; // counter in createSearchContext must reset each render; compiler memoization would stale it
   // Only re-render if THIS AI group has search matches
   const { searchQuery, searchMatches, currentSearchIndex } = useStore(
     useShallow((s) => {

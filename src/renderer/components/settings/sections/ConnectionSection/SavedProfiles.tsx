@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { Server } from 'lucide-react';
 

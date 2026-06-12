@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import { SessionContextPanel } from '../SessionContextPanel/index';
 import { SessionMinimap } from '../SessionMinimap';
 import { TodoPanel } from '../TodoPanel';

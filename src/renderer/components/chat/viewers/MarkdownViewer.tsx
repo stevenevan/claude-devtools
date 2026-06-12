@@ -177,6 +177,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
   itemId,
   copyable = false,
 }) => {
+  'use no memo'; // counter in createSearchContext must reset each render; compiler memoization would stale it
   const { searchQuery, searchMatches, currentSearchIndex } = useStore(
     useShallow((s) =>
       itemId
