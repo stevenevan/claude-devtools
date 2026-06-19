@@ -5,7 +5,6 @@ pub mod content_search;
 pub mod error_hotspots;
 pub mod file_graph;
 pub mod context_accumulator;
-pub mod context_tracker;
 pub mod process_linker;
 pub mod state_machine;
 pub mod semantic_step_extractor;

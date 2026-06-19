@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::time_util::timestamp_diff_ms;
 use crate::types::chunks::ToolExecution;
 use crate::types::messages::ParsedMessage;
 
@@ -25,7 +26,7 @@ pub fn build_tool_executions(messages: &[ParsedMessage]) -> Vec<ToolExecution> {
                         result: Some(result.clone()),
                         start_time: start_time.clone(),
                         end_time: Some(msg.timestamp.clone()),
-                        duration_ms: Some(timestamp_diff_ms(&msg.timestamp, start_time)),
+                        duration_ms: Some(timestamp_diff_ms(&msg.timestamp, start_time).max(0.0)),
                     });
                 }
             }
@@ -46,7 +47,7 @@ pub fn build_tool_executions(messages: &[ParsedMessage]) -> Vec<ToolExecution> {
                     result: Some(result.clone()),
                     start_time: start_time.clone(),
                     end_time: Some(msg.timestamp.clone()),
-                    duration_ms: Some(timestamp_diff_ms(&msg.timestamp, start_time)),
+                    duration_ms: Some(timestamp_diff_ms(&msg.timestamp, start_time).max(0.0)),
                 });
             }
         }
@@ -67,15 +68,6 @@ pub fn build_tool_executions(messages: &[ParsedMessage]) -> Vec<ToolExecution> {
 
     executions.sort_by(|a, b| a.start_time.cmp(&b.start_time));
     executions
-}
-
-fn timestamp_diff_ms(a: &str, b: &str) -> f64 {
-    let parse = |s: &str| -> f64 {
-        chrono::DateTime::parse_from_rfc3339(s)
-            .map(|dt| dt.timestamp_millis() as f64)
-            .unwrap_or(0.0)
-    };
-    (parse(a) - parse(b)).max(0.0)
 }
 
 #[cfg(test)]

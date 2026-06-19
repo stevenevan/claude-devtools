@@ -9,7 +9,7 @@
 import { api } from '@renderer/api';
 import { asEnhancedChunkArray } from '@renderer/types/data';
 import { findTabBySession, truncateLabel } from '@renderer/types/tabs';
-import { processSessionClaudeMd } from '@renderer/utils/claudeMdTracker';
+import { processSessionClaudeMd } from '@renderer/utils/claudeMd';
 import { processSessionContextWithPhases } from '@renderer/utils/contextTracker';
 import { transformChunksToConversation } from '@renderer/utils/groupTransformer';
 import { createLogger } from '@shared/utils/logger';

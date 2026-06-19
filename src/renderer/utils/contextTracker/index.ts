@@ -8,7 +8,7 @@ import {
   extractFileRefsFromResponses,
   extractReadToolPaths,
   extractUserMentionPaths,
-} from '../claudeMdTracker';
+} from '../claudeMd';
 
 import {
   CATEGORY_MENTIONED_FILE,

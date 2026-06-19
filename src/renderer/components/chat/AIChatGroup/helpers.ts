@@ -1,4 +1,4 @@
-import { type PrecedingSlashInfo } from '@renderer/utils/aiGroupEnhancer';
+import { type PrecedingSlashInfo } from '@renderer/utils/slashCommandExtractor';
 import { extractSlashInfo, isCommandContent } from '@shared/utils/contentSanitizer';
 
 import type { AIGroupDisplayItem, UserGroup } from '@renderer/types/groups';

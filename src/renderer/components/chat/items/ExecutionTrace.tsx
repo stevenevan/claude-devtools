@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';
-import { truncateText } from '@renderer/utils/aiGroupEnhancer';
 import { formatTokensCompact } from '@renderer/utils/formatters';
+import { truncateText } from '@renderer/utils/stringUtils';
 import { format } from 'date-fns';
 import { ChevronRight, Layers, MailOpen } from 'lucide-react';
 

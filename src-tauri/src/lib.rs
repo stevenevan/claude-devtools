@@ -11,6 +11,7 @@ pub mod parsing;
 pub mod plugins;
 pub mod snapshots;
 pub mod ssh;
+pub mod time_util;
 pub mod timing;
 pub mod types;
 pub mod watcher;

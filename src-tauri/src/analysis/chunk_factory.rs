@@ -6,6 +6,7 @@ use crate::types::chunks::{
     EnhancedSystemChunk, EnhancedUserChunk, Process,
 };
 use crate::types::messages::{ParsedMessage, ParsedMessageContent, SystemEventData};
+use crate::time_util::timestamp_diff_ms;
 
 use super::context_accumulator::calculate_step_context;
 use super::process_linker::link_processes_to_ai_chunk;
@@ -172,15 +173,6 @@ fn extract_command_output(message: &ParsedMessage) -> String {
         return caps[1].to_string();
     }
     content.to_string()
-}
-
-fn timestamp_diff_ms(a: &str, b: &str) -> f64 {
-    let parse = |s: &str| -> f64 {
-        chrono::DateTime::parse_from_rfc3339(s)
-            .map(|dt| dt.timestamp_millis() as f64)
-            .unwrap_or(0.0)
-    };
-    parse(a) - parse(b)
 }
 
 #[cfg(test)]
@@ -408,26 +400,4 @@ mod tests {
         }
     }
 
-    // =========================================================================
-    // timestamp_diff_ms
-    // =========================================================================
-
-    #[test]
-    fn test_timestamp_diff_ms_positive() {
-        let diff = timestamp_diff_ms("2024-01-01T00:01:00Z", "2024-01-01T00:00:00Z");
-        assert_eq!(diff, 60000.0);
-    }
-
-    #[test]
-    fn test_timestamp_diff_ms_same() {
-        let diff = timestamp_diff_ms("2024-01-01T00:00:00Z", "2024-01-01T00:00:00Z");
-        assert_eq!(diff, 0.0);
-    }
-
-    #[test]
-    fn test_timestamp_diff_ms_invalid() {
-        let diff = timestamp_diff_ms("not-a-date", "2024-01-01T00:00:00Z");
-        // invalid parses to 0.0
-        assert!(diff <= 0.0);
-    }
 }

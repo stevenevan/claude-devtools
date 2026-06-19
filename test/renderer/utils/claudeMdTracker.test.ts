@@ -4,7 +4,7 @@ import {
   detectClaudeMdFromFilePath,
   getDirectory,
   getParentDirectory,
-} from '@renderer/utils/claudeMdTracker';
+} from '@renderer/utils/claudeMd';
 
 describe('claudeMdTracker path helpers', () => {
   describe('getDirectory', () => {

@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 import { ContextMenu as ContextMenuPrimitive } from '@base-ui/react/context-menu';
-import { RiArrowRightSLine, RiCheckLine } from '@remixicon/react';
+import { Check, ChevronRight } from 'lucide-react';
 import { cn } from '@renderer/lib/utils';
 
 function ContextMenu({ ...props }: ContextMenuPrimitive.Root.Props) {
@@ -122,7 +122,7 @@ function ContextMenuSubTrigger({
       {...props}
     >
       {children}
-      <RiArrowRightSLine className="ml-auto" />
+      <ChevronRight className="ml-auto" />
     </ContextMenuPrimitive.SubmenuTrigger>
   );
 }
@@ -160,7 +160,7 @@ function ContextMenuCheckboxItem({
     >
       <span className="pointer-events-none absolute right-2 flex items-center justify-center">
         <ContextMenuPrimitive.CheckboxItemIndicator>
-          <RiCheckLine />
+          <Check />
         </ContextMenuPrimitive.CheckboxItemIndicator>
       </span>
       {children}
@@ -192,7 +192,7 @@ function ContextMenuRadioItem({
     >
       <span className="pointer-events-none absolute right-2 flex items-center justify-center">
         <ContextMenuPrimitive.RadioItemIndicator>
-          <RiCheckLine />
+          <Check />
         </ContextMenuPrimitive.RadioItemIndicator>
       </span>
       {children}

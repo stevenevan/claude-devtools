@@ -1,15 +1,20 @@
 const isMacPlatform =
   typeof window !== 'undefined' && window.navigator.userAgent.includes('Macintosh');
 
-export const modKey = isMacPlatform ? '⌘' : 'Ctrl+';
+const modKey = isMacPlatform ? '⌘' : 'Ctrl+';
 
-export const shiftKey = isMacPlatform ? '⇧' : 'Shift+';
+const shiftKey = isMacPlatform ? '⇧' : 'Shift+';
 
 export function formatShortcut(key: string, opts?: { shift?: boolean }): string {
   if (opts?.shift) {
     return isMacPlatform ? `${shiftKey}${modKey}${key}` : `${modKey}${shiftKey}${key}`;
   }
   return `${modKey}${key}`;
+}
+
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + '...';
 }
 
 // Useful for branch names where the unique identifier is at the end

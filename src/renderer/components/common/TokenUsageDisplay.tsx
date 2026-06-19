@@ -4,10 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui
 import { Separator } from '@renderer/components/ui/separator';
 import { cn } from '@renderer/lib/utils';
 import { getModelColorClass } from '@shared/utils/modelParser';
-import {
-  formatTokensCompact as formatTokens,
-  formatTokensDetailed,
-} from '@shared/utils/tokenFormatting';
+import { formatTokensCompact as formatTokens } from '@shared/utils/tokenFormatting';
 import { ChevronRight, Info } from 'lucide-react';
 
 import type { ClaudeMdStats } from '@renderer/types/claudeMd';
@@ -218,28 +215,28 @@ export const TokenUsageDisplay = ({
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Input Tokens</span>
               <span className="text-muted-foreground font-medium tabular-nums">
-                {formatTokensDetailed(inputTokens)}
+                {inputTokens.toLocaleString()}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Cache Read</span>
               <span className="text-muted-foreground font-medium tabular-nums">
-                {formatTokensDetailed(cacheReadTokens)}
+                {cacheReadTokens.toLocaleString()}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Cache Write</span>
               <span className="text-muted-foreground font-medium tabular-nums">
-                {formatTokensDetailed(cacheCreationTokens)}
+                {cacheCreationTokens.toLocaleString()}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Output Tokens</span>
               <span className="text-muted-foreground font-medium tabular-nums">
-                {formatTokensDetailed(outputTokens)}
+                {outputTokens.toLocaleString()}
               </span>
             </div>
 
@@ -248,7 +245,7 @@ export const TokenUsageDisplay = ({
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground font-medium">Total</span>
               <span className="text-foreground font-medium tabular-nums">
-                {formatTokensDetailed(totalTokens)}
+                {totalTokens.toLocaleString()}
               </span>
             </div>
 
