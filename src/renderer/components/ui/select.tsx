@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 import { Select as SelectPrimitive } from '@base-ui/react/select';
-import { RiArrowDownSLine, RiCheckLine, RiArrowUpSLine } from '@remixicon/react';
+import { Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@renderer/lib/utils';
 
 const Select = SelectPrimitive.Root;
@@ -48,7 +48,7 @@ function SelectTrigger({
     >
       {children}
       <SelectPrimitive.Icon
-        render={<RiArrowDownSLine className="text-muted-foreground pointer-events-none size-3.5" />}
+        render={<ChevronDown className="text-muted-foreground pointer-events-none size-3.5" />}
       />
     </SelectPrimitive.Trigger>
   );
@@ -124,7 +124,7 @@ function SelectItem({ className, children, ...props }: SelectPrimitive.Item.Prop
           <span className="pointer-events-none absolute right-2 flex items-center justify-center" />
         }
       >
-        <RiCheckLine className="pointer-events-none" />
+        <Check className="pointer-events-none" />
       </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>
   );
@@ -153,7 +153,7 @@ function SelectScrollUpButton({
       )}
       {...props}
     >
-      <RiArrowUpSLine />
+      <ChevronUp />
     </SelectPrimitive.ScrollUpArrow>
   );
 }
@@ -171,7 +171,7 @@ function SelectScrollDownButton({
       )}
       {...props}
     >
-      <RiArrowDownSLine />
+      <ChevronDown />
     </SelectPrimitive.ScrollDownArrow>
   );
 }

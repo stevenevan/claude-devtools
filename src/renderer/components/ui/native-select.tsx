@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { RiArrowDownSLine } from '@remixicon/react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@renderer/lib/utils';
 
 type NativeSelectProps = Omit<React.ComponentProps<'select'>, 'size'> & {
@@ -23,7 +23,7 @@ function NativeSelect({ className, size = 'default', ...props }: NativeSelectPro
         className="border-input bg-input/20 selection:bg-primary selection:text-primary-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/30 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 h-7 w-full min-w-0 appearance-none rounded-md border py-0.5 pr-6 pl-2 text-xs/relaxed transition-colors outline-none select-none focus-visible:ring-2 disabled:pointer-events-none disabled:cursor-not-allowed aria-invalid:ring-2 data-[size=sm]:h-6 data-[size=sm]:text-[0.625rem]"
         {...props}
       />
-      <RiArrowDownSLine
+      <ChevronDown
         className="text-muted-foreground pointer-events-none absolute top-1/2 right-1.5 size-3.5 -translate-y-1/2 select-none group-data-[size=sm]/native-select:size-3 group-data-[size=sm]/native-select:-translate-y-[calc(--spacing(1.25))]"
         aria-hidden="true"
         data-slot="native-select-icon"

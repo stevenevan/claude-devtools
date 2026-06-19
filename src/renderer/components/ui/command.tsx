@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { RiSearchLine, RiCheckLine } from '@remixicon/react';
+import { Check, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -71,7 +71,7 @@ function CommandInput({
           {...props}
         />
         <InputGroupAddon>
-          <RiSearchLine className="size-3.5 shrink-0 opacity-50" />
+          <Search className="size-3.5 shrink-0 opacity-50" />
         </InputGroupAddon>
       </InputGroup>
     </div>
@@ -148,7 +148,7 @@ function CommandItem({
       {...props}
     >
       {children}
-      <RiCheckLine className="ml-auto opacity-0 group-has-data-[slot=command-shortcut]/command-item:hidden group-data-[checked=true]/command-item:opacity-100" />
+      <Check className="ml-auto opacity-0 group-has-data-[slot=command-shortcut]/command-item:hidden group-data-[checked=true]/command-item:opacity-100" />
     </CommandPrimitive.Item>
   );
 }
