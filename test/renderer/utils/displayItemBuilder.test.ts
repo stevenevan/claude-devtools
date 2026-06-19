@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildDisplayItemsFromMessages } from '../../../src/renderer/utils/displayItemBuilder';
-import type { ParsedMessage } from '../../../src/main/types/messages';
+import type { ParsedMessage } from '../../../src/renderer/types/data';
 
 /**
  * Helper to create a minimal ParsedMessage for testing.

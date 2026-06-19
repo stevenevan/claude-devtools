@@ -22,7 +22,6 @@ export type {
   Chunk,
   ToolExecution,
 } from './baseChunks';
-export { EMPTY_METRICS } from './baseChunks';
 export type { TaskExecution, ConversationGroup } from './conversationGroups';
 export type { SemanticStepType, SemanticStep, SemanticStepGroup } from './semanticSteps';
 export type {

@@ -16,7 +16,7 @@ import type { AIGroupDisplayItem, LinkedToolItem, UserGroup } from '../../types/
 
 export const CATEGORY_MENTIONED_FILE = 'mentioned-file' as const;
 
-export const TASK_COORDINATION_TOOL_NAMES = new Set([
+const TASK_COORDINATION_TOOL_NAMES = new Set([
   'SendMessage',
   'TeamCreate',
   'TeamDelete',

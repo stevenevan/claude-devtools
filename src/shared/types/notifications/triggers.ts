@@ -8,7 +8,7 @@ export type TriggerContentType = 'tool_result' | 'tool_use' | 'thinking' | 'text
 /**
  * Known tool names that can be filtered for tool_use triggers.
  */
-export const KNOWN_TOOL_NAMES = [
+const KNOWN_TOOL_NAMES = [
   'Bash',
   'Task',
   'TodoWrite',

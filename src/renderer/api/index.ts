@@ -17,8 +17,6 @@ function getImpl(): ElectronAPI {
   return client;
 }
 
-export const isTauriMode = (): boolean => !!window.__TAURI_INTERNALS__;
-
 export const isDesktopMode = (): boolean => true;
 
 export const api: ElectronAPI = new Proxy({} as ElectronAPI, {

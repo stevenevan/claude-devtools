@@ -10,5 +10,5 @@
  */
 
 export type * from './errors';
-export * from './triggers';
+export type * from './triggers';
 export type * from './appConfig';

@@ -146,14 +146,9 @@ isUserMessageInjection(inj)       // category: "user-message"
 ```
 
 ### Barrel Exports
-`src/main/services/` and its domain subdirectories have barrel exports via index.ts:
-```typescript
-// Preferred
-import { ChunkBuilder, ProjectScanner } from './services';
-// Also valid
-import { ChunkBuilder } from './services/analysis';
-```
-Note: renderer utils/hooks/types do NOT have barrel exports — import directly from files.
+The backend pipeline is Rust (`src-tauri/src/`) — there are no TS service barrels.
+On the TS side, import directly from files. The one barrel that must be used is
+`@shared/types/api` (deep imports through it are prohibited).
 
 ### Import Order
 1. External packages

@@ -9,7 +9,7 @@ import type { AppState } from '../types';
 import type { Tab } from '@renderer/types/tabs';
 import type { StateCreator } from 'zustand';
 
-export const MAX_COMPARE_COLUMNS = 5;
+const MAX_COMPARE_COLUMNS = 5;
 
 export interface ComparisonTabSlice {
   /**

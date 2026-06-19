@@ -102,15 +102,3 @@ export interface ToolExecution {
   durationMs?: number;
 }
 
-/**
- * Empty metrics constant for initialization.
- */
-export const EMPTY_METRICS: SessionMetrics = {
-  durationMs: 0,
-  totalTokens: 0,
-  inputTokens: 0,
-  outputTokens: 0,
-  cacheReadTokens: 0,
-  cacheCreationTokens: 0,
-  messageCount: 0,
-};
