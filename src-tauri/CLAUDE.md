@@ -39,7 +39,6 @@ src/
 - `semantic_step_grouper.rs` — Groups related semantic steps
 - `tokenizer.rs` — Token counting via tiktoken-rs
 - `context_accumulator.rs` — Computes visible context stats (6 categories)
-- `context_tracker/` — Per-turn context injection tracking
 - `process_linker.rs` — Links subagent processes to parent chunks
 
 ### discovery/ — Finding sessions and projects
