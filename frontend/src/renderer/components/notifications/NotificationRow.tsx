@@ -1,0 +1,159 @@
+import { useState } from 'react';
+
+import { cn } from '@renderer/lib/utils';
+import { getTriggerColorDef } from '@shared/constants/triggerColors';
+import { formatDistanceToNow } from 'date-fns';
+import { ArrowRight, Bot, Check, Trash2 } from 'lucide-react';
+
+import type { DetectedError } from '@renderer/types/data';
+
+interface NotificationRowProps {
+  error: DetectedError;
+  onRowClick: () => void;
+  onArchive: () => void;
+  onDelete: () => void;
+}
+
+function truncateMessage(message: string, maxLength: number = 100): string {
+  if (message.length <= maxLength) return message;
+  return message.slice(0, maxLength).trim() + '...';
+}
+
+export const NotificationRow = ({
+  error,
+  onRowClick,
+  onArchive,
+  onDelete,
+}: Readonly<NotificationRowProps>): React.JSX.Element => {
+  const [isHovered, setIsHovered] = useState(false);
+  const isUnread = !error.isRead;
+  const projectName = error.context?.projectName || 'Unknown Project';
+  const relativeTime = formatDistanceToNow(new Date(error.timestamp), {
+    addSuffix: true,
+  });
+  const truncatedMessage = truncateMessage(error.message);
+  const colorDef = getTriggerColorDef(error.triggerColor);
+  const displayName = error.triggerName ?? error.source;
+
+  const handleArchiveClick = (e: React.MouseEvent): void => {
+    e.stopPropagation();
+    onArchive();
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent): void => {
+    e.stopPropagation();
+    onDelete();
+  };
+
+  const handleNavigateClick = (e: React.MouseEvent): void => {
+    e.stopPropagation();
+    onRowClick();
+  };
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onRowClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onRowClick();
+        }
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={cn(
+        'flex h-full cursor-pointer items-center gap-3 border-b border-border px-4 transition-colors',
+        isHovered && 'bg-card',
+        !isUnread && 'opacity-50'
+      )}
+    >
+      <div className="flex w-3 shrink-0 justify-center">
+        <span
+          className={cn('size-2.5 rounded-full', !isUnread && 'opacity-40')}
+          style={{ backgroundColor: colorDef.hex }}
+        />
+      </div>
+
+      <div className="min-w-0 flex-1 py-2">
+        <div className="flex items-center gap-1.5">
+          <span
+            className={cn(
+              'truncate text-sm font-medium',
+              isUnread ? 'text-foreground' : 'text-muted-foreground'
+            )}
+          >
+            {displayName}
+          </span>
+          <span className="text-muted-foreground">&middot;</span>
+          <span className="text-muted-foreground truncate text-sm">{projectName}</span>
+          {error.subagentId && (
+            <span className="text-muted-foreground border-border bg-card inline-flex shrink-0 items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[10px] font-medium">
+              <Bot className="size-3" />
+              subagent
+            </span>
+          )}
+        </div>
+        <p className="text-muted-foreground mt-0.5 truncate text-xs">{truncatedMessage}</p>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-1">
+        {isHovered ? (
+          <HoverActions
+            isUnread={isUnread}
+            onArchiveClick={handleArchiveClick}
+            onDeleteClick={handleDeleteClick}
+            onNavigateClick={handleNavigateClick}
+          />
+        ) : (
+          <span className="text-muted-foreground text-[11px] whitespace-nowrap">
+            {relativeTime}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+interface HoverActionsProps {
+  isUnread: boolean;
+  onArchiveClick: (e: React.MouseEvent) => void;
+  onDeleteClick: (e: React.MouseEvent) => void;
+  onNavigateClick: (e: React.MouseEvent) => void;
+}
+
+const HoverActions = ({
+  isUnread,
+  onArchiveClick,
+  onDeleteClick,
+  onNavigateClick,
+}: HoverActionsProps): React.JSX.Element => {
+  return (
+    <>
+      {isUnread && (
+        <button
+          onClick={onArchiveClick}
+          className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-sm p-1.5 transition-colors"
+          title="Mark as read"
+        >
+          <Check className="size-4" />
+        </button>
+      )}
+      <button
+        onClick={onDeleteClick}
+        className="text-muted-foreground hover:bg-muted rounded-sm p-1.5 transition-colors hover:text-red-400"
+        title="Delete"
+      >
+        <Trash2 className="size-4" />
+      </button>
+      <button
+        onClick={onNavigateClick}
+        className="text-muted-foreground hover:bg-border-emphasis hover:text-foreground rounded-sm p-1.5 transition-colors"
+        title="View in session"
+      >
+        <ArrowRight className="size-4" />
+      </button>
+    </>
+  );
+};

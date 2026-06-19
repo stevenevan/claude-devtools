@@ -1,0 +1,114 @@
+import React from 'react';
+
+import { highlightSearchInChildren, type SearchContext } from './searchHighlightUtils';
+
+import type { Components } from 'react-markdown';
+
+export function createMarkdownComponents(searchCtx: SearchContext | null): Components {
+  const hl = (children: React.ReactNode): React.ReactNode =>
+    searchCtx ? highlightSearchInChildren(children, searchCtx) : children;
+
+  return {
+    h1: ({ children }) => (
+      <h1 className="text-foreground mt-6 mb-3 text-lg font-semibold first:mt-0">{hl(children)}</h1>
+    ),
+    h2: ({ children }) => (
+      <h2 className="text-foreground mt-5 mb-2 text-base font-semibold first:mt-0">
+        {hl(children)}
+      </h2>
+    ),
+    h3: ({ children }) => (
+      <h3 className="text-foreground mt-4 mb-2 text-sm font-semibold first:mt-0">{hl(children)}</h3>
+    ),
+    h4: ({ children }) => (
+      <h4 className="text-foreground mt-3 mb-1.5 text-sm font-semibold first:mt-0">
+        {hl(children)}
+      </h4>
+    ),
+    h5: ({ children }) => (
+      <h5 className="text-foreground mt-2 mb-1 text-sm font-medium first:mt-0">{hl(children)}</h5>
+    ),
+    h6: ({ children }) => (
+      <h6 className="text-foreground mt-2 mb-1 text-xs font-medium first:mt-0">{hl(children)}</h6>
+    ),
+
+    p: ({ children }) => (
+      <p className="text-foreground my-2 text-sm leading-relaxed first:mt-0 last:mb-0">
+        {hl(children)}
+      </p>
+    ),
+
+    // Links — inline element, no hl(); parent block element's hl() descends here
+    a: ({ href, children }) => (
+      <a
+        href={href}
+        className="text-blue-400 no-underline hover:underline"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {children}
+      </a>
+    ),
+
+    strong: ({ children }) => <strong className="text-foreground font-semibold">{children}</strong>,
+    em: ({ children }) => <em className="text-foreground italic">{children}</em>,
+    del: ({ children }) => <del className="text-foreground line-through">{children}</del>,
+
+    // Inline code vs block code
+    code: ({ className, children }) => {
+      const hasLanguageClass = className?.includes('language-');
+      const content = typeof children === 'string' ? children : '';
+      const isMultiLine = content.includes('\n');
+      const isBlock = (hasLanguageClass ?? false) || isMultiLine;
+
+      if (isBlock) {
+        return <code className="text-foreground block font-mono text-xs">{hl(children)}</code>;
+      }
+      // Inline code — no hl(); parent block element's hl() descends here
+      return (
+        <code className="bg-muted text-foreground rounded-sm px-1.5 py-0.5 font-mono text-xs">
+          {children}
+        </code>
+      );
+    },
+
+    pre: ({ children }) => (
+      <pre className="text-foreground border-border bg-muted my-3 overflow-x-auto rounded-lg border p-3 font-mono text-xs leading-relaxed">
+        {children}
+      </pre>
+    ),
+
+    blockquote: ({ children }) => (
+      <blockquote className="border-border text-muted-foreground my-3 border-l-4 pl-4 italic">
+        {hl(children)}
+      </blockquote>
+    ),
+
+    ul: ({ children }) => (
+      <ul className="text-foreground my-2 list-disc space-y-1 pl-5">{children}</ul>
+    ),
+    ol: ({ children }) => (
+      <ol className="text-foreground my-2 list-decimal space-y-1 pl-5">{children}</ol>
+    ),
+    li: ({ children }) => <li className="text-foreground text-sm">{hl(children)}</li>,
+
+    table: ({ children }) => (
+      <div className="my-3 overflow-x-auto">
+        <table className="border-border/50 min-w-full border-collapse text-sm">{children}</table>
+      </div>
+    ),
+    thead: ({ children }) => <thead className="bg-card">{children}</thead>,
+    th: ({ children }) => (
+      <th className="border-border/50 text-foreground border px-3 py-2 text-left font-semibold">
+        {hl(children)}
+      </th>
+    ),
+    td: ({ children }) => (
+      <td className="border-border/50 text-foreground border px-3 py-2">{hl(children)}</td>
+    ),
+
+    hr: () => <hr className="border-border/50 my-4" />,
+  };
+}
+
+export const markdownComponents: Components = createMarkdownComponents(null);

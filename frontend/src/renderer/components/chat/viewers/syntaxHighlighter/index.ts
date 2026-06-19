@@ -1,0 +1,1 @@
+export { highlightLine } from './highlightLine';

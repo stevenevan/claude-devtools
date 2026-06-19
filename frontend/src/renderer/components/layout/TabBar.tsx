@@ -1,0 +1,291 @@
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+
+import { useDroppable } from '@dnd-kit/core';
+import { horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
+import { isDesktopMode } from '@renderer/api';
+import { Button } from '@renderer/components/ui/button';
+import { HEADER_ROW1_HEIGHT } from '@renderer/constants/layout';
+import { cn } from '@renderer/lib/utils';
+import { useStore } from '@renderer/store';
+import { formatShortcut } from '@renderer/utils/stringUtils';
+import { PanelLeft, Plus, RefreshCw } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
+
+import { SortableTab } from './SortableTab';
+
+interface TabBarProps {
+  paneId: string;
+}
+
+export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
+  const {
+    pane,
+    paneCount,
+    setActiveTab,
+    closeTab,
+    closeOtherTabs,
+    closeAllTabs,
+    closeTabs,
+    setSelectedTabIds,
+    clearTabSelection,
+    openDashboard,
+    refreshSessionInPlace,
+    fetchSessions,
+    sidebarCollapsed,
+    toggleSidebar,
+    splitPane,
+  } = useStore(
+    useShallow((s) => ({
+      pane: s.paneLayout.panes.find((p) => p.id === paneId),
+      paneCount: s.paneLayout.panes.length,
+      setActiveTab: s.setActiveTab,
+      closeTab: s.closeTab,
+      closeOtherTabs: s.closeOtherTabs,
+      closeAllTabs: s.closeAllTabs,
+      closeTabs: s.closeTabs,
+      setSelectedTabIds: s.setSelectedTabIds,
+      clearTabSelection: s.clearTabSelection,
+      openDashboard: s.openDashboard,
+      refreshSessionInPlace: s.refreshSessionInPlace,
+      fetchSessions: s.fetchSessions,
+      sidebarCollapsed: s.sidebarCollapsed,
+      toggleSidebar: s.toggleSidebar,
+      splitPane: s.splitPane,
+    }))
+  );
+
+  const openTabs = useMemo(() => pane?.tabs ?? [], [pane?.tabs]);
+  const activeTabId = pane?.activeTabId ?? null;
+  const selectedTabIds = useMemo(() => pane?.selectedTabIds ?? [], [pane?.selectedTabIds]);
+
+  // Derive Set for O(1) lookups
+  const selectedSet = useMemo(() => new Set(selectedTabIds), [selectedTabIds]);
+
+  // Derive stable tab IDs array for SortableContext
+  const tabIds = useMemo(() => openTabs.map((t) => t.id), [openTabs]);
+
+  // Track last clicked tab for Shift range selection
+  const lastClickedTabIdRef = useRef<string | null>(null);
+
+  const activeTab = openTabs.find((tab) => tab.id === activeTabId);
+
+  // Refs for auto-scrolling to active tab
+  const tabRefsMap = useRef<Map<string, HTMLDivElement>>(new Map());
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Make the tab bar area droppable for cross-pane drops
+  const { setNodeRef: setDroppableRef, isOver: isDroppableOver } = useDroppable({
+    id: `tabbar-${paneId}`,
+    data: {
+      type: 'tabbar',
+      paneId,
+    },
+  });
+
+  // Auto-scroll to active tab when it changes
+  useEffect(() => {
+    if (!activeTabId) return;
+
+    const tabElement = tabRefsMap.current.get(activeTabId);
+    if (tabElement && scrollContainerRef.current) {
+      tabElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      });
+    }
+  }, [activeTabId]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape' && selectedTabIds.length > 0) {
+        clearTabSelection();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedTabIds.length, clearTabSelection]);
+
+  const handleTabClick = useCallback(
+    (tabId: string, e: React.MouseEvent) => {
+      const isMeta = e.metaKey || e.ctrlKey;
+      const isShift = e.shiftKey;
+
+      if (isMeta) {
+        if (selectedSet.has(tabId)) {
+          setSelectedTabIds(selectedTabIds.filter((id) => id !== tabId));
+        } else {
+          setSelectedTabIds([...selectedTabIds, tabId]);
+        }
+        lastClickedTabIdRef.current = tabId;
+        return;
+      }
+
+      if (isShift && lastClickedTabIdRef.current) {
+        const lastIndex = openTabs.findIndex((t) => t.id === lastClickedTabIdRef.current);
+        const currentIndex = openTabs.findIndex((t) => t.id === tabId);
+        if (lastIndex !== -1 && currentIndex !== -1) {
+          const start = Math.min(lastIndex, currentIndex);
+          const end = Math.max(lastIndex, currentIndex);
+          const rangeIds = openTabs.slice(start, end + 1).map((t) => t.id);
+          const merged = new Set([...selectedTabIds, ...rangeIds]);
+          setSelectedTabIds([...merged]);
+        }
+        return;
+      }
+
+      clearTabSelection();
+      lastClickedTabIdRef.current = tabId;
+      setActiveTab(tabId);
+    },
+    [openTabs, selectedTabIds, selectedSet, setActiveTab, setSelectedTabIds, clearTabSelection]
+  );
+
+  const handleMouseDown = useCallback(
+    (tabId: string, e: React.MouseEvent) => {
+      if (e.button === 1) {
+        e.preventDefault();
+        closeTab(tabId);
+        return;
+      }
+      if (e.button === 0 && (e.shiftKey || e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+      }
+    },
+    [closeTab]
+  );
+
+  const handleRefresh = async (): Promise<void> => {
+    if (activeTab?.type === 'session' && activeTab.projectId && activeTab.sessionId) {
+      await Promise.all([
+        refreshSessionInPlace(activeTab.projectId, activeTab.sessionId),
+        fetchSessions(activeTab.projectId),
+      ]);
+      window.dispatchEvent(new CustomEvent('session-refresh-scroll-bottom'));
+    }
+  };
+
+  // Ref setter for SortableTab
+  const setTabRef = useCallback((tabId: string, el: HTMLDivElement | null) => {
+    if (el) {
+      tabRefsMap.current.set(tabId, el);
+    } else {
+      tabRefsMap.current.delete(tabId);
+    }
+  }, []);
+
+  // Show sidebar expand button only in the leftmost pane
+  const isLeftmostPane = useStore(
+    (s) => s.paneLayout.panes.length === 0 || s.paneLayout.panes[0]?.id === paneId
+  );
+
+  return (
+    <div
+      className={cn('flex items-center justify-between border-b border-border bg-background pr-2')}
+      data-tauri-drag-region={isDesktopMode() && isLeftmostPane ? true : undefined}
+      style={
+        {
+          height: `${HEADER_ROW1_HEIGHT}px`,
+          paddingLeft:
+            sidebarCollapsed && isLeftmostPane
+              ? 'var(--macos-traffic-light-padding-left, 72px)'
+              : '8px',
+          WebkitAppRegion: isDesktopMode() && isLeftmostPane ? 'drag' : undefined,
+        } as React.CSSProperties
+      }
+    >
+      {/* Expand sidebar button - show when collapsed (only in leftmost pane) */}
+      {sidebarCollapsed && isLeftmostPane && (
+        <button
+          onClick={toggleSidebar}
+          className="text-muted-foreground hover:bg-card hover:text-foreground mr-2 shrink-0 rounded-md p-1.5 transition-colors"
+          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+          title="Expand sidebar"
+        >
+          <PanelLeft className="size-4" />
+        </button>
+      )}
+
+      {/* Tab list with horizontal scroll, sortable DnD, and droppable area.
+          Capped at 75% so the drag spacer always has room to the right. */}
+      <div
+        ref={(el) => {
+          scrollContainerRef.current = el;
+          setDroppableRef(el);
+        }}
+        role="tablist"
+        aria-label="Session tabs"
+        className="scrollbar-none flex min-w-0 shrink items-center gap-1 overflow-x-auto"
+        style={
+          {
+            maxWidth: '75%',
+            WebkitAppRegion: 'no-drag',
+            outline: isDroppableOver ? '1px dashed rgb(99,102,241)' : 'none',
+            outlineOffset: '-1px',
+          } as React.CSSProperties
+        }
+      >
+        <SortableContext items={tabIds} strategy={horizontalListSortingStrategy}>
+          {openTabs.map((tab) => (
+            <SortableTab
+              key={tab.id}
+              tab={tab}
+              paneId={paneId}
+              isActive={tab.id === activeTabId}
+              isSelected={selectedSet.has(tab.id)}
+              selectedCount={selectedSet.has(tab.id) ? selectedTabIds.length : 0}
+              onTabClick={handleTabClick}
+              onMouseDown={handleMouseDown}
+              onClose={closeTab}
+              onCloseOtherTabs={closeOtherTabs}
+              onCloseAllTabs={closeAllTabs}
+              onCloseSelectedTabs={
+                selectedSet.has(tab.id) && selectedTabIds.length > 1
+                  ? () => closeTabs([...selectedTabIds])
+                  : undefined
+              }
+              onSplitRight={(tabId) => splitPane(paneId, tabId, 'right')}
+              onSplitLeft={(tabId) => splitPane(paneId, tabId, 'left')}
+              disableSplit={paneCount >= 4}
+              setRef={setTabRef}
+            />
+          ))}
+        </SortableContext>
+
+        {/* Refresh button - show only for session tabs */}
+        {activeTab?.type === 'session' && (
+          <button
+            className="text-muted-foreground hover:bg-card hover:text-foreground flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
+            onClick={handleRefresh}
+            title={`Refresh Session (${formatShortcut('R')})`}
+          >
+            <RefreshCw className="size-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Drag spacer — fills empty space between tab list and action buttons.
+          Gives users a reliable window-drag target regardless of how many tabs are open.
+          Only applied on the leftmost pane in Electron to match the TabBar drag region logic. */}
+      <div
+        className="flex-1 self-stretch"
+        data-tauri-drag-region={isDesktopMode() && isLeftmostPane ? true : undefined}
+        style={
+          {
+            WebkitAppRegion: isDesktopMode() && isLeftmostPane ? 'drag' : undefined,
+          } as React.CSSProperties
+        }
+      />
+
+      {/* Right side actions */}
+      <div
+        className="ml-2 flex shrink-0 items-center gap-1"
+        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+      >
+        <Button variant="ghost" size="icon" onClick={openDashboard} title="New tab">
+          <Plus className="size-4" />
+        </Button>
+      </div>
+    </div>
+  );
+};

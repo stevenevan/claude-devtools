@@ -55,3 +55,10 @@ remotion/*
 
 # Bundle analysis
 stats.html
+
+# Wails (Go migration — coexists with Tauri until Week 8)
+/bin/
+frontend/dist/
+frontend/bindings/
+frontend/node_modules/
+frontend/bun.lock

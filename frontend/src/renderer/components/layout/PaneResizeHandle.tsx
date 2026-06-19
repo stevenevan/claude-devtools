@@ -1,0 +1,81 @@
+import { useCallback, useEffect, useState } from 'react';
+
+import { cn } from '@renderer/lib/utils';
+import { useStore } from '@renderer/store';
+
+interface PaneResizeHandleProps {
+  leftPaneId: string;
+  rightPaneId: string;
+}
+
+export const PaneResizeHandle = ({ leftPaneId }: PaneResizeHandleProps): React.JSX.Element => {
+  const [isResizing, setIsResizing] = useState(false);
+  const resizePanes = useStore((s) => s.resizePanes);
+  const paneLayout = useStore((s) => s.paneLayout);
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isResizing) return;
+
+      // Calculate the new width fraction based on mouse position relative to container
+      const container = document.getElementById('pane-container');
+      if (!container) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const relativeX = e.clientX - containerRect.left;
+      const newFraction = relativeX / containerRect.width;
+
+      // Calculate the cumulative width of all panes before the left pane
+      const leftPaneIndex = paneLayout.panes.findIndex((p) => p.id === leftPaneId);
+      if (leftPaneIndex === -1) return;
+
+      let cumulativeWidth = 0;
+      for (let i = 0; i < leftPaneIndex; i++) {
+        cumulativeWidth += paneLayout.panes[i].widthFraction;
+      }
+
+      const leftPaneNewWidth = newFraction - cumulativeWidth;
+      resizePanes(leftPaneId, leftPaneNewWidth);
+    },
+    [isResizing, leftPaneId, paneLayout.panes, resizePanes]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing, handleMouseMove, handleMouseUp]);
+
+  const handleMouseDown = (e: React.MouseEvent): void => {
+    e.preventDefault();
+    setIsResizing(true);
+  };
+
+  return (
+    <button
+      type="button"
+      aria-label="Resize pane"
+      className={cn(
+        'flex w-2 shrink-0 cursor-col-resize items-center justify-center border-0 bg-transparent p-0 transition-colors hover:bg-blue-500/50',
+        isResizing && 'bg-blue-500/50'
+      )}
+      onMouseDown={handleMouseDown}
+    >
+      <div className={cn('h-full w-1', isResizing ? 'bg-blue-500/50' : 'bg-border')} />
+    </button>
+  );
+};
