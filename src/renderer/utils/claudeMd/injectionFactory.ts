@@ -3,7 +3,7 @@ import { generateInjectionId, getDisplayName, joinPaths } from './pathHelpers';
 import type { ClaudeMdInjection, ClaudeMdSource } from '../../types/claudeMd';
 import type { ClaudeMdFileInfo } from '../../types/data';
 
-export const DEFAULT_ESTIMATED_TOKENS = 500;
+const DEFAULT_ESTIMATED_TOKENS = 500;
 
 const SOURCE_PROJECT_MEMORY: ClaudeMdSource = 'project-memory';
 

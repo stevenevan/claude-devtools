@@ -9,14 +9,6 @@ type Theme = 'dark' | 'light' | 'system';
 type ResolvedTheme = 'dark' | 'light';
 export type ThemePreset = 'default' | 'nord' | 'solarized' | 'monokai' | 'high-contrast';
 
-export const THEME_PRESETS: { value: ThemePreset; label: string }[] = [
-  { value: 'default', label: 'Default' },
-  { value: 'nord', label: 'Nord' },
-  { value: 'solarized', label: 'Solarized Dark' },
-  { value: 'monokai', label: 'Monokai' },
-  { value: 'high-contrast', label: 'High Contrast' },
-];
-
 const THEME_CACHE_KEY = 'claude-devtools-theme-cache';
 const PRESET_CACHE_KEY = 'claude-devtools-theme-preset';
 

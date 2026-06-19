@@ -18,7 +18,7 @@ export type * from './messages';
 export * from './chunks';
 
 // Re-export notification and config types
-export * from './notifications';
+export type * from './notifications';
 
 // Re-export visualization types (WaterfallData, WaterfallItem)
 export type * from './visualization';

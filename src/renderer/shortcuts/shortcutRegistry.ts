@@ -39,10 +39,6 @@ export const SHORTCUT_ACTIONS: ShortcutAction[] = [
   { id: 'shortcut-cheat-sheet', label: 'Open shortcut cheat sheet', defaultCombo: '?' },
 ];
 
-export function getAction(id: string): ShortcutAction | undefined {
-  return SHORTCUT_ACTIONS.find((a) => a.id === id);
-}
-
 /**
  * Given the registry + user override map (action id → combo), return the
  * effective binding for each action. Empty/unknown overrides fall back to
