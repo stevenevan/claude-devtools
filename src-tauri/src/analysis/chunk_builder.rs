@@ -11,8 +11,6 @@ use crate::types::messages::{MessageCategory, ParsedMessage};
 use super::chunk_factory::{build_compact_chunk, build_event_chunk, build_system_chunk, build_user_chunk};
 use super::state_machine::ChunkBuildState;
 
-pub use super::flush_rules::{ChunkDelta, build_chunks_incremental};
-
 /// Filters to main thread, classifies, and uses a state machine with AI buffer.
 #[tracing::instrument(
     skip_all,
@@ -84,7 +82,3 @@ pub fn build_session_detail(
 #[cfg(test)]
 #[path = "chunk_builder_tests.rs"]
 mod chunk_tests;
-
-#[cfg(test)]
-#[path = "chunk_builder_incremental_tests.rs"]
-mod incremental_tests;
