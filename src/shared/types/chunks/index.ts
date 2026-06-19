@@ -35,11 +35,4 @@ export type {
 } from './enhancedChunks';
 export type { SessionDetail, SubagentDetail } from './sessionDetail';
 export type { FileChangeEvent } from './events';
-export {
-  isUserChunk,
-  isAIChunk,
-  isEnhancedAIChunk,
-  isSystemChunk,
-  isCompactChunk,
-  isEventChunk,
-} from './guards';
+export { isEnhancedAIChunk } from './guards';

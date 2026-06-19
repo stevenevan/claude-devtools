@@ -1,3 +1,0 @@
-export const MAX_CACHE_SESSIONS = 50;
-export const CACHE_TTL_MINUTES = 10;
-export const CACHE_CLEANUP_INTERVAL_MINUTES = 5;

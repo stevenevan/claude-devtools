@@ -1,10 +1,9 @@
 /**
- * Parsed message types and type guards for claude-devtools.
+ * Parsed message types for claude-devtools.
  *
  * ParsedMessage is the application's internal representation after parsing
- * raw JSONL entries. This module also contains type guards for classifying
- * parsed messages into categories for chunk building.
+ * raw JSONL entries. Message classification now lives in the Rust backend
+ * (message_classifier.rs).
  */
 
 export type * from './types';
-export * from './guards';

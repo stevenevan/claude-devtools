@@ -6,13 +6,13 @@
  */
 
 // JSONL format types
-export * from './jsonl';
+export type * from './jsonl';
 
 // Domain/business entities
 export type * from './domain/index';
 
-// Parsed message types and guards
-export * from './messages';
+// Parsed message types
+export type * from './messages';
 
 // Chunk and visualization types
 export * from './chunks';

@@ -128,16 +128,13 @@ Tracks what consumes tokens in Claude's context window across 6 categories (disc
 
 ### Type Guards
 ```typescript
-// Message type guards (src/main/types/messages.ts)
-isParsedRealUserMessage(msg)      // isMeta: false, string content
-isParsedInternalUserMessage(msg)  // isMeta: true, array content
+// Message type guard (src/renderer/types/data.ts)
 isAssistantMessage(msg)           // type: "assistant"
+// Message classification (User/System/HardNoise/AI) lives in Rust:
+// src-tauri/src/parsing/message_classifier.rs
 
-// Chunk type guards
-isUserChunk(chunk)          // type: "user"
-isAIChunk(chunk)            // type: "ai"
-isSystemChunk(chunk)        // type: "system"
-isCompactChunk(chunk)       // type: "compact"
+// Chunk type guard (src/shared/types/chunks/guards.ts)
+isEnhancedAIChunk(chunk)    // AIChunk with semanticSteps
 
 // Context injection type guards (component-scoped in ContextBadge.tsx, not exported)
 isClaudeMdInjection(inj)          // category: "claude-md"
