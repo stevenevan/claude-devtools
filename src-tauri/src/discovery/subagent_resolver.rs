@@ -5,6 +5,7 @@ use std::collections::HashSet;
 use std::path::Path;
 
 use crate::parsing::{metrics::calculate_metrics, session_parser};
+use crate::time_util::timestamp_diff_ms;
 use crate::types::chunks::Process;
 use crate::types::messages::{ParsedMessage, ToolCall};
 
@@ -228,12 +229,3 @@ fn detect_parallel_execution(subagents: &mut [Process]) {
     }
 }
 
-/// Calculate millisecond difference between two ISO-8601 timestamps.
-fn timestamp_diff_ms(a: &str, b: &str) -> f64 {
-    let parse = |s: &str| -> f64 {
-        chrono::DateTime::parse_from_rfc3339(s)
-            .map(|dt| dt.timestamp_millis() as f64)
-            .unwrap_or(0.0)
-    };
-    parse(a) - parse(b)
-}

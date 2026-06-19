@@ -1,5 +1,6 @@
 /// Fill timeline gaps so steps extend to next step's start.
 
+use crate::time_util::timestamp_diff_ms;
 use crate::types::chunks::SemanticStep;
 
 pub fn fill_timeline_gaps(steps: &mut Vec<SemanticStep>, chunk_end_time: &str) {
@@ -44,13 +45,4 @@ pub fn fill_timeline_gaps(steps: &mut Vec<SemanticStep>, chunk_end_time: &str) {
         steps[i].effective_duration_ms = Some(effective_duration);
         steps[i].is_gap_filled = Some(true);
     }
-}
-
-fn timestamp_diff_ms(a: &str, b: &str) -> f64 {
-    let parse = |s: &str| -> f64 {
-        chrono::DateTime::parse_from_rfc3339(s)
-            .map(|dt| dt.timestamp_millis() as f64)
-            .unwrap_or(0.0)
-    };
-    parse(a) - parse(b)
 }
