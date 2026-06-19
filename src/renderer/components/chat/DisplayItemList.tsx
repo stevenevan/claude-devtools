@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';
 import { formatTokensCompact } from '@renderer/utils/formatters';
+import { truncateText } from '@renderer/utils/stringUtils';
 import { format } from 'date-fns';
 import { ChevronRight, Layers, MailOpen } from 'lucide-react';
 
@@ -30,16 +31,6 @@ interface DisplayItemListProps {
   notificationColorMap?: Map<string, TriggerColor>;
   /** Optional callback to register tool element refs for scroll targeting */
   registerToolRef?: (toolId: string, el: HTMLDivElement | null) => void;
-}
-
-/**
- * Truncates text to a maximum length and adds ellipsis if needed.
- */
-function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) {
-    return text;
-  }
-  return text.substring(0, maxLength) + '...';
 }
 
 /**

@@ -20,14 +20,6 @@ export function formatDuration(ms: number | undefined): string {
 }
 
 /**
- * Truncates text to a maximum length with ellipsis.
- */
-export function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength) + '...';
-}
-
-/**
  * Get Tailwind background class for status dot.
  */
 export function getStatusDotClass(status: ItemStatus): string {

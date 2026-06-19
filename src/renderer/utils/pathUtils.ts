@@ -12,10 +12,6 @@ export function getFirstSegment(filePath: string): string {
   return parts[0] ?? '';
 }
 
-export function splitPathSegments(filePath: string): string[] {
-  return filePath.split(SEP_RE).filter(Boolean);
-}
-
 export function hasPathSeparator(filePath: string): boolean {
   return SEP_RE.test(filePath);
 }

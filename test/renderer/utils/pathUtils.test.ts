@@ -5,7 +5,6 @@ import {
   getFirstSegment,
   hasPathSeparator,
   isRelativePath,
-  splitPathSegments,
 } from '@renderer/utils/pathUtils';
 
 describe('pathUtils', () => {
@@ -58,28 +57,6 @@ describe('pathUtils', () => {
 
     it('returns empty for empty string', () => {
       expect(getFirstSegment('')).toBe('');
-    });
-  });
-
-  describe('splitPathSegments', () => {
-    it('splits Unix path', () => {
-      expect(splitPathSegments('/a/b/c')).toEqual(['a', 'b', 'c']);
-    });
-
-    it('splits Windows path', () => {
-      expect(splitPathSegments('C:\\a\\b\\c')).toEqual(['C:', 'a', 'b', 'c']);
-    });
-
-    it('splits mixed-separator path', () => {
-      expect(splitPathSegments('a/b\\c')).toEqual(['a', 'b', 'c']);
-    });
-
-    it('filters empty segments', () => {
-      expect(splitPathSegments('//a///b//')).toEqual(['a', 'b']);
-    });
-
-    it('returns single segment for bare name', () => {
-      expect(splitPathSegments('file.ts')).toEqual(['file.ts']);
     });
   });
 

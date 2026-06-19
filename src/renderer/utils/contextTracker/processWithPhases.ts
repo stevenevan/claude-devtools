@@ -1,4 +1,6 @@
-import { buildDisplayItems, findLastOutput, linkToolCallsToResults } from '../aiGroupEnhancer';
+import { buildDisplayItems } from '../displayItemBuilder';
+import { findLastOutput } from '../lastOutputDetector';
+import { linkToolCallsToResults } from '../toolLinkingEngine';
 
 import { computeContextStats } from '.';
 

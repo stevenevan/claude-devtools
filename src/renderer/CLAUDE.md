@@ -43,8 +43,8 @@ components/
 ## Utils (`utils/`)
 
 - `contextTracker.ts` - Visible context tracking (computeContextStats, processSessionContextWithPhases)
-- `claudeMdTracker.ts` - CLAUDE.md injection detection
-- `aiGroupEnhancer.ts` - AI group enrichment (linkToolCallsToResults, buildDisplayItems)
+- `claudeMd/` - CLAUDE.md injection detection
+- `aiGroupEnhancer.ts` - AI group enrichment (enhanceAIGroup)
 - `aiGroupHelpers.ts` - AI group utility functions
 - `displayItemBuilder.ts` - Display item construction
 - `displaySummary.ts` - Display summary generation

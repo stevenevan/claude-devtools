@@ -1,4 +1,4 @@
-import { findLastOutput } from '@renderer/utils/aiGroupEnhancer';
+import { findLastOutput } from '@renderer/utils/lastOutputDetector';
 
 import type { SearchMatch } from '../../types';
 import type { SessionConversation } from '@renderer/types/groups';

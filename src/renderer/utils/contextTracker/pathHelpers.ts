@@ -1,4 +1,4 @@
-import { generateInjectionId, getDisplayName } from '../claudeMdTracker';
+import { generateInjectionId, getDisplayName } from '../claudeMd';
 
 import type { ClaudeMdInjection, ClaudeMdSource } from '../../types/claudeMd';
 
@@ -52,7 +52,7 @@ export function joinPaths(base: string, relative: string): string {
   return remainingRelative ? `${normalizedBase}${separator}${remainingRelative}` : normalizedBase;
 }
 
-export function trimTrailingSeparator(input: string): string {
+function trimTrailingSeparator(input: string): string {
   let end = input.length;
   while (end > 0) {
     const char = input[end - 1];
@@ -64,7 +64,7 @@ export function trimTrailingSeparator(input: string): string {
   return input.slice(0, end);
 }
 
-export function normalizeSeparators(input: string, separator: '/' | '\\'): string {
+function normalizeSeparators(input: string, separator: '/' | '\\'): string {
   let output = '';
   let prevWasSeparator = false;
 
@@ -84,7 +84,7 @@ export function normalizeSeparators(input: string, separator: '/' | '\\'): strin
   return output;
 }
 
-export function splitPath(input: string): string[] {
+function splitPath(input: string): string[] {
   const parts: string[] = [];
   let current = '';
 

@@ -1,6 +1,8 @@
 import { createLogger } from '@shared/utils/logger';
 import { estimateTokens } from '@shared/utils/tokenFormatting';
 
+import { truncateText } from './stringUtils';
+
 import type { ParsedMessage, PhaseTokenBreakdown, Process } from '../types/data';
 import type { LinkedToolItem } from '../types/groups';
 
@@ -14,13 +16,6 @@ export function toDate(timestamp: Date | string | number): Date {
     return timestamp;
   }
   return new Date(timestamp);
-}
-
-export function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) {
-    return text;
-  }
-  return text.substring(0, maxLength) + '...';
 }
 
 export function formatToolInput(input: Record<string, unknown>): string {

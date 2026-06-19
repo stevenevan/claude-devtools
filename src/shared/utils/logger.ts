@@ -51,15 +51,6 @@ class Logger {
       console.error(`[${this.namespace}]`, ...args);
     }
   }
-
-  /** Allow runtime level changes (for testing/debugging) */
-  static setLevel(level: LogLevel): void {
-    Logger.level = level;
-  }
-
-  static getLevel(): LogLevel {
-    return Logger.level;
-  }
 }
 
 export function createLogger(namespace: string): Logger {

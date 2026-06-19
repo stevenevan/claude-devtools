@@ -9,13 +9,6 @@ import { linkToolCallsToResults } from './toolLinkingEngine';
 import type { ClaudeMdStats } from '../types/claudeMd';
 import type { AIGroup, EnhancedAIGroup } from '../types/groups';
 
-export { truncateText } from './aiGroupHelpers';
-export { buildDisplayItems, buildDisplayItemsFromMessages } from './displayItemBuilder';
-export { buildSummary } from './displaySummary';
-export { findLastOutput } from './lastOutputDetector';
-export { type PrecedingSlashInfo } from './slashCommandExtractor';
-export { linkToolCallsToResults } from './toolLinkingEngine';
-
 export function enhanceAIGroup(
   aiGroup: AIGroup,
   claudeMdStats?: ClaudeMdStats,

@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  estimateContentTokens,
   estimateTokens,
   formatTokens,
   formatTokensCompact,
-  formatTokensDetailed,
 } from '../../../src/shared/utils/tokenFormatting';
 
 describe('tokenFormatting', () => {
@@ -56,21 +54,6 @@ describe('tokenFormatting', () => {
     });
   });
 
-  describe('formatTokensDetailed', () => {
-    it('should format with locale separators', () => {
-      // Note: This test may vary by locale
-      const result = formatTokensDetailed(1000);
-      expect(result).toContain('1');
-      expect(result.length).toBeGreaterThan(3);
-    });
-
-    it('should format large numbers', () => {
-      const result = formatTokensDetailed(1000000);
-      expect(result).toContain('1');
-      expect(result.length).toBeGreaterThan(6);
-    });
-  });
-
   describe('estimateTokens', () => {
     it('should return 0 for empty string', () => {
       expect(estimateTokens('')).toBe(0);
@@ -92,32 +75,6 @@ describe('tokenFormatting', () => {
     it('should ceil the result', () => {
       // 5 chars / 4 = 1.25, ceil to 2
       expect(estimateTokens('Hello')).toBe(2);
-    });
-  });
-
-  describe('estimateContentTokens', () => {
-    it('should handle string content', () => {
-      expect(estimateContentTokens('Hello World!')).toBe(3);
-    });
-
-    it('should handle array content by stringifying', () => {
-      const content = [{ type: 'text', text: 'Hello' }];
-      const stringified = JSON.stringify(content);
-      expect(estimateContentTokens(content)).toBe(Math.ceil(stringified.length / 4));
-    });
-
-    it('should handle object content by stringifying', () => {
-      const content = { type: 'text', text: 'Hello' };
-      const stringified = JSON.stringify(content);
-      expect(estimateContentTokens(content)).toBe(Math.ceil(stringified.length / 4));
-    });
-
-    it('should return 0 for null', () => {
-      expect(estimateContentTokens(null)).toBe(0);
-    });
-
-    it('should return 0 for undefined', () => {
-      expect(estimateContentTokens(undefined)).toBe(0);
     });
   });
 });

@@ -4,8 +4,9 @@ import { MessageSquare } from 'lucide-react';
 
 import { MarkdownViewer } from '../viewers';
 
+import { truncateText } from '@renderer/utils/stringUtils';
+
 import { BaseItem } from './BaseItem';
-import { truncateText } from './baseItemHelpers';
 
 import type { SemanticStep } from '@renderer/types/data';
 import type { TriggerColor } from '@shared/constants/triggerColors';
