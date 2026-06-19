@@ -2,7 +2,6 @@ package paritytest
 
 import (
 	"encoding/json"
-	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -74,9 +73,6 @@ func TestParityGate(t *testing.T) {
 				t.Skipf("golden blob missing: %v", err)
 			}
 			got, err := pipeline.BuildSessionDetailJSON(m.ProjectID, id)
-			if errors.Is(err, pipeline.ErrNotPorted) {
-				t.Skip("pipeline not yet ported (W3/W4)")
-			}
 			if err != nil {
 				t.Fatalf("pipeline: %v", err)
 			}

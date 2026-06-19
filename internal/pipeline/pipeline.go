@@ -1,19 +1,83 @@
 // Package pipeline is the gate-path entry point: JSONL file → SessionDetail JSON,
-// reproducing the Rust CLI's `show-session --format json`. It is wired but not
-// yet implemented — W3 ports parsing/, W4 ports analysis/ and fills this in.
+// reproducing the Rust CLI's `show-session --format json` (cli.rs cmd_show_session).
 package pipeline
 
-import "errors"
+import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
 
-// ErrNotPorted marks the pipeline stages still pending (W3/W4). The parity gate
-// skips while this is returned, then runs for real once BuildSessionDetailJSON
-// produces output.
-var ErrNotPorted = errors.New("pipeline: BuildSessionDetail not yet ported (W3/W4)")
+	"claude-devtools/internal/analysis"
+	"claude-devtools/internal/domain"
+	"claude-devtools/internal/parsing"
+)
 
 // BuildSessionDetailJSON parses the session JSONL for (projectID, sessionID) and
-// returns the SessionDetail as JSON, matching the Rust CLI byte-for-byte after
-// key-sort normalization. The Go CLI replicates cli.rs:168-186 Session stub
-// fields and passes an empty processes slice.
+// returns the SessionDetail JSON, matching the Rust CLI byte-for-byte after
+// key-sort normalization. Replicates the cli.rs:168-186 Session stub and passes
+// an empty processes slice.
 func BuildSessionDetailJSON(projectID, sessionID string) ([]byte, error) {
-	return nil, ErrNotPorted
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	base := extractBaseDir(projectID)
+	path := filepath.Join(home, ".claude", "projects", base, sessionID+".jsonl")
+
+	messages, meta, err := parsing.ParseJSONLFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	// cli.rs:168-186 — hardcoded stub fields; the rest are None (omitted).
+	deep := "deep"
+	ongoing := false
+	session := domain.Session{
+		ID:            sessionID,
+		ProjectID:     projectID,
+		ProjectPath:   decodePath(base),
+		CreatedAt:     0.0,
+		HasSubagents:  false,
+		MessageCount:  uint32(len(messages)),
+		IsOngoing:     &ongoing,
+		MetadataLevel: &deep,
+		CustomTitle:   meta.CustomTitle,
+		AgentName:     meta.AgentName,
+	}
+
+	detail := analysis.BuildSessionDetail(session, messages, []domain.Process{})
+	return json.Marshal(detail)
+}
+
+var legacyWin = regexp.MustCompile(`^([a-zA-Z])--(.+)$`)
+
+// decodePath mirrors path_decoder::decode_path (lossy: dashes → slashes).
+func decodePath(encoded string) string {
+	if encoded == "" {
+		return ""
+	}
+	if c := legacyWin.FindStringSubmatch(encoded); c != nil {
+		return strings.ToUpper(c[1]) + ":/" + strings.ReplaceAll(c[2], "-", "/")
+	}
+	without := encoded
+	if strings.HasPrefix(encoded, "-") {
+		without = encoded[1:]
+	}
+	decoded := strings.ReplaceAll(without, "-", "/")
+	if len(decoded) >= 3 && decoded[1] == ':' && decoded[2] == '/' {
+		return decoded
+	}
+	if strings.HasPrefix(decoded, "/") {
+		return decoded
+	}
+	return "/" + decoded
+}
+
+func extractBaseDir(projectID string) string {
+	if i := strings.Index(projectID, "::"); i >= 0 {
+		return projectID[:i]
+	}
+	return projectID
 }
