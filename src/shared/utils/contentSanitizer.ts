@@ -33,7 +33,7 @@ export function isCommandContent(content: string): boolean {
   return content.startsWith('<command-name>') || content.startsWith('<command-message>');
 }
 
-export function isCommandOutputContent(content: string): boolean {
+function isCommandOutputContent(content: string): boolean {
   return (
     content.startsWith('<local-command-stdout>') || content.startsWith('<local-command-stderr>')
   );

@@ -213,23 +213,6 @@ export type ChatHistoryEntry =
  */
 export type ConversationalChatEntry = UserEntry | AssistantEntry | SystemEntry;
 
-// Content Type Guards
-
-export function isTextContent(content: ContentBlock): content is TextContent {
-  return content.type === 'text';
-}
-
-export function isToolResultContent(content: ContentBlock): content is ToolResultContent {
-  return content.type === 'tool_result';
-}
-
-/**
- * Type guard to check if an entry is a conversational entry.
- */
-export function isConversationalEntry(entry: ChatHistoryEntry): entry is ConversationalChatEntry {
-  return entry.type === 'user' || entry.type === 'assistant' || entry.type === 'system';
-}
-
 // Subagent Directory Structures
 
 /**
@@ -274,20 +257,20 @@ export function isConversationalEntry(entry: ChatHistoryEntry): entry is Convers
  *
  * 1. USER MESSAGES (create UserChunks):
  *    - Genuine user input that initiates a new request/response cycle
- *    - Detected by: isParsedUserChunkMessage() type guard
+ *    - Classified by: message_classifier.rs (Rust backend)
  *    - Requirements: type='user', isMeta!=true, has text/image content
  *    - Excludes: <local-command-stdout>, <local-command-caveat>, <system-reminder>
  *    - Allows: <command-name> (slash commands like /model are visible user input)
  *
  * 2. SYSTEM MESSAGES (create SystemChunks):
  *    - Command output from slash commands
- *    - Detected by: isParsedSystemChunkMessage() type guard
+ *    - Classified by: message_classifier.rs (Rust backend)
  *    - Contains <local-command-stdout> tag
  *    - Renders on LEFT side like AI responses
  *
  * 3. HARD NOISE MESSAGES (filtered out):
  *    - System-generated metadata that should NEVER be displayed
- *    - Detected by: isParsedHardNoiseMessage() type guard
+ *    - Classified by: message_classifier.rs (Rust backend)
  *    - Includes: system/summary/file-history-snapshot/queue-operation entries
  *    - Includes: User messages with ONLY <local-command-caveat> or <system-reminder>
  *

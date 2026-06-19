@@ -25,13 +25,10 @@ Cross-process code used by main and renderer.
   - `teammateMessageParser.ts` - `<teammate-message>` XML parsing
   - `markdownTextSearch.ts` - Markdown-aware text search
   - `contentSanitizer.ts` - Content sanitization
-  - `errorHandling.ts` - Error helpers
   - `logger.ts` - Logging utility
 - `constants/` - Shared constants
-  - `cache.ts` - Cache configuration
   - `trafficLights.ts` - macOS traffic light constants
   - `triggerColors.ts` - Trigger color palette
-  - `window.ts` - Window configuration
 
 ## Import
 
