@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math/big"
 )
 
 // Canonicalize recursively key-sorts a JSON document so two encoders that
@@ -85,6 +86,21 @@ func walk(path string, a, b any) string {
 		}
 		return ""
 	default:
+		// Compare numbers numerically (big.Rat is exact for ints and decimals):
+		// serde formats whole f64 as `214972.0` where Go emits `214972`, but the
+		// values are identical. Strings/bools fall back to textual compare.
+		if an, ok := a.(json.Number); ok {
+			if bn, ok := b.(json.Number); ok {
+				ar, ok1 := new(big.Rat).SetString(an.String())
+				br, ok2 := new(big.Rat).SetString(bn.String())
+				if ok1 && ok2 {
+					if ar.Cmp(br) != 0 {
+						return fmt.Sprintf("%s: %v vs %v", path, a, b)
+					}
+					return ""
+				}
+			}
+		}
 		if fmt.Sprint(a) != fmt.Sprint(b) {
 			return fmt.Sprintf("%s: %v vs %v", path, a, b)
 		}
