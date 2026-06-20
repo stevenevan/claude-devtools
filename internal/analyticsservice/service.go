@@ -3,6 +3,11 @@ package analyticsservice
 import (
 	"claude-devtools/internal/analytics"
 	"claude-devtools/internal/cache"
+	"claude-devtools/internal/domain"
+	"claude-devtools/internal/insights/error_hotspots"
+	"claude-devtools/internal/insights/file_graph"
+	"claude-devtools/internal/insights/tool_analytics"
+	"claude-devtools/internal/insights/tool_linking"
 )
 
 type AnalyticsService struct {
@@ -41,4 +46,46 @@ func (s *AnalyticsService) GetSessionDurationStats(days uint32) (*analytics.Sess
 // Mirrors commands/analytics.rs::get_model_comparison → compute_model_comparison.
 func (s *AnalyticsService) GetModelComparison(days uint32) (*analytics.ModelComparisonResponse, error) {
 	return analytics.ComputeModelComparison(days)
+}
+
+// GetToolAnalytics returns per-tool usage stats for sessions in the last `days` days.
+// Mirrors analysis/commands.rs::get_tool_analytics → compute_tool_analytics.
+func (s *AnalyticsService) GetToolAnalytics(projectID string, days uint32) (*tool_analytics.ToolAnalyticsResponse, error) {
+	return tool_analytics.ComputeToolAnalytics(projectID, days)
+}
+
+// GetToolTimeHeatmap returns a 7×24 heatmap of tool call frequency in local time.
+// Mirrors analysis/commands.rs::get_tool_time_heatmap → compute_tool_time_heatmap.
+func (s *AnalyticsService) GetToolTimeHeatmap(projectID string, days uint32, toolFilter string) (*tool_analytics.ToolTimeHeatmapResponse, error) {
+	return tool_analytics.ComputeToolTimeHeatmap(projectID, days, toolFilter)
+}
+
+// GetErrorHotspots returns repeated tool errors across sessions in the last `days` days.
+// Mirrors analysis/commands.rs::get_error_hotspots → compute_error_hotspots.
+func (s *AnalyticsService) GetErrorHotspots(projectID string, days, minOccurrences uint32) (*error_hotspots.ErrorHotspotsResponse, error) {
+	return error_hotspots.ComputeErrorHotspots(projectID, days, minOccurrences)
+}
+
+// GetErrorClusters clusters similar errors across sessions in the last `days` days.
+// Mirrors analysis/commands.rs::get_error_clusters → compute_error_clusters.
+func (s *AnalyticsService) GetErrorClusters(projectID string, days, minClusterSize uint32) (*error_hotspots.ErrorClustersResponse, error) {
+	return error_hotspots.ComputeErrorClusters(projectID, days, minClusterSize)
+}
+
+// GetFileGraph returns the file dependency graph for a single session.
+// canonicalRoot is the ~/.claude/projects directory path.
+// Mirrors analysis/commands.rs::get_file_graph → compute_file_graph.
+func (s *AnalyticsService) GetFileGraph(canonicalRoot, projectID, sessionID string) (*file_graph.FileGraphResponse, error) {
+	return file_graph.ComputeFileGraph(canonicalRoot, projectID, sessionID)
+}
+
+// LinkToolCalls links tool_use steps to their tool_result peers.
+// Mirrors analysis/tool_linking.rs::link_tool_calls_to_results.
+// Returns a map of call-ID → LinkedToolItem; callers that serialize to JSON
+// MUST sort the keys to guarantee deterministic output (Go map iteration is random).
+func (s *AnalyticsService) LinkToolCalls(
+	steps []domain.SemanticStep,
+	responses []tool_linking.ParsedMessageInput,
+) map[string]tool_linking.LinkedToolItem {
+	return tool_linking.LinkToolCallsToResults(steps, responses)
 }
