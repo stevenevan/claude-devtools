@@ -14,21 +14,20 @@ import (
 	"claude-devtools/internal/parsing"
 )
 
-// BuildSessionDetailJSON parses the session JSONL for (projectID, sessionID) and
-// returns the SessionDetail JSON, matching the Rust CLI byte-for-byte after
-// key-sort normalization. Replicates the cli.rs:168-186 Session stub and passes
-// an empty processes slice.
-func BuildSessionDetailJSON(projectID, sessionID string) ([]byte, error) {
+// BuildSessionDetail parses the session JSONL for (projectID, sessionID) and
+// returns the SessionDetail struct, replicating the cli.rs:168-186 Session stub
+// and passing an empty processes slice.
+func BuildSessionDetail(projectID, sessionID string) (domain.SessionDetail, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return nil, err
+		return domain.SessionDetail{}, err
 	}
 	base := extractBaseDir(projectID)
 	path := filepath.Join(home, ".claude", "projects", base, sessionID+".jsonl")
 
 	messages, meta, err := parsing.ParseJSONLFile(path)
 	if err != nil {
-		return nil, err
+		return domain.SessionDetail{}, err
 	}
 
 	// cli.rs:168-186 — hardcoded stub fields; the rest are None (omitted).
@@ -47,7 +46,16 @@ func BuildSessionDetailJSON(projectID, sessionID string) ([]byte, error) {
 		AgentName:     meta.AgentName,
 	}
 
-	detail := analysis.BuildSessionDetail(session, messages, []domain.Process{})
+	return analysis.BuildSessionDetail(session, messages, []domain.Process{}), nil
+}
+
+// BuildSessionDetailJSON returns the SessionDetail JSON, matching the Rust CLI
+// byte-for-byte after key-sort normalization.
+func BuildSessionDetailJSON(projectID, sessionID string) ([]byte, error) {
+	detail, err := BuildSessionDetail(projectID, sessionID)
+	if err != nil {
+		return nil, err
+	}
 	return json.Marshal(detail)
 }
 
