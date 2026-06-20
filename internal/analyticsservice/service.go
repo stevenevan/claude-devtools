@@ -8,7 +8,18 @@ import (
 	"claude-devtools/internal/insights/file_graph"
 	"claude-devtools/internal/insights/tool_analytics"
 	"claude-devtools/internal/insights/tool_linking"
+	"claude-devtools/internal/tokenizer"
 )
+
+// CountTokens counts tokens in text using cl100k_base (commands::count_tokens).
+func (s *AnalyticsService) CountTokens(text string) (int, error) {
+	return tokenizer.CountTokens(text), nil
+}
+
+// CountTokensBatch counts tokens for each string (commands::count_tokens_batch).
+func (s *AnalyticsService) CountTokensBatch(texts []string) ([]int, error) {
+	return tokenizer.CountTokensBatch(texts), nil
+}
 
 type AnalyticsService struct {
 	cache *cache.SessionCache // shared singleton, injected (arch C1)

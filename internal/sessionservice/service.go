@@ -30,9 +30,14 @@ type SessionService struct {
 // New injects the shared session cache (one instance for the whole app).
 func New(c *cache.SessionCache) *SessionService { return &SessionService{cache: c} }
 
-// ListProjects returns the encoded project folder names under ~/.claude/projects.
-func (s *SessionService) ListProjects() ([]string, error) {
-	return []string{}, nil
+// GetProjects lists projects under ~/.claude/projects (commands/projects.rs::get_projects).
+func (s *SessionService) GetProjects() ([]domain.Project, error) {
+	pd, err := projectsDir()
+	if err != nil {
+		return nil, err
+	}
+	registry := discovery.NewSubprojectRegistry()
+	return discovery.ScanProjects(pd, registry)
 }
 
 // --------------------------------------------------------------------------
