@@ -7,6 +7,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 
 	"claude-devtools/internal/analyticsservice"
+	"claude-devtools/internal/cache"
 	"claude-devtools/internal/configservice"
 	"claude-devtools/internal/filesservice"
 	"claude-devtools/internal/notifyservice"
@@ -22,19 +23,24 @@ import (
 var assets embed.FS
 
 func main() {
+	// One shared session cache for the whole app (arch C1): the same pointer is
+	// injected into every cache-consuming service so they share state — never one
+	// cache per service.
+	sessionCache := cache.Default()
+
 	app := application.New(application.Options{
 		Name:        "claude-devtools",
 		Description: "Visualizes Claude Code session execution",
 		Services: []application.Service{
-			application.NewService(&sessionservice.SessionService{}),
-			application.NewService(&searchservice.SearchService{}),
-			application.NewService(&analyticsservice.AnalyticsService{}),
+			application.NewService(sessionservice.New(sessionCache)),
+			application.NewService(searchservice.New(sessionCache)),
+			application.NewService(analyticsservice.New(sessionCache)),
 			application.NewService(&configservice.ConfigService{}),
 			application.NewService(&notifyservice.NotificationService{}),
 			application.NewService(&sshservice.SshService{}),
 			application.NewService(&filesservice.FilesService{}),
-			application.NewService(&snapshotservice.SnapshotService{}),
-			application.NewService(&timingservice.TimingService{}),
+			application.NewService(snapshotservice.New(sessionCache)),
+			application.NewService(timingservice.New(sessionCache)),
 			application.NewService(&systemservice.SystemService{}),
 			// watcher service registered here in W3
 		},

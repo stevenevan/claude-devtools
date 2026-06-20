@@ -2,7 +2,10 @@ module claude-devtools
 
 go 1.25.0
 
-require github.com/wailsapp/wails/v3 v3.0.0-alpha2.104
+require (
+	github.com/hashicorp/golang-lru/v2 v2.0.7
+	github.com/wailsapp/wails/v3 v3.0.0-alpha2.104
+)
 
 require (
 	github.com/adrg/xdg v0.5.3 // indirect
