@@ -1,10 +1,9 @@
 /**
- * API type definitions — the contract between frontend and Tauri Rust backend.
+ * API type definitions — the contract between the frontend and the Go/Wails backend.
  *
- * Implemented by createTauriClient() factory in src/renderer/api/tauriClient.ts.
+ * Implemented by createTauriClient() in src/renderer/api/tauriClient.ts (now wired
+ * to the generated v3 bindings).
  */
-
-import './tauriGlobals';
 
 import type { ConversationGroup, FileChangeEvent, SessionDetail, SubagentDetail } from '../chunks';
 import type {

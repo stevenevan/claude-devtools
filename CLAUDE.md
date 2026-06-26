@@ -4,47 +4,47 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Tauri 2.x desktop app that visualizes Claude Code session execution. Reads raw JSONL session logs from `~/.claude/` and reconstructs the full execution trace.
+Wails v3 (Go) desktop app that visualizes Claude Code session execution. Reads raw JSONL session logs from `~/.claude/` and reconstructs the full execution trace. (Migrated from Tauri 2.x/Rust — see `docs/wails-migration/`.)
 
-**Tech Stack:** Tauri 2.x, Rust (backend), React 18, TypeScript 5, Tailwind CSS 4, Zustand 5
-**Linting/Formatting:** oxlint, oxfmt
-**Package Manager:** Always use `bun` (not npm/yarn/pnpm)
+**Tech Stack:** Wails v3 (alpha), Go (backend, `internal/`), React 19, TypeScript 5, Tailwind CSS 4, Zustand 5
+**Package Manager:** Always use `bun` for the frontend (not npm/yarn/pnpm)
 
 ## Commands
 
 ```bash
-bun install                    # Install dependencies
-bun run dev                    # Dev server with hot reload (Tauri + Vite)
-bun run build                  # Production build (Tauri)
-bun run typecheck              # TypeScript type checking
-bun run lint:fix               # Lint and auto-fix (oxlint)
-bun run format                 # Format code (oxfmt)
-bun run check                  # Full quality gate: types + lint + test + build
-bun run quality                # check + format:check + knip (unused exports)
+wails3 dev                     # Dev server with hot reload (Wails + Vite); also: bun run dev
+wails3 build                   # Production build → bin/claude-devtools; also: bun run build
+wails3 generate bindings -ts   # Regenerate TS bindings after changing Go service methods
 
-# Tests (Vitest)
-bun run test                   # Run all tests
-bun run test -- path/to/file.test.ts   # Run single test file
-bun run test -- -t "test name"         # Run by test name pattern
-bun run test:watch             # Watch mode
-bun run test:coverage          # Coverage report
-bun run test:coverage:critical # Critical path coverage (65% lines, 75% functions)
+# Go backend (run from repo root)
+go build ./...                 # Build everything
+go test ./...                  # Run all Go tests (incl internal/paritytest gate)
+go vet ./internal/...          # Static checks
 
-# Specialized test scripts (tsx, not vitest)
-bun run test:chunks            # Chunk building tests
-bun run test:semantic          # Semantic step extraction
-bun run test:noise             # Noise filtering tests
-bun run test:task-filtering    # Task tool filtering
+# Read-only CLI (ports bin/cli.rs)
+go run ./cmd/cli show-session <projectId> <sessionId> --format json|markdown
 
-# Rust (run from src-tauri/)
-cargo test                     # Run Rust tests
-cargo check                    # Type check Rust code
+# Frontend (run from frontend/)
+cd frontend && bunx tsc --noEmit   # Type-check
+cd frontend && bun run build       # Production vite build
 ```
 
-## Path Aliases
+## Layout
 
-- `@renderer/*` → `src/renderer/*`
-- `@shared/*` → `src/shared/*`
+- `main.go` — Wails app: registers 10 service structs, creates the window.
+- `internal/` — Go backend (one package per domain): `parsing`, `analysis`, `discovery`,
+  `analytics`, `insights`, `config`, `notifications`, `ssh`, `snapshots`, `cache`,
+  `tokenizer`, `watcher`, `pipeline`, `paritytest`, `domain` (DTOs), + the `*service`
+  wrappers Wails binds.
+- `cmd/cli/` — read-only Go CLI.
+- `frontend/` — the React app (its own `package.json`/`vite.config.ts`); generated bindings
+  under `frontend/bindings/claude-devtools/internal/<svc>service/` (gitignored, regenerated).
+- `docs/wails-migration/` — migration plan + `_command-inventory.md` (118/118 bound).
+
+## Path Aliases (frontend)
+
+- `@renderer/*` → `frontend/src/renderer/*`
+- `@shared/*` → `frontend/src/shared/*`
 
 ## Data Sources
 
@@ -57,14 +57,13 @@ Path encoding: `/Users/name/project` → `-Users-name-project`
 
 ```
 ~/.claude/projects/{id}/*.jsonl
-  → Rust: session_parser (streaming line-by-line)
-  → Rust: entry_parser → ParsedMessage[]
-  → Rust: message_classifier → MessageCategory (HardNoise|User|Ai|System|Event|Compact)
-  → Rust: chunk_builder (state machine, flushes AI buffer on non-AI messages)
-  → Rust: chunk_factory → EnhancedChunk[] (User|AI|System|Compact|Event)
-  → Rust: tool_linking, tokenizer, semantic_step_extractor, context_accumulator
-  → SessionDetail { chunks, metrics, processes, contextStats }
-  → Frontend invoke() via tauriClient.ts (with reviveDates for ISO→Date conversion)
+  → Go: parsing.ParseSessionFile (streaming line-by-line → ParsedMessage[])
+  → Go: classifier → MessageCategory (HardNoise|User|Ai|System|Event|Compact)
+  → Go: analysis.chunk_builder (state machine, flushes AI buffer on non-AI messages)
+  → Go: chunk_factory → EnhancedChunk[] (User|AI|System|Compact|Event)
+  → Go: tool_execution_builder, semantic_step_extractor, context_accumulator
+  → SessionDetail { chunks, metrics, processes }
+  → Frontend v3 bindings via tauriClient.ts (reviveDates for ISO→Date conversion)
   → Zustand store (sessionDetailSlice, conversationSlice)
   → aiGroupEnhancer → groupTransformer → displayItemBuilder
   → React components (ChatHistory, AIChatGroup, LinkedToolItem, etc.)
@@ -128,12 +127,12 @@ Tracks what consumes tokens in Claude's context window across 6 categories (disc
 
 ### Type Guards
 ```typescript
-// Message type guard (src/renderer/types/data.ts)
+// Message type guard (frontend/src/renderer/types/data.ts)
 isAssistantMessage(msg)           // type: "assistant"
-// Message classification (User/System/HardNoise/AI) lives in Rust:
-// src-tauri/src/parsing/message_classifier.rs
+// Message classification (User/System/HardNoise/AI) lives in Go:
+// internal/parsing/classifier.go
 
-// Chunk type guard (src/shared/types/chunks/guards.ts)
+// Chunk type guard (frontend/src/shared/types/chunks/guards.ts)
 isEnhancedAIChunk(chunk)    // AIChunk with semanticSteps
 
 // Context injection type guards (component-scoped in ContextBadge.tsx, not exported)
@@ -146,7 +145,7 @@ isUserMessageInjection(inj)       // category: "user-message"
 ```
 
 ### Barrel Exports
-The backend pipeline is Rust (`src-tauri/src/`) — there are no TS service barrels.
+The backend pipeline is Go (`internal/`) — there are no TS service barrels.
 On the TS side, import directly from files. The one barrel that must be used is
 `@shared/types/api` (deep imports through it are prohibited).
 
@@ -156,11 +155,11 @@ On the TS side, import directly from files. The one barrel that must be used is
 3. Relative imports
 
 ## Performance
-- LRU Cache: Avoids re-parsing large JSONL files (Rust `SessionCache`)
-- Streaming JSONL: Line-by-line processing in Rust
+- LRU Cache: Avoids re-parsing large JSONL files (Go `cache.SessionCache`, golang-lru/v2)
+- Streaming JSONL: Line-by-line processing in Go (`bufio.Scanner`, large buffer)
 - Virtual Scrolling: `@tanstack/react-virtual` for large session/message lists
-- Debounced File Watching: 100ms debounce via `notify` crate
-- Incremental Detail: `get_session_detail_incremental` skips unchanged sessions
+- Debounced File Watching: 100ms debounce via `rjeczalik/notify` (recursive FSEvents)
+- Incremental Detail: `get_session_detail_incremental` skips unchanged bytes (cache byte-offset)
 
 ## Troubleshooting
 
