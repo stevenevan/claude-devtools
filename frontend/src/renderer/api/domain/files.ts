@@ -1,0 +1,79 @@
+import {
+  ReadAgentConfigs,
+  ReadClaudeMdFiles,
+  ReadDirectoryClaudeMd,
+  ReadGlobalAgents,
+  ReadGlobalPlugins,
+  ReadGlobalSettings,
+  ReadGlobalSkills,
+  ReadMentionedFile,
+  ValidateMentions,
+  ValidatePath,
+} from '../../../../bindings/claude-devtools/internal/filesservice/filesservice';
+
+import type { ClaudeMdFileInfo, ElectronAPI } from '@shared/types';
+import type { AgentConfig, GlobalAgent, GlobalPlugin, GlobalSkill } from '@shared/types/api';
+
+type FilesSlice = Pick<
+  ElectronAPI,
+  | 'validatePath'
+  | 'validateMentions'
+  | 'readClaudeMdFiles'
+  | 'readDirectoryClaudeMd'
+  | 'readMentionedFile'
+  | 'readAgentConfigs'
+  | 'readGlobalAgents'
+  | 'readGlobalSkills'
+  | 'readGlobalPlugins'
+  | 'readGlobalSettings'
+>;
+
+export const filesApi: FilesSlice = {
+  validatePath: (
+    relativePath: string,
+    projectPath: string
+  ): Promise<{ exists: boolean; isDirectory?: boolean }> =>
+    ValidatePath(relativePath, projectPath) as unknown as Promise<{
+      exists: boolean;
+      isDirectory?: boolean;
+    }>,
+
+  validateMentions: (
+    mentions: { type: 'path'; value: string }[],
+    projectPath: string
+  ): Promise<Record<string, boolean>> =>
+    ValidateMentions(
+      mentions as unknown as Parameters<typeof ValidateMentions>[0],
+      projectPath
+    ) as unknown as Promise<Record<string, boolean>>,
+
+  readClaudeMdFiles: (projectRoot: string): Promise<Record<string, ClaudeMdFileInfo>> =>
+    ReadClaudeMdFiles(projectRoot) as unknown as Promise<Record<string, ClaudeMdFileInfo>>,
+
+  readDirectoryClaudeMd: (dirPath: string): Promise<ClaudeMdFileInfo> =>
+    ReadDirectoryClaudeMd(dirPath) as unknown as Promise<ClaudeMdFileInfo>,
+
+  readMentionedFile: (
+    absolutePath: string,
+    projectRoot: string,
+    maxTokens?: number
+  ): Promise<ClaudeMdFileInfo | null> =>
+    ReadMentionedFile(absolutePath, projectRoot, maxTokens ?? null) as unknown as Promise<
+      ClaudeMdFileInfo | null
+    >,
+
+  readAgentConfigs: (projectRoot: string): Promise<Record<string, AgentConfig>> =>
+    ReadAgentConfigs(projectRoot) as unknown as Promise<Record<string, AgentConfig>>,
+
+  readGlobalAgents: (): Promise<GlobalAgent[]> =>
+    ReadGlobalAgents() as unknown as Promise<GlobalAgent[]>,
+
+  readGlobalSkills: (): Promise<GlobalSkill[]> =>
+    ReadGlobalSkills() as unknown as Promise<GlobalSkill[]>,
+
+  readGlobalPlugins: (): Promise<GlobalPlugin[]> =>
+    ReadGlobalPlugins() as unknown as Promise<GlobalPlugin[]>,
+
+  readGlobalSettings: (): Promise<Record<string, unknown>> =>
+    ReadGlobalSettings() as unknown as Promise<Record<string, unknown>>,
+};
