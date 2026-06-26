@@ -15,8 +15,16 @@ export function getDisplayName(path: string, _source: ClaudeMdSource): string {
   return path;
 }
 
+// ~-awareness is shared with contextTracker (which imports this), not claudeMd-intrinsic.
 export function isAbsolutePath(path: string): boolean {
-  return path.startsWith('/') || path.startsWith('\\\\') || /^[a-zA-Z]:[\\/]/.test(path);
+  return (
+    path.startsWith('/') ||
+    path.startsWith('~/') ||
+    path.startsWith('~\\') ||
+    path === '~' ||
+    path.startsWith('\\\\') ||
+    /^[a-zA-Z]:[\\/]/.test(path)
+  );
 }
 
 export function joinPaths(base: string, relative: string): string {

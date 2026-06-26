@@ -19,12 +19,8 @@ import {
   createUserMessageInjection,
   wrapClaudeMdInjection,
 } from './injections';
-import {
-  createDirectoryInjection,
-  isAbsolutePath,
-  joinPaths,
-  normalizeForComparison,
-} from './pathHelpers';
+import { createDirectoryInjection } from '../claudeMd/injectionFactory';
+import { isAbsolutePath, joinPaths, normalizeForComparison } from '../claudeMd/pathHelpers';
 
 import type {
   ClaudeMdContextInjection,
