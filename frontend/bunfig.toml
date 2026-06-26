@@ -1,0 +1,5 @@
+[install]
+# Only install package versions published at least 7 days ago (supply-chain protection).
+# bun reads ./bunfig.toml from cwd (no upward walk); frontend installs run `cd frontend`,
+# so the gate must live here, not only at repo root.
+minimumReleaseAge = 604800 # seconds

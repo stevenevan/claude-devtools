@@ -61,7 +61,6 @@ stats.html
 frontend/dist/
 frontend/bindings/
 frontend/node_modules/
-frontend/bun.lock
 
 # Parity golden snapshots: large (~65MB), machine-derived from local ~/.claude,
 # regenerable via golden/manifest.json. Track the manifest, not the blobs.
