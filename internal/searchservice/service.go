@@ -6,7 +6,6 @@ package searchservice
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -28,25 +27,6 @@ func New(c *cache.SessionCache) *SearchService { return &SearchService{cache: c}
 
 func (s *SearchService) Ready() (bool, error) { return true, nil }
 
-// ---------------------------------------------------------------------------
-// Internal path helpers (mirrors sessionservice pattern)
-// ---------------------------------------------------------------------------
-
-func claudeDir() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("cannot resolve home directory: %w", err)
-	}
-	return filepath.Join(home, ".claude"), nil
-}
-
-func projectsDir() (string, error) {
-	cd, err := claudeDir()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(cd, "projects"), nil
-}
 
 // ---------------------------------------------------------------------------
 // SearchResult — shared lightweight result type
@@ -84,11 +64,11 @@ func (s *SearchService) SearchSessions(
 	maxResults *int,
 	registry *discovery.SubprojectRegistry,
 ) (SessionSearchResult, error) {
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return SessionSearchResult{}, err
 	}
-	cd, err := claudeDir()
+	cd, err := discovery.ClaudeDir()
 	if err != nil {
 		return SessionSearchResult{}, err
 	}
@@ -138,11 +118,11 @@ func (s *SearchService) SearchAllProjects(
 	maxResults *int,
 	registry *discovery.SubprojectRegistry,
 ) (SessionSearchResult, error) {
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return SessionSearchResult{}, err
 	}
-	cd, err := claudeDir()
+	cd, err := discovery.ClaudeDir()
 	if err != nil {
 		return SessionSearchResult{}, err
 	}
@@ -211,11 +191,11 @@ func (s *SearchService) SearchSessionsFiltered(
 	maxCreatedAt *float64,
 	registry *discovery.SubprojectRegistry,
 ) (FilteredSearchResult, error) {
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return FilteredSearchResult{}, err
 	}
-	cd, err := claudeDir()
+	cd, err := discovery.ClaudeDir()
 	if err != nil {
 		return FilteredSearchResult{}, err
 	}
@@ -323,7 +303,7 @@ func (s *SearchService) SearchSessionContent(
 		return search.ContentSearchResult{}, fmt.Errorf("invalid session ID")
 	}
 
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return search.ContentSearchResult{}, err
 	}

@@ -6,6 +6,8 @@
 package discovery
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -144,5 +146,23 @@ func BuildTodoPath(claudeBase, sessionID string) string {
 // GetProjectsBasePath returns the projects directory under the Claude base dir.
 func GetProjectsBasePath(claudeDir string) string {
 	return filepath.Join(claudeDir, "projects")
+}
+
+// ClaudeDir returns the path to ~/.claude.
+func ClaudeDir() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("cannot resolve home directory: %w", err)
+	}
+	return filepath.Join(home, ".claude"), nil
+}
+
+// ProjectsDir returns the path to ~/.claude/projects.
+func ProjectsDir() (string, error) {
+	cd, err := ClaudeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(cd, "projects"), nil
 }
 

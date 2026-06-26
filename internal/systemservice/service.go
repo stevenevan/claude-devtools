@@ -19,6 +19,7 @@ import (
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 
+	"claude-devtools/internal/discovery"
 	"claude-devtools/internal/watcher"
 )
 
@@ -159,7 +160,7 @@ func (s *SystemService) GetAllTodos(projectIDs []string) ([]AggregatedSessionTod
 		if !isValidProjectID(projectID) {
 			continue
 		}
-		baseID := extractBaseDir(projectID)
+		baseID := discovery.ExtractBaseDir(projectID)
 		projectDir := filepath.Join(projectsDir, baseID)
 		entries, err := os.ReadDir(projectDir)
 		if err != nil {
@@ -354,11 +355,3 @@ func isValidProjectID(id string) bool {
 	return len(id) > 0 && id[0] == '-'
 }
 
-func extractBaseDir(projectID string) string {
-	for i := 0; i < len(projectID)-1; i++ {
-		if projectID[i] == ':' && projectID[i+1] == ':' {
-			return projectID[:i]
-		}
-	}
-	return projectID
-}
