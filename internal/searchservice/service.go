@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"claude-devtools/internal/analysis"
 	"claude-devtools/internal/cache"
@@ -96,7 +97,7 @@ func (s *SearchService) SearchSessions(
 	if maxResults != nil {
 		limit = *maxResults
 	}
-	queryLower := lowerStr(query)
+	queryLower := strings.ToLower(query)
 
 	opts := discovery.SessionsPaginationOptions{}
 	all, err := discovery.ListSessionsPaginated(pd, cd, projectID, nil, 10000, opts, registry)
@@ -150,7 +151,7 @@ func (s *SearchService) SearchAllProjects(
 	if maxResults != nil {
 		limit = *maxResults
 	}
-	queryLower := lowerStr(query)
+	queryLower := strings.ToLower(query)
 
 	projects, err := discovery.ScanProjects(pd, registry)
 	if err != nil {
@@ -226,7 +227,7 @@ func (s *SearchService) SearchSessionsFiltered(
 
 	var queryLower *string
 	if query != nil {
-		ql := lowerStr(*query)
+		ql := strings.ToLower(*query)
 		queryLower = &ql
 	}
 
@@ -368,28 +369,8 @@ func (s *SearchService) ParseNlQuery(query string) (search.ParsedFilter, error) 
 // Helpers
 // ---------------------------------------------------------------------------
 
-func lowerStr(s string) string {
-	// inline to avoid extra import — mirrors Rust .to_lowercase()
-	result := make([]byte, len(s))
-	for i := 0; i < len(s); i++ {
-		c := s[i]
-		if c >= 'A' && c <= 'Z' {
-			c += 'a' - 'A'
-		}
-		result[i] = c
-	}
-	return string(result)
-}
-
+// containsCI reports whether s contains subLower, case-insensitively.
+// subLower must already be lowercased by the caller (via strings.ToLower).
 func containsCI(s, subLower string) bool {
-	return len(lowerStr(s)) >= len(subLower) && containsStr(lowerStr(s), subLower)
-}
-
-func containsStr(s, sub string) bool {
-	for i := 0; i <= len(s)-len(sub); i++ {
-		if s[i:i+len(sub)] == sub {
-			return true
-		}
-	}
-	return false
+	return strings.Contains(strings.ToLower(s), subLower)
 }
