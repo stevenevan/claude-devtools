@@ -1,6 +1,10 @@
 package analyticsservice
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
+
 	"claude-devtools/internal/analytics"
 	"claude-devtools/internal/cache"
 	"claude-devtools/internal/domain"
@@ -85,8 +89,17 @@ func (s *AnalyticsService) GetErrorClusters(projectID string, days, minClusterSi
 
 // GetFileGraph returns the file dependency graph for a single session.
 // canonicalRoot is the ~/.claude/projects directory path.
+// When canonicalRoot is empty the method derives it as ~/.claude/projects,
+// matching what the Rust ClaudeRoot::canonical_projects() resolves to.
 // Mirrors analysis/commands.rs::get_file_graph → compute_file_graph.
 func (s *AnalyticsService) GetFileGraph(canonicalRoot, projectID, sessionID string) (*file_graph.FileGraphResponse, error) {
+	if canonicalRoot == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return nil, fmt.Errorf("cannot resolve home directory: %w", err)
+		}
+		canonicalRoot = filepath.Join(home, ".claude", "projects")
+	}
 	return file_graph.ComputeFileGraph(canonicalRoot, projectID, sessionID)
 }
 

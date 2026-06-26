@@ -4,11 +4,16 @@
 package configservice
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os/exec"
 	"runtime"
 	"time"
+
+	autostart "github.com/spiretechnology/go-autostart/v2"
+	"github.com/wailsapp/wails/v3/pkg/application"
 
 	"claude-devtools/internal/config"
 )
@@ -21,6 +26,36 @@ type ConfigService struct {
 
 // Ready satisfies the Wails service interface.
 func (s *ConfigService) Ready() (bool, error) { return true, nil }
+
+// ServiceStartup implements the Wails v3 Service lifecycle hook.
+// Reads the persisted config and synchronises the OS autostart registration
+// so the LaunchAtLogin setting takes effect immediately on app start.
+func (s *ConfigService) ServiceStartup(_ context.Context, _ application.ServiceOptions) error {
+	cfg := s.state.GetConfig() // triggers lazy load from disk
+	if err := syncAutostart(cfg.General.LaunchAtLogin); err != nil {
+		slog.Warn("autostart sync on startup failed", "err", err)
+	}
+	return nil
+}
+
+// ServiceShutdown satisfies the Wails v3 Service lifecycle hook.
+func (s *ConfigService) ServiceShutdown() error { return nil }
+
+// syncAutostart enables or disables the OS launch-at-login entry.
+// Uses ModeUser (LaunchAgents on macOS). Errors are non-fatal — the caller
+// logs and continues so a missing HOME or sandboxed env doesn't block startup.
+func syncAutostart(enable bool) error {
+	a := autostart.New(autostart.Options{
+		Label:  "com.claude-devtools",
+		Vendor: "claude-devtools",
+		Name:   "claude-devtools",
+		Mode:   autostart.ModeUser,
+	})
+	if enable {
+		return a.Enable()
+	}
+	return a.Disable()
+}
 
 // ─── nowMS mirrors the Rust now_ms() helper in commands.rs ───────────────────
 
@@ -43,10 +78,19 @@ func (s *ConfigService) ConfigGet() (config.AppConfig, error) {
 //	shortcuts, themes, plugins, notificationRules, webhookEndpoints, onboarding.
 //
 // data: JSON object (or array for notificationRules/webhookEndpoints).
-// NOTE (W7): changing launchAtLogin will later trigger autostart registration.
-// For now just persist the field — the hook can be added in W7.
+// When section is "general" and launchAtLogin changed, syncs the OS autostart
+// registration so the UI toggle takes effect immediately.
 func (s *ConfigService) ConfigUpdate(section string, data json.RawMessage) (config.AppConfig, error) {
-	return s.state.UpdateConfig(section, data)
+	result, err := s.state.UpdateConfig(section, data)
+	if err != nil {
+		return config.AppConfig{}, err
+	}
+	if section == "general" {
+		if syncErr := syncAutostart(result.General.LaunchAtLogin); syncErr != nil {
+			slog.Warn("autostart sync on config update failed", "err", syncErr)
+		}
+	}
+	return result, nil
 }
 
 // ─── config_add_ignore_regex ─────────────────────────────────────────────────

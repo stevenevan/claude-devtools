@@ -15,7 +15,10 @@ import {
   SshSaveLastConnection,
   SshTest,
 } from '../../../../bindings/claude-devtools/internal/sshservice/sshservice';
-import { GetAppVersion } from '../../../../bindings/claude-devtools/internal/systemservice/systemservice';
+import {
+  GetAppVersion,
+  OpenPath,
+} from '../../../../bindings/claude-devtools/internal/systemservice/systemservice';
 
 import type {
   ContextInfo,
@@ -118,7 +121,7 @@ export const systemApi: SystemSlice = {
     _projectRoot?: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      await Browser.OpenURL('file://' + targetPath);
+      await OpenPath(targetPath);
       return { success: true };
     } catch (e) {
       return { success: false, error: e instanceof Error ? e.message : String(e) };

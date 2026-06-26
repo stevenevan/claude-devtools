@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"sort"
@@ -305,6 +306,34 @@ func discoverPlugins(dir string) []PluginEntry {
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	return out
+}
+
+// ---------------------------------------------------------------------------
+// OpenPath (Tauri opener plugin openPath equivalent)
+// ---------------------------------------------------------------------------
+
+// openPathCmd builds the OS-appropriate command to open target in the
+// file manager / default app. Factored out so tests can inspect the
+// command without actually launching it.
+func openPathCmd(target string) *exec.Cmd {
+	switch runtime.GOOS {
+	case "darwin":
+		return exec.Command("open", target)
+	case "windows":
+		return exec.Command("explorer", target)
+	default:
+		return exec.Command("xdg-open", target)
+	}
+}
+
+// OpenPath opens target in the OS file manager or default application.
+// Replaces the frontend file:// stopgap. Uses cmd.Start() to avoid blocking.
+func (s *SystemService) OpenPath(target string) error {
+	cmd := openPathCmd(target)
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("open path: %w", err)
+	}
+	return nil
 }
 
 // ---------------------------------------------------------------------------
