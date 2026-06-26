@@ -3,17 +3,14 @@ package snapshotservice
 import (
 	"strings"
 
-	"claude-devtools/internal/cache"
 	"claude-devtools/internal/domain"
 	"claude-devtools/internal/pipeline"
 	"claude-devtools/internal/snapshots"
 )
 
-type SnapshotService struct {
-	cache *cache.SessionCache // shared singleton, injected (arch C1)
-}
+type SnapshotService struct{}
 
-func New(c *cache.SessionCache) *SnapshotService { return &SnapshotService{cache: c} }
+func New() *SnapshotService { return &SnapshotService{} }
 
 func (s *SnapshotService) Ready() (bool, error) { return true, nil }
 

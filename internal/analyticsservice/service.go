@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"claude-devtools/internal/analytics"
-	"claude-devtools/internal/cache"
 	"claude-devtools/internal/domain"
 	"claude-devtools/internal/insights/error_hotspots"
 	"claude-devtools/internal/insights/file_graph"
@@ -25,11 +24,9 @@ func (s *AnalyticsService) CountTokensBatch(texts []string) ([]int, error) {
 	return tokenizer.CountTokensBatch(texts), nil
 }
 
-type AnalyticsService struct {
-	cache *cache.SessionCache // shared singleton, injected (arch C1)
-}
+type AnalyticsService struct{}
 
-func New(c *cache.SessionCache) *AnalyticsService { return &AnalyticsService{cache: c} }
+func New() *AnalyticsService { return &AnalyticsService{} }
 
 func (s *AnalyticsService) Ready() (bool, error) { return true, nil }
 
