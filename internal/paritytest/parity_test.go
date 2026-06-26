@@ -4,12 +4,30 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"claude-devtools/internal/pipeline"
 )
 
 const goldenDir = "../../docs/wails-migration/golden"
+
+// sourceJSONLExists reports whether the live session file a golden was captured
+// from still exists on disk. Claude Code rotates/deletes old session files, so a
+// golden can outlive its source — in which case the comparison is un-runnable
+// (not a parity failure) and the gate skips it.
+func sourceJSONLExists(projectID, sessionID string) bool {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return false
+	}
+	base := projectID
+	if i := strings.Index(projectID, "::"); i >= 0 {
+		base = projectID[:i]
+	}
+	_, err = os.Stat(filepath.Join(home, ".claude", "projects", base, sessionID+".jsonl"))
+	return err == nil
+}
 
 type manifest struct {
 	ProjectID string   `json:"projectId"`
@@ -71,6 +89,9 @@ func TestParityGate(t *testing.T) {
 			golden, err := os.ReadFile(filepath.Join(goldenDir, id+".json"))
 			if err != nil {
 				t.Skipf("golden blob missing: %v", err)
+			}
+			if !sourceJSONLExists(m.ProjectID, id) {
+				t.Skipf("source session file rotated/deleted from ~/.claude; golden un-runnable")
 			}
 			got, err := pipeline.BuildSessionDetailJSON(m.ProjectID, id)
 			if err != nil {

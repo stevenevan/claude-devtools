@@ -14,8 +14,11 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
+	"sync"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
+
+	"claude-devtools/internal/watcher"
 )
 
 // appVersion mirrors CARGO_PKG_VERSION from Cargo.toml. Keep in sync when bumping.
@@ -23,7 +26,9 @@ const appVersion = "0.1.0"
 
 // SystemService exposes 8 platform/window/plugin commands.
 type SystemService struct {
-	ctx context.Context
+	ctx       context.Context
+	watcherMu sync.Mutex
+	runner    *watcher.Runner
 }
 
 func (s *SystemService) ServiceStartup(ctx context.Context, _ application.ServiceOptions) error {
@@ -31,7 +36,17 @@ func (s *SystemService) ServiceStartup(ctx context.Context, _ application.Servic
 	return nil
 }
 
-func (s *SystemService) ServiceShutdown() error { return nil }
+// ServiceShutdown stops the file watcher if it is running.
+func (s *SystemService) ServiceShutdown() error {
+	s.watcherMu.Lock()
+	r := s.runner
+	s.runner = nil
+	s.watcherMu.Unlock()
+	if r != nil {
+		r.Stop()
+	}
+	return nil
+}
 
 // Platform returns GOOS (already wired from the stub).
 func (s *SystemService) Platform() (string, error) { return runtime.GOOS, nil }
@@ -46,20 +61,44 @@ func (s *SystemService) GetAppVersion() (string, error) {
 }
 
 // ---------------------------------------------------------------------------
-// StartWatching / StopWatching
-// WATCHER GAP: internal/watcher does not exist yet (W3-T5 port is pending).
-// These return success stubs. Report: wire to watcher package when it is ported.
+// StartWatching / StopWatching (lifecycle.rs)
 // ---------------------------------------------------------------------------
 
-// StartWatching is a stub — the watcher package has not been ported yet.
-// GAP: wire to internal/watcher.Start() once W3-T5 is complete.
+// StartWatching begins recursive watching of ~/.claude/projects and
+// ~/.claude/todos. Idempotent. Matches Rust start_watcher (command-triggered,
+// not auto-started in ServiceStartup). Missing directories are retried every 2 s.
 func (s *SystemService) StartWatching() error {
-	return nil
+	claudeDir, ok := watcher.ResolveClaudeDir()
+	if !ok {
+		return fmt.Errorf("cannot resolve home directory")
+	}
+	projectsDir := filepath.Join(claudeDir, "projects")
+	todosDir := filepath.Join(claudeDir, "todos")
+
+	s.watcherMu.Lock()
+	if s.runner != nil {
+		s.watcherMu.Unlock()
+		return nil // already watching
+	}
+	r := watcher.New(projectsDir, todosDir, func(event string, payload any) {
+		emitEvent(event, payload)
+	})
+	s.runner = r
+	s.watcherMu.Unlock()
+
+	return r.Start()
 }
 
-// StopWatching is a stub — the watcher package has not been ported yet.
-// GAP: wire to internal/watcher.Stop() once W3-T5 is complete.
+// StopWatching stops all filesystem watches and cleans up goroutines.
+// Matches Rust stop_watcher.
 func (s *SystemService) StopWatching() error {
+	s.watcherMu.Lock()
+	r := s.runner
+	s.runner = nil
+	s.watcherMu.Unlock()
+	if r != nil {
+		r.Stop()
+	}
 	return nil
 }
 

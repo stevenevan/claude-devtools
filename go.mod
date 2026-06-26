@@ -7,6 +7,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/pkg/sftp v1.13.10
+	github.com/rjeczalik/notify v0.9.3
 	github.com/wailsapp/wails/v3 v3.0.0-alpha2.104
 	github.com/weaviate/tiktoken-go v0.0.3
 	golang.org/x/crypto v0.53.0
