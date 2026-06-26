@@ -99,11 +99,6 @@ export interface AppConfig {
     /** Port for the HTTP server (default 3456) */
     port: number;
   };
-  /** Spending budget thresholds (alerting wiring deferred to later sprint). */
-  budget?: {
-    dailyBudgetUsd?: number;
-    weeklyBudgetUsd?: number;
-  };
   /** Dashboard widget ordering + hide list (sprint 32). */
   dashboard?: {
     widgetOrder?: string[];
@@ -126,8 +121,6 @@ export interface AppConfig {
   notificationRules?: NotificationRule[];
   /** Webhook endpoints (sprint 41). */
   webhookEndpoints?: WebhookEndpoint[];
-  /** Backend session-cache size (sprint 46). */
-  cacheMaxSessions?: number;
   /** Whether the first-run onboarding tour has been dismissed (sprint 49). */
   onboardingCompleted?: boolean;
 }

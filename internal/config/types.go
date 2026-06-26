@@ -262,13 +262,6 @@ func defaultDashboardConfig() DashboardConfig {
 	return DashboardConfig{WidgetOrder: []string{}, HiddenWidgets: []string{}}
 }
 
-// BudgetConfig mirrors src-tauri/src/config/types/dashboard.rs.
-// Both fields are Option + skip_serializing_if → omitempty.
-type BudgetConfig struct {
-	DailyBudgetUSD  *float64 `json:"dailyBudgetUsd,omitempty"`
-	WeeklyBudgetUSD *float64 `json:"weeklyBudgetUsd,omitempty"`
-}
-
 // ── App (themes, shortcuts, plugins) ─────────────────────────────────────────
 
 // CustomTheme mirrors src-tauri/src/config/types/app.rs.
@@ -326,7 +319,7 @@ type WebhookEndpoint struct {
 // ── AppConfig (top-level) ─────────────────────────────────────────────────────
 
 // AppConfig mirrors src-tauri/src/config/types/app.rs AppConfig.
-// cache_max_sessions defaults to 50; onboarding_completed defaults false.
+// onboarding_completed defaults false.
 type AppConfig struct {
 	Notifications     NotificationConfig `json:"notifications"`
 	General           GeneralConfig      `json:"general"`
@@ -334,14 +327,12 @@ type AppConfig struct {
 	Sessions          SessionsConfig     `json:"sessions"`
 	SSH               SshPersistConfig   `json:"ssh"`
 	HTTPServer        HttpServerConfig   `json:"httpServer"`
-	Budget            BudgetConfig       `json:"budget"`
 	Dashboard         DashboardConfig    `json:"dashboard"`
 	Shortcuts         ShortcutsConfig    `json:"shortcuts"`
 	Themes            ThemesConfig       `json:"themes"`
 	Plugins           PluginsConfig      `json:"plugins"`
 	NotificationRules []NotificationRule `json:"notificationRules"`
 	WebhookEndpoints  []WebhookEndpoint  `json:"webhookEndpoints"`
-	CacheMaxSessions  int                `json:"cacheMaxSessions"`
 	OnboardingCompleted bool             `json:"onboardingCompleted"`
 }
 
@@ -354,14 +345,12 @@ func DefaultAppConfig() AppConfig {
 		Sessions:            defaultSessionsConfig(),
 		SSH:                 defaultSshPersistConfig(),
 		HTTPServer:          defaultHttpServerConfig(),
-		Budget:              BudgetConfig{},
 		Dashboard:           defaultDashboardConfig(),
 		Shortcuts:           defaultShortcutsConfig(),
 		Themes:              defaultThemesConfig(),
 		Plugins:             defaultPluginsConfig(),
 		NotificationRules:   []NotificationRule{},
 		WebhookEndpoints:    []WebhookEndpoint{},
-		CacheMaxSessions:    50,
 		OnboardingCompleted: false,
 	}
 }

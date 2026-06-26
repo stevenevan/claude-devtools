@@ -462,7 +462,6 @@ func mergeConfigWithDefaults(raw map[string]json.RawMessage) AppConfig {
 	}
 
 	unmarshalOr("httpServer", &cfg.HTTPServer, defaults.HTTPServer)
-	unmarshalOr("budget", &cfg.Budget, defaults.Budget)
 	unmarshalOr("dashboard", &cfg.Dashboard, defaults.Dashboard)
 	if cfg.Dashboard.WidgetOrder == nil {
 		cfg.Dashboard.WidgetOrder = []string{}
@@ -500,12 +499,6 @@ func mergeConfigWithDefaults(raw map[string]json.RawMessage) AppConfig {
 		}
 	}
 
-	if v, ok := raw["cacheMaxSessions"]; ok {
-		var n int
-		if json.Unmarshal(v, &n) == nil && n >= 1 {
-			cfg.CacheMaxSessions = n
-		}
-	}
 
 	if v, ok := raw["onboardingCompleted"]; ok {
 		_ = json.Unmarshal(v, &cfg.OnboardingCompleted)
