@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { cn } from '@renderer/lib/utils';
 import { buildFlameLayout } from '@renderer/utils/flameGraphLayout';
+import { formatDurationMs } from '@renderer/utils/formatters';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 
 import type { FlameBar, ToolCategory } from '@renderer/utils/flameGraphLayout';
@@ -36,12 +37,6 @@ interface TooltipState {
   bar: FlameBar;
   x: number;
   y: number;
-}
-
-function formatDurationMs(ms: number): string {
-  if (ms < 1000) return `${Math.round(ms)}ms`;
-  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
-  return `${(ms / 60_000).toFixed(1)}m`;
 }
 
 function tokensSent(bar: FlameBar): number {

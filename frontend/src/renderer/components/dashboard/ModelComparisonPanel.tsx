@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { api } from '@renderer/api';
 import { cn } from '@renderer/lib/utils';
+import { formatDurationMs } from '@renderer/utils/formatters';
 import { createLogger } from '@shared/utils/logger';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
+import { formatCost } from './dashboardFormatters';
 import { registerDashboardWidget } from './widgetContract';
 
 import type { ModelComparisonEntry, ModelComparisonResponse } from '@shared/types';
@@ -58,19 +60,6 @@ function saveSort(sort: { key: SortKey; dir: SortDir }): void {
   } catch {
     /* ignore */
   }
-}
-
-function formatCost(usd: number): string {
-  if (usd >= 100) return `$${usd.toFixed(0)}`;
-  if (usd >= 1) return `$${usd.toFixed(2)}`;
-  if (usd >= 0.01) return `$${usd.toFixed(3)}`;
-  return `$${usd.toFixed(4)}`;
-}
-
-function formatDurationMs(ms: number): string {
-  if (ms < 1000) return `${Math.round(ms)}ms`;
-  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
-  return `${(ms / 60_000).toFixed(1)}m`;
 }
 
 interface MiniBarsProps {
