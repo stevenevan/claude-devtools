@@ -124,7 +124,7 @@ export const PaneContainer = (): React.JSX.Element => {
       <main id="pane-container" className="flex flex-1 overflow-hidden">
         {panes.map((pane, i) => (
           <Fragment key={pane.id}>
-            {i > 0 && <PaneResizeHandle leftPaneId={panes[i - 1].id} rightPaneId={pane.id} />}
+            {i > 0 && <PaneResizeHandle leftPaneId={panes[i - 1].id} />}
             <PaneView paneId={pane.id} />
           </Fragment>
         ))}

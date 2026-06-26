@@ -10,15 +10,6 @@ func buildSessionPath(base, projectID, sessionID string) string {
 	return filepath.Join(base, ExtractBaseDir(projectID), sessionID+".jsonl")
 }
 
-func TestEncodePath(t *testing.T) {
-	if got := EncodePath("/Users/name/project"); got != "-Users-name-project" {
-		t.Errorf("EncodePath = %q", got)
-	}
-	if got := EncodePath(""); got != "" {
-		t.Errorf("EncodePath(empty) = %q", got)
-	}
-}
-
 func TestDecodePath(t *testing.T) {
 	cases := map[string]string{
 		"-Users-name-project":                "/Users/name/project",
@@ -31,17 +22,6 @@ func TestDecodePath(t *testing.T) {
 		if got := DecodePath(in); got != want {
 			t.Errorf("DecodePath(%q) = %q, want %q", in, got, want)
 		}
-	}
-}
-
-func TestDecodePathLossyDashes(t *testing.T) {
-	encoded := EncodePath("/Users/name/my-project")
-	if encoded != "-Users-name-my-project" {
-		t.Fatalf("encode = %q", encoded)
-	}
-	// Known lossy behavior: dashes become slashes.
-	if got := DecodePath(encoded); got != "/Users/name/my/project" {
-		t.Errorf("DecodePath = %q", got)
 	}
 }
 
@@ -147,38 +127,3 @@ func TestGetProjectsBasePath(t *testing.T) {
 	}
 }
 
-func TestReversibleRoundtrip(t *testing.T) {
-	originals := []string{
-		"/Users/name/my-project",
-		"/Users/name/project",
-		"",
-		"/Users/name/my-project/sub-dir/file-name.ts",
-		"/Users/name/100%done",
-	}
-	for _, o := range originals {
-		if got := DecodePathReversible(EncodePathReversible(o)); got != o {
-			t.Errorf("roundtrip %q = %q", o, got)
-		}
-	}
-}
-
-func TestIsReversibleEncodingDetection(t *testing.T) {
-	if !IsReversibleEncoding(EncodePathReversible("/Users/name/my-project")) {
-		t.Error("reversible should be detected")
-	}
-	if IsReversibleEncoding(EncodePath("/Users/name/project")) {
-		t.Error("legacy should not be detected as reversible")
-	}
-}
-
-func TestDecodePathSmart(t *testing.T) {
-	if got := DecodePathSmart("-Users-name-my-project", "/Users/name/my-project"); got != "/Users/name/my-project" {
-		t.Errorf("hint = %q", got)
-	}
-	if got := DecodePathSmart(EncodePathReversible("/Users/name/my-project"), ""); got != "/Users/name/my-project" {
-		t.Errorf("reversible = %q", got)
-	}
-	if got := DecodePathSmart("-Users-name-project", ""); got != "/Users/name/project" {
-		t.Errorf("legacy = %q", got)
-	}
-}

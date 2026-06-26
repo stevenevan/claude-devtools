@@ -136,51 +136,6 @@ func ExtractBaseDir(projectID string) string {
 	return projectID
 }
 
-// EncodePathReversible encodes an absolute path with percent-encoding so that
-// dashes in the original path survive the round-trip.
-// Mirrors path_decoder::encode_path_reversible.
-func EncodePathReversible(absolutePath string) string {
-	if absolutePath == "" {
-		return ""
-	}
-	// Escape %, then -, then convert path separators to -.
-	s := strings.ReplaceAll(absolutePath, "%", "%25")
-	s = strings.ReplaceAll(s, "-", "%2D")
-	s = strings.ReplaceAll(s, "/", "-")
-	s = strings.ReplaceAll(s, `\`, "-")
-	return s
-}
-
-// DecodePathReversible decodes a reversibly-encoded path back to the original.
-// Mirrors path_decoder::decode_path_reversible.
-func DecodePathReversible(encoded string) string {
-	if encoded == "" {
-		return ""
-	}
-	s := strings.ReplaceAll(encoded, "-", "/")
-	s = strings.ReplaceAll(s, "%2D", "-")
-	s = strings.ReplaceAll(s, "%25", "%")
-	return s
-}
-
-// IsReversibleEncoding returns true when the encoded path uses reversible encoding.
-// Mirrors path_decoder::is_reversible_encoding.
-func IsReversibleEncoding(encoded string) bool {
-	return strings.Contains(encoded, "%2D") || strings.Contains(encoded, "%25")
-}
-
-// DecodePathSmart auto-detects reversible vs. legacy encoding. If cwdHint is
-// non-empty it is returned directly. Mirrors path_decoder::decode_path_smart.
-func DecodePathSmart(encoded, cwdHint string) string {
-	if cwdHint != "" {
-		return cwdHint
-	}
-	if IsReversibleEncoding(encoded) {
-		return DecodePathReversible(encoded)
-	}
-	return DecodePath(encoded)
-}
-
 // BuildTodoPath returns ~/.claude/todos/{sessionID}.json.
 func BuildTodoPath(claudeBase, sessionID string) string {
 	return filepath.Join(claudeBase, "todos", sessionID+".json")
@@ -191,15 +146,3 @@ func GetProjectsBasePath(claudeDir string) string {
 	return filepath.Join(claudeDir, "projects")
 }
 
-// EncodePath encodes an absolute path to the lossy Claude directory name.
-// This is the inverse of DecodePath (test-only in Rust, exported here for completeness).
-func EncodePath(absolutePath string) string {
-	if absolutePath == "" {
-		return ""
-	}
-	encoded := strings.NewReplacer("/", "-", `\`, "-").Replace(absolutePath)
-	if strings.HasPrefix(encoded, "-") {
-		return encoded
-	}
-	return "-" + encoded
-}

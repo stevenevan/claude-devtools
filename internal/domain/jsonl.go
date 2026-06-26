@@ -217,7 +217,6 @@ type RawJsonlEntry struct {
 	IsCompactSummary *bool `json:"isCompactSummary"`
 
 	Subtype *string `json:"subtype"`
-	Level   *string `json:"level"`
 	URL     *string `json:"url"`
 	Content *string `json:"content"`
 
@@ -234,9 +233,8 @@ type RawJsonlEntry struct {
 
 	Operation *string `json:"operation"`
 
-	Data            RawValue `json:"data"`
-	ToolUseIDRef    *string  `json:"toolUseID"`
-	ParentToolUseID *string  `json:"parentToolUseID"`
+	Data         RawValue `json:"data"`
+	ToolUseIDRef *string  `json:"toolUseID"`
 
 	CustomTitle *string `json:"customTitle"`
 	AgentName   *string `json:"agentName"`
@@ -286,7 +284,6 @@ func (e *RawJsonlEntry) UnmarshalJSON(b []byte) error {
 	str(&e.RequestID, "requestId")
 	bl(&e.IsCompactSummary, "isCompactSummary")
 	str(&e.Subtype, "subtype")
-	str(&e.Level, "level")
 	str(&e.URL, "url")
 	str(&e.Content, "content")
 	e.Error = get("error")
@@ -310,7 +307,6 @@ func (e *RawJsonlEntry) UnmarshalJSON(b []byte) error {
 	str(&e.Operation, "operation")
 	e.Data = get("data")
 	str(&e.ToolUseIDRef, "toolUseID")
-	str(&e.ParentToolUseID, "parentToolUseID")
 	str(&e.CustomTitle, "customTitle")
 	str(&e.AgentName, "agentName")
 	return err

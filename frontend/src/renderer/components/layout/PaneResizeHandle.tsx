@@ -5,7 +5,6 @@ import { useStore } from '@renderer/store';
 
 interface PaneResizeHandleProps {
   leftPaneId: string;
-  rightPaneId: string;
 }
 
 export const PaneResizeHandle = ({ leftPaneId }: PaneResizeHandleProps): React.JSX.Element => {
