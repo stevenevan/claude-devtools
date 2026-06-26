@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"claude-devtools/internal/domain"
+	"claude-devtools/internal/ptr"
 )
 
 // extractToolCalls mirrors tool_extraction::extract_tool_calls: pull ToolUse
@@ -14,10 +15,10 @@ func extractToolCalls(content domain.ParsedMessageContent) []domain.ToolCall {
 		if b.Type != "tool_use" {
 			continue
 		}
-		isTask := derefStr(b.Name) == "Task"
+		isTask := ptr.Deref(b.Name) == "Task"
 		tc := domain.ToolCall{
-			ID:     derefStr(b.ID),
-			Name:   derefStr(b.Name),
+			ID:     ptr.Deref(b.ID),
+			Name:   ptr.Deref(b.Name),
 			Input:  b.Input,
 			IsTask: isTask,
 		}
@@ -59,17 +60,10 @@ func extractToolResults(content domain.ParsedMessageContent) []domain.ToolResult
 			isErr = *b.IsError
 		}
 		results = append(results, domain.ToolResult{
-			ToolUseID: derefStr(b.ToolUseID),
+			ToolUseID: ptr.Deref(b.ToolUseID),
 			Content:   raw,
 			IsError:   isErr,
 		})
 	}
 	return results
-}
-
-func derefStr(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
 }

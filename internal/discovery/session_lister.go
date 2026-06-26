@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"claude-devtools/internal/domain"
+	"claude-devtools/internal/ptr"
 )
 
 // SessionsPaginationOptions mirrors types/domain::SessionsPaginationOptions.
@@ -140,7 +141,7 @@ func ListSessionsPaginated(
 			HasSubagents:     hasSubs,
 			MessageCount:     0,
 			IsOngoing:        isOngoing,
-			MetadataLevel:    strPtr("light"),
+			MetadataLevel:    ptr.To("light"),
 			CustomTitle:      preview.customTitle,
 			AgentName:        preview.agentName,
 		})

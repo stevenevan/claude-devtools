@@ -14,6 +14,7 @@ import (
 
 	"claude-devtools/internal/domain"
 	"claude-devtools/internal/parsing"
+	"claude-devtools/internal/ptr"
 )
 
 const parallelWindowMS = 100.0
@@ -184,7 +185,7 @@ func linkToTaskCalls(subagents []domain.Process, taskCalls []domain.ToolCall, me
 			if subagents[i].ID != agentID {
 				continue
 			}
-			subagents[i].ParentTaskID = strPtr(sourceID)
+			subagents[i].ParentTaskID = ptr.To(sourceID)
 			for _, tc := range taskCalls {
 				if tc.ID == sourceID {
 					enrichFromTaskCall(&subagents[i], tc)
@@ -227,7 +228,7 @@ func linkToTaskCalls(subagents []domain.Process, taskCalls []domain.ToolCall, me
 	for i := 0; i < len(unlinkedIdxs) && i < len(unmatchedTasks); i++ {
 		idx := unlinkedIdxs[i]
 		tc := unmatchedTasks[i]
-		subagents[idx].ParentTaskID = strPtr(tc.ID)
+		subagents[idx].ParentTaskID = ptr.To(tc.ID)
 		enrichFromTaskCall(&subagents[idx], tc)
 	}
 }
@@ -280,5 +281,3 @@ func tsDiffMS(a, b string) float64 {
 	}
 	return parse(a) - parse(b)
 }
-
-func strPtr(s string) *string { return &s }

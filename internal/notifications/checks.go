@@ -9,6 +9,7 @@ import (
 	"claude-devtools/internal/config"
 	"claude-devtools/internal/discovery"
 	"claude-devtools/internal/domain"
+	"claude-devtools/internal/ptr"
 )
 
 // CheckToolResultTrigger checks a tool_result trigger against one message.
@@ -57,8 +58,8 @@ func CheckToolResultTrigger(
 				Cwd:          msg.Cwd,
 				ToolUseID:    &r.ToolUseID,
 				TriggerColor: trigger.Color,
-				TriggerID:    strPtr(trigger.ID),
-				TriggerName:  strPtr(trigger.Name),
+				TriggerID:    ptr.To(trigger.ID),
+				TriggerName:  ptr.To(trigger.Name),
 			})
 			return &e
 		}
@@ -95,8 +96,8 @@ func CheckToolResultTrigger(
 					Cwd:          msg.Cwd,
 					ToolUseID:    &r.ToolUseID,
 					TriggerColor: trigger.Color,
-					TriggerID:    strPtr(trigger.ID),
-					TriggerName:  strPtr(trigger.Name),
+					TriggerID:    ptr.To(trigger.ID),
+					TriggerName:  ptr.To(trigger.Name),
 				})
 				return &e
 			}
@@ -174,8 +175,8 @@ func CheckToolUseTrigger(
 			Cwd:          msg.Cwd,
 			ToolUseID:    &toolUseID,
 			TriggerColor: trigger.Color,
-			TriggerID:    strPtr(trigger.ID),
-			TriggerName:  strPtr(trigger.Name),
+			TriggerID:    ptr.To(trigger.ID),
+			TriggerName:  ptr.To(trigger.Name),
 		})
 		return &e
 	}
@@ -294,13 +295,10 @@ func CheckTokenThresholdTrigger(
 			Cwd:          msg.Cwd,
 			ToolUseID:    &toolUseID,
 			TriggerColor: trigger.Color,
-			TriggerID:    strPtr(trigger.ID),
-			TriggerName:  strPtr(trigger.Name),
+			TriggerID:    ptr.To(trigger.ID),
+			TriggerName:  ptr.To(trigger.Name),
 		}))
 	}
 
 	return errors
 }
-
-// strPtr is a local helper for optional string pointers.
-func strPtr(s string) *string { return &s }

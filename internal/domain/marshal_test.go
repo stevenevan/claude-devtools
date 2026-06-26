@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+
+	"claude-devtools/internal/ptr"
 )
 
 // canon marshals v, then round-trips through interface{} so encoding/json
@@ -45,8 +47,6 @@ func eq(t *testing.T, got, wantLit string) {
 	}
 }
 
-func ptr[T any](v T) *T { return &v }
-
 // skip_serializing_if optionals must OMIT the key (not emit null); non-skip
 // optionals (parentUuid) must emit null; tool slices must be [] not null.
 func TestParsedMessageOptionalOmission(t *testing.T) {
@@ -54,7 +54,7 @@ func TestParsedMessageOptionalOmission(t *testing.T) {
 		UUID:        "u1",
 		MessageType: "assistant",
 		Timestamp:   "2026-01-01T00:00:00Z",
-		Content:     ParsedMessageContent{Text: ptr("hello")},
+		Content:     ParsedMessageContent{Text: ptr.To("hello")},
 		ToolCalls:   []ToolCall{},
 		ToolResults: []ToolResult{},
 		// all optionals left nil
@@ -83,7 +83,7 @@ func TestParsedMessageOptionalOmission(t *testing.T) {
 func TestNilSliceIsNullNotArray(t *testing.T) {
 	var m ParsedMessage
 	m.UUID, m.MessageType, m.Timestamp = "u", "user", "t"
-	m.Content = ParsedMessageContent{Text: ptr("x")}
+	m.Content = ParsedMessageContent{Text: ptr.To("x")}
 	got := canon(t, m)
 	if !strings.Contains(got, `"toolCalls":null`) {
 		t.Fatalf("expected nil slice to marshal as null (proving constructors must init []T{}): %s", got)
@@ -91,15 +91,15 @@ func TestNilSliceIsNullNotArray(t *testing.T) {
 }
 
 func TestContentBlockVariants(t *testing.T) {
-	eq(t, canon(t, ContentBlock{Type: "text", Text: ptr("hi")}),
+	eq(t, canon(t, ContentBlock{Type: "text", Text: ptr.To("hi")}),
 		`{"type":"text","text":"hi"}`)
-	eq(t, canon(t, ContentBlock{Type: "thinking", Thinking: ptr("t"), Signature: ptr("s")}),
+	eq(t, canon(t, ContentBlock{Type: "thinking", Thinking: ptr.To("t"), Signature: ptr.To("s")}),
 		`{"type":"thinking","thinking":"t","signature":"s"}`)
-	eq(t, canon(t, ContentBlock{Type: "tool_use", ID: ptr("id1"), Name: ptr("Read"), Input: RawValue(`{"a":1}`)}),
+	eq(t, canon(t, ContentBlock{Type: "tool_use", ID: ptr.To("id1"), Name: ptr.To("Read"), Input: RawValue(`{"a":1}`)}),
 		`{"type":"tool_use","id":"id1","name":"Read","input":{"a":1}}`)
 	// tool_result: is_error has no skip → present as null when nil
-	eq(t, canon(t, ContentBlock{Type: "tool_result", ToolUseID: ptr("tu1"),
-		Content: &ToolResultContentValue{Text: ptr("done")}}),
+	eq(t, canon(t, ContentBlock{Type: "tool_result", ToolUseID: ptr.To("tu1"),
+		Content: &ToolResultContentValue{Text: ptr.To("done")}}),
 		`{"type":"tool_result","tool_use_id":"tu1","content":"done","is_error":null}`)
 	eq(t, canon(t, ContentBlock{Type: "image", Source: &ImageSource{
 		SourceType: "base64", MediaType: "image/png", Data: "AAA"}}),
@@ -107,14 +107,14 @@ func TestContentBlockVariants(t *testing.T) {
 }
 
 func TestToolResultContentValue(t *testing.T) {
-	eq(t, canon(t, ToolResultContentValue{Text: ptr("s")}), `"s"`)
-	eq(t, canon(t, ToolResultContentValue{Blocks: []ContentBlock{{Type: "text", Text: ptr("b")}}}),
+	eq(t, canon(t, ToolResultContentValue{Text: ptr.To("s")}), `"s"`)
+	eq(t, canon(t, ToolResultContentValue{Blocks: []ContentBlock{{Type: "text", Text: ptr.To("b")}}}),
 		`[{"type":"text","text":"b"}]`)
 }
 
 func TestParsedMessageContent(t *testing.T) {
-	eq(t, canon(t, ParsedMessageContent{Text: ptr("plain")}), `"plain"`)
-	eq(t, canon(t, ParsedMessageContent{Blocks: []ContentBlock{{Type: "text", Text: ptr("x")}}}),
+	eq(t, canon(t, ParsedMessageContent{Text: ptr.To("plain")}), `"plain"`)
+	eq(t, canon(t, ParsedMessageContent{Blocks: []ContentBlock{{Type: "text", Text: ptr.To("x")}}}),
 		`[{"type":"text","text":"x"}]`)
 }
 
@@ -128,7 +128,7 @@ func TestTokenUsageSnakeCase(t *testing.T) {
 func TestEnhancedChunkTag(t *testing.T) {
 	c := EnhancedChunk{Type: "system", System: &EnhancedSystemChunk{
 		ID: "c1", StartTime: "a", EndTime: "b", DurationMs: 1,
-		Message:       ParsedMessage{UUID: "u", MessageType: "system", Timestamp: "t", Content: ParsedMessageContent{Text: ptr("o")}, ToolCalls: []ToolCall{}, ToolResults: []ToolResult{}},
+		Message:       ParsedMessage{UUID: "u", MessageType: "system", Timestamp: "t", Content: ParsedMessageContent{Text: ptr.To("o")}, ToolCalls: []ToolCall{}, ToolResults: []ToolResult{}},
 		CommandOutput: "out",
 		RawMessages:   []ParsedMessage{},
 	}}

@@ -20,6 +20,7 @@ import (
 	"claude-devtools/internal/discovery"
 	"claude-devtools/internal/domain"
 	"claude-devtools/internal/parsing"
+	"claude-devtools/internal/ptr"
 )
 
 // SessionService exposes session discovery + detail.
@@ -109,7 +110,7 @@ func buildSessionDetail(
 		HasSubagents:  len(subagents) > 0,
 		MessageCount:  uint32(len(parsed.Messages)),
 		IsOngoing:     isOngoing,
-		MetadataLevel: strPtr("deep"),
+		MetadataLevel: ptr.To("deep"),
 		CustomTitle:   parsed.CustomTitle,
 		AgentName:     parsed.AgentName,
 	}
@@ -359,7 +360,7 @@ func (s *SessionService) ParseSession(projectID, sessionID string) (domain.Sessi
 		HasSubagents:  false,
 		MessageCount:  uint32(len(parsed.Messages)),
 		IsOngoing:     isOngoing,
-		MetadataLevel: strPtr("deep"),
+		MetadataLevel: ptr.To("deep"),
 		CustomTitle:   parsed.CustomTitle,
 		AgentName:     parsed.AgentName,
 	}, nil
@@ -431,7 +432,7 @@ func (s *SessionService) GetSubagentDetail(projectID, sessionID, subagentID stri
 		HasSubagents:  false,
 		MessageCount:  uint32(len(parsed.Messages)),
 		IsOngoing:     isOngoing,
-		MetadataLevel: strPtr("deep"),
+		MetadataLevel: ptr.To("deep"),
 	}
 
 	detail := analysis.BuildSessionDetail(session, parsed.Messages, []domain.Process{})
@@ -621,9 +622,3 @@ func (s *SessionService) GetRepositoryGroups() []any { return []any{} }
 func (s *SessionService) GetWorktreeSessions(worktreeID string) []domain.Session {
 	return []domain.Session{}
 }
-
-// --------------------------------------------------------------------------
-// Internal helpers
-// --------------------------------------------------------------------------
-
-func strPtr(s string) *string { return &s }

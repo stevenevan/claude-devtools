@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"claude-devtools/internal/domain"
+	"claude-devtools/internal/ptr"
 )
 
 // Message tag constants (types/constants.rs).
@@ -82,7 +83,7 @@ func isHardNoiseMessage(m *domain.ParsedMessage) bool {
 			}
 		} else if len(m.Content.Blocks) == 1 {
 			b := m.Content.Blocks[0]
-			if b.Type == "text" && strings.HasPrefix(derefStr(b.Text), "[Request interrupted by user") {
+			if b.Type == "text" && strings.HasPrefix(ptr.Deref(b.Text), "[Request interrupted by user") {
 				return true
 			}
 		}
@@ -102,7 +103,7 @@ func isSystemChunkMessage(m *domain.ParsedMessage) bool {
 		return strings.HasPrefix(t, localCommandStdoutTag) || strings.HasPrefix(t, localCommandStderrTag)
 	}
 	for _, b := range m.Content.Blocks {
-		if b.Type == "text" && strings.HasPrefix(derefStr(b.Text), localCommandStdoutTag) {
+		if b.Type == "text" && strings.HasPrefix(ptr.Deref(b.Text), localCommandStdoutTag) {
 			return true
 		}
 	}
@@ -137,13 +138,13 @@ func isUserChunkMessage(m *domain.ParsedMessage) bool {
 		return false
 	}
 	if len(blocks) == 1 && blocks[0].Type == "text" &&
-		strings.HasPrefix(derefStr(blocks[0].Text), "[Request interrupted by user") {
+		strings.HasPrefix(ptr.Deref(blocks[0].Text), "[Request interrupted by user") {
 		return false
 	}
 	for _, b := range blocks {
 		if b.Type == "text" {
 			for _, tag := range systemOutputTags {
-				if strings.HasPrefix(derefStr(b.Text), tag) {
+				if strings.HasPrefix(ptr.Deref(b.Text), tag) {
 					return false
 				}
 			}
@@ -160,7 +161,7 @@ func isTeammateMessage(m *domain.ParsedMessage) bool {
 		return teammateRegex.MatchString(strings.TrimSpace(t))
 	}
 	for _, b := range m.Content.Blocks {
-		if b.Type == "text" && teammateRegex.MatchString(strings.TrimSpace(derefStr(b.Text))) {
+		if b.Type == "text" && teammateRegex.MatchString(strings.TrimSpace(ptr.Deref(b.Text))) {
 			return true
 		}
 	}

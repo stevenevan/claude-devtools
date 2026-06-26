@@ -3,6 +3,8 @@ package domain
 import (
 	"encoding/json"
 	"fmt"
+
+	"claude-devtools/internal/ptr"
 )
 
 // ImageSource — base64 image payload. No rename_all in Rust, so fields keep
@@ -67,20 +69,20 @@ func (c ContentBlock) MarshalJSON() ([]byte, error) {
 		return json.Marshal(struct {
 			Type string `json:"type"`
 			Text string `json:"text"`
-		}{"text", derefStr(c.Text)})
+		}{"text", ptr.Deref(c.Text)})
 	case "thinking":
 		return json.Marshal(struct {
 			Type      string `json:"type"`
 			Thinking  string `json:"thinking"`
 			Signature string `json:"signature"`
-		}{"thinking", derefStr(c.Thinking), derefStr(c.Signature)})
+		}{"thinking", ptr.Deref(c.Thinking), ptr.Deref(c.Signature)})
 	case "tool_use":
 		return json.Marshal(struct {
 			Type  string   `json:"type"`
 			ID    string   `json:"id"`
 			Name  string   `json:"name"`
 			Input RawValue `json:"input"`
-		}{"tool_use", derefStr(c.ID), derefStr(c.Name), c.Input})
+		}{"tool_use", ptr.Deref(c.ID), ptr.Deref(c.Name), c.Input})
 	case "tool_result":
 		// is_error has no skip_serializing_if → always present (null when None).
 		return json.Marshal(struct {
@@ -88,7 +90,7 @@ func (c ContentBlock) MarshalJSON() ([]byte, error) {
 			ToolUseID string                  `json:"tool_use_id"`
 			Content   *ToolResultContentValue `json:"content"`
 			IsError   *bool                   `json:"is_error"`
-		}{"tool_result", derefStr(c.ToolUseID), c.Content, c.IsError})
+		}{"tool_result", ptr.Deref(c.ToolUseID), c.Content, c.IsError})
 	case "image":
 		return json.Marshal(struct {
 			Type   string       `json:"type"`
@@ -190,13 +192,6 @@ func (c *ContentBlock) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func derefStr(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
-}
-
 // RawJsonlEntry — a raw JSONL line, deserialized loosely (single struct with
 // optional fields rather than a tagged enum). Deserialize-only on the Rust side.
 type RawJsonlEntry struct {
@@ -210,12 +205,12 @@ type RawJsonlEntry struct {
 	Cwd         *string `json:"cwd"`
 	GitBranch   *string `json:"gitBranch"`
 
-	Message                RawValue `json:"message"`
-	IsMeta                 *bool    `json:"isMeta"`
-	AgentID                *string  `json:"agentId"`
-	ToolUseResult          RawValue `json:"toolUseResult"`
-	SourceToolUseID        *string  `json:"sourceToolUseId"`
-	SourceToolAssistantUUID *string `json:"sourceToolAssistantUUID"`
+	Message                 RawValue `json:"message"`
+	IsMeta                  *bool    `json:"isMeta"`
+	AgentID                 *string  `json:"agentId"`
+	ToolUseResult           RawValue `json:"toolUseResult"`
+	SourceToolUseID         *string  `json:"sourceToolUseId"`
+	SourceToolAssistantUUID *string  `json:"sourceToolAssistantUUID"`
 
 	RequestID *string `json:"requestId"`
 
@@ -226,7 +221,7 @@ type RawJsonlEntry struct {
 	URL     *string `json:"url"`
 	Content *string `json:"content"`
 
-	Error       RawValue `json:"error"`
+	Error        RawValue `json:"error"`
 	RetryInMs    *float64 `json:"retryInMs"`
 	RetryAttempt *uint32  `json:"retryAttempt"`
 	MaxRetries   *uint32  `json:"maxRetries"`

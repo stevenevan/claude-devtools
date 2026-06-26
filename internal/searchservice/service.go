@@ -14,6 +14,7 @@ import (
 	"claude-devtools/internal/discovery"
 	"claude-devtools/internal/domain"
 	"claude-devtools/internal/parsing"
+	"claude-devtools/internal/ptr"
 	"claude-devtools/internal/search"
 )
 
@@ -59,16 +60,16 @@ type SessionSearchResult struct {
 
 // SessionSearchItem is one entry in a search result.
 type SessionSearchItem struct {
-	SessionID          string   `json:"sessionId"`
-	ProjectID          string   `json:"projectId"`
-	ProjectPath        *string  `json:"projectPath,omitempty"`
-	Preview            *string  `json:"preview"`
-	CustomTitle        *string  `json:"customTitle,omitempty"`
-	AgentName          *string  `json:"agentName,omitempty"`
-	Timestamp          float64  `json:"timestamp"`
-	MessageCount       *uint32  `json:"messageCount,omitempty"`
-	IsOngoing          *bool    `json:"isOngoing,omitempty"`
-	HasSubagents       *bool    `json:"hasSubagents,omitempty"`
+	SessionID          string  `json:"sessionId"`
+	ProjectID          string  `json:"projectId"`
+	ProjectPath        *string `json:"projectPath,omitempty"`
+	Preview            *string `json:"preview"`
+	CustomTitle        *string `json:"customTitle,omitempty"`
+	AgentName          *string `json:"agentName,omitempty"`
+	Timestamp          float64 `json:"timestamp"`
+	MessageCount       *uint32 `json:"messageCount,omitempty"`
+	IsOngoing          *bool   `json:"isOngoing,omitempty"`
+	HasSubagents       *bool   `json:"hasSubagents,omitempty"`
 	ContextConsumption *uint64 `json:"contextConsumption,omitempty"`
 }
 
@@ -292,7 +293,7 @@ func (s *SearchService) SearchSessionsFiltered(
 				Timestamp:          sess.CreatedAt,
 				MessageCount:       &sess.MessageCount,
 				IsOngoing:          sess.IsOngoing,
-				HasSubagents:       boolPtr(sess.HasSubagents),
+				HasSubagents:       ptr.To(sess.HasSubagents),
 				ContextConsumption: sess.ContextConsumption,
 			})
 		}
@@ -392,5 +393,3 @@ func containsStr(s, sub string) bool {
 	}
 	return false
 }
-
-func boolPtr(b bool) *bool { return &b }
