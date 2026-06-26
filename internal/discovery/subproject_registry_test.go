@@ -43,6 +43,20 @@ func TestDifferentCWDsDifferentHashes(t *testing.T) {
 	}
 }
 
+// The frontend passes a null registry, which arrives as a nil pointer; all
+// methods must be nil-safe (no panic).
+func TestNilRegistryIsSafe(t *testing.T) {
+	var r *SubprojectRegistry // nil
+	if got := r.GetSessionFilter("proj"); got != nil {
+		t.Errorf("nil GetSessionFilter = %v, want nil", got)
+	}
+	id := r.Register("-Users-name-project", "/Users/name/project", []string{"s1"})
+	if !strings.HasPrefix(id, "-Users-name-project::") {
+		t.Errorf("nil Register id = %q", id)
+	}
+	r.Clear() // must not panic
+}
+
 func TestRegistryClear(t *testing.T) {
 	r := NewSubprojectRegistry()
 	r.Register("-Users-name-project", "/Users/name/project", []string{"sess1"})

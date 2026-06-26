@@ -40,6 +40,12 @@ func (r *SubprojectRegistry) Register(baseDir, cwd string, sessionIDs []string) 
 	hash := computeCWDHash(cwd)
 	compositeID := fmt.Sprintf("%s::%s", baseDir, hash)
 
+	// nil-safe: a nil registry (the frontend passes null) still returns a valid
+	// composite ID, it just doesn't persist the membership.
+	if r == nil {
+		return compositeID
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -58,6 +64,9 @@ func (r *SubprojectRegistry) Register(baseDir, cwd string, sessionIDs []string) 
 // or nil if the project ID is not composite / not registered.
 // Mirrors subproject_registry::SubprojectRegistry::get_session_filter.
 func (r *SubprojectRegistry) GetSessionFilter(projectID string) map[string]struct{} {
+	if r == nil {
+		return nil // no registry → no subproject filter
+	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -70,6 +79,9 @@ func (r *SubprojectRegistry) GetSessionFilter(projectID string) map[string]struc
 
 // Clear removes all entries. Mirrors subproject_registry::SubprojectRegistry::clear.
 func (r *SubprojectRegistry) Clear() {
+	if r == nil {
+		return
+	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.entries = make(map[string]*SubprojectEntry)

@@ -31,6 +31,9 @@ export default defineConfig({
     },
   },
   server: {
+    // Bind IPv4 loopback: Wails' dev asset proxy dials tcp4 127.0.0.1, but Vite's
+    // default `localhost` resolves to IPv6 (::1) on macOS → "connection refused".
+    host: '127.0.0.1',
     port: Number(process.env.WAILS_VITE_PORT) || 9245,
     strictPort: true,
   },
