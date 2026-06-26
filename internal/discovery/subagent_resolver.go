@@ -9,6 +9,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -263,11 +264,9 @@ func detectParallelExecution(subagents []domain.Process) {
 
 // sortProcessesByStartTime sorts in-place by StartTime ascending.
 func sortProcessesByStartTime(procs []domain.Process) {
-	for i := 1; i < len(procs); i++ {
-		for j := i; j > 0 && procs[j].StartTime < procs[j-1].StartTime; j-- {
-			procs[j], procs[j-1] = procs[j-1], procs[j]
-		}
-	}
+	sort.SliceStable(procs, func(i, j int) bool {
+		return procs[i].StartTime < procs[j].StartTime
+	})
 }
 
 // tsDiffMS returns millis(a) - millis(b), treating unparseable timestamps as 0.
