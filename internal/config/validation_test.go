@@ -58,22 +58,6 @@ func TestNullClaudeRootPath(t *testing.T) {
 	}
 }
 
-func TestDisplayBooleanValidation(t *testing.T) {
-	data := mustJSON(map[string]interface{}{"showTimestamps": "yes"})
-	_, _, err := ValidateConfigUpdate("display", data)
-	if err == nil {
-		t.Fatal("expected error for non-boolean display field")
-	}
-}
-
-func TestValidDisplayUpdate(t *testing.T) {
-	data := mustJSON(map[string]interface{}{"compactMode": true})
-	_, _, err := ValidateConfigUpdate("display", data)
-	if err != nil {
-		t.Fatalf("expected ok, got: %v", err)
-	}
-}
-
 func TestHTTPServerPortRange(t *testing.T) {
 	data := mustJSON(map[string]interface{}{"port": 80})
 	_, _, err := ValidateConfigUpdate("httpServer", data)

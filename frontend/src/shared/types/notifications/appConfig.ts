@@ -28,8 +28,6 @@ export interface AppConfig {
   general: {
     /** Whether to launch app at system login */
     launchAtLogin: boolean;
-    /** Whether to show icon in dock (macOS) */
-    showDockIcon: boolean;
     /** Application theme */
     theme: 'dark' | 'light' | 'system';
     /** Default tab to show on app launch */
@@ -43,12 +41,6 @@ export interface AppConfig {
   };
   /** Display and UI settings */
   display: {
-    /** Whether to show timestamps in message views */
-    showTimestamps: boolean;
-    /** Whether to use compact display mode */
-    compactMode: boolean;
-    /** Whether to enable syntax highlighting in code blocks */
-    syntaxHighlighting: boolean;
     /** Code block theme key */
     codeBlockTheme: string;
     /** Whether to show line numbers in code blocks */

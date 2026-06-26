@@ -67,7 +67,6 @@ export function useAdvancedHandlers({
         },
         general: {
           launchAtLogin: false,
-          showDockIcon: true,
           theme: 'dark',
           defaultTab: 'dashboard',
           claudeRootPath: null,
@@ -75,9 +74,6 @@ export function useAdvancedHandlers({
           useNativeTitleBar: false,
         },
         display: {
-          showTimestamps: true,
-          compactMode: false,
-          syntaxHighlighting: true,
           codeBlockTheme: 'default',
           showLineNumbers: true,
           wordWrap: false,

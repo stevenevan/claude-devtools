@@ -20,7 +20,6 @@ export interface RepositoryDropdownItem {
 export interface SafeConfig {
   general: {
     launchAtLogin: boolean;
-    showDockIcon: boolean;
     theme: 'dark' | 'light' | 'system';
     defaultTab: 'dashboard' | 'last-session';
     claudeRootPath: string | null;
@@ -38,9 +37,6 @@ export interface SafeConfig {
     triggers: AppConfig['notifications']['triggers'];
   };
   display: {
-    showTimestamps: boolean;
-    compactMode: boolean;
-    syntaxHighlighting: boolean;
     codeBlockTheme: string;
     showLineNumbers: boolean;
     wordWrap: boolean;
@@ -144,7 +140,6 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
     (): SafeConfig => ({
       general: {
         launchAtLogin: displayConfig?.general?.launchAtLogin ?? false,
-        showDockIcon: displayConfig?.general?.showDockIcon ?? true,
         theme: displayConfig?.general?.theme ?? 'dark',
         defaultTab: displayConfig?.general?.defaultTab ?? 'dashboard',
         claudeRootPath: displayConfig?.general?.claudeRootPath ?? null,
@@ -162,9 +157,6 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
         triggers: displayConfig?.notifications?.triggers ?? [],
       },
       display: {
-        showTimestamps: displayConfig?.display?.showTimestamps ?? true,
-        compactMode: displayConfig?.display?.compactMode ?? false,
-        syntaxHighlighting: displayConfig?.display?.syntaxHighlighting ?? true,
         codeBlockTheme: displayConfig?.display?.codeBlockTheme ?? 'default',
         showLineNumbers: displayConfig?.display?.showLineNumbers ?? true,
         wordWrap: displayConfig?.display?.wordWrap ?? false,

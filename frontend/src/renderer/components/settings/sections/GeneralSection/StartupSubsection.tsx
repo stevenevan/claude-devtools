@@ -26,15 +26,6 @@ export const StartupSubsection = ({
           disabled={saving}
         />
       </SettingRow>
-      {window.navigator.userAgent.includes('Macintosh') && (
-        <SettingRow label="Show dock icon" description="Display the app icon in the dock (macOS)">
-          <Switch
-            checked={safeConfig.general.showDockIcon}
-            onCheckedChange={(v) => onGeneralToggle('showDockIcon', v)}
-            disabled={saving}
-          />
-        </SettingRow>
-      )}
     </>
   );
 };

@@ -12,7 +12,6 @@ import "encoding/json"
 // GeneralConfig mirrors src-tauri/src/config/types/general.rs GeneralConfig.
 type GeneralConfig struct {
 	LaunchAtLogin      bool    `json:"launchAtLogin"`
-	ShowDockIcon       bool    `json:"showDockIcon"`
 	Theme              string  `json:"theme"`
 	DefaultTab         string  `json:"defaultTab"`
 	ClaudeRootPath     *string `json:"claudeRootPath"`
@@ -23,7 +22,6 @@ type GeneralConfig struct {
 func defaultGeneralConfig() GeneralConfig {
 	return GeneralConfig{
 		LaunchAtLogin:      false,
-		ShowDockIcon:       true,
 		Theme:              "dark",
 		DefaultTab:         "dashboard",
 		ClaudeRootPath:     nil,
@@ -35,22 +33,16 @@ func defaultGeneralConfig() GeneralConfig {
 // DisplayConfig mirrors src-tauri/src/config/types/general.rs DisplayConfig.
 // code_block_theme defaults to "default"; show_line_numbers defaults to true.
 type DisplayConfig struct {
-	ShowTimestamps    bool   `json:"showTimestamps"`
-	CompactMode       bool   `json:"compactMode"`
-	SyntaxHighlighting bool  `json:"syntaxHighlighting"`
-	CodeBlockTheme    string `json:"codeBlockTheme"`
-	ShowLineNumbers   bool   `json:"showLineNumbers"`
-	WordWrap          bool   `json:"wordWrap"`
+	CodeBlockTheme  string `json:"codeBlockTheme"`
+	ShowLineNumbers bool   `json:"showLineNumbers"`
+	WordWrap        bool   `json:"wordWrap"`
 }
 
 func defaultDisplayConfig() DisplayConfig {
 	return DisplayConfig{
-		ShowTimestamps:     true,
-		CompactMode:        false,
-		SyntaxHighlighting: true,
-		CodeBlockTheme:     "default",
-		ShowLineNumbers:    true,
-		WordWrap:           false,
+		CodeBlockTheme:  "default",
+		ShowLineNumbers: true,
+		WordWrap:        false,
 	}
 }
 
@@ -150,8 +142,8 @@ type FilterPreset struct {
 
 // AnnotationExportBundle mirrors src-tauri/src/config/types/sessions.rs.
 type AnnotationExportBundle struct {
-	Version    uint32            `json:"version"`
-	ExportedAt float64           `json:"exportedAt"`
+	Version     uint32            `json:"version"`
+	ExportedAt  float64           `json:"exportedAt"`
 	Annotations []AnnotationEntry `json:"annotations"`
 	Bookmarks   []BookmarkEntry   `json:"bookmarks"`
 }
@@ -170,12 +162,12 @@ type ImportReport struct {
 type SessionsConfig struct {
 	PinnedSessions        map[string][]PinnedSession `json:"pinnedSessions"`
 	HiddenSessions        map[string][]HiddenSession `json:"hiddenSessions"`
-	Bookmarks             []BookmarkEntry             `json:"bookmarks"`
-	SessionTags           map[string][]string         `json:"sessionTags"`
-	Annotations           []AnnotationEntry           `json:"annotations"`
-	SessionGroups         map[string][]string         `json:"sessionGroups"`
-	FilterPresets         []FilterPreset              `json:"filterPresets"`
-	DefaultFilterPresetID *string                     `json:"defaultFilterPresetId,omitempty"`
+	Bookmarks             []BookmarkEntry            `json:"bookmarks"`
+	SessionTags           map[string][]string        `json:"sessionTags"`
+	Annotations           []AnnotationEntry          `json:"annotations"`
+	SessionGroups         map[string][]string        `json:"sessionGroups"`
+	FilterPresets         []FilterPreset             `json:"filterPresets"`
+	DefaultFilterPresetID *string                    `json:"defaultFilterPresetId,omitempty"`
 }
 
 func defaultSessionsConfig() SessionsConfig {
@@ -321,19 +313,19 @@ type WebhookEndpoint struct {
 // AppConfig mirrors src-tauri/src/config/types/app.rs AppConfig.
 // onboarding_completed defaults false.
 type AppConfig struct {
-	Notifications     NotificationConfig `json:"notifications"`
-	General           GeneralConfig      `json:"general"`
-	Display           DisplayConfig      `json:"display"`
-	Sessions          SessionsConfig     `json:"sessions"`
-	SSH               SshPersistConfig   `json:"ssh"`
-	HTTPServer        HttpServerConfig   `json:"httpServer"`
-	Dashboard         DashboardConfig    `json:"dashboard"`
-	Shortcuts         ShortcutsConfig    `json:"shortcuts"`
-	Themes            ThemesConfig       `json:"themes"`
-	Plugins           PluginsConfig      `json:"plugins"`
-	NotificationRules []NotificationRule `json:"notificationRules"`
-	WebhookEndpoints  []WebhookEndpoint  `json:"webhookEndpoints"`
-	OnboardingCompleted bool             `json:"onboardingCompleted"`
+	Notifications       NotificationConfig `json:"notifications"`
+	General             GeneralConfig      `json:"general"`
+	Display             DisplayConfig      `json:"display"`
+	Sessions            SessionsConfig     `json:"sessions"`
+	SSH                 SshPersistConfig   `json:"ssh"`
+	HTTPServer          HttpServerConfig   `json:"httpServer"`
+	Dashboard           DashboardConfig    `json:"dashboard"`
+	Shortcuts           ShortcutsConfig    `json:"shortcuts"`
+	Themes              ThemesConfig       `json:"themes"`
+	Plugins             PluginsConfig      `json:"plugins"`
+	NotificationRules   []NotificationRule `json:"notificationRules"`
+	WebhookEndpoints    []WebhookEndpoint  `json:"webhookEndpoints"`
+	OnboardingCompleted bool               `json:"onboardingCompleted"`
 }
 
 // DefaultAppConfig returns an AppConfig equivalent to Rust's AppConfig::default().

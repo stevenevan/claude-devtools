@@ -134,8 +134,8 @@ func isArray(raw json.RawMessage) bool {
 	return json.Unmarshal(raw, &arr) == nil
 }
 
-func rawTrue() json.RawMessage  { return json.RawMessage("true") }
-func rawNull() json.RawMessage  { return json.RawMessage("null") }
+func rawTrue() json.RawMessage { return json.RawMessage("true") }
+func rawNull() json.RawMessage { return json.RawMessage("null") }
 
 func buildObj(m map[string]json.RawMessage) json.RawMessage {
 	b, _ := json.Marshal(m)
@@ -146,7 +146,6 @@ func buildObj(m map[string]json.RawMessage) json.RawMessage {
 
 var allowedGeneralKeys = map[string]bool{
 	"launchAtLogin":      true,
-	"showDockIcon":       true,
 	"theme":              true,
 	"defaultTab":         true,
 	"claudeRootPath":     true,
@@ -159,7 +158,6 @@ var validDefaultTabs = map[string]bool{"dashboard": true, "last-session": true}
 
 var boolGeneralKeys = map[string]bool{
 	"launchAtLogin":      true,
-	"showDockIcon":       true,
 	"autoExpandAIGroups": true,
 	"useNativeTitleBar":  true,
 }
@@ -221,11 +219,10 @@ func validateGeneral(data json.RawMessage) (json.RawMessage, error) {
 
 // ─── display ─────────────────────────────────────────────────────────────────
 
-var allowedDisplayKeys = map[string]bool{
-	"showTimestamps":    true,
-	"compactMode":       true,
-	"syntaxHighlighting": true,
-}
+// ponytail: empty — the showTimestamps/compactMode/syntaxHighlighting bools were dead and removed.
+// codeBlockTheme/showLineNumbers/wordWrap were never wired into validation (pre-existing); wire them
+// here if the code-block settings are made functional.
+var allowedDisplayKeys = map[string]bool{}
 
 func validateDisplay(data json.RawMessage) (json.RawMessage, error) {
 	obj, err := parseObj(data, "display")
