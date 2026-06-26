@@ -15,7 +15,7 @@ import { GeneralInfoSection } from './GeneralInfoSection';
 import { IgnorePatternsSection } from './IgnorePatternsSection';
 import { ModeSelector } from './ModeSelector';
 import { RepositoryScopeSection } from './RepositoryScopeSection';
-import { SectionHeader } from './SectionHeader';
+import { SettingsSectionHeader as SectionHeader } from '@renderer/components/settings/components/SettingsSectionHeader';
 import { TriggerPreview } from './TriggerPreview';
 
 import type { NotificationTrigger } from '@renderer/types/data';

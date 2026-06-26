@@ -9,7 +9,7 @@ import { getAvailableMatchFields } from '../utils/trigger';
 
 import { ColorPaletteSelector } from './ColorPaletteSelector';
 import { ModeSelector } from './ModeSelector';
-import { SectionHeader } from './SectionHeader';
+import { SettingsSectionHeader as SectionHeader } from '@renderer/components/settings/components/SettingsSectionHeader';
 
 import type {
   NotificationTrigger,

@@ -2,7 +2,7 @@ import { cn } from '@renderer/lib/utils';
 
 import { TOOL_NAME_OPTIONS } from '../utils/constants';
 
-import { SectionHeader } from './SectionHeader';
+import { SettingsSectionHeader as SectionHeader } from '@renderer/components/settings/components/SettingsSectionHeader';
 
 interface GeneralInfoSectionProps {
   name: string;

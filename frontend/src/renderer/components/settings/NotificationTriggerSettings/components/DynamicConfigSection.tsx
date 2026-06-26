@@ -7,7 +7,7 @@ import { AlertCircle } from 'lucide-react';
 import { CONTENT_TYPE_OPTIONS } from '../utils/constants';
 import { getAvailableMatchFields } from '../utils/trigger';
 
-import { SectionHeader } from './SectionHeader';
+import { SettingsSectionHeader as SectionHeader } from '@renderer/components/settings/components/SettingsSectionHeader';
 
 import type { TriggerContentType, TriggerMode, TriggerTokenType } from '@renderer/types/data';
 

@@ -1,5 +1,5 @@
 import { AddTriggerForm } from './components/AddTriggerForm';
-import { SectionHeader } from './components/SectionHeader';
+import { SettingsSectionHeader as SectionHeader } from '@renderer/components/settings/components/SettingsSectionHeader';
 import { TriggerCard } from './components/TriggerCard';
 
 import type { NotificationTriggerSettingsProps } from './types';
