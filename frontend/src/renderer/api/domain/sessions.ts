@@ -1,4 +1,29 @@
-import { invoke } from '@tauri-apps/api/core';
+import {
+  GetProjects,
+  GetRepositoryGroups,
+  GetSessionDetail,
+  GetSessionDetailIncremental,
+  GetSessionGroups,
+  GetSessions,
+  GetSessionsByIds,
+  GetSessionsPaginated,
+  GetSubagentDetail,
+  GetWaterfallData,
+  GetWorktreeSessions,
+  ParseSessionMetrics,
+} from '../../../../bindings/claude-devtools/internal/sessionservice/sessionservice';
+import {
+  SearchAllProjects,
+  SearchSessionContent,
+  SearchSessions,
+  SearchSessionsFiltered,
+} from '../../../../bindings/claude-devtools/internal/searchservice/searchservice';
+import {
+  SnapshotsCreateFromSession,
+  SnapshotsDelete,
+  SnapshotsList,
+  SnapshotsOpen,
+} from '../../../../bindings/claude-devtools/internal/snapshotservice/snapshotservice';
 
 import { reviveDates } from '../reviveDates';
 
@@ -45,10 +70,11 @@ type SessionsSlice = Pick<
 >;
 
 export const sessionsApi: SessionsSlice = {
-  getProjects: (): Promise<Project[]> => invoke<Project[]>('get_projects'),
+  getProjects: (): Promise<Project[]> =>
+    GetProjects() as unknown as Promise<Project[]>,
 
   getSessions: (projectId: string): Promise<Session[]> =>
-    invoke<Session[]>('get_sessions', { projectId }),
+    GetSessions(projectId, null) as unknown as Promise<Session[]>,
 
   getSessionsPaginated: (
     projectId: string,
@@ -56,34 +82,41 @@ export const sessionsApi: SessionsSlice = {
     limit?: number,
     options?: SessionsPaginationOptions
   ): Promise<PaginatedSessionsResult> =>
-    invoke<PaginatedSessionsResult>('get_sessions_paginated', {
+    GetSessionsPaginated(
       projectId,
       cursor,
-      limit,
-      options,
-    }),
+      limit ?? null,
+      (options ?? null) as unknown as Parameters<typeof GetSessionsPaginated>[3],
+      null
+    ) as unknown as Promise<PaginatedSessionsResult>,
 
   searchSessions: (
     projectId: string,
     query: string,
     maxResults?: number
   ): Promise<SearchSessionsResult> =>
-    invoke<SearchSessionsResult>('search_sessions', { projectId, query, maxResults }),
+    SearchSessions(
+      projectId,
+      query,
+      maxResults ?? null,
+      null
+    ) as unknown as Promise<SearchSessionsResult>,
 
   searchAllProjects: (query: string, maxResults?: number): Promise<SearchSessionsResult> =>
-    invoke<SearchSessionsResult>('search_all_projects', { query, maxResults }),
+    SearchAllProjects(query, maxResults ?? null, null) as unknown as Promise<SearchSessionsResult>,
 
   searchSessionsFiltered: (
     filters: SearchFilters,
     maxResults?: number
   ): Promise<FilteredSearchResponse> =>
-    invoke<FilteredSearchResponse>('search_sessions_filtered', {
-      query: filters.query ?? null,
-      maxResults,
-      statusFilter: filters.statusFilter ?? null,
-      minCreatedAt: filters.minCreatedAt ?? null,
-      maxCreatedAt: filters.maxCreatedAt ?? null,
-    }),
+    SearchSessionsFiltered(
+      filters.query ?? null,
+      maxResults ?? null,
+      filters.statusFilter ?? null,
+      filters.minCreatedAt ?? null,
+      filters.maxCreatedAt ?? null,
+      null
+    ) as unknown as Promise<FilteredSearchResponse>,
 
   searchSessionContent: (
     projectId: string,
@@ -94,41 +127,35 @@ export const sessionsApi: SessionsSlice = {
     cursor?: number,
     pageSize?: number
   ): Promise<ContentSearchResult> =>
-    invoke<ContentSearchResult>('search_session_content', {
+    SearchSessionContent(
       projectId,
       sessionId,
       query,
-      isRegex: isRegex ?? false,
-      caseSensitive: caseSensitive ?? false,
-      cursor: cursor ?? null,
-      pageSize: pageSize ?? null,
-    }),
+      isRegex ?? false,
+      caseSensitive ?? false,
+      cursor ?? null,
+      pageSize ?? null
+    ) as unknown as Promise<ContentSearchResult>,
 
   getSessionDetail: async (projectId: string, sessionId: string): Promise<SessionDetail | null> => {
-    const raw = await invoke<SessionDetail>('get_session_detail', { projectId, sessionId });
-    return reviveDates(raw);
+    const raw = await GetSessionDetail(projectId, sessionId);
+    return reviveDates(raw as unknown as SessionDetail);
   },
 
   getSessionDetailIncremental: async (
     projectId: string,
     sessionId: string
   ): Promise<SessionDetail | null> => {
-    const raw = await invoke<SessionDetail>('get_session_detail_incremental', {
-      projectId,
-      sessionId,
-    });
-    return reviveDates(raw);
+    const raw = await GetSessionDetailIncremental(projectId, sessionId);
+    return reviveDates(raw as unknown as SessionDetail);
   },
 
   getSessionMetrics: (projectId: string, sessionId: string): Promise<SessionMetrics | null> =>
-    invoke<SessionMetrics>('parse_session_metrics', { projectId, sessionId }),
+    ParseSessionMetrics(projectId, sessionId) as unknown as Promise<SessionMetrics | null>,
 
   getWaterfallData: async (projectId: string, sessionId: string): Promise<WaterfallData | null> => {
-    const raw = await invoke<WaterfallData | null>('get_waterfall_data', {
-      projectId,
-      sessionId,
-    });
-    return raw ? reviveDates(raw) : null;
+    const raw = await GetWaterfallData(projectId, sessionId);
+    return raw ? reviveDates(raw as unknown as WaterfallData) : null;
   },
 
   getSubagentDetail: async (
@@ -136,41 +163,34 @@ export const sessionsApi: SessionsSlice = {
     sessionId: string,
     subagentId: string
   ): Promise<SubagentDetail | null> => {
-    const raw = await invoke<SubagentDetail | null>('get_subagent_detail', {
-      projectId,
-      sessionId,
-      subagentId,
-    });
-    return raw ? reviveDates(raw) : null;
+    const raw = await GetSubagentDetail(projectId, sessionId, subagentId);
+    return raw ? reviveDates(raw as unknown as SubagentDetail) : null;
   },
 
   getSessionGroups: (projectId: string, sessionId: string): Promise<ConversationGroup[]> =>
-    invoke<ConversationGroup[]>('get_session_groups', { projectId, sessionId }),
+    GetSessionGroups(projectId, sessionId) as unknown as Promise<ConversationGroup[]>,
 
   getSessionsByIds: (
     projectId: string,
     sessionIds: string[],
     _options?: SessionsByIdsOptions
-  ): Promise<Session[]> => invoke<Session[]>('get_sessions_by_ids', { projectId, sessionIds }),
+  ): Promise<Session[]> =>
+    GetSessionsByIds(projectId, sessionIds, null) as unknown as Promise<Session[]>,
 
   getRepositoryGroups: (): Promise<RepositoryGroup[]> =>
-    invoke<RepositoryGroup[]>('get_repository_groups'),
+    GetRepositoryGroups() as unknown as Promise<RepositoryGroup[]>,
 
   getWorktreeSessions: (worktreeId: string): Promise<Session[]> =>
-    invoke<Session[]>('get_worktree_sessions', { worktreeId }),
+    GetWorktreeSessions(worktreeId) as unknown as Promise<Session[]>,
 
   snapshots: {
-    list: () => invoke<SnapshotMeta[]>('snapshots_list'),
+    list: () => SnapshotsList() as unknown as Promise<SnapshotMeta[]>,
     createFromSession: (projectId, sessionId, label) =>
-      invoke<SnapshotMeta>('snapshots_create_from_session', {
-        projectId,
-        sessionId,
-        label: label ?? null,
-      }),
-    delete: (snapshotId) => invoke<void>('snapshots_delete', { snapshotId }),
+      SnapshotsCreateFromSession(projectId, sessionId, label ?? null) as unknown as Promise<SnapshotMeta>,
+    delete: (snapshotId) => SnapshotsDelete(snapshotId),
     open: async (snapshotId) => {
-      const raw = await invoke<SessionDetail>('snapshots_open', { snapshotId });
-      return reviveDates(raw);
+      const raw = await SnapshotsOpen(snapshotId);
+      return reviveDates(raw as unknown as SessionDetail);
     },
   } satisfies SnapshotsAPI,
 };

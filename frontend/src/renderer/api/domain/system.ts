@@ -1,9 +1,21 @@
-import { getVersion } from '@tauri-apps/api/app';
-import { invoke } from '@tauri-apps/api/core';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-import { getCurrentWindow } from '@tauri-apps/api/window';
-import { openPath as openPathPlugin, openUrl } from '@tauri-apps/plugin-opener';
-import { relaunch } from '@tauri-apps/plugin-process';
+import { Application, Browser, Events, Window } from '@wailsio/runtime';
+
+import {
+  ContextGetActive,
+  ContextList,
+  ContextSwitch,
+} from '../../../../bindings/claude-devtools/internal/sessionservice/sessionservice';
+import {
+  SshConnect,
+  SshDisconnect,
+  SshGetConfigHosts,
+  SshGetLastConnection,
+  SshGetState,
+  SshResolveHost,
+  SshSaveLastConnection,
+  SshTest,
+} from '../../../../bindings/claude-devtools/internal/sshservice/sshservice';
+import { GetAppVersion } from '../../../../bindings/claude-devtools/internal/systemservice/systemservice';
 
 import type {
   ContextInfo,
@@ -36,24 +48,26 @@ type SystemSlice = Pick<
 >;
 
 const sshApi: SshAPI = {
-  connect: (config) => invoke<SshConnectionStatus>('ssh_connect', { config }),
-  disconnect: () => invoke<SshConnectionStatus>('ssh_disconnect'),
-  getState: () => invoke<SshConnectionStatus>('ssh_get_state'),
-  test: (config) => invoke<{ success: boolean; error?: string }>('ssh_test', { config }),
-  getConfigHosts: () => invoke<SshConfigHostEntry[]>('ssh_get_config_hosts'),
-  resolveHost: (alias) => invoke<SshConfigHostEntry | null>('ssh_resolve_host', { alias }),
-  saveLastConnection: (config) => invoke('ssh_save_last_connection', { config }),
-  getLastConnection: () => invoke<SshLastConnection | null>('ssh_get_last_connection'),
+  connect: (config) =>
+    SshConnect(config as unknown as Parameters<typeof SshConnect>[0]) as unknown as Promise<SshConnectionStatus>,
+  disconnect: () => SshDisconnect() as unknown as Promise<SshConnectionStatus>,
+  getState: () => SshGetState() as unknown as Promise<SshConnectionStatus>,
+  test: (config) =>
+    SshTest(config as unknown as Parameters<typeof SshTest>[0]) as unknown as Promise<{
+      success: boolean;
+      error?: string;
+    }>,
+  getConfigHosts: () => SshGetConfigHosts() as unknown as Promise<SshConfigHostEntry[]>,
+  resolveHost: (alias) =>
+    SshResolveHost(alias) as unknown as Promise<SshConfigHostEntry | null>,
+  saveLastConnection: (config) =>
+    SshSaveLastConnection(config as unknown as Parameters<typeof SshSaveLastConnection>[0]),
+  getLastConnection: () => SshGetLastConnection() as unknown as Promise<SshLastConnection | null>,
   onStatus: (callback) => {
-    let unlisten: UnlistenFn | null = null;
-    void listen<SshConnectionStatus>('ssh-status', (event) => {
-      callback(null, event.payload);
-    }).then((fn) => {
-      unlisten = fn;
+    const off = Events.On('ssh-status', (e) => {
+      callback(null, e.data as SshConnectionStatus);
     });
-    return () => {
-      unlisten?.();
-    };
+    return off;
   },
 };
 
@@ -73,7 +87,7 @@ const updaterApi: UpdaterAPI = {
 };
 
 export const systemApi: SystemSlice = {
-  getAppVersion: (): Promise<string> => getVersion(),
+  getAppVersion: (): Promise<string> => GetAppVersion(),
 
   getZoomFactor: async (): Promise<number> => 1.0,
 
@@ -82,27 +96,17 @@ export const systemApi: SystemSlice = {
     () => {},
 
   onFileChange: (callback: (event: FileChangeEvent) => void): (() => void) => {
-    let unlisten: UnlistenFn | null = null;
-    void listen<FileChangeEvent>('file-change', (tauriEvent) => {
-      callback(tauriEvent.payload);
-    }).then((fn) => {
-      unlisten = fn;
+    const off = Events.On('file-change', (e) => {
+      callback(e.data as FileChangeEvent);
     });
-    return () => {
-      unlisten?.();
-    };
+    return off;
   },
 
   onTodoChange: (callback: (event: FileChangeEvent) => void): (() => void) => {
-    let unlisten: UnlistenFn | null = null;
-    void listen<FileChangeEvent>('todo-change', (tauriEvent) => {
-      callback(tauriEvent.payload);
-    }).then((fn) => {
-      unlisten = fn;
+    const off = Events.On('todo-change', (e) => {
+      callback(e.data as FileChangeEvent);
     });
-    return () => {
-      unlisten?.();
-    };
+    return off;
   },
 
   onSessionRefresh:
@@ -114,7 +118,7 @@ export const systemApi: SystemSlice = {
     _projectRoot?: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      await openPathPlugin(targetPath);
+      await Browser.OpenURL('file://' + targetPath);
       return { success: true };
     } catch (e) {
       return { success: false, error: e instanceof Error ? e.message : String(e) };
@@ -123,7 +127,7 @@ export const systemApi: SystemSlice = {
 
   openExternal: async (url: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      await openUrl(url);
+      await Browser.OpenURL(url);
       return { success: true };
     } catch (e) {
       return { success: false, error: e instanceof Error ? e.message : String(e) };
@@ -132,22 +136,21 @@ export const systemApi: SystemSlice = {
 
   windowControls: {
     minimize: async (): Promise<void> => {
-      await getCurrentWindow().minimize();
+      await Window.Minimise();
     },
     maximize: async (): Promise<void> => {
-      const win = getCurrentWindow();
-      if (await win.isMaximized()) {
-        await win.unmaximize();
+      if (await Window.IsMaximised()) {
+        await Window.UnMaximise();
       } else {
-        await win.maximize();
+        await Window.Maximise();
       }
     },
     close: async (): Promise<void> => {
-      await getCurrentWindow().close();
+      await Window.Close();
     },
-    isMaximized: async (): Promise<boolean> => getCurrentWindow().isMaximized(),
+    isMaximized: async (): Promise<boolean> => Window.IsMaximised(),
     relaunch: async (): Promise<void> => {
-      await relaunch();
+      await Application.Quit();
     },
   },
 
@@ -156,10 +159,11 @@ export const systemApi: SystemSlice = {
   ssh: sshApi,
 
   context: {
-    list: (): Promise<ContextInfo[]> => invoke('context_list'),
-    getActive: (): Promise<string> => invoke('context_get_active'),
+    list: (): Promise<ContextInfo[]> =>
+      ContextList() as unknown as Promise<ContextInfo[]>,
+    getActive: (): Promise<string> => ContextGetActive(),
     switch: (contextId: string): Promise<{ contextId: string }> =>
-      invoke('context_switch', { contextId }),
+      ContextSwitch(contextId) as unknown as Promise<{ contextId: string }>,
     onChanged:
       (_callback: (event: unknown, data: ContextInfo) => void): (() => void) =>
       () => {},

@@ -1,6 +1,59 @@
-import { invoke } from '@tauri-apps/api/core';
-import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-import { open } from '@tauri-apps/plugin-dialog';
+import { Dialogs, Events } from '@wailsio/runtime';
+
+import {
+  ConfigAddAnnotation,
+  ConfigAddBookmark,
+  ConfigAddFilterPreset,
+  ConfigAddIgnoreRegex,
+  ConfigAddIgnoreRepository,
+  ConfigAddToGroup,
+  ConfigAddTrigger,
+  ConfigClearSnooze,
+  ConfigCreateGroup,
+  ConfigDeleteGroup,
+  ConfigExportAnnotations,
+  ConfigGet,
+  ConfigGetAnnotations,
+  ConfigGetBookmarks,
+  ConfigGetClaudeRootInfo,
+  ConfigGetGroups,
+  ConfigGetSessionTags,
+  ConfigGetTriggers,
+  ConfigHideSession,
+  ConfigHideSessions,
+  ConfigImportAnnotations,
+  ConfigOpenInEditor,
+  ConfigPinSession,
+  ConfigRemoveAnnotation,
+  ConfigRemoveBookmark,
+  ConfigRemoveFilterPreset,
+  ConfigRemoveFromGroup,
+  ConfigRemoveIgnoreRegex,
+  ConfigRemoveIgnoreRepository,
+  ConfigRemoveTrigger,
+  ConfigRenameFilterPreset,
+  ConfigSetDefaultFilterPreset,
+  ConfigSetSessionTags,
+  ConfigSnooze,
+  ConfigUnhideSession,
+  ConfigUnhideSessions,
+  ConfigUnpinSession,
+  ConfigUpdate,
+  ConfigUpdateAnnotation,
+  ConfigUpdateTrigger,
+} from '../../../../bindings/claude-devtools/internal/configservice/configservice';
+import {
+  NotificationsClear,
+  NotificationsDelete,
+  NotificationsGet,
+  NotificationsGetUnreadCount,
+  NotificationsMarkAllRead,
+  NotificationsMarkRead,
+  NotificationsTestTrigger,
+  WebhookTestSend,
+} from '../../../../bindings/claude-devtools/internal/notifyservice/notificationservice';
+import { SessionScrollToLine } from '../../../../bindings/claude-devtools/internal/sessionservice/sessionservice';
+import { PluginsDiscover } from '../../../../bindings/claude-devtools/internal/systemservice/systemservice';
 
 import type {
   AnnotationEntry,
@@ -27,39 +80,40 @@ type ConfigSlice = Pick<
 >;
 
 const configApiImpl: ConfigAPI = {
-  get: () => invoke<AppConfig>('config_get'),
-  update: (section, data) => invoke<AppConfig>('config_update', { section, data }),
-  addIgnoreRegex: (pattern) => invoke<AppConfig>('config_add_ignore_regex', { pattern }),
-  removeIgnoreRegex: (pattern) => invoke<AppConfig>('config_remove_ignore_regex', { pattern }),
+  get: () => ConfigGet() as unknown as Promise<AppConfig>,
+  update: (section, data) => ConfigUpdate(section, data) as unknown as Promise<AppConfig>,
+  addIgnoreRegex: (pattern) => ConfigAddIgnoreRegex(pattern) as unknown as Promise<AppConfig>,
+  removeIgnoreRegex: (pattern) => ConfigRemoveIgnoreRegex(pattern) as unknown as Promise<AppConfig>,
   addIgnoreRepository: (repositoryId) =>
-    invoke<AppConfig>('config_add_ignore_repository', { repositoryId }),
+    ConfigAddIgnoreRepository(repositoryId) as unknown as Promise<AppConfig>,
   removeIgnoreRepository: (repositoryId) =>
-    invoke<AppConfig>('config_remove_ignore_repository', { repositoryId }),
-  snooze: (minutes) => invoke<AppConfig>('config_snooze', { minutes }),
-  clearSnooze: () => invoke<AppConfig>('config_clear_snooze'),
-  addTrigger: (trigger) => invoke<AppConfig>('config_add_trigger', { trigger }),
+    ConfigRemoveIgnoreRepository(repositoryId) as unknown as Promise<AppConfig>,
+  snooze: (minutes) => ConfigSnooze(minutes) as unknown as Promise<AppConfig>,
+  clearSnooze: () => ConfigClearSnooze() as unknown as Promise<AppConfig>,
+  addTrigger: (trigger) =>
+    ConfigAddTrigger(trigger as unknown as Parameters<typeof ConfigAddTrigger>[0]) as unknown as Promise<AppConfig>,
   updateTrigger: (triggerId, updates) =>
-    invoke<AppConfig>('config_update_trigger', { triggerId, updates }),
-  removeTrigger: (triggerId) => invoke<AppConfig>('config_remove_trigger', { triggerId }),
-  getTriggers: () => invoke<NotificationTrigger[]>('config_get_triggers'),
+    ConfigUpdateTrigger(triggerId, updates) as unknown as Promise<AppConfig>,
+  removeTrigger: (triggerId) => ConfigRemoveTrigger(triggerId) as unknown as Promise<AppConfig>,
+  getTriggers: () => ConfigGetTriggers() as unknown as Promise<NotificationTrigger[]>,
   testTrigger: (trigger: NotificationTrigger): Promise<TriggerTestResult> =>
-    invoke<TriggerTestResult>('notifications_test_trigger', { trigger }),
-  pinSession: (projectId, sessionId) => invoke('config_pin_session', { projectId, sessionId }),
-  unpinSession: (projectId, sessionId) => invoke('config_unpin_session', { projectId, sessionId }),
-  hideSession: (projectId, sessionId) => invoke('config_hide_session', { projectId, sessionId }),
-  unhideSession: (projectId, sessionId) =>
-    invoke('config_unhide_session', { projectId, sessionId }),
-  hideSessions: (projectId, sessionIds) =>
-    invoke('config_hide_sessions', { projectId, sessionIds }),
-  unhideSessions: (projectId, sessionIds) =>
-    invoke('config_unhide_sessions', { projectId, sessionIds }),
-  getClaudeRootInfo: () => invoke<ClaudeRootInfo>('config_get_claude_root_info'),
-  openInEditor: () => invoke('config_open_in_editor'),
+    NotificationsTestTrigger(
+      trigger as unknown as Parameters<typeof NotificationsTestTrigger>[0],
+      null
+    ) as unknown as Promise<TriggerTestResult>,
+  pinSession: (projectId, sessionId) => ConfigPinSession(projectId, sessionId),
+  unpinSession: (projectId, sessionId) => ConfigUnpinSession(projectId, sessionId),
+  hideSession: (projectId, sessionId) => ConfigHideSession(projectId, sessionId),
+  unhideSession: (projectId, sessionId) => ConfigUnhideSession(projectId, sessionId),
+  hideSessions: (projectId, sessionIds) => ConfigHideSessions(projectId, sessionIds),
+  unhideSessions: (projectId, sessionIds) => ConfigUnhideSessions(projectId, sessionIds),
+  getClaudeRootInfo: () => ConfigGetClaudeRootInfo() as unknown as Promise<ClaudeRootInfo>,
+  openInEditor: () => ConfigOpenInEditor(),
   addBookmark: (sessionId: string, projectId: string, groupId: string, note?: string) =>
-    invoke('config_add_bookmark', { sessionId, projectId, groupId, note: note ?? null }),
-  removeBookmark: (bookmarkId: string) => invoke('config_remove_bookmark', { bookmarkId }),
+    ConfigAddBookmark(sessionId, projectId, groupId, note ?? null),
+  removeBookmark: (bookmarkId: string) => ConfigRemoveBookmark(bookmarkId),
   getBookmarks: () =>
-    invoke<
+    ConfigGetBookmarks() as unknown as Promise<
       {
         id: string;
         sessionId: string;
@@ -68,56 +122,53 @@ const configApiImpl: ConfigAPI = {
         note?: string;
         createdAt: number;
       }[]
-    >('config_get_bookmarks'),
-  setSessionTags: (sessionId: string, tags: string[]) =>
-    invoke('config_set_session_tags', { sessionId, tags }),
-  getSessionTags: (sessionId: string) => invoke<string[]>('config_get_session_tags', { sessionId }),
+    >,
+  setSessionTags: (sessionId: string, tags: string[]) => ConfigSetSessionTags(sessionId, tags),
+  getSessionTags: (sessionId: string) =>
+    ConfigGetSessionTags(sessionId) as unknown as Promise<string[]>,
   addAnnotation: ({ sessionId, projectId, targetId, text, color }) =>
-    invoke<AnnotationEntry>('config_add_annotation', {
+    ConfigAddAnnotation(
       sessionId,
       projectId,
       targetId,
       text,
-      color,
-    }),
+      color
+    ) as unknown as Promise<AnnotationEntry>,
   updateAnnotation: (annotationId, patch) =>
-    invoke<boolean>('config_update_annotation', {
-      annotationId,
-      text: patch.text ?? null,
-      color: patch.color ?? null,
-    }),
-  removeAnnotation: (annotationId) => invoke('config_remove_annotation', { annotationId }),
-  getAnnotations: () => invoke<AnnotationEntry[]>('config_get_annotations'),
-  createGroup: (name: string) => invoke<boolean>('config_create_group', { name }),
-  deleteGroup: (name: string) => invoke<void>('config_delete_group', { name }),
-  addToGroup: (name: string, sessionId: string) =>
-    invoke<void>('config_add_to_group', { name, sessionId }),
-  removeFromGroup: (name: string, sessionId: string) =>
-    invoke<void>('config_remove_from_group', { name, sessionId }),
-  getGroups: () => invoke<Record<string, string[]>>('config_get_groups'),
+    ConfigUpdateAnnotation(annotationId, patch.text ?? null, patch.color ?? null),
+  removeAnnotation: (annotationId) => ConfigRemoveAnnotation(annotationId),
+  getAnnotations: () => ConfigGetAnnotations() as unknown as Promise<AnnotationEntry[]>,
+  createGroup: (name: string) => ConfigCreateGroup(name),
+  deleteGroup: (name: string) => ConfigDeleteGroup(name),
+  addToGroup: (name: string, sessionId: string) => ConfigAddToGroup(name, sessionId),
+  removeFromGroup: (name: string, sessionId: string) => ConfigRemoveFromGroup(name, sessionId),
+  getGroups: () => ConfigGetGroups() as unknown as Promise<Record<string, string[]>>,
   addFilterPreset: (name, filter) =>
-    invoke<FilterPresetEntry>('config_add_filter_preset', { name, filter }),
-  removeFilterPreset: (presetId) => invoke<void>('config_remove_filter_preset', { presetId }),
-  renameFilterPreset: (presetId, name) =>
-    invoke<boolean>('config_rename_filter_preset', { presetId, name }),
-  setDefaultFilterPreset: (presetId) =>
-    invoke<void>('config_set_default_filter_preset', { presetId }),
-  exportAnnotations: (sessionIds) => invoke<string>('config_export_annotations', { sessionIds }),
+    ConfigAddFilterPreset(name, filter) as unknown as Promise<FilterPresetEntry>,
+  removeFilterPreset: (presetId) => ConfigRemoveFilterPreset(presetId),
+  renameFilterPreset: (presetId, name) => ConfigRenameFilterPreset(presetId, name),
+  setDefaultFilterPreset: (presetId) => ConfigSetDefaultFilterPreset(presetId),
+  exportAnnotations: (sessionIds) => ConfigExportAnnotations(sessionIds),
   importAnnotations: (json) =>
-    invoke<AnnotationImportReport>('config_import_annotations', { json }),
+    ConfigImportAnnotations(json) as unknown as Promise<AnnotationImportReport>,
 
   selectFolders: async (): Promise<string[]> => {
-    const result = await open({ directory: true, multiple: true });
-    if (!result) return [];
-    return Array.isArray(result) ? result : [result];
+    const result = await Dialogs.OpenFile({
+      CanChooseDirectories: true,
+      CanChooseFiles: false,
+      AllowsMultipleSelection: true,
+    });
+    return result;
   },
   selectClaudeRootFolder: async (): Promise<ClaudeRootFolderSelection | null> => {
-    const result = (await open({ directory: true, multiple: false })) as string | string[] | null;
+    const result = await Dialogs.OpenFile({
+      CanChooseDirectories: true,
+      CanChooseFiles: false,
+    });
     if (!result) return null;
-    const path = Array.isArray(result) ? result[0] : result;
     return {
-      path,
-      isClaudeDirName: path.endsWith('.claude'),
+      path: result,
+      isClaudeDirName: result.endsWith('.claude'),
       hasProjectsDir: false,
     };
   },
@@ -125,58 +176,47 @@ const configApiImpl: ConfigAPI = {
 };
 
 const notificationsApiImpl: NotificationsAPI = {
-  get: (options) => invoke('notifications_get', { options }),
-  markRead: (id) => invoke<boolean>('notifications_mark_read', { id }),
-  markAllRead: () => invoke<boolean>('notifications_mark_all_read'),
-  delete: (id) => invoke<boolean>('notifications_delete', { id }),
-  clear: () => invoke<boolean>('notifications_clear'),
-  getUnreadCount: () => invoke<number>('notifications_get_unread_count'),
+  get: (options) =>
+    NotificationsGet(
+      options as unknown as Parameters<typeof NotificationsGet>[0]
+    ) as unknown as ReturnType<NotificationsAPI['get']>,
+  markRead: (id) => NotificationsMarkRead(id),
+  markAllRead: () => NotificationsMarkAllRead(),
+  delete: (id) => NotificationsDelete(id),
+  clear: () => NotificationsClear(),
+  getUnreadCount: () => NotificationsGetUnreadCount(),
   onNew: (callback) => {
-    let unlisten: UnlistenFn | null = null;
-    void listen('notification:new', (event) => {
-      callback(null, event.payload);
-    }).then((fn) => {
-      unlisten = fn;
+    const off = Events.On('notification:new', (e) => {
+      callback(null, e.data);
     });
-    return () => {
-      unlisten?.();
-    };
+    return off;
   },
   onUpdated: (callback) => {
-    let unlisten: UnlistenFn | null = null;
-    void listen<{ total: number; unreadCount: number }>('notification:updated', (event) => {
-      callback(null, event.payload);
-    }).then((fn) => {
-      unlisten = fn;
+    const off = Events.On('notification:updated', (e) => {
+      callback(null, e.data as { total: number; unreadCount: number });
     });
-    return () => {
-      unlisten?.();
-    };
+    return off;
   },
   onClicked: (callback) => {
-    let unlisten: UnlistenFn | null = null;
-    void listen('notification:clicked', (event) => {
-      callback(null, event.payload);
-    }).then((fn) => {
-      unlisten = fn;
+    const off = Events.On('notification:clicked', (e) => {
+      callback(null, e.data);
     });
-    return () => {
-      unlisten?.();
-    };
+    return off;
   },
 };
 
 const sessionApiImpl: SessionAPI = {
   scrollToLine: (sessionId: string, lineNumber: number) =>
-    invoke('session_scroll_to_line', { sessionId, lineNumber }),
+    SessionScrollToLine(sessionId, lineNumber) as unknown as Promise<void>,
 };
 
 const pluginsApiImpl: PluginsAPI = {
-  list: () => invoke<PluginEntry[]>('plugins_discover'),
+  list: () => PluginsDiscover() as unknown as Promise<PluginEntry[]>,
 };
 
 const webhookApiImpl: WebhookAPI = {
-  testSend: (endpoint) => invoke<void>('webhook_test_send', { endpoint }),
+  testSend: (endpoint) =>
+    WebhookTestSend(endpoint as unknown as Parameters<typeof WebhookTestSend>[0]),
 };
 
 export const configApi: ConfigSlice = {

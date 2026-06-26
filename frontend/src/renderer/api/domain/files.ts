@@ -1,4 +1,15 @@
-import { invoke } from '@tauri-apps/api/core';
+import {
+  ReadAgentConfigs,
+  ReadClaudeMdFiles,
+  ReadDirectoryClaudeMd,
+  ReadGlobalAgents,
+  ReadGlobalPlugins,
+  ReadGlobalSettings,
+  ReadGlobalSkills,
+  ReadMentionedFile,
+  ValidateMentions,
+  ValidatePath,
+} from '../../../../bindings/claude-devtools/internal/filesservice/filesservice';
 
 import type { ClaudeMdFileInfo, ElectronAPI } from '@shared/types';
 import type { AgentConfig, GlobalAgent, GlobalPlugin, GlobalSkill } from '@shared/types/api';
@@ -22,43 +33,47 @@ export const filesApi: FilesSlice = {
     relativePath: string,
     projectPath: string
   ): Promise<{ exists: boolean; isDirectory?: boolean }> =>
-    invoke<{ exists: boolean; isDirectory?: boolean }>('validate_path', {
-      relativePath,
-      projectPath,
-    }),
+    ValidatePath(relativePath, projectPath) as unknown as Promise<{
+      exists: boolean;
+      isDirectory?: boolean;
+    }>,
 
   validateMentions: (
     mentions: { type: 'path'; value: string }[],
     projectPath: string
   ): Promise<Record<string, boolean>> =>
-    invoke<Record<string, boolean>>('validate_mentions', { mentions, projectPath }),
+    ValidateMentions(
+      mentions as unknown as Parameters<typeof ValidateMentions>[0],
+      projectPath
+    ) as unknown as Promise<Record<string, boolean>>,
 
   readClaudeMdFiles: (projectRoot: string): Promise<Record<string, ClaudeMdFileInfo>> =>
-    invoke<Record<string, ClaudeMdFileInfo>>('read_claude_md_files', { projectRoot }),
+    ReadClaudeMdFiles(projectRoot) as unknown as Promise<Record<string, ClaudeMdFileInfo>>,
 
   readDirectoryClaudeMd: (dirPath: string): Promise<ClaudeMdFileInfo> =>
-    invoke<ClaudeMdFileInfo>('read_directory_claude_md', { dirPath }),
+    ReadDirectoryClaudeMd(dirPath) as unknown as Promise<ClaudeMdFileInfo>,
 
   readMentionedFile: (
     absolutePath: string,
     projectRoot: string,
     maxTokens?: number
   ): Promise<ClaudeMdFileInfo | null> =>
-    invoke<ClaudeMdFileInfo | null>('read_mentioned_file', {
-      absolutePath,
-      projectRoot,
-      maxTokens,
-    }),
+    ReadMentionedFile(absolutePath, projectRoot, maxTokens ?? null) as unknown as Promise<
+      ClaudeMdFileInfo | null
+    >,
 
   readAgentConfigs: (projectRoot: string): Promise<Record<string, AgentConfig>> =>
-    invoke<Record<string, AgentConfig>>('read_agent_configs', { projectRoot }),
+    ReadAgentConfigs(projectRoot) as unknown as Promise<Record<string, AgentConfig>>,
 
-  readGlobalAgents: (): Promise<GlobalAgent[]> => invoke<GlobalAgent[]>('read_global_agents'),
+  readGlobalAgents: (): Promise<GlobalAgent[]> =>
+    ReadGlobalAgents() as unknown as Promise<GlobalAgent[]>,
 
-  readGlobalSkills: (): Promise<GlobalSkill[]> => invoke<GlobalSkill[]>('read_global_skills'),
+  readGlobalSkills: (): Promise<GlobalSkill[]> =>
+    ReadGlobalSkills() as unknown as Promise<GlobalSkill[]>,
 
-  readGlobalPlugins: (): Promise<GlobalPlugin[]> => invoke<GlobalPlugin[]>('read_global_plugins'),
+  readGlobalPlugins: (): Promise<GlobalPlugin[]> =>
+    ReadGlobalPlugins() as unknown as Promise<GlobalPlugin[]>,
 
   readGlobalSettings: (): Promise<Record<string, unknown>> =>
-    invoke<Record<string, unknown>>('read_global_settings'),
+    ReadGlobalSettings() as unknown as Promise<Record<string, unknown>>,
 };

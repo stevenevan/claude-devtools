@@ -1,4 +1,23 @@
-import { invoke } from '@tauri-apps/api/core';
+import {
+  GetAnalytics,
+  GetCostForecast,
+  GetErrorClusters,
+  GetErrorHotspots,
+  GetFileGraph,
+  GetModelComparison,
+  GetProductivityMetrics,
+  GetSessionDurationStats,
+  GetToolAnalytics,
+  GetToolTimeHeatmap,
+} from '../../../../bindings/claude-devtools/internal/analyticsservice/analyticsservice';
+import { ParseNlQuery } from '../../../../bindings/claude-devtools/internal/searchservice/searchservice';
+import { GetAllTodos } from '../../../../bindings/claude-devtools/internal/systemservice/systemservice';
+import {
+  ClearSessionCache,
+  GetBackendTimings,
+  GetCacheStats,
+  SetCacheCapacity,
+} from '../../../../bindings/claude-devtools/internal/timingservice/timingservice';
 
 import type {
   AggregatedSessionTodos,
@@ -40,72 +59,71 @@ type AnalyticsSlice = Pick<
 
 export const analyticsApi: AnalyticsSlice = {
   getAnalytics: (days: number): Promise<AnalyticsResponse> =>
-    invoke<AnalyticsResponse>('get_analytics', { days }),
+    GetAnalytics(days) as unknown as Promise<AnalyticsResponse>,
 
   getCostForecast: (windowDays: number): Promise<CostForecast> =>
-    invoke<CostForecast>('get_cost_forecast', { windowDays }),
+    GetCostForecast(windowDays) as unknown as Promise<CostForecast>,
 
   getProductivityMetrics: (days: number): Promise<ProductivityMetrics> =>
-    invoke<ProductivityMetrics>('get_productivity_metrics', { days }),
+    GetProductivityMetrics(days) as unknown as Promise<ProductivityMetrics>,
 
   getSessionDurationStats: (days: number): Promise<SessionDurationResponse> =>
-    invoke<SessionDurationResponse>('get_session_duration_stats', { days }),
+    GetSessionDurationStats(days) as unknown as Promise<SessionDurationResponse>,
 
   getModelComparison: (days: number): Promise<ModelComparisonResponse> =>
-    invoke<ModelComparisonResponse>('get_model_comparison', { days }),
+    GetModelComparison(days) as unknown as Promise<ModelComparisonResponse>,
 
+  // NOTE: GetFileGraph binding added canonicalRoot as first arg (new in Go port).
+  // Frontend does not know this path; passing "" lets the backend resolve it.
   getFileGraph: (projectId: string, sessionId: string): Promise<FileGraphResponse> =>
-    invoke<FileGraphResponse>('get_file_graph', { projectId, sessionId }),
+    GetFileGraph('', projectId, sessionId) as unknown as Promise<FileGraphResponse>,
 
   getToolAnalytics: (projectId: string, days: number): Promise<ToolAnalyticsResponse> =>
-    invoke<ToolAnalyticsResponse>('get_tool_analytics', { projectId, days }),
+    GetToolAnalytics(projectId, days) as unknown as Promise<ToolAnalyticsResponse>,
 
+  // NOTE: binding takes toolFilter: string (not nullable); "" means no filter.
   getToolTimeHeatmap: (
     projectId: string,
     days: number,
     toolFilter?: string | null
   ): Promise<ToolTimeHeatmapResponse> =>
-    invoke<ToolTimeHeatmapResponse>('get_tool_time_heatmap', {
+    GetToolTimeHeatmap(
       projectId,
       days,
-      toolFilter: toolFilter ?? null,
-    }),
+      toolFilter ?? ''
+    ) as unknown as Promise<ToolTimeHeatmapResponse>,
 
   getErrorHotspots: (
     projectId: string,
     days: number,
     minOccurrences: number
   ): Promise<ErrorHotspotsResponse> =>
-    invoke<ErrorHotspotsResponse>('get_error_hotspots', {
-      projectId,
-      days,
-      minOccurrences,
-    }),
+    GetErrorHotspots(projectId, days, minOccurrences) as unknown as Promise<ErrorHotspotsResponse>,
 
   getErrorClusters: (
     projectId: string,
     days: number,
     minClusterSize: number
   ): Promise<ErrorClustersResponse> =>
-    invoke<ErrorClustersResponse>('get_error_clusters', {
+    GetErrorClusters(
       projectId,
       days,
-      minClusterSize,
-    }),
+      minClusterSize
+    ) as unknown as Promise<ErrorClustersResponse>,
 
   getAllTodos: (projectIds: string[]): Promise<AggregatedSessionTodos[]> =>
-    invoke<AggregatedSessionTodos[]>('get_all_todos', { projectIds }),
+    GetAllTodos(projectIds) as unknown as Promise<AggregatedSessionTodos[]>,
 
   parseNLQuery: (query: string): Promise<ParsedNLQuery> =>
-    invoke<ParsedNLQuery>('parse_nl_query', { query }),
+    ParseNlQuery(query) as unknown as Promise<ParsedNLQuery>,
 
   getBackendTimings: (limit?: number): Promise<BackendTimingSummary[]> =>
-    invoke<BackendTimingSummary[]>('get_backend_timings', { limit: limit ?? null }),
+    GetBackendTimings(limit ?? null) as unknown as Promise<BackendTimingSummary[]>,
 
-  getCacheStats: (): Promise<BackendCacheStats> => invoke<BackendCacheStats>('get_cache_stats'),
+  getCacheStats: (): Promise<BackendCacheStats> =>
+    GetCacheStats() as unknown as Promise<BackendCacheStats>,
 
-  setCacheCapacity: (capacity: number): Promise<void> =>
-    invoke<void>('set_cache_capacity', { capacity }),
+  setCacheCapacity: (capacity: number): Promise<void> => SetCacheCapacity(capacity),
 
-  clearSessionCache: (): Promise<void> => invoke<void>('clear_session_cache'),
+  clearSessionCache: (): Promise<void> => ClearSessionCache(),
 };
