@@ -1,17 +1,4 @@
-/**
- * Markdown-aware text search utility.
- *
- * Converts markdown through the **same pipeline** as react-markdown:
- *   remark-parse → remarkGfm → mdast-util-to-hast → HAST tree
- *
- * Then collects text nodes only from HAST elements whose corresponding
- * React components call `hl(children)` (highlightSearchInChildren).
- * This ensures match counts align exactly with what the renderer produces.
- *
- * Key design: segments are collected per-text-node, NOT concatenated.
- * `highlightSearchText` operates per-React-string-child, so a match
- * spanning two elements is not valid in either layer.
- */
+
 
 import { toHast } from 'mdast-util-to-hast';
 import remarkGfm from 'remark-gfm';
@@ -71,23 +58,6 @@ function getCachedSegments(markdown: string): string[] {
 // HAST → text segments
 // ---------------------------------------------------------------------------
 
-/**
- * HTML element tag names whose React component counterparts call
- * `hl(children)` (highlightSearchInChildren).
- *
- * Block-level elements call hl(): p, h1-h6, blockquote, li, th, td, code (block only)
- * Inline elements do NOT call hl(): strong, em, a, del, code (inline)
- * The block element's hl() recursively descends into inline children,
- * processing text in document order — matching this walker's traversal.
- *
- * Inline tags are omitted from this set because they are always nested
- * inside a block-level HL element in standard markdown, so their text
- * is collected via the inherited `inHlElement` flag.
- *
- * Must stay in sync with createMarkdownComponents() in markdownComponents.tsx,
- * createUserMarkdownComponents() in UserChatGroup.tsx, and
- * createViewerMarkdownComponents() in MarkdownViewer.tsx.
- */
 const HL_TAGS = new Set([
   'h1',
   'h2',
@@ -103,11 +73,6 @@ const HL_TAGS = new Set([
   'td',
 ]);
 
-/**
- * Parse markdown → mdast → HAST, then collect text nodes from elements
- * whose React components call `hl()`. This produces the exact same
- * text segments that `highlightSearchInChildren` processes at render time.
- */
 export function collectTextSegments(markdown: string): string[] {
   const mdast = parseMarkdown(markdown);
   const hast = toHast(mdast);
@@ -147,10 +112,6 @@ export interface MarkdownSearchMatch {
   matchIndexInItem: number;
 }
 
-/**
- * Parse markdown into segments and search each segment individually.
- * Returns per-item match indices that align with what the renderer produces.
- */
 export function findMarkdownSearchMatches(markdown: string, query: string): MarkdownSearchMatch[] {
   if (!query || !markdown) return [];
 
@@ -175,9 +136,6 @@ export function findMarkdownSearchMatches(markdown: string, query: string): Mark
   return matches;
 }
 
-/**
- * Count matches (cheaper than allocating match objects when only the count is needed).
- */
 export function countMarkdownSearchMatches(markdown: string, query: string): number {
   if (!query || !markdown) return 0;
 
@@ -200,9 +158,6 @@ export function countMarkdownSearchMatches(markdown: string, query: string): num
   return count;
 }
 
-/**
- * Join all visible text segments with spaces for use in context snippets.
- */
 export function extractMarkdownPlainText(markdown: string): string {
   if (!markdown) return '';
   const segments = getCachedSegments(markdown);

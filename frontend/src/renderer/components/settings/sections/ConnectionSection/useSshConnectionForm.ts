@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, Dispatch, SetStateAction, RefObject } from 'react';
 
 import { api } from '@renderer/api';
 import { useStore } from '@renderer/store';
@@ -13,24 +13,24 @@ import type {
 
 interface UseSshConnectionForm {
   host: string;
-  setHost: React.Dispatch<React.SetStateAction<string>>;
+  setHost: Dispatch<SetStateAction<string>>;
   port: string;
-  setPort: React.Dispatch<React.SetStateAction<string>>;
+  setPort: Dispatch<SetStateAction<string>>;
   username: string;
-  setUsername: React.Dispatch<React.SetStateAction<string>>;
+  setUsername: Dispatch<SetStateAction<string>>;
   authMethod: SshAuthMethod;
-  setAuthMethod: React.Dispatch<React.SetStateAction<SshAuthMethod>>;
+  setAuthMethod: Dispatch<SetStateAction<SshAuthMethod>>;
   password: string;
-  setPassword: React.Dispatch<React.SetStateAction<string>>;
+  setPassword: Dispatch<SetStateAction<string>>;
   privateKeyPath: string;
-  setPrivateKeyPath: React.Dispatch<React.SetStateAction<string>>;
+  setPrivateKeyPath: Dispatch<SetStateAction<string>>;
   testing: boolean;
   testResult: { success: boolean; error?: string } | null;
-  setTestResult: React.Dispatch<React.SetStateAction<{ success: boolean; error?: string } | null>>;
+  setTestResult: Dispatch<SetStateAction<{ success: boolean; error?: string } | null>>;
   showDropdown: boolean;
-  setShowDropdown: React.Dispatch<React.SetStateAction<boolean>>;
-  hostInputRef: React.RefObject<HTMLInputElement | null>;
-  dropdownRef: React.RefObject<HTMLDivElement | null>;
+  setShowDropdown: Dispatch<SetStateAction<boolean>>;
+  hostInputRef: RefObject<HTMLInputElement | null>;
+  dropdownRef: RefObject<HTMLDivElement | null>;
   savedProfiles: SshConnectionProfile[];
   selectedProfileId: string | null;
   filteredHosts: SshConfigHostEntry[];

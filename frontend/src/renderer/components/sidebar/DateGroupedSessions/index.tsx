@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-
+import { JSX, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useStore } from '@renderer/store';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Loader2, MessageSquareOff, Pin } from 'lucide-react';
@@ -21,7 +20,7 @@ interface DateGroupedSessionsProps {
 
 export const DateGroupedSessions = ({
   sidebarFilters,
-}: DateGroupedSessionsProps = {}): React.JSX.Element => {
+}: DateGroupedSessionsProps = {}): JSX.Element => {
   const {
     sessions,
     selectedSessionId,

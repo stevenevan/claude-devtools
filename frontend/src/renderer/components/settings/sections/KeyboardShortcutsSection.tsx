@@ -1,5 +1,4 @@
-import { useMemo, useState } from 'react';
-
+import { JSX, KeyboardEvent, useMemo, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import {
   comboFromEvent,
@@ -15,7 +14,7 @@ import { SettingsSectionHeader } from '../components';
 
 const logger = createLogger('Component:KeyboardShortcutsSection');
 
-export const KeyboardShortcutsSection = (): React.JSX.Element => {
+export const KeyboardShortcutsSection = (): JSX.Element => {
   const appConfig = useStore((s) => s.appConfig);
   const setShortcutOverride = useStore((s) => s.setShortcutOverride);
   const resetAllShortcuts = useStore((s) => s.resetAllShortcuts);
@@ -37,7 +36,7 @@ export const KeyboardShortcutsSection = (): React.JSX.Element => {
 
   const handleCaptureKeyDown =
     (actionId: string) =>
-    (e: React.KeyboardEvent): void => {
+    (e: KeyboardEvent): void => {
       e.preventDefault();
       e.stopPropagation();
       if (e.key === 'Escape') {

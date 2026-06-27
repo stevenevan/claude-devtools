@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
-
+import { JSX, useEffect, useMemo, useState } from 'react';
 import { api } from '@renderer/api';
 import { cn } from '@renderer/lib/utils';
 import { formatDurationMs } from '@renderer/utils/formatters';
@@ -66,7 +65,7 @@ interface MiniBarsProps {
   values: number[];
 }
 
-const MiniBars = ({ values }: Readonly<MiniBarsProps>): React.JSX.Element => {
+const MiniBars = ({ values }: Readonly<MiniBarsProps>): JSX.Element => {
   const max = Math.max(...values, 1);
   return (
     <div className="flex h-4 items-end gap-[2px]">
@@ -95,7 +94,7 @@ const HeaderCell = ({
   sort,
   onSort,
   align = 'right',
-}: Readonly<HeaderCellProps>): React.JSX.Element => {
+}: Readonly<HeaderCellProps>): JSX.Element => {
   const isActive = sort.key === field;
   return (
     <th
@@ -132,7 +131,7 @@ function sortEntries(
   });
 }
 
-export const ModelComparisonPanel = (): React.JSX.Element => {
+export const ModelComparisonPanel = (): JSX.Element => {
   const [data, setData] = useState<ModelComparisonResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

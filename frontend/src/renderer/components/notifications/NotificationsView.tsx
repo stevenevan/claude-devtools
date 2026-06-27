@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
+import { JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { getTriggerColorDef } from '@shared/constants/triggerColors';
@@ -22,7 +21,7 @@ interface FilterChip {
   colorHex: string;
 }
 
-export const NotificationsView = (): React.JSX.Element => {
+export const NotificationsView = (): JSX.Element => {
   const {
     notifications,
     unreadCount,

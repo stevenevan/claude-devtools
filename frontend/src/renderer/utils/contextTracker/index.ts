@@ -52,7 +52,7 @@ interface ComputeContextStatsParams {
   projectRoot: string;
   claudeMdTokenData?: Record<string, ClaudeMdFileInfo>;
   mentionedFileTokenData?: Map<string, MentionedFileInfo>;
-  /** Token data for validated directory CLAUDE.md files (keyed by full path) */
+
   directoryTokenData?: Record<string, ClaudeMdFileInfo>;
 }
 

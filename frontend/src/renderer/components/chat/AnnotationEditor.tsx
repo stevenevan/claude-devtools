@@ -1,5 +1,4 @@
-import { useState } from 'react';
-
+import { JSX, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { Trash2 } from 'lucide-react';
@@ -20,7 +19,7 @@ export const AnnotationEditor = ({
   onSave,
   onCancel,
   onDelete,
-}: Readonly<AnnotationEditorProps>): React.JSX.Element => {
+}: Readonly<AnnotationEditorProps>): JSX.Element => {
   const [text, setText] = useState(initialText);
   const [color, setColor] = useState(initialColor);
   const [saving, setSaving] = useState(false);

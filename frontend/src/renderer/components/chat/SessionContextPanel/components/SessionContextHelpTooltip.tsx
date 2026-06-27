@@ -1,10 +1,10 @@
-import React from 'react';
+import { ReactElement } from 'react';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
 import { Separator } from '@renderer/components/ui/separator';
 import { HelpCircle } from 'lucide-react';
 
-export const SessionContextHelpTooltip = (): React.ReactElement => {
+export const SessionContextHelpTooltip = (): ReactElement => {
   return (
     <Popover>
       <PopoverTrigger aria-label="Help: Visible Context">

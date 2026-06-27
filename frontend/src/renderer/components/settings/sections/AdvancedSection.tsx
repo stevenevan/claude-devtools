@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
+import { JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import appIcon from '@renderer/favicon.png';
@@ -26,7 +25,7 @@ export const AdvancedSection = ({
   onExportConfig,
   onImportConfig,
   onOpenInEditor,
-}: AdvancedSectionProps): React.JSX.Element => {
+}: AdvancedSectionProps): JSX.Element => {
   const isElectron = useMemo(() => isDesktopMode(), []);
   const [version, setVersion] = useState<string>('');
   const updateStatus = useStore((s) => s.updateStatus);
@@ -57,7 +56,7 @@ export const AdvancedSection = ({
     checkForUpdates();
   }, [checkForUpdates]);
 
-  const getUpdateButtonContent = (): React.JSX.Element => {
+  const getUpdateButtonContent = (): JSX.Element => {
     switch (updateStatus) {
       case 'checking':
         return (

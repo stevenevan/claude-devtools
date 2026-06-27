@@ -1,7 +1,4 @@
-/**
- * Hook that fetches pre-aggregated analytics data from the Rust backend.
- * The backend does all heavy computation; this hook just assigns colors for display.
- */
+
 
 import { useEffect, useRef, useState } from 'react';
 
@@ -56,7 +53,6 @@ export interface AnalyticsData {
 
 // Constants
 
-/** Max supported range */
 export const MAX_DAYS = 90;
 
 const PROJECT_COLORS = [

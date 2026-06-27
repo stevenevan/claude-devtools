@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo, CSSProperties } from 'react';
 
 import { getSubagentTypeColorSet, getTeamColorSet } from '@renderer/constants/teamColors';
 import { useTabUI } from '@renderer/hooks/useTabUI';
@@ -34,7 +34,7 @@ interface SubagentData {
   searchCurrentSubagentItemId: string | null;
   shouldExpandForSearch: boolean;
   isTraceExpanded: boolean;
-  outerHighlight: { className: string; style?: React.CSSProperties | undefined };
+  outerHighlight: { className: string; style?: CSSProperties | undefined };
   cumulativeMetrics?: { outputTokens: number; turnCount: number };
   hasMainImpact: boolean | undefined;
   hasIsolated: boolean | null | undefined;
@@ -153,7 +153,7 @@ export const useSubagentData = ({
   // Outer card highlight when this subagent contains the highlighted tool
   const outerHighlight = useMemo(() => {
     if (!containsHighlightedError)
-      return { className: '', style: undefined as React.CSSProperties | undefined };
+      return { className: '', style: undefined as CSSProperties | undefined };
     return getHighlightProps(highlightColor);
   }, [containsHighlightedError, highlightColor]);
 

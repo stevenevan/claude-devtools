@@ -1,5 +1,4 @@
-import React, { useMemo } from 'react';
-
+import { FC, JSX, useMemo } from 'react';
 import { useClipboard } from '@renderer/hooks/mantine';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -158,14 +157,14 @@ function buildCopyWithContextText(
   return `// File: ${fileName} (lines ${startLine}-${actualEndLine}) @ ${timestamp}\n${content}`;
 }
 
-export const CodeBlockViewer: React.FC<CodeBlockViewerProps> = ({
+export const CodeBlockViewer: FC<CodeBlockViewerProps> = ({
   fileName,
   content,
   language,
   startLine = 1,
   endLine,
   maxHeight = 'max-h-96',
-}): React.JSX.Element => {
+}): JSX.Element => {
   const { copy, copied } = useClipboard({ timeout: 2000 });
   const { copy: copyWithContext, copied: copiedWithContext } = useClipboard({ timeout: 2000 });
 

@@ -1,10 +1,6 @@
-/**
- * ReadToolViewer
- *
- * Renders the Read tool result using CodeBlockViewer.
- */
 
-import React from 'react';
+
+import { FC, useState } from 'react';
 
 import { CodeBlockViewer, MarkdownViewer } from '@renderer/components/chat/viewers';
 import { cn } from '@renderer/lib/utils';
@@ -15,7 +11,7 @@ interface ReadToolViewerProps {
   linkedTool: LinkedToolItem;
 }
 
-export const ReadToolViewer: React.FC<ReadToolViewerProps> = ({ linkedTool }) => {
+export const ReadToolViewer: FC<ReadToolViewerProps> = ({ linkedTool }) => {
   const filePath = linkedTool.input.file_path as string;
 
   // Prefer enriched toolUseResult data
@@ -56,7 +52,7 @@ export const ReadToolViewer: React.FC<ReadToolViewerProps> = ({ linkedTool }) =>
       : undefined;
 
   const isMarkdownFile = /\.mdx?$/i.test(filePath);
-  const [viewMode, setViewMode] = React.useState<'code' | 'preview'>(
+  const [viewMode, setViewMode] = useState<'code' | 'preview'>(
     isMarkdownFile ? 'preview' : 'code'
   );
 

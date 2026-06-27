@@ -1,7 +1,8 @@
+import { JSX } from 'react';
 import { useStore } from '@renderer/store';
 import { CheckCircle, Loader2, X } from 'lucide-react';
 
-export const UpdateBanner = (): React.JSX.Element | null => {
+export const UpdateBanner = (): JSX.Element | null => {
   const showUpdateBanner = useStore((s) => s.showUpdateBanner);
   const updateStatus = useStore((s) => s.updateStatus);
   const downloadProgress = useStore((s) => s.downloadProgress);

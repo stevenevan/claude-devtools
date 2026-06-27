@@ -1,9 +1,6 @@
-/**
- * PaneSplitDropZone - Half-pane drop zones for creating new panes via tab drag.
- * Covers the left or right half of the pane. When a tab is dragged over a half,
- * a semi-transparent accent overlay highlights the target area.
- */
 
+
+import { JSX } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { cn } from '@renderer/lib/utils';
 
@@ -17,7 +14,7 @@ export const PaneSplitDropZone = ({
   paneId,
   side,
   isActive,
-}: PaneSplitDropZoneProps): React.JSX.Element => {
+}: PaneSplitDropZoneProps): JSX.Element => {
   const { setNodeRef, isOver } = useDroppable({
     id: `split-${side}-${paneId}`,
     data: {

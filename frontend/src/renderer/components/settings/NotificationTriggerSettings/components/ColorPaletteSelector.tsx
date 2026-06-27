@@ -1,6 +1,5 @@
 // Hex input commits on blur/Enter only — avoids config saves while typing.
-import { useCallback, useState } from 'react';
-
+import { JSX, KeyboardEvent, useCallback, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import {
   isPresetColorKey,
@@ -21,7 +20,7 @@ export const ColorPaletteSelector = ({
   value,
   onChange,
   disabled,
-}: Readonly<ColorPaletteSelectorProps>): React.JSX.Element => {
+}: Readonly<ColorPaletteSelectorProps>): JSX.Element => {
   const isCustom = !!value && !isPresetColorKey(value);
   const [hexInput, setHexInput] = useState(isCustom ? value : '');
   const [showHexInput, setShowHexInput] = useState(isCustom);
@@ -40,7 +39,7 @@ export const ColorPaletteSelector = ({
   }, [hexInput, onChange]);
 
   const handleHexKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
+    (e: KeyboardEvent) => {
       if (e.key === 'Enter') {
         e.preventDefault();
         commitHex();

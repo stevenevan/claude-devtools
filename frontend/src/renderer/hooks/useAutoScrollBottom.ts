@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
-
+import { RefObject, useCallback, useEffect, useRef } from 'react';
 interface UseAutoScrollBottomOptions {
   threshold?: number;
   smoothDuration?: number;
@@ -8,13 +7,13 @@ interface UseAutoScrollBottomOptions {
   // Unlike enabled, disabled is for transient disabling during specific operations (e.g. navigation).
   disabled?: boolean;
   // When provided, hook uses this ref instead of creating its own (for sharing with other hooks).
-  externalRef?: React.RefObject<HTMLDivElement | null>;
+  externalRef?: RefObject<HTMLDivElement | null>;
   // When this value changes, reset isAtBottom to true (for tab/session switches).
   resetKey?: string | null;
 }
 
 interface UseAutoScrollBottomReturn {
-  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
+  scrollContainerRef: RefObject<HTMLDivElement | null>;
   // Returns a function to avoid accessing ref.current during render.
   getIsAtBottom: () => boolean;
   scrollToBottom: (behavior?: ScrollBehavior) => void;

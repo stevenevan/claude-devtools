@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { Switch } from '@renderer/components/ui/switch';
 import { cn } from '@renderer/lib/utils';
 import { getTriggerColorDef } from '@shared/constants/triggerColors';
@@ -35,7 +36,7 @@ export const TriggerCardHeader = ({
   onToggleEnabled,
   onToggleExpanded,
   onRemove,
-}: Readonly<TriggerCardHeaderProps>): React.JSX.Element => {
+}: Readonly<TriggerCardHeaderProps>): JSX.Element => {
   return (
     <div className="flex items-center justify-between py-3">
       {/* Left side: Name and badges */}

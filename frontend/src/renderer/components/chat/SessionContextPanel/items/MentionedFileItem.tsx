@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactElement } from 'react';
 
 import { CopyablePath } from '@renderer/components/common/CopyablePath';
 import { resolveAbsolutePath, shortenDisplayPath } from '@renderer/utils/pathDisplay';
@@ -18,7 +18,7 @@ export const MentionedFileItem = ({
   injection,
   projectRoot,
   onNavigateToTurn,
-}: Readonly<MentionedFileItemProps>): React.ReactElement => {
+}: Readonly<MentionedFileItemProps>): ReactElement => {
   const turnIndex = injection.firstSeenTurnIndex;
   const isClickable = onNavigateToTurn && turnIndex >= 0;
   const displayPath = shortenDisplayPath(injection.path, projectRoot);

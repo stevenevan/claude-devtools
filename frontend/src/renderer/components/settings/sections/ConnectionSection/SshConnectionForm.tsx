@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import React from 'react';
+import { Dispatch, SetStateAction, RefObject } from 'react';
 
 import {
   Select,
@@ -17,22 +17,22 @@ import type { SshAuthMethod, SshConfigHostEntry } from '@shared/types';
 
 interface SshConnectionFormProps {
   host: string;
-  setHost: React.Dispatch<React.SetStateAction<string>>;
+  setHost: Dispatch<SetStateAction<string>>;
   port: string;
-  setPort: React.Dispatch<React.SetStateAction<string>>;
+  setPort: Dispatch<SetStateAction<string>>;
   username: string;
-  setUsername: React.Dispatch<React.SetStateAction<string>>;
+  setUsername: Dispatch<SetStateAction<string>>;
   authMethod: SshAuthMethod;
-  setAuthMethod: React.Dispatch<React.SetStateAction<SshAuthMethod>>;
+  setAuthMethod: Dispatch<SetStateAction<SshAuthMethod>>;
   password: string;
-  setPassword: React.Dispatch<React.SetStateAction<string>>;
+  setPassword: Dispatch<SetStateAction<string>>;
   privateKeyPath: string;
-  setPrivateKeyPath: React.Dispatch<React.SetStateAction<string>>;
+  setPrivateKeyPath: Dispatch<SetStateAction<string>>;
   showDropdown: boolean;
-  setShowDropdown: React.Dispatch<React.SetStateAction<boolean>>;
-  setTestResult: React.Dispatch<React.SetStateAction<{ success: boolean; error?: string } | null>>;
-  hostInputRef: React.RefObject<HTMLInputElement | null>;
-  dropdownRef: React.RefObject<HTMLDivElement | null>;
+  setShowDropdown: Dispatch<SetStateAction<boolean>>;
+  setTestResult: Dispatch<SetStateAction<{ success: boolean; error?: string } | null>>;
+  hostInputRef: RefObject<HTMLInputElement | null>;
+  dropdownRef: RefObject<HTMLDivElement | null>;
   filteredHosts: SshConfigHostEntry[];
   inputClass: string;
   testing: boolean;

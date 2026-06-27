@@ -1,5 +1,4 @@
-import { useRef, useState } from 'react';
-
+import { JSX, useRef, useState } from 'react';
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import { useStore } from '@renderer/store';
@@ -16,7 +15,7 @@ function summarizeReport(report: AnnotationImportReport): string {
   ].join(' · ');
 }
 
-export const CollectionsPanel = (): React.JSX.Element => {
+export const CollectionsPanel = (): JSX.Element => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);

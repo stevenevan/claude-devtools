@@ -1,6 +1,4 @@
-/**
- * Subagent slice - manages subagent drill-down state.
- */
+
 
 import { api } from '@renderer/api';
 

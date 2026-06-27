@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-
+import { CSSProperties, JSX, useState } from 'react';
 import type { PositionedEvent } from './types';
 
 export const DayEventBlock = ({
@@ -7,8 +6,8 @@ export const DayEventBlock = ({
   style,
 }: {
   pe: PositionedEvent;
-  style: React.CSSProperties;
-}): React.JSX.Element => {
+  style: CSSProperties;
+}): JSX.Element => {
   const [hovered, setHovered] = useState(false);
   const title = pe.event.sessionTitle;
 

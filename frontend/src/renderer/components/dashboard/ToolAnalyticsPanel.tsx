@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-
+import { Fragment, JSX, useEffect, useState } from 'react';
 import { ToolTimeHeatmap } from '@renderer/components/dashboard/ToolTimeHeatmap';
 import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
 import { useToolAnalyticsData } from '@renderer/hooks/useToolAnalyticsData';
@@ -50,7 +49,7 @@ interface ToolAnalyticsPanelProps {
 
 export const ToolAnalyticsPanel = ({
   days,
-}: Readonly<ToolAnalyticsPanelProps>): React.JSX.Element => {
+}: Readonly<ToolAnalyticsPanelProps>): JSX.Element => {
   const projects = useStore((s) => s.projects);
   const selectedProjectId = useStore((s) => s.selectedProjectId);
   const [projectId, setProjectId] = useState<string | null>(selectedProjectId ?? null);
@@ -203,7 +202,7 @@ export const ToolAnalyticsPanel = ({
                 {tools.map((t) => {
                   const isExpanded = expandedTool === t.toolName;
                   return (
-                    <React.Fragment key={t.toolName}>
+                    <Fragment key={t.toolName}>
                       <tr
                         onClick={() => setExpandedTool(isExpanded ? null : t.toolName)}
                         className={cn(
@@ -274,7 +273,7 @@ export const ToolAnalyticsPanel = ({
                           </td>
                         </tr>
                       )}
-                    </React.Fragment>
+                    </Fragment>
                   );
                 })}
               </tbody>

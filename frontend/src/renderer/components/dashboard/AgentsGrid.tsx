@@ -1,5 +1,4 @@
-import { useEffect, useMemo } from 'react';
-
+import { JSX, useEffect, useMemo } from 'react';
 import { api } from '@renderer/api';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 import { cn } from '@renderer/lib/utils';
@@ -11,7 +10,6 @@ import type { GlobalAgent } from '@shared/types/api';
 
 // Helpers
 
-/** Convert "backend-developer" → "Backend Developer" */
 function formatAgentName(name: string): string {
   return name
     .split(/[-_]/)
@@ -26,7 +24,7 @@ interface AgentCardProps {
   isHighlighted?: boolean;
 }
 
-const AgentCard = ({ agent, isHighlighted }: Readonly<AgentCardProps>): React.JSX.Element => {
+const AgentCard = ({ agent, isHighlighted }: Readonly<AgentCardProps>): JSX.Element => {
   const displayName = formatAgentName(agent.name);
   const toolsList = agent.tools ? agent.tools.split(',').map((t) => t.trim()) : [];
   const maxTools = 4;
@@ -72,7 +70,7 @@ const AgentCard = ({ agent, isHighlighted }: Readonly<AgentCardProps>): React.JS
 
 // Skeleton
 
-const AgentsGridSkeleton = (): React.JSX.Element => {
+const AgentsGridSkeleton = (): JSX.Element => {
   const titleWidths = [60, 50, 70, 55, 65, 45];
   const descWidths = [85, 75, 80, 90, 70, 85];
 
@@ -108,7 +106,7 @@ interface AgentsGridProps {
   searchQuery: string;
 }
 
-export const AgentsGrid = ({ searchQuery }: Readonly<AgentsGridProps>): React.JSX.Element => {
+export const AgentsGrid = ({ searchQuery }: Readonly<AgentsGridProps>): JSX.Element => {
   const { globalAgents, globalAgentsLoading, fetchGlobalAgents } = useStore(
     useShallow((s) => ({
       globalAgents: s.globalAgents,

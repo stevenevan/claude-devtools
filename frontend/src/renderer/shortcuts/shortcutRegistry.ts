@@ -1,19 +1,11 @@
-/**
- * Shortcut registry — catalogue of user-rebindable keyboard actions.
- *
- * Sprint 33 extracts this from the hard-coded handlers in
- * `useKeyboardShortcuts.ts` so settings can present an editable table. The
- * runtime handler still owns dispatch — this module is the source of truth for
- * (a) the default combo per action and (b) conflict detection when the user
- * tries to rebind.
- */
+
 
 export interface ShortcutAction {
   id: string;
   label: string;
-  /** Canonical binding (e.g. `"Cmd+K"`, `"?"`, `"Space"`). */
+
   defaultCombo: string;
-  /** Whether this action is scoped to session tabs (vs. app-wide). */
+
   scope?: 'app' | 'session';
 }
 
@@ -39,11 +31,6 @@ export const SHORTCUT_ACTIONS: ShortcutAction[] = [
   { id: 'shortcut-cheat-sheet', label: 'Open shortcut cheat sheet', defaultCombo: '?' },
 ];
 
-/**
- * Given the registry + user override map (action id → combo), return the
- * effective binding for each action. Empty/unknown overrides fall back to
- * defaults.
- */
 export function resolveBindings(
   overrides: Record<string, string> | undefined
 ): Record<string, string> {
@@ -55,10 +42,6 @@ export function resolveBindings(
   return out;
 }
 
-/**
- * Detect conflicts — two actions mapped to the same combo (same scope only).
- * Returns an array of { combo, actionIds } entries, one per conflict.
- */
 export function findConflicts(
   bindings: Record<string, string>
 ): { combo: string; actionIds: string[] }[] {
@@ -83,10 +66,6 @@ export function findConflicts(
   return conflicts;
 }
 
-/**
- * Canonicalize a KeyboardEvent into the combo string we store in config.
- * Example: Cmd+Shift+K, Ctrl+F, Alt+ArrowRight, ?, Space, j.
- */
 export function comboFromEvent(e: KeyboardEvent): string {
   const parts: string[] = [];
   if (e.metaKey) parts.push('Cmd');

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, ReactElement } from 'react';
 
 import { cn } from '@renderer/lib/utils';
 import { ChevronRight, Wrench } from 'lucide-react';
@@ -17,7 +17,7 @@ interface ToolOutputItemProps {
 export const ToolOutputItem = ({
   injection,
   onNavigateToTurn,
-}: Readonly<ToolOutputItemProps>): React.ReactElement => {
+}: Readonly<ToolOutputItemProps>): ReactElement => {
   const [expanded, setExpanded] = useState(false);
   const turnIndex = injection.turnIndex;
   const isClickable = onNavigateToTurn && turnIndex >= 0;

@@ -1,5 +1,4 @@
-import { useState } from 'react';
-
+import { JSX, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { useStore } from '@renderer/store';
 import { Loader2 } from 'lucide-react';
@@ -17,7 +16,7 @@ import {
 } from './sections';
 import { type SettingsSection, SettingsTabContent, SettingsTabs } from './SettingsTabs';
 
-export const SettingsView = (): React.JSX.Element | null => {
+export const SettingsView = (): JSX.Element | null => {
   const [activeSection, setActiveSection] = useState<SettingsSection>('general');
   const pendingSettingsSection = useStore((s) => s.pendingSettingsSection);
   const clearPendingSettingsSection = useStore((s) => s.clearPendingSettingsSection);

@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 
 const SELECT_INPUT_BASE =
@@ -43,7 +44,7 @@ export const DynamicConfigSection = ({
   onMatchPatternChange,
   onTokenThresholdChange,
   onTokenTypeChange,
-}: Readonly<DynamicConfigSectionProps>): React.JSX.Element => {
+}: Readonly<DynamicConfigSectionProps>): JSX.Element => {
   // Get available match fields based on content type and tool name
   const availableMatchFields = getAvailableMatchFields(contentType, toolName || undefined);
 

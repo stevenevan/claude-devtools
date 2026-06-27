@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-
+import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '@renderer/api';
 import { useStore } from '@renderer/store';
 import { useShallow } from 'zustand/react/shallow';
@@ -52,7 +51,7 @@ interface UseSettingsConfigReturn {
   setError: (error: string | null) => void;
   setSaving: (saving: boolean) => void;
   setConfig: (config: AppConfig | null) => void;
-  setOptimisticConfig: React.Dispatch<React.SetStateAction<AppConfig | null>>;
+  setOptimisticConfig: Dispatch<SetStateAction<AppConfig | null>>;
   updateConfig: (
     section: keyof AppConfig,
     data: Partial<AppConfig[keyof AppConfig]>

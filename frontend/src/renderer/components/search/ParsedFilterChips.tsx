@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import type { ParsedNLQuery } from '@shared/types/api';
 
 interface Props {
@@ -8,7 +9,7 @@ function formatDateChip(ms: number): string {
   return `since ${new Date(ms).toLocaleDateString()}`;
 }
 
-export const ParsedFilterChips = ({ parsed }: Readonly<Props>): React.JSX.Element | null => {
+export const ParsedFilterChips = ({ parsed }: Readonly<Props>): JSX.Element | null => {
   if (!parsed) return null;
 
   const chips: { label: string; value: string }[] = [];

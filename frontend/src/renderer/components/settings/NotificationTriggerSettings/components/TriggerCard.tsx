@@ -1,5 +1,4 @@
-import { memo, useCallback } from 'react';
-
+import { JSX, memo, useCallback } from 'react';
 import { useRepositoryLookup } from '../hooks/useRepositoryLookup';
 import { useTriggerCardState } from '../hooks/useTriggerCardState';
 import { useTriggerForm } from '../hooks/useTriggerForm';
@@ -24,7 +23,7 @@ const TriggerCardInner = ({
   saving,
   onUpdate,
   onRemove,
-}: Readonly<TriggerCardProps>): React.JSX.Element => {
+}: Readonly<TriggerCardProps>): JSX.Element => {
   // Wrap callbacks to include trigger.id
   const handleUpdate = useCallback(
     (updates: Partial<NotificationTrigger>) => onUpdate(trigger.id, updates),

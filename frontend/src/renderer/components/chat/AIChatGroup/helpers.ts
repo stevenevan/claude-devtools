@@ -3,11 +3,6 @@ import { extractSlashInfo, isCommandContent } from '@shared/utils/contentSanitiz
 
 import type { AIGroupDisplayItem, UserGroup } from '@renderer/types/groups';
 
-/**
- * Extract slash info from a UserGroup's message content.
- * Returns PrecedingSlashInfo if the user message was a slash invocation,
- * null otherwise.
- */
 export function extractPrecedingSlashInfo(
   userGroup: UserGroup | undefined
 ): PrecedingSlashInfo | undefined {
@@ -33,10 +28,6 @@ export function extractPrecedingSlashInfo(
   return undefined;
 }
 
-/**
- * Format duration in milliseconds to human-readable string.
- * Examples: "1.2s", "45s", "1m 30s", "5m"
- */
 export function formatDuration(ms: number): string {
   if (ms < 1000) {
     return `${ms}ms`;
@@ -54,9 +45,6 @@ export function formatDuration(ms: number): string {
   return `${minutes}m ${remainingSeconds}s`;
 }
 
-/**
- * Checks if a tool ID exists within the display items (including nested subagents).
- */
 export function containsToolUseId(items: AIGroupDisplayItem[], toolUseId: string): boolean {
   for (const item of items) {
     if (item.type === 'tool' && item.tool.id === toolUseId) {

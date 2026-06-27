@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, ReactElement } from 'react';
 
 import { cn } from '@renderer/lib/utils';
 import { Brain, ChevronRight } from 'lucide-react';
@@ -15,7 +15,7 @@ interface ThinkingTextItemProps {
 export const ThinkingTextItem = ({
   injection,
   onNavigateToTurn,
-}: Readonly<ThinkingTextItemProps>): React.ReactElement => {
+}: Readonly<ThinkingTextItemProps>): ReactElement => {
   const [expanded, setExpanded] = useState(false);
   const turnIndex = injection.turnIndex;
   const isClickable = onNavigateToTurn && turnIndex >= 0;

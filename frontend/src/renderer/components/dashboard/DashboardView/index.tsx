@@ -1,14 +1,6 @@
-/**
- * DashboardView - Main dashboard with "Productivity Luxury" aesthetic.
- * Inspired by Linear, Vercel, and Raycast design patterns.
- * Features:
- * - Subtle spotlight gradient
- * - Centralized command search with inline project filtering
- * - Border-first project cards with minimal backgrounds
- */
 
-import React, { useState } from 'react';
 
+import { JSX, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { useStore } from '@renderer/store';
 import { Settings } from 'lucide-react';
@@ -16,7 +8,7 @@ import { Settings } from 'lucide-react';
 import { CommandSearch } from './CommandSearch';
 import { ProjectsGrid } from './ProjectsGrid';
 
-export const DashboardView = (): React.JSX.Element => {
+export const DashboardView = (): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState('');
   const openSettingsTab = useStore((s) => s.openSettingsTab);
 

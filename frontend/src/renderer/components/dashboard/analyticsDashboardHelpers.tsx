@@ -1,9 +1,5 @@
-/**
- * Inline UI helpers extracted from AnalyticsDashboard to keep that
- * component focused on data wiring + layout.
- */
-import React, { useState } from 'react';
 
+import { ComponentType, JSX, ReactNode, useState } from 'react';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 import { MAX_DAYS } from '@renderer/hooks/useAnalyticsData';
 import { cn } from '@renderer/lib/utils';
@@ -19,7 +15,7 @@ export interface StatCardProps {
   label: string;
   value: string;
   subtitle?: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   accentColor?: string;
 }
 
@@ -29,7 +25,7 @@ export const StatCard = ({
   subtitle,
   icon: Icon,
   accentColor = '#6366f1',
-}: Readonly<StatCardProps>): React.JSX.Element => (
+}: Readonly<StatCardProps>): JSX.Element => (
   <div className="group border-border bg-background/50 hover:bg-card relative flex flex-col gap-2 rounded-xs border p-4 transition-colors">
     <div className="flex items-center justify-between">
       <span className="text-text-muted text-[10px] font-medium tracking-wider uppercase">
@@ -54,7 +50,7 @@ export const StatCard = ({
 export interface ChartSectionProps {
   title: string;
   subtitle?: string;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }
 
@@ -63,7 +59,7 @@ export const ChartSection = ({
   subtitle,
   children,
   className,
-}: Readonly<ChartSectionProps>): React.JSX.Element => (
+}: Readonly<ChartSectionProps>): JSX.Element => (
   <div className={cn('rounded-xs border border-border bg-background/50 p-4', className)}>
     <div className="mb-4">
       <h3 className="text-text text-sm font-medium">{title}</h3>
@@ -90,7 +86,7 @@ export const CustomBarTooltip = ({
   active?: boolean;
   payload?: TooltipPayloadItem[];
   label?: string;
-}): React.JSX.Element | null => {
+}): JSX.Element | null => {
   if (!active || !payload?.length) return null;
 
   return (
@@ -121,7 +117,7 @@ export const CustomPieTooltip = ({
     value: number;
     payload: { color: string; costUsd: number; sessionCount: number };
   }[];
-}): React.JSX.Element | null => {
+}): JSX.Element | null => {
   if (!active || !payload?.length) return null;
 
   const data = payload[0];
@@ -160,7 +156,7 @@ export const DayRangeSelector = ({
 }: {
   value: number;
   onChange: (days: number) => void;
-}): React.JSX.Element => {
+}): JSX.Element => {
   const [customInput, setCustomInput] = useState('');
   const [showCustom, setShowCustom] = useState(false);
   const isPreset = PRESET_RANGES.some((r) => r.days === value);
@@ -233,7 +229,7 @@ export interface TopSessionsProps {
   sessions: TopSessionEntry[];
 }
 
-export const TopSessions = ({ sessions }: Readonly<TopSessionsProps>): React.JSX.Element => (
+export const TopSessions = ({ sessions }: Readonly<TopSessionsProps>): JSX.Element => (
   <div className="space-y-1.5">
     {sessions.length === 0 && (
       <p className="text-text-muted py-4 text-center text-xs">No sessions in this period</p>
@@ -263,7 +259,7 @@ export const TopSessions = ({ sessions }: Readonly<TopSessionsProps>): React.JSX
 
 // Loading Skeleton
 
-export const DashboardSkeleton = (): React.JSX.Element => (
+export const DashboardSkeleton = (): JSX.Element => (
   <div className="space-y-6">
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {Array.from({ length: 4 }).map((_, i) => (

@@ -1,5 +1,4 @@
-import { useMemo, useState } from 'react';
-
+import { JSX, ReactNode, useMemo, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -33,7 +32,7 @@ function fromInputDate(value: string): number | undefined {
   return Number.isNaN(parsed) ? undefined : parsed;
 }
 
-export const AdvancedFilterPanel = (): React.JSX.Element => {
+export const AdvancedFilterPanel = (): JSX.Element => {
   const { activeFilters, setFilter, clearFilters, sessionTags } = useStore(
     useShallow((s) => ({
       activeFilters: s.activeFilters,
@@ -219,7 +218,7 @@ export const AdvancedFilterPanel = (): React.JSX.Element => {
 const FilterField = ({
   label,
   children,
-}: Readonly<{ label: string; children: React.ReactNode }>): React.JSX.Element => (
+}: Readonly<{ label: string; children: ReactNode }>): JSX.Element => (
   <label className="flex flex-col gap-1">
     <span className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
       {label}

@@ -1,5 +1,4 @@
-import { useState } from 'react';
-
+import { JSX, MouseEvent, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { getTriggerColorDef } from '@shared/constants/triggerColors';
 import { formatDistanceToNow } from 'date-fns';
@@ -24,7 +23,7 @@ export const NotificationRow = ({
   onRowClick,
   onArchive,
   onDelete,
-}: Readonly<NotificationRowProps>): React.JSX.Element => {
+}: Readonly<NotificationRowProps>): JSX.Element => {
   const [isHovered, setIsHovered] = useState(false);
   const isUnread = !error.isRead;
   const projectName = error.context?.projectName || 'Unknown Project';
@@ -35,17 +34,17 @@ export const NotificationRow = ({
   const colorDef = getTriggerColorDef(error.triggerColor);
   const displayName = error.triggerName ?? error.source;
 
-  const handleArchiveClick = (e: React.MouseEvent): void => {
+  const handleArchiveClick = (e: MouseEvent): void => {
     e.stopPropagation();
     onArchive();
   };
 
-  const handleDeleteClick = (e: React.MouseEvent): void => {
+  const handleDeleteClick = (e: MouseEvent): void => {
     e.stopPropagation();
     onDelete();
   };
 
-  const handleNavigateClick = (e: React.MouseEvent): void => {
+  const handleNavigateClick = (e: MouseEvent): void => {
     e.stopPropagation();
     onRowClick();
   };
@@ -118,9 +117,9 @@ export const NotificationRow = ({
 
 interface HoverActionsProps {
   isUnread: boolean;
-  onArchiveClick: (e: React.MouseEvent) => void;
-  onDeleteClick: (e: React.MouseEvent) => void;
-  onNavigateClick: (e: React.MouseEvent) => void;
+  onArchiveClick: (e: MouseEvent) => void;
+  onDeleteClick: (e: MouseEvent) => void;
+  onNavigateClick: (e: MouseEvent) => void;
 }
 
 const HoverActions = ({
@@ -128,7 +127,7 @@ const HoverActions = ({
   onArchiveClick,
   onDeleteClick,
   onNavigateClick,
-}: HoverActionsProps): React.JSX.Element => {
+}: HoverActionsProps): JSX.Element => {
   return (
     <>
       {isUnread && (

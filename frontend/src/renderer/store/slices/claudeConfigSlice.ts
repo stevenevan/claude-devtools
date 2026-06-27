@@ -1,7 +1,4 @@
-/**
- * Claude config slice - manages global ~/.claude/ configuration data.
- * Provides state and actions for agents, skills, plugins, and settings.
- */
+
 
 import { api } from '@renderer/api';
 import { createLogger } from '@shared/utils/logger';

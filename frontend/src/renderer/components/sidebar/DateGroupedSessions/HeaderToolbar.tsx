@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { JSX, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { cn } from '@renderer/lib/utils';
@@ -28,7 +28,7 @@ export const HeaderToolbar = ({
   hasHiddenSessions,
   showHiddenSessions,
   toggleShowHiddenSessions,
-}: HeaderToolbarProps): React.JSX.Element => {
+}: HeaderToolbarProps): JSX.Element => {
   const countRef = useRef<HTMLSpanElement>(null);
   const [showCountTooltip, setShowCountTooltip] = useState(false);
 

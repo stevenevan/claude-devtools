@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-
+import { JSX, useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { api } from './api';
@@ -13,7 +12,7 @@ import { TooltipProvider } from './components/ui/tooltip';
 import { useTheme } from './hooks/useTheme';
 import { initializeNotificationListeners, useStore } from './store';
 
-export const App = (): React.JSX.Element => {
+export const App = (): JSX.Element => {
   useTheme();
 
   const { shortcutCheatSheetOpen, toggleShortcutCheatSheet, helpPanelOpen, setHelpPanelOpen } =

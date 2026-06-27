@@ -1,11 +1,4 @@
-/**
- * fetchSessionDetail body, extracted from sessionDetailSlice.
- *
- * Owns the full session-load pipeline: invoke IPC, transform chunks to
- * conversation, derive CLAUDE.md / context stats, propagate to per-tab
- * caches. Slice keeps the public method signature; this file owns the
- * work.
- */
+
 import { api } from '@renderer/api';
 import { asEnhancedChunkArray } from '@renderer/types/data';
 import { findTabBySession, truncateLabel } from '@renderer/types/tabs';

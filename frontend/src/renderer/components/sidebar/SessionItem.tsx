@@ -1,5 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
-
+import { JSX, memo, MouseEvent, useCallback, useMemo } from 'react';
 import { ContextMenu, ContextMenuTrigger } from '@renderer/components/ui/context-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/ui/tooltip';
 import { cn } from '@renderer/lib/utils';
@@ -51,7 +50,7 @@ const ConsumptionBadge = ({
 }: Readonly<{
   contextConsumption: number;
   phaseBreakdown?: PhaseTokenBreakdown[];
-}>): React.JSX.Element => {
+}>): JSX.Element => {
   const isHigh = contextConsumption > 150_000;
   const hasBreakdown = phaseBreakdown && phaseBreakdown.length > 0;
 
@@ -92,7 +91,7 @@ const ConsumptionBadge = ({
   );
 };
 
-export const SessionItem = React.memo(function SessionItem({
+export const SessionItem = memo(function SessionItem({
   session,
   isActive,
   isPinned,
@@ -100,7 +99,7 @@ export const SessionItem = React.memo(function SessionItem({
   multiSelectActive,
   isSelected,
   onToggleSelect,
-}: Readonly<SessionItemProps>): React.JSX.Element {
+}: Readonly<SessionItemProps>): JSX.Element {
   const {
     openTab,
     activeProjectId,
@@ -132,7 +131,7 @@ export const SessionItem = React.memo(function SessionItem({
     [session.todoData]
   );
 
-  const handleClick = (event: React.MouseEvent): void => {
+  const handleClick = (event: MouseEvent): void => {
     if (!activeProjectId) return;
 
     if (multiSelectActive && onToggleSelect) {

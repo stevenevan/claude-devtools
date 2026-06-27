@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
+import { JSX, MouseEvent as ReactMouseEvent, useCallback, useEffect, useMemo, useRef, useState, WheelEvent } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { buildFlameLayout } from '@renderer/utils/flameGraphLayout';
 import { formatDurationMs } from '@renderer/utils/formatters';
@@ -27,7 +26,7 @@ const CATEGORY_COLOR: Record<ToolCategory, string> = {
 
 interface ToolFlameGraphProps {
   chunks: Chunk[];
-  /** Tool call id to spotlight (from external selection). */
+
   focusedToolCallId?: string | null;
   onBarClick?: (bar: FlameBar) => void;
   className?: string;
@@ -48,7 +47,7 @@ export const ToolFlameGraph = ({
   focusedToolCallId,
   onBarClick,
   className,
-}: Readonly<ToolFlameGraphProps>): React.JSX.Element | null => {
+}: Readonly<ToolFlameGraphProps>): JSX.Element | null => {
   const layout = useMemo(() => buildFlameLayout({ chunks }), [chunks]);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -83,7 +82,7 @@ export const ToolFlameGraph = ({
   const effectiveScale = scale ?? (containerWidth > 0 ? containerWidth / totalMs : 1);
 
   const handleWheel = useCallback(
-    (e: React.WheelEvent<HTMLDivElement>) => {
+    (e: WheelEvent<HTMLDivElement>) => {
       if (!e.ctrlKey && !e.metaKey && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
         // Horizontal trackpad pan — let native scroll handle; fall through to pan.
       }
@@ -109,7 +108,7 @@ export const ToolFlameGraph = ({
     [effectiveScale, pan]
   );
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>): void => {
+  const handleMouseDown = (e: ReactMouseEvent<HTMLDivElement>): void => {
     if (e.button !== 0) return;
     dragState.current = { startX: e.clientX, startPan: pan };
   };

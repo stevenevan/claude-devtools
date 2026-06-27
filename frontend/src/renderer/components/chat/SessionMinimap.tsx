@@ -1,12 +1,6 @@
-/**
- * SessionMinimap - Vertical rail showing a compressed overview of the session.
- * Color-coded by chunk type. Click to jump. Viewport indicator synced to scroll.
- * Sprint 26: wheel-to-zoom (1x–8x), drag-to-pan, scrubber handle via
- * ScrollController authority protocol.
- */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { JSX, MouseEvent as ReactMouseEvent, RefObject, useCallback, useEffect, useMemo, useRef, useState, WheelEvent } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { scrollController } from '@renderer/services/scrollController';
 import { useStore } from '@renderer/store';
@@ -27,7 +21,7 @@ import type { ChatItem } from '@renderer/types/groups';
 
 interface SessionMinimapProps {
   items: ChatItem[];
-  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
+  scrollContainerRef: RefObject<HTMLDivElement | null>;
   onJumpToIndex: (index: number) => void;
   className?: string;
 }
@@ -77,7 +71,7 @@ export const SessionMinimap = ({
   scrollContainerRef,
   onJumpToIndex,
   className,
-}: Readonly<SessionMinimapProps>): React.JSX.Element | null => {
+}: Readonly<SessionMinimapProps>): JSX.Element | null => {
   const minimapRef = useRef<HTMLDivElement>(null);
   const [viewportTop, setViewportTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(100);
@@ -162,7 +156,7 @@ export const SessionMinimap = ({
   );
 
   const handleClick = useCallback(
-    (e: React.MouseEvent) => {
+    (e: ReactMouseEvent) => {
       // Suppress click right after a drag so scrubbing doesn't snap to a click.
       if (dragState.current) {
         dragState.current = null;
@@ -190,7 +184,7 @@ export const SessionMinimap = ({
   );
 
   const handleWheel = useCallback(
-    (e: React.WheelEvent<HTMLDivElement>) => {
+    (e: WheelEvent<HTMLDivElement>) => {
       const minimap = minimapRef.current;
       if (!minimap) return;
       e.preventDefault();
@@ -205,7 +199,7 @@ export const SessionMinimap = ({
   );
 
   const handleMouseDown = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
+    (e: ReactMouseEvent<HTMLDivElement>) => {
       if (e.button !== 0) return;
       // Shift-drag pans (when zoomed); plain drag scrubs playhead.
       dragState.current = {

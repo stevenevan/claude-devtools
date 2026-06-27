@@ -1,3 +1,4 @@
+import { RefObject } from 'react';
 import type { JSX } from 'react';
 import { SessionContextPanel } from '../SessionContextPanel/index';
 import { SessionMinimap } from '../SessionMinimap';
@@ -8,7 +9,7 @@ import type { ChatItem } from '@renderer/types/groups';
 
 interface ChatHistorySidePanelsProps {
   items: ChatItem[];
-  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
+  scrollContainerRef: RefObject<HTMLDivElement | null>;
   onMinimapJump: (index: number) => void;
   isTodoPanelVisible: boolean;
   hasTodoData: boolean;

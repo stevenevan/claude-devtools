@@ -2,9 +2,6 @@
 
 import type { DetectedError } from '../notifications';
 
-/**
- * Result of notifications:get with pagination.
- */
 interface NotificationsResult {
   notifications: DetectedError[];
   total: number;
@@ -13,11 +10,6 @@ interface NotificationsResult {
   hasMore: boolean;
 }
 
-/**
- * Notifications API exposed via preload.
- * Note: Event callbacks use `unknown` types because IPC data cannot be typed at the preload layer.
- * Consumers should cast to DetectedError or NotificationClickData as appropriate.
- */
 export interface NotificationsAPI {
   get: (options?: { limit?: number; offset?: number }) => Promise<NotificationsResult>;
   markRead: (id: string) => Promise<boolean>;

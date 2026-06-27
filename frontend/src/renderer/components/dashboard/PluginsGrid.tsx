@@ -1,5 +1,4 @@
-import { useEffect, useMemo } from 'react';
-
+import { JSX, useEffect, useMemo } from 'react';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -41,7 +40,7 @@ interface PluginCardProps {
   isHighlighted?: boolean;
 }
 
-const PluginCard = ({ plugin, isHighlighted }: Readonly<PluginCardProps>): React.JSX.Element => {
+const PluginCard = ({ plugin, isHighlighted }: Readonly<PluginCardProps>): JSX.Element => {
   const displayName = formatPluginName(plugin.name);
 
   return (
@@ -90,7 +89,7 @@ const PluginCard = ({ plugin, isHighlighted }: Readonly<PluginCardProps>): React
   );
 };
 
-const PluginsGridSkeleton = (): React.JSX.Element => {
+const PluginsGridSkeleton = (): JSX.Element => {
   const titleWidths = [55, 65, 50, 70, 60, 45];
   const metaWidths = [70, 60, 80, 65, 75, 55];
 
@@ -124,7 +123,7 @@ interface PluginsGridProps {
   searchQuery: string;
 }
 
-export const PluginsGrid = ({ searchQuery }: Readonly<PluginsGridProps>): React.JSX.Element => {
+export const PluginsGrid = ({ searchQuery }: Readonly<PluginsGridProps>): JSX.Element => {
   const { globalPlugins, globalPluginsLoading, fetchGlobalPlugins } = useStore(
     useShallow((s) => ({
       globalPlugins: s.globalPlugins,

@@ -1,5 +1,5 @@
-import React from 'react';
 
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { Loader2 } from 'lucide-react';
 
@@ -13,7 +13,7 @@ export const OngoingIndicator = ({
   size = 'sm',
   showLabel = false,
   label = 'Session in progress...',
-}: Readonly<OngoingIndicatorProps>): React.JSX.Element => {
+}: Readonly<OngoingIndicatorProps>): JSX.Element => {
   const dotSize = size === 'sm' ? 'h-2 w-2' : 'h-2.5 w-2.5';
 
   return (
@@ -27,7 +27,7 @@ export const OngoingIndicator = ({
   );
 };
 
-export const OngoingBanner = (): React.JSX.Element => {
+export const OngoingBanner = (): JSX.Element => {
   return (
     <div className="border-border bg-card flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3">
       <Loader2 className="text-muted-foreground size-4 shrink-0 animate-spin" />

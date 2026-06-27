@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
-
+import { JSX, useCallback, useEffect, useState } from 'react';
 import { api } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import {
@@ -37,7 +36,7 @@ const defaultForm = {
   privateKeyPath: '',
 };
 
-export const WorkspaceSection = (): React.JSX.Element => {
+export const WorkspaceSection = (): JSX.Element => {
   const [profiles, setProfiles] = useState<SshConnectionProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -150,7 +149,7 @@ export const WorkspaceSection = (): React.JSX.Element => {
   const isFormValid =
     formName.trim() !== '' && formHost.trim() !== '' && formUsername.trim() !== '';
 
-  const renderForm = (onSave: () => Promise<void>, onCancel: () => void): React.JSX.Element => (
+  const renderForm = (onSave: () => Promise<void>, onCancel: () => void): JSX.Element => (
     <div className="border-border bg-card space-y-3 rounded-md border p-4">
       <div className="grid grid-cols-2 gap-3">
         <div>

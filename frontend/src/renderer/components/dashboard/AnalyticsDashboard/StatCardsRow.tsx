@@ -1,5 +1,5 @@
-import React from 'react';
 
+import { JSX } from 'react';
 import type { TimeBucketUsage } from '@shared/types';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { Activity, Clock, DollarSign, TrendingUp, Zap } from 'lucide-react';
@@ -31,7 +31,7 @@ export const StatCardsRow = ({
   activeBuckets,
   bucketNoun,
   projectCount,
-}: StatCardsRowProps): React.JSX.Element => {
+}: StatCardsRowProps): JSX.Element => {
   return (
     <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-5">
       <StatCard

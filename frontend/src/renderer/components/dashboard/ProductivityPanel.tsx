@@ -1,5 +1,4 @@
-import { useMemo } from 'react';
-
+import { JSX, useMemo } from 'react';
 import { useProductivityMetrics } from '@renderer/hooks/useProductivityMetrics';
 import { cn } from '@renderer/lib/utils';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
@@ -31,7 +30,7 @@ const Sparkline = ({
   values,
   width = 80,
   height = 20,
-}: Readonly<SparklineProps>): React.JSX.Element => {
+}: Readonly<SparklineProps>): JSX.Element => {
   const n = values.length;
   if (n === 0) return <svg width={width} height={height} />;
 
@@ -58,7 +57,7 @@ interface DeltaBadgeProps {
   deltaPct: number | null;
 }
 
-const DeltaBadge = ({ deltaPct }: Readonly<DeltaBadgeProps>): React.JSX.Element | null => {
+const DeltaBadge = ({ deltaPct }: Readonly<DeltaBadgeProps>): JSX.Element | null => {
   if (deltaPct === null || !Number.isFinite(deltaPct)) return null;
   const Icon = deltaPct >= 0 ? TrendingUp : TrendingDown;
   const tone = deltaPct >= 0 ? 'text-emerald-400' : 'text-rose-400';
@@ -83,7 +82,7 @@ const Kpi = ({
   value,
   sparklineValues,
   deltaPct,
-}: Readonly<KpiProps>): React.JSX.Element => (
+}: Readonly<KpiProps>): JSX.Element => (
   <div className="border-border/50 bg-background/50 flex flex-col gap-1 rounded-xs border p-3">
     <div className="flex items-baseline justify-between">
       <span className="text-text-muted text-[10px]">{label}</span>
@@ -137,7 +136,7 @@ function avgP95(days: ProductivityDay[]): number {
   return nonZero.reduce((s, d) => s + d.tokensP95, 0) / nonZero.length;
 }
 
-export const ProductivityPanel = (): React.JSX.Element => {
+export const ProductivityPanel = (): JSX.Element => {
   const { metrics, loading, error } = useProductivityMetrics(DEFAULT_WINDOW_DAYS);
 
   const derived = useMemo(() => {

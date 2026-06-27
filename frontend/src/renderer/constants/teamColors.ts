@@ -1,16 +1,11 @@
-/**
- * Team Color Constants
- *
- * Shared color definitions for team member visualization.
- * Used by TeammateMessageItem and SubagentItem when displaying team members.
- */
+
 
 export interface TeamColorSet {
-  /** Border accent color */
+
   border: string;
-  /** Badge background (semi-transparent) */
+
   badge: string;
-  /** Text color for labels */
+
   text: string;
 }
 
@@ -27,10 +22,6 @@ const TEAMMATE_COLORS: Record<string, TeamColorSet> = {
 
 const DEFAULT_COLOR: TeamColorSet = TEAMMATE_COLORS.blue;
 
-/**
- * Get a TeamColorSet from a color name or hex string.
- * Falls back to blue if unrecognized.
- */
 const COLOR_NAMES = Object.keys(TEAMMATE_COLORS);
 
 function hashString(str: string): number {

@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import React from 'react';
+import { CSSProperties, memo } from 'react';
 
 import { cn } from '@renderer/lib/utils';
 import {
@@ -26,19 +26,16 @@ interface ChatHistoryItemProps {
   readonly highlightColor?: TriggerColor;
   readonly registerChatItemRef: (groupId: string) => (el: HTMLElement | null) => void;
   readonly registerAIGroupRef: (groupId: string) => (el: HTMLElement | null) => void;
-  /** Register ref for individual tool items (for precise scroll targeting) */
+
   readonly registerToolRef: (toolId: string, el: HTMLElement | null) => void;
 }
 
-/**
- * Get highlight class/style based on type: search (yellow), navigation (blue), error (custom color)
- */
 function getHighlight(
   isHighlighted: boolean,
   isSearchHighlight: boolean,
   isNavigationHighlight: boolean,
   highlightColor?: TriggerColor
-): { className: string; style?: React.CSSProperties } {
+): { className: string; style?: CSSProperties } {
   if (!isHighlighted) return { className: 'ring-0 bg-transparent' };
   if (isSearchHighlight) return { className: 'ring-2 ring-yellow-500/30 bg-yellow-500/5' };
   if (isNavigationHighlight) return { className: 'ring-2 ring-blue-500/30 bg-blue-500/5' };
@@ -47,9 +44,6 @@ function getHighlight(
   return getHighlightProps(key);
 }
 
-/**
- * Renders a single chat history item (user, system, ai, or compact).
- */
 const ChatHistoryItemInner = ({
   item,
   highlightedGroupId,
@@ -134,4 +128,4 @@ const ChatHistoryItemInner = ({
   }
 };
 
-export const ChatHistoryItem = React.memo(ChatHistoryItemInner);
+export const ChatHistoryItem = memo(ChatHistoryItemInner);

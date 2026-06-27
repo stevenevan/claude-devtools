@@ -1,5 +1,5 @@
-import React from 'react';
 
+import { JSX } from 'react';
 import type { TimeBucketUsage } from '@shared/types';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import {
@@ -25,7 +25,7 @@ export const TokenUsageBarChart = ({
   timeBuckets,
   bucketNoun,
   xAxisInterval,
-}: TokenUsageBarChartProps): React.JSX.Element => {
+}: TokenUsageBarChartProps): JSX.Element => {
   return (
     <ChartSection
       title="Token Usage Over Time"

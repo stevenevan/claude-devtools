@@ -1,10 +1,6 @@
-/**
- * DefaultToolViewer
- *
- * Default rendering for tools that don't have specialized viewers.
- */
 
-import React from 'react';
+
+import { FC } from 'react';
 
 import { type ItemStatus } from '../BaseItem';
 
@@ -18,7 +14,7 @@ interface DefaultToolViewerProps {
   status: ItemStatus;
 }
 
-export const DefaultToolViewer: React.FC<DefaultToolViewerProps> = ({ linkedTool, status }) => {
+export const DefaultToolViewer: FC<DefaultToolViewerProps> = ({ linkedTool, status }) => {
   return (
     <>
       {/* Input Section */}

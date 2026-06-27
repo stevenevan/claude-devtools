@@ -13,10 +13,6 @@ interface UseAIGroupExpansionParams {
   expandDisplayItem: (aiGroupId: string, itemId: string) => void;
 }
 
-/**
- * Coordinates auto-expansion of display items when search or error-highlight
- * navigates to an AI group. Returns no value — runs effects only.
- */
 export function useAIGroupExpansion({
   aiGroupId,
   displayItems,

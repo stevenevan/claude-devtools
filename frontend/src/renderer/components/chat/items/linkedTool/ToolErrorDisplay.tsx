@@ -1,10 +1,6 @@
-/**
- * ToolErrorDisplay
- *
- * Displays error output for tool results.
- */
 
-import React from 'react';
+
+import { FC } from 'react';
 
 import { StatusDot } from '../BaseItem';
 
@@ -16,7 +12,7 @@ interface ToolErrorDisplayProps {
   linkedTool: LinkedToolItem;
 }
 
-export const ToolErrorDisplay: React.FC<ToolErrorDisplayProps> = ({ linkedTool }) => {
+export const ToolErrorDisplay: FC<ToolErrorDisplayProps> = ({ linkedTool }) => {
   if (!linkedTool.result?.isError) return null;
 
   return (

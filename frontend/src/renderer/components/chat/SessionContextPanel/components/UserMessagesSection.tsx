@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactElement } from 'react';
 
 import { UserMessageItem } from '../items/UserMessageItem';
 
@@ -20,7 +20,7 @@ export const UserMessagesSection = ({
   isExpanded,
   onToggle,
   onNavigateToTurn,
-}: Readonly<UserMessagesSectionProps>): React.ReactElement | null => {
+}: Readonly<UserMessagesSectionProps>): ReactElement | null => {
   if (injections.length === 0) return null;
 
   return (

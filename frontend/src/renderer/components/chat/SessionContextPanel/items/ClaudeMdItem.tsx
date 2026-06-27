@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactElement } from 'react';
 
 import { CopyablePath } from '@renderer/components/common/CopyablePath';
 import { resolveAbsolutePath, shortenDisplayPath } from '@renderer/utils/pathDisplay';
@@ -18,7 +18,7 @@ export const ClaudeMdItem = ({
   injection,
   projectRoot,
   onNavigateToTurn,
-}: Readonly<ClaudeMdItemProps>): React.ReactElement => {
+}: Readonly<ClaudeMdItemProps>): ReactElement => {
   const turnIndex = parseTurnIndex(injection.firstSeenInGroup);
   const isClickable = onNavigateToTurn && turnIndex >= 0;
   const displayPath = shortenDisplayPath(injection.path, projectRoot);

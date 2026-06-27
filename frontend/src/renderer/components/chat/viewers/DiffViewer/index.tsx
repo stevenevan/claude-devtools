@@ -1,5 +1,4 @@
-import React from 'react';
-
+import { FC, JSX, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { getBaseName } from '@renderer/utils/pathUtils';
 import { formatTokens } from '@shared/utils/tokenFormatting';
@@ -18,14 +17,14 @@ interface DiffViewerProps {
   tokenCount?: number;
 }
 
-export const DiffViewer: React.FC<DiffViewerProps> = ({
+export const DiffViewer: FC<DiffViewerProps> = ({
   fileName,
   oldString,
   newString,
   maxHeight = 'max-h-96',
   tokenCount,
-}): React.JSX.Element => {
-  const [mode, setMode] = React.useState<'unified' | 'split'>('unified');
+}): JSX.Element => {
+  const [mode, setMode] = useState<'unified' | 'split'>('unified');
 
   const oldLines = oldString.split('\n');
   const newLines = newString.split('\n');

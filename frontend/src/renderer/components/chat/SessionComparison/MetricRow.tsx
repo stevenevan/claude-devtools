@@ -1,9 +1,9 @@
-import React from 'react';
 
+import { ElementType, JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 
 interface MetricRowProps {
-  icon: React.ElementType;
+  icon: ElementType;
   label: string;
   leftValue: string;
   rightValue: string;
@@ -16,7 +16,7 @@ export const MetricRow = ({
   leftValue,
   rightValue,
   iconColor = 'text-muted-foreground',
-}: Readonly<MetricRowProps>): React.JSX.Element => (
+}: Readonly<MetricRowProps>): JSX.Element => (
   <div className="flex items-center gap-3 py-1.5">
     <Icon className={cn('size-3.5 shrink-0', iconColor)} />
     <span className="text-muted-foreground w-24 shrink-0 text-xs">{label}</span>

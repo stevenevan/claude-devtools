@@ -1,11 +1,4 @@
-/**
- * Replay slice - session playback mode (sprint 27).
- *
- * Drives a cursor over the conversation's chunk items. ReplayControls surfaces
- * play/pause/step buttons; ChatHistory fades chunks whose index exceeds the
- * cursor. Writer identity `replay-cursor` wires through ScrollController so
- * it coexists with user scroll + minimap scrubber without oscillation.
- */
+
 
 import type { AppState } from '../types';
 import type { StateCreator } from 'zustand';

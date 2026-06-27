@@ -1,14 +1,15 @@
+import { JSX, ReactNode } from 'react';
 interface SettingRowProps {
   readonly label: string;
   readonly description?: string;
-  readonly children: React.ReactNode;
+  readonly children: ReactNode;
 }
 
 export const SettingRow = ({
   label,
   description,
   children,
-}: SettingRowProps): React.JSX.Element => {
+}: SettingRowProps): JSX.Element => {
   return (
     <div className="border-border/50 flex items-center justify-between border-b py-3">
       <div>

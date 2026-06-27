@@ -1,12 +1,4 @@
-/**
- * JSONL format types - raw data structures from Claude Code session files.
- *
- * These types represent the exact format stored in .jsonl files at:
- * ~/.claude/projects/{project_name}/{session_uuid}.jsonl
- *
- * Content type guards and entry type guards are included here as they
- * operate directly on the raw JSONL structures.
- */
+
 
 // Core Type Aliases
 
@@ -104,14 +96,6 @@ interface BaseEntry {
   uuid?: string;
 }
 
-/**
- * Base for conversational entries (user, assistant, system).
- *
- * Sidechain behavior:
- * - isSidechain: false -> Main agent message
- * - isSidechain: true -> Subagent message
- * - sessionId: For subagents, points to parent session UUID
- */
 interface ConversationalEntry extends BaseEntry {
   parentUuid: string | null;
   isSidechain: boolean;
@@ -123,35 +107,8 @@ interface ConversationalEntry extends BaseEntry {
   slug?: string;
 }
 
-/**
- * Tool use result data - preserves full structure from JSONL entries.
- *
- * The structure varies significantly by tool type:
- * - File tools: { type, success, filePath, content, structuredPatch, ... }
- * - Task tools: { status, prompt, agentId, content, totalDurationMs, totalTokens, usage, ... }
- * - AskUserQuestion: { questions, answers }
- * - Bash: { stdout, stderr, exitCode, ... }
- *
- * Using Record<string, unknown> to preserve all data without loss.
- */
 export type ToolUseResultData = Record<string, unknown>;
 
-/**
- * CRITICAL: User entries serve two purposes:
- *
- * 1. Real User Input (chunk starters):
- *    - isMeta: false or undefined
- *    - content: string
- *    - These START new chunks
- *
- * 2. Response Messages (part of response flow):
- *    a) Internal (tool results):
- *       - isMeta: true
- *       - content: array with tool_result blocks
- *    b) Interruptions:
- *       - isMeta: false
- *       - content: array (not string)
- */
 export interface UserEntry extends ConversationalEntry {
   type: 'user';
   message: UserMessage;
@@ -207,87 +164,9 @@ export type ChatHistoryEntry =
   | FileHistorySnapshotEntry
   | QueueOperationEntry;
 
-/**
- * Conversational entries - entries that represent chat messages.
- * These share common properties like message, cwd, gitBranch, etc.
- */
 export type ConversationalChatEntry = UserEntry | AssistantEntry | SystemEntry;
 
 // Subagent Directory Structures
 
-/**
- * Claude Code supports two subagent directory structures:
- *
- * NEW STRUCTURE (Current):
- * ~/.claude/projects/
- *   {project_name}/
- *     {session_uuid}.jsonl              <- Main agent
- *     {session_uuid}/
- *       agent_{agent_uuid}.jsonl         <- Subagents
- *
- * OLD STRUCTURE (Legacy, still supported):
- * ~/.claude/projects/
- *   {project_name}/
- *     {session_uuid}.jsonl              <- Main agent
- *     agent_{agent_uuid}.jsonl           <- Subagents (at root)
- *
- * Identification:
- * - Main agent: isSidechain: false (or undefined)
- * - Subagent: isSidechain: true
- * - Linking: subagent.sessionId === parent session UUID
- *
- * When scanning for subagents:
- * 1. First check {session_uuid}/ subdirectory (new structure)
- * 2. Fall back to project root for agent_*.jsonl (old structure)
- * 3. Match by sessionId field to link to parent
- */
-
 // Message Flow Pattern
 
-/**
- * Typical conversation flow:
- *
- * 1. User types -> type: "user", isMeta: false, content: string -> TRIGGER MESSAGE (STARTS CHUNK)
- * 2. Assistant responds -> type: "assistant", may contain tool_use -> FLOW MESSAGE (PART OF RESPONSE)
- * 3. Tool executes -> type: "user", isMeta: true, contains tool_result -> FLOW MESSAGE (PART OF RESPONSE)
- * 4. User interrupts -> type: "user", isMeta: false, content: array -> FLOW MESSAGE (PART OF RESPONSE)
- * 5. Assistant continues -> type: "assistant" -> FLOW MESSAGE (PART OF RESPONSE)
- *
- * Message Categories (New 4-Category System):
- *
- * 1. USER MESSAGES (create UserChunks):
- *    - Genuine user input that initiates a new request/response cycle
- *    - Classified by: message_classifier.rs (Rust backend)
- *    - Requirements: type='user', isMeta!=true, has text/image content
- *    - Excludes: <local-command-stdout>, <local-command-caveat>, <system-reminder>
- *    - Allows: <command-name> (slash commands like /model are visible user input)
- *
- * 2. SYSTEM MESSAGES (create SystemChunks):
- *    - Command output from slash commands
- *    - Classified by: message_classifier.rs (Rust backend)
- *    - Contains <local-command-stdout> tag
- *    - Renders on LEFT side like AI responses
- *
- * 3. HARD NOISE MESSAGES (filtered out):
- *    - System-generated metadata that should NEVER be displayed
- *    - Classified by: message_classifier.rs (Rust backend)
- *    - Includes: system/summary/file-history-snapshot/queue-operation entries
- *    - Includes: User messages with ONLY <local-command-caveat> or <system-reminder>
- *
- * 4. AI MESSAGES (create AIChunks):
- *    - All assistant messages and flow messages between User/System/HardNoise
- *    - Includes: assistant messages, tool results, interruptions
- *    - Consecutive AI messages are grouped into single AIChunk
- *    - AIChunks are INDEPENDENT - no longer paired with UserChunks
- *
- * Key Rules:
- * - User messages START UserChunks (render on RIGHT)
- * - System messages START SystemChunks (render on LEFT)
- * - AI messages are GROUPED into independent AIChunks (render on LEFT)
- * - Hard noise messages are FILTERED OUT entirely
- *
- * Tool Linking:
- * - tool_use.id in assistant message
- * - tool_result.tool_use_id in internal user message
- * - Also: sourceToolUseID field directly on internal user entry
- */

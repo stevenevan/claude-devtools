@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import {
   ContextMenuContent,
   ContextMenuItem,
@@ -48,7 +49,7 @@ export const SessionContextMenu = ({
   onToggleHide,
   onCompareWith,
   onSaveSnapshot,
-}: SessionContextMenuProps): React.JSX.Element => {
+}: SessionContextMenuProps): JSX.Element => {
   const idClipboard = useClipboard({ timeout: 600 });
   const cmdClipboard = useClipboard({ timeout: 600 });
 

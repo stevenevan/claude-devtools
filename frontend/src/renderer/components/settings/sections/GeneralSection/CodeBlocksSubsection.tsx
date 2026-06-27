@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import {
   Select,
   SelectContent,
@@ -26,7 +27,7 @@ export const CodeBlocksSubsection = ({
   saving,
   onDisplayToggle,
   onCodeBlockThemeChange,
-}: CodeBlocksSubsectionProps): React.JSX.Element => {
+}: CodeBlocksSubsectionProps): JSX.Element => {
   return (
     <>
       <SettingsSectionHeader title="Code Blocks" />

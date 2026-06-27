@@ -1,36 +1,22 @@
-/**
- * Claude model string parser utility.
- * Parses model identifiers into friendly display names and metadata.
- */
 
-/** Known model families with specific styling */
+
 export type KnownModelFamily = 'sonnet' | 'opus' | 'haiku';
 
-/** Model family can be a known family or any arbitrary string for new/unknown models */
 export type ModelFamily = KnownModelFamily | (string & Record<never, never>);
 
 export interface ModelInfo {
-  /** Friendly name like "sonnet4.5" */
+
   name: string;
-  /** Model family: sonnet, opus, haiku, or any other string for unknown families */
+
   family: ModelFamily;
-  /** Major version like 4 or 3 */
+
   majorVersion: number;
-  /** Minor version like 5 or 1 (null if not present) */
+
   minorVersion: number | null;
 }
 
 const KNOWN_FAMILIES: KnownModelFamily[] = ['sonnet', 'opus', 'haiku'];
 
-/**
- * Parses a Claude model string into friendly display info.
- * Returns null if model string is invalid, synthetic, or empty.
- *
- * Supported formats:
- * - New format: claude-{family}-{major}-{minor}-{date} (e.g., "claude-sonnet-4-5-20250929")
- * - Old format: claude-{major}-{family}-{date} (e.g., "claude-3-opus-20240229")
- * - Old format with minor: claude-{major}-{minor}-{family}-{date} (e.g., "claude-3-5-sonnet-20241022")
- */
 export function parseModelString(model: string | undefined): ModelInfo | null {
   // Handle null, undefined, empty, or synthetic models
   if (!model || model.trim() === '' || model === '<synthetic>') {
@@ -137,11 +123,6 @@ export function parseModelString(model: string | undefined): ModelInfo | null {
   };
 }
 
-/**
- * Gets the color class for a model family (for Tailwind).
- * Uses consistent neutral gray styling for a clean, Linear-like design.
- * All models use the same muted color for visual consistency.
- */
 export function getModelColorClass(family: ModelFamily): string {
   // All families use consistent neutral gray for clean design
   switch (family) {

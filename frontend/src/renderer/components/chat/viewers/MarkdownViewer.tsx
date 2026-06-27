@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode, Fragment, FC } from 'react';
 
 import { api } from '@renderer/api';
 import { CopyButton } from '@renderer/components/common/CopyButton';
@@ -28,7 +28,7 @@ interface MarkdownViewerProps {
 }
 
 function createViewerMarkdownComponents(searchCtx: SearchContext | null): Components {
-  const hl = (children: React.ReactNode): React.ReactNode =>
+  const hl = (children: ReactNode): ReactNode =>
     searchCtx ? highlightSearchInChildren(children, searchCtx) : children;
 
   return {
@@ -87,7 +87,7 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
         node,
       } = props as {
         className?: string;
-        children?: React.ReactNode;
+        children?: ReactNode;
         node?: {
           position?: { start: { line: number }; end: { line: number } };
         };
@@ -105,10 +105,10 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
         return (
           <code className="text-foreground font-mono text-xs">
             {lines.map((line, i) => (
-              <React.Fragment key={i}>
+              <Fragment key={i}>
                 {hl(highlightLine(line, lang))}
                 {i < lines.length - 1 ? '\n' : null}
-              </React.Fragment>
+              </Fragment>
             ))}
           </code>
         );
@@ -169,7 +169,7 @@ const EMPTY_SEARCH_STATE = {
   currentSearchIndex: -1,
 };
 
-export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
+export const MarkdownViewer: FC<MarkdownViewerProps> = ({
   content,
   maxHeight = 'max-h-96',
   className = '',

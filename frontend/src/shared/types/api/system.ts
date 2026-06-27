@@ -1,8 +1,5 @@
 // Updater API
 
-/**
- * Status payload sent from the main process updater to the renderer.
- */
 export interface UpdaterStatus {
   type: 'checking' | 'available' | 'not-available' | 'downloading' | 'downloaded' | 'error';
   version?: string;
@@ -11,9 +8,6 @@ export interface UpdaterStatus {
   error?: string;
 }
 
-/**
- * Updater API exposed via preload.
- */
 export interface UpdaterAPI {
   check: () => Promise<void>;
   download: () => Promise<void>;
@@ -23,17 +17,11 @@ export interface UpdaterAPI {
 
 // HTTP Server API
 
-/**
- * HTTP server status returned from main process.
- */
 export interface HttpServerStatus {
   running: boolean;
   port: number;
 }
 
-/**
- * HTTP Server API for controlling the sidecar server.
- */
 export interface HttpServerAPI {
   start: () => Promise<HttpServerStatus>;
   stop: () => Promise<HttpServerStatus>;

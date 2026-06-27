@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode, ReactElement } from 'react';
 
 import {
   Collapsible,
@@ -16,7 +16,7 @@ interface CollapsibleSectionProps {
   tokenCount: number;
   isExpanded: boolean;
   onToggle: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export const CollapsibleSection = ({
@@ -26,7 +26,7 @@ export const CollapsibleSection = ({
   isExpanded,
   onToggle,
   children,
-}: Readonly<CollapsibleSectionProps>): React.ReactElement => {
+}: Readonly<CollapsibleSectionProps>): ReactElement => {
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <div className="border-border/50 bg-card overflow-hidden rounded-lg border">

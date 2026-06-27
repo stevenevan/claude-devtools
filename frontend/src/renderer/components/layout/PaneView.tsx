@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { useDndContext } from '@dnd-kit/core';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -12,7 +13,7 @@ interface PaneViewProps {
   paneId: string;
 }
 
-export const PaneView = ({ paneId }: PaneViewProps): React.JSX.Element => {
+export const PaneView = ({ paneId }: PaneViewProps): JSX.Element => {
   const { pane, isFocused, paneCount, focusPane } = useStore(
     useShallow((s) => ({
       pane: s.paneLayout.panes.find((p) => p.id === paneId),

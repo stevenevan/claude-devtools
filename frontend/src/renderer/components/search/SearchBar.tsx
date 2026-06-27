@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-
+import { JSX, KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
 import { useDebouncedCallback } from '@renderer/hooks/mantine';
@@ -13,7 +12,7 @@ interface SearchBarProps {
   tabId?: string;
 }
 
-export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null => {
+export const SearchBar = ({ tabId }: SearchBarProps): JSX.Element | null => {
   const {
     searchQuery,
     searchVisible,
@@ -82,7 +81,7 @@ export const SearchBar = ({ tabId }: SearchBarProps): React.JSX.Element | null =
     }
   }, [searchVisible]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Escape') {
       hideSearch();
     } else if (e.key === 'Enter') {

@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC } from 'react';
 
 import { Button } from '@renderer/components/ui/button';
 import { useClipboard } from '@renderer/hooks/mantine';
@@ -12,7 +12,7 @@ interface CopyButtonProps {
   inline?: boolean;
 }
 
-export const CopyButton: React.FC<CopyButtonProps> = ({
+export const CopyButton: FC<CopyButtonProps> = ({
   text,
   bgColor = 'var(--code-bg)',
   inline = false,

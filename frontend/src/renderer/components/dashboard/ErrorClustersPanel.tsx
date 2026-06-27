@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-
+import { JSX, useEffect, useState } from 'react';
 import { api } from '@renderer/api';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -20,7 +19,7 @@ interface ErrorClustersPanelProps {
 export const ErrorClustersPanel = ({
   projectId,
   days,
-}: Readonly<ErrorClustersPanelProps>): React.JSX.Element | null => {
+}: Readonly<ErrorClustersPanelProps>): JSX.Element | null => {
   const [data, setData] = useState<ErrorClustersResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

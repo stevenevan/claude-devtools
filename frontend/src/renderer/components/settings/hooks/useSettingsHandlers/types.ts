@@ -1,3 +1,4 @@
+import { Dispatch, SetStateAction } from 'react';
 import type { RepositoryDropdownItem } from '../useSettingsConfig';
 import type { AppConfig, NotificationTrigger } from '@renderer/types/data';
 
@@ -6,7 +7,7 @@ export interface UseSettingsHandlersProps {
   setSaving: (saving: boolean) => void;
   setError: (error: string | null) => void;
   setConfig: (config: AppConfig | null) => void;
-  setOptimisticConfig: React.Dispatch<React.SetStateAction<AppConfig | null>>;
+  setOptimisticConfig: Dispatch<SetStateAction<AppConfig | null>>;
   updateConfig: (
     section: keyof AppConfig,
     data: Partial<AppConfig[keyof AppConfig]>

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, Dispatch, SetStateAction } from 'react';
 
 import { api } from '@renderer/api';
 import { useStore } from '@renderer/store';
@@ -13,9 +13,9 @@ type SearchMode = 'projects' | 'sessions';
 
 interface UseCommandPaletteSearch {
   query: string;
-  setQuery: React.Dispatch<React.SetStateAction<string>>;
+  setQuery: Dispatch<SetStateAction<string>>;
   globalSearchEnabled: boolean;
-  setGlobalSearchEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+  setGlobalSearchEnabled: Dispatch<SetStateAction<boolean>>;
   searchMode: SearchMode;
   filteredProjects: RepositoryGroup[];
   sessionResults: SearchResult[];

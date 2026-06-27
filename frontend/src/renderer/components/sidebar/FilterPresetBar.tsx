@@ -1,5 +1,4 @@
-import { useState } from 'react';
-
+import { JSX, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { useStore } from '@renderer/store';
 import {
@@ -15,7 +14,7 @@ import type { FilterPresetEntry } from '@shared/types/notifications';
 
 const EMPTY_ARRAY: never[] = [];
 
-export const FilterPresetBar = (): React.JSX.Element | null => {
+export const FilterPresetBar = (): JSX.Element | null => {
   const {
     activeFilters,
     applyFilterPreset,

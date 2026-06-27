@@ -1,10 +1,4 @@
-/**
- * Bulk tab close action bodies extracted from tabSlice.
- *
- * Exposed as functions that take the slice's `get`/`set` pair so they
- * remain compatible with Zustand's StateCreator wiring. Importing slice
- * code retrieves these and forwards them as method bodies.
- */
+
 import {
   findPaneByTabId,
   getAllTabs,

@@ -1,5 +1,5 @@
-import React from 'react';
 
+import { JSX } from 'react';
 import { api } from '@renderer/api';
 import { useStore } from '@renderer/store';
 import { createLogger } from '@shared/utils/logger';
@@ -8,7 +8,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 const logger = createLogger('Component:DashboardView');
 
-export const NewProjectCard = (): React.JSX.Element => {
+export const NewProjectCard = (): JSX.Element => {
   const { repositoryGroups, selectRepository } = useStore(
     useShallow((s) => ({
       repositoryGroups: s.repositoryGroups,

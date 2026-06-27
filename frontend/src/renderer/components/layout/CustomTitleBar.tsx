@@ -1,12 +1,6 @@
-/**
- * CustomTitleBar - Conventional title bar for Windows and Linux when the native frame is hidden.
- *
- * Renders a draggable top strip with window controls (minimize, maximize/restore, close)
- * on the right. Only shown in Electron on Windows or Linux (macOS uses native traffic lights).
- */
 
-import { useEffect, useState } from 'react';
 
+import { CSSProperties, JSX, useEffect, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import faviconUrl from '@renderer/favicon.png';
 import { cn } from '@renderer/lib/utils';
@@ -21,7 +15,7 @@ function needsCustomTitleBar(): boolean {
   return ua.includes('Windows') || ua.includes('Linux');
 }
 
-export const CustomTitleBar = (): React.JSX.Element | null => {
+export const CustomTitleBar = (): JSX.Element | null => {
   const [isMaximized, setIsMaximized] = useState(false);
   const useNativeTitleBar = useStore((s) => s.appConfig?.general?.useNativeTitleBar ?? false);
   const showTitleBar = needsCustomTitleBar() && !useNativeTitleBar;
@@ -53,7 +47,7 @@ export const CustomTitleBar = (): React.JSX.Element | null => {
         {
           height: `${TITLE_BAR_HEIGHT}px`,
           WebkitAppRegion: 'drag',
-        } as React.CSSProperties
+        } as CSSProperties
       }
     >
       {/* Draggable area — app icon */}
@@ -62,7 +56,7 @@ export const CustomTitleBar = (): React.JSX.Element | null => {
       </div>
 
       {/* Window controls — no-drag so they receive clicks */}
-      <div className="flex shrink-0" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+      <div className="flex shrink-0" style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}>
         <button
           type="button"
           className={cn(buttonBase, 'hover:bg-white/10')}

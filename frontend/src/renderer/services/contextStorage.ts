@@ -1,9 +1,4 @@
-/**
- * Context Storage - IndexedDB persistence layer for context snapshots.
- *
- * Provides TTL-based storage for workspace state snapshots, enabling
- * instant restoration when switching between local and SSH contexts.
- */
+
 
 import { logger } from '@renderer/lib/logger';
 import { del, get, keys, set } from 'idb-keyval';
@@ -20,10 +15,6 @@ const SNAPSHOT_VERSION = 1; // Increment when ContextSnapshot structure changes
 
 // Types
 
-/**
- * Context snapshot - persistable state for instant workspace switching.
- * Excludes transient state (loading flags, errors, search, non-serializable Maps/Sets).
- */
 export interface ContextSnapshot {
   // Data state (persistable)
   projects: Project[];
@@ -59,9 +50,6 @@ export interface ContextSnapshot {
   };
 }
 
-/**
- * Stored snapshot - wraps ContextSnapshot with timestamp and version.
- */
 interface StoredSnapshot {
   snapshot: ContextSnapshot;
   timestamp: number;
@@ -70,9 +58,6 @@ interface StoredSnapshot {
 
 // Storage Implementation
 
-/**
- * Save a context snapshot to IndexedDB.
- */
 async function saveSnapshot(contextId: string, snapshot: ContextSnapshot): Promise<void> {
   try {
     const stored: StoredSnapshot = {
@@ -87,10 +72,6 @@ async function saveSnapshot(contextId: string, snapshot: ContextSnapshot): Promi
   }
 }
 
-/**
- * Load a context snapshot from IndexedDB.
- * Returns null if not found, expired, or invalid.
- */
 async function loadSnapshot(contextId: string): Promise<ContextSnapshot | null> {
   try {
     const key = `${STORAGE_KEY_PREFIX}${contextId}`;
@@ -126,9 +107,6 @@ async function loadSnapshot(contextId: string): Promise<ContextSnapshot | null> 
   }
 }
 
-/**
- * Delete a context snapshot from IndexedDB.
- */
 async function deleteSnapshot(contextId: string): Promise<void> {
   try {
     const key = `${STORAGE_KEY_PREFIX}${contextId}`;
@@ -138,10 +116,6 @@ async function deleteSnapshot(contextId: string): Promise<void> {
   }
 }
 
-/**
- * Clean up expired snapshots.
- * Iterates all context snapshots and deletes expired ones.
- */
 async function cleanupExpired(): Promise<void> {
   try {
     const allKeys = await keys();
@@ -172,10 +146,6 @@ async function cleanupExpired(): Promise<void> {
   }
 }
 
-/**
- * Check if IndexedDB is available.
- * Returns true if storage is accessible, false otherwise.
- */
 async function isAvailable(): Promise<boolean> {
   try {
     const testKey = '__idb_test__';

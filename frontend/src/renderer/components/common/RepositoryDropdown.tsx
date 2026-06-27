@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
-
+import { JSX, memo, useEffect, useMemo, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
 import { cn } from '@renderer/lib/utils';
@@ -24,7 +23,7 @@ export const RepositoryDropdown = ({
   disabled = false,
   dropUp = false,
   className = '',
-}: Readonly<RepositoryDropdownProps>): React.JSX.Element => {
+}: Readonly<RepositoryDropdownProps>): JSX.Element => {
   const [open, setOpen] = useState(false);
 
   const repositoryGroups = useStore((state) => state.repositoryGroups);
@@ -98,7 +97,7 @@ const RepositoryDropdownItemComponentInner = ({
 }: Readonly<{
   item: RepositoryDropdownItem;
   onSelect: () => void;
-}>): React.JSX.Element => {
+}>): JSX.Element => {
   return (
     <button
       type="button"
@@ -125,7 +124,7 @@ const RepositoryDropdownItemComponentInner = ({
   );
 };
 
-const RepositoryDropdownItemComponent = React.memo(RepositoryDropdownItemComponentInner);
+const RepositoryDropdownItemComponent = memo(RepositoryDropdownItemComponentInner);
 
 const SelectedRepositoryItemInner = ({
   item,
@@ -135,7 +134,7 @@ const SelectedRepositoryItemInner = ({
   item: RepositoryDropdownItem;
   onRemove: () => void;
   disabled?: boolean;
-}>): React.JSX.Element => {
+}>): JSX.Element => {
   return (
     <div className="border-border/50 flex items-center gap-2 border-b py-1.5">
       <FolderOpen className="size-3 shrink-0 text-indigo-400" />
@@ -167,4 +166,4 @@ const SelectedRepositoryItemInner = ({
   );
 };
 
-export const SelectedRepositoryItem = React.memo(SelectedRepositoryItemInner);
+export const SelectedRepositoryItem = memo(SelectedRepositoryItemInner);

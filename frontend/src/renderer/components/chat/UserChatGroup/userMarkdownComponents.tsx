@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 
 import { type Components } from 'react-markdown';
 
@@ -6,19 +6,13 @@ import { highlightSearchInChildren, type SearchContext } from '../searchHighligh
 
 import { highlightPaths } from './pathHighlighting';
 
-/**
- * Creates markdown components for user bubble rendering.
- * Uses chat-user CSS variables for consistent styling and wraps
- * text-bearing elements through highlightPaths for @path tag injection
- * and optional search term highlighting.
- */
 export function createUserMarkdownComponents(
   validatedPaths: Record<string, boolean>,
   searchCtx: SearchContext | null
 ): Components {
   // Compose path highlighting with optional search highlighting
   // eslint-disable-next-line sonarjs/function-return-type -- React child manipulation inherently returns mixed node types
-  const hl = (children: React.ReactNode): React.ReactNode => {
+  const hl = (children: ReactNode): ReactNode => {
     const withPaths = highlightPaths(children, validatedPaths);
     return searchCtx ? highlightSearchInChildren(withPaths, searchCtx) : withPaths;
   };

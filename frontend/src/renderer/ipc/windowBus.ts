@@ -1,16 +1,4 @@
-/**
- * Cross-window state bus (sprint 47).
- *
- * Every message carries { originWindowId, topic, seq }; listeners ignore
- * self-origin emits and enforce ordering with a per-topic Lamport
- * counter. A 50ms coalesce window collapses bursty topics to the last
- * payload before delivery.
- *
- * The bus does NOT include a Tauri transport binding — the transport
- * layer is injected so the bus can be unit-tested in isolation. Wiring
- * the Tauri event transport (`emit` / `listen`) is a small follow-up
- * once the multi-window plumbing lands.
- */
+
 
 const COALESCE_WINDOW_MS = 50;
 
@@ -23,7 +11,7 @@ export interface BusMessage<T = unknown> {
 
 export interface BusTransport {
   emit(message: BusMessage): void;
-  /** Subscribe; returns unsubscribe handle. */
+
   subscribe(listener: (message: BusMessage) => void): () => void;
 }
 
@@ -33,9 +21,9 @@ export interface WindowBus {
   windowId(): string;
   pendingTimers(): number;
   flushPending(): void;
-  /** Mark this window as ready to receive cross-window state; drains the seed buffer. */
+
   markReady(): void;
-  /** True after markReady() has been called. */
+
   isReady(): boolean;
   dispose(): void;
 }
@@ -46,11 +34,7 @@ interface PendingEmit {
 }
 
 export interface WindowBusOptions {
-  /**
-   * If true, incoming cross-window messages are buffered until `markReady()`
-   * is called. The seed buffer drains in receive order on ready.
-   * Defaults to false (immediate delivery).
-   */
+
   requireHandshake?: boolean;
 }
 
@@ -153,10 +137,9 @@ export function createWindowBus(
   };
 }
 
-/** Test-only in-memory transport that fans messages out to all attached buses. */
 export function createMemoryTransport(): {
   transport: BusTransport;
-  /** Manually deliver `message` to every subscriber on this transport. */
+
   emit: (message: BusMessage) => void;
 } {
   const listeners = new Set<(message: BusMessage) => void>();

@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC } from 'react';
 
 import { cn } from '@renderer/lib/utils';
 
@@ -9,7 +9,6 @@ interface SplitDiffViewProps {
   maxHeight: string;
 }
 
-/** Build paired rows for side-by-side display. */
 function buildSplitRows(
   diffLines: DiffLine[]
 ): { left: DiffLine | null; right: DiffLine | null }[] {
@@ -40,7 +39,7 @@ function buildSplitRows(
   return rows;
 }
 
-const SplitDiffHalf: React.FC<{ line: DiffLine | null; side: 'left' | 'right' }> = ({ line }) => {
+const SplitDiffHalf: FC<{ line: DiffLine | null; side: 'left' | 'right' }> = ({ line }) => {
   if (!line) {
     return <div className="flex-1 bg-zinc-800/30 px-2 py-px" />;
   }
@@ -69,7 +68,7 @@ const SplitDiffHalf: React.FC<{ line: DiffLine | null; side: 'left' | 'right' }>
   );
 };
 
-export const SplitDiffView: React.FC<SplitDiffViewProps> = ({ diffLines, maxHeight }) => {
+export const SplitDiffView: FC<SplitDiffViewProps> = ({ diffLines, maxHeight }) => {
   const rows = buildSplitRows(diffLines);
   return (
     <div className={cn('overflow-auto font-mono text-xs', maxHeight)}>

@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
-
+import { JSX, useEffect, useMemo, useState } from 'react';
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import { useStore } from '@renderer/store';
@@ -20,7 +19,7 @@ const SAMPLE_RULE: NotificationRule = {
   action: { kind: 'notify' },
 };
 
-export const RulesEditor = (): React.JSX.Element => {
+export const RulesEditor = (): JSX.Element => {
   const rules = useStore((s) => s.appConfig?.notificationRules ?? []);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);

@@ -1,13 +1,14 @@
+import { MutableRefObject, RefObject } from 'react';
 import type { NavigationPhase } from './types';
 import type { SessionConversation } from '@renderer/types/groups';
 import type { TriggerColor } from '@shared/constants/triggerColors';
 
 export interface NavigationContext {
   conversation: SessionConversation | null;
-  aiGroupRefs: React.MutableRefObject<Map<string, HTMLElement>>;
-  chatItemRefs: React.MutableRefObject<Map<string, HTMLElement>>;
-  toolItemRefs: React.MutableRefObject<Map<string, HTMLElement>>;
-  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
+  aiGroupRefs: MutableRefObject<Map<string, HTMLElement>>;
+  chatItemRefs: MutableRefObject<Map<string, HTMLElement>>;
+  toolItemRefs: MutableRefObject<Map<string, HTMLElement>>;
+  scrollContainerRef: RefObject<HTMLDivElement | null>;
   stickyOffset: number;
   ensureGroupVisible?: (groupId: string) => Promise<void> | void;
   expandAIGroup: (groupId: string) => void;

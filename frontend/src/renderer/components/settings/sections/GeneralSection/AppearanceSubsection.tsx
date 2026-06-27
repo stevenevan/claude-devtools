@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { api } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import {
@@ -30,7 +31,7 @@ export const AppearanceSubsection = ({
   isElectron,
   onGeneralToggle,
   onThemeChange,
-}: AppearanceSubsectionProps): React.JSX.Element => {
+}: AppearanceSubsectionProps): JSX.Element => {
   return (
     <>
       <SettingsSectionHeader title="Appearance" />

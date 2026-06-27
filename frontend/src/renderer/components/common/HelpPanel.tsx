@@ -1,5 +1,4 @@
-import { useState } from 'react';
-
+import { JSX, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import {
   Dialog,
@@ -103,7 +102,7 @@ const FAQ = [
   },
 ];
 
-export const HelpPanel = ({ open, onClose }: Readonly<HelpPanelProps>): React.JSX.Element => {
+export const HelpPanel = ({ open, onClose }: Readonly<HelpPanelProps>): JSX.Element => {
   const [activeTab, setActiveTab] = useState<Tab>('getting-started');
 
   return (

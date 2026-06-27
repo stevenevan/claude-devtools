@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState, ReactElement } from 'react';
 
 import { cn } from '@renderer/lib/utils';
 
@@ -41,7 +41,7 @@ export const SessionContextPanel = ({
   phaseInfo,
   selectedPhase,
   onPhaseChange,
-}: Readonly<SessionContextPanelProps>): React.ReactElement => {
+}: Readonly<SessionContextPanelProps>): ReactElement => {
   const [viewMode, setViewMode] = useState<ContextViewMode>('category');
   const [flatMode, setFlatMode] = useState(false);
 

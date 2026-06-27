@@ -1,9 +1,4 @@
-/**
- * Shared type definitions.
- *
- * Usage:
- *   import type { Session, Chunk, ParsedMessage } from '@shared/types';
- */
+
 
 // JSONL format types
 export type * from './jsonl';

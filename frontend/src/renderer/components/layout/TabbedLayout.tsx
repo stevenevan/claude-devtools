@@ -1,3 +1,4 @@
+import { CSSProperties, JSX } from 'react';
 import { isDesktopMode } from '@renderer/api';
 import { getTrafficLightPaddingForZoom } from '@renderer/constants/layout';
 import { useKeyboardShortcuts } from '@renderer/hooks/useKeyboardShortcuts';
@@ -15,7 +16,7 @@ import { PaneContainer } from './PaneContainer';
 import { Sidebar } from './Sidebar';
 import { SshStatusIndicator } from './SshStatusIndicator';
 
-export const TabbedLayout = (): React.JSX.Element => {
+export const TabbedLayout = (): JSX.Element => {
   useKeyboardShortcuts();
   const zoomFactor = useZoomFactor();
   const trafficLightPadding = isDesktopMode() ? getTrafficLightPaddingForZoom(zoomFactor) : 0;
@@ -24,7 +25,7 @@ export const TabbedLayout = (): React.JSX.Element => {
     <div
       className="bg-background text-foreground flex h-screen flex-col"
       style={
-        { '--macos-traffic-light-padding-left': `${trafficLightPadding}px` } as React.CSSProperties
+        { '--macos-traffic-light-padding-left': `${trafficLightPadding}px` } as CSSProperties
       }
     >
       <a

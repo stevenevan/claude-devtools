@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactElement } from 'react';
 
 import { cn } from '@renderer/lib/utils';
 import { ArrowDownWideNarrow, FileText, LayoutList, X } from 'lucide-react';
@@ -32,7 +32,7 @@ export const SessionContextHeader = ({
   onPhaseChange,
   viewMode,
   onViewModeChange,
-}: Readonly<SessionContextHeaderProps>): React.ReactElement => {
+}: Readonly<SessionContextHeaderProps>): ReactElement => {
   return (
     <div className="border-border shrink-0 border-b px-4 py-3">
       <div className="flex items-center justify-between">

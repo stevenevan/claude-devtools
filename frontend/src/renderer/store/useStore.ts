@@ -37,11 +37,6 @@ interface PersistedState {
 
 const PERSIST_VERSION = 1;
 
-/**
- * Strip transient fields from tabs before persisting.
- * Removes pending navigations, scroll positions, and per-tab session data refs
- * that cannot survive an app restart.
- */
 function sanitizeTabForPersist(tab: Tab): Tab {
   // Destructuring to strip transient fields; explicit names make intent clear.
   // oxlint-disable-next-line eslint/no-unused-vars, sonarjs/no-unused-vars, sonarjs/no-dead-store

@@ -1,6 +1,7 @@
+import { JSX } from 'react';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 
-export const SkeletonLoader = (): React.JSX.Element => {
+export const SkeletonLoader = (): JSX.Element => {
   const widths = [
     { header: '30%', title: '75%', sub: '90%' },
     { header: '22%', title: '60%', sub: '80%' },

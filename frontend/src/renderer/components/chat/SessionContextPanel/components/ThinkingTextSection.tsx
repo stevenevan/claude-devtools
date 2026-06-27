@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactElement } from 'react';
 
 import { ThinkingTextItem } from '../items/ThinkingTextItem';
 
@@ -20,7 +20,7 @@ export const ThinkingTextSection = ({
   isExpanded,
   onToggle,
   onNavigateToTurn,
-}: Readonly<ThinkingTextSectionProps>): React.ReactElement | null => {
+}: Readonly<ThinkingTextSectionProps>): ReactElement | null => {
   if (injections.length === 0) return null;
 
   return (

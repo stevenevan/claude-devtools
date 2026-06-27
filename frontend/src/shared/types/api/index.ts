@@ -1,9 +1,4 @@
-/**
- * API type definitions — the contract between the frontend and the Go/Wails backend.
- *
- * Implemented by createTauriClient() in src/renderer/api/tauriClient.ts (now wired
- * to the generated v3 bindings).
- */
+
 
 import type { ConversationGroup, FileChangeEvent, SessionDetail, SubagentDetail } from '../chunks';
 import type {
@@ -57,9 +52,6 @@ export type * from './ssh';
 export type * from './system';
 export type * from './webhook';
 
-/**
- * Complete Electron API exposed to the renderer process via preload script.
- */
 export interface ElectronAPI {
   getAppVersion: () => Promise<string>;
   getProjects: () => Promise<Project[]>;
@@ -76,12 +68,12 @@ export interface ElectronAPI {
     maxResults?: number
   ) => Promise<SearchSessionsResult>;
   searchAllProjects: (query: string, maxResults?: number) => Promise<SearchSessionsResult>;
-  /** Search sessions with optional filters (date range, status, text query). */
+
   searchSessionsFiltered: (
     filters: SearchFilters,
     maxResults?: number
   ) => Promise<FilteredSearchResponse>;
-  /** Full-text search within a session's parsed chunks (Rust backend). */
+
   searchSessionContent: (
     projectId: string,
     sessionId: string,
@@ -92,7 +84,7 @@ export interface ElectronAPI {
     pageSize?: number
   ) => Promise<ContentSearchResult>;
   getSessionDetail: (projectId: string, sessionId: string) => Promise<SessionDetail | null>;
-  /** Incrementally refresh a session — only re-parses new JSONL lines since last read. */
+
   getSessionDetailIncremental: (
     projectId: string,
     sessionId: string

@@ -16,10 +16,6 @@ export function updatePane(layout: PaneLayout, updatedPane: Pane): PaneLayout {
   };
 }
 
-/**
- * Remove a pane and redistribute its width to a neighbor.
- * If removing the focused pane, focus shifts to the nearest neighbor.
- */
 export function removePane(layout: PaneLayout, paneId: string): PaneLayout {
   const index = layout.panes.findIndex((p) => p.id === paneId);
   if (index === -1 || layout.panes.length <= 1) return layout;

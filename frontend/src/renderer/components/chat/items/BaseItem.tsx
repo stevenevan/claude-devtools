@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode, CSSProperties, FC } from 'react';
 
 import { cn } from '@renderer/lib/utils';
 import { getTriggerColorDef, type TriggerColor } from '@shared/constants/triggerColors';
@@ -11,42 +11,39 @@ import { formatDuration, formatTokens, getStatusDotClass } from './baseItemHelpe
 export type ItemStatus = 'ok' | 'error' | 'pending' | 'orphaned';
 
 interface BaseItemProps {
-  /** Icon component to display */
-  icon: React.ReactNode;
-  /** Primary label (e.g., "Thinking", "Output", tool name) */
+
+  icon: ReactNode;
+
   label: string;
-  /** Summary text shown after the label */
+
   summary?: string;
-  /** Token count to display */
+
   tokenCount?: number;
-  /** Label for tokens (default: "tokens") */
+
   tokenLabel?: string;
-  /** Status indicator (green/red/gray dot) */
+
   status?: ItemStatus;
-  /** Duration in milliseconds */
+
   durationMs?: number;
-  /** Click handler for toggling */
+
   onClick: () => void;
-  /** Whether the item is expanded */
+
   isExpanded: boolean;
-  /** Whether the item has expandable content */
+
   hasExpandableContent?: boolean;
-  /** Additional classes for highlighting (e.g., error deep linking) */
+
   highlightClasses?: string;
-  /** Inline styles for highlighting (used by custom hex colors) */
-  highlightStyle?: React.CSSProperties;
-  /** Notification dot color for custom triggers */
+
+  highlightStyle?: CSSProperties;
+
   notificationDotColor?: TriggerColor;
-  /** Children rendered when expanded */
-  children?: React.ReactNode;
+
+  children?: ReactNode;
 }
 
 // Helper Components
 
-/**
- * Small status dot indicator.
- */
-export const StatusDot: React.FC<{ status: ItemStatus }> = ({ status }) => {
+export const StatusDot: FC<{ status: ItemStatus }> = ({ status }) => {
   return (
     <span
       className={cn('inline-block size-1.5 shrink-0 rounded-full', getStatusDotClass(status))}
@@ -56,16 +53,7 @@ export const StatusDot: React.FC<{ status: ItemStatus }> = ({ status }) => {
 
 // Main Component
 
-/**
- * BaseItem provides a consistent layout for all expandable items in the chat view.
- *
- * Layout:
- * - Clickable header row with icon, label, summary, tokens, status, and chevron
- * - Expanded content area with left border indent
- *
- * Used by: ThinkingItem, TextItem, LinkedToolItem, SlashItem, SubagentItem
- */
-export const BaseItem: React.FC<BaseItemProps> = ({
+export const BaseItem: FC<BaseItemProps> = ({
   icon,
   label,
   summary,

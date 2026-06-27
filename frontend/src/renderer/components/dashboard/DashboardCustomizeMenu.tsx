@@ -1,5 +1,4 @@
-import { useMemo, useState } from 'react';
-
+import { JSX, useMemo, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { ArrowDown, ArrowUp, EyeOff, RotateCcw, Settings2 } from 'lucide-react';
@@ -8,7 +7,7 @@ import { applyLayoutToRegistry, layoutReduce } from './widgetRegistry';
 
 import type { DashboardLayoutState } from './widgetRegistry';
 
-export const DashboardCustomizeMenu = (): React.JSX.Element => {
+export const DashboardCustomizeMenu = (): JSX.Element => {
   const [open, setOpen] = useState(false);
   const appConfig = useStore((s) => s.appConfig);
   const updateDashboardLayout = useStore((s) => s.updateDashboardLayout);

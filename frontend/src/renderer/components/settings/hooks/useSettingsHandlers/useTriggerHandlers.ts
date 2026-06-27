@@ -1,5 +1,4 @@
-import { useCallback } from 'react';
-
+import { RefObject, useCallback } from 'react';
 import { api } from '@renderer/api';
 import { useStore } from '@renderer/store';
 
@@ -12,7 +11,7 @@ const setStoreState = useStore.setState.bind(useStore);
 type TriggerHandlersProps = Pick<
   UseSettingsHandlersProps,
   'setSaving' | 'setConfig' | 'setOptimisticConfig' | 'setError'
-> & { configRef: React.RefObject<AppConfig | null> };
+> & { configRef: RefObject<AppConfig | null> };
 
 export function useTriggerHandlers({
   setSaving,

@@ -1,11 +1,11 @@
-import React from 'react';
+import { ReactNode } from 'react';
 
 import { highlightSearchInChildren, type SearchContext } from './searchHighlightUtils';
 
 import type { Components } from 'react-markdown';
 
 export function createMarkdownComponents(searchCtx: SearchContext | null): Components {
-  const hl = (children: React.ReactNode): React.ReactNode =>
+  const hl = (children: ReactNode): ReactNode =>
     searchCtx ? highlightSearchInChildren(children, searchCtx) : children;
 
   return {

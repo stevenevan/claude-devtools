@@ -1,5 +1,4 @@
-import React from 'react';
-
+import { FC, JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 
 import type { DiffLine } from './diffAlgorithm';
@@ -8,7 +7,7 @@ interface DiffLineRowProps {
   line: DiffLine;
 }
 
-export const DiffLineRow: React.FC<DiffLineRowProps> = ({ line }): React.JSX.Element => {
+export const DiffLineRow: FC<DiffLineRowProps> = ({ line }): JSX.Element => {
   const isRemoved = line.type === 'removed';
   const isAdded = line.type === 'added';
   const isContext = line.type === 'context';

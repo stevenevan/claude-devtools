@@ -1,5 +1,4 @@
-import React, { Suspense } from 'react';
-
+import { JSX, lazy, Suspense } from 'react';
 import { TabUIProvider } from '@renderer/contexts/TabUIContext';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -10,46 +9,46 @@ import { ErrorBoundary } from '../common/ErrorBoundary';
 
 import { SessionTabContent } from './SessionTabContent';
 
-const SessionComparison = React.lazy(() =>
+const SessionComparison = lazy(() =>
   import('../chat/SessionComparison').then((m) => ({ default: m.SessionComparison }))
 );
 
 // Lazy-load non-critical views for faster initial load
-const DashboardView = React.lazy(() =>
+const DashboardView = lazy(() =>
   import('../dashboard/DashboardView').then((m) => ({ default: m.DashboardView }))
 );
-const AnalyticsDashboard = React.lazy(() =>
+const AnalyticsDashboard = lazy(() =>
   import('../dashboard/AnalyticsDashboard').then((m) => ({ default: m.AnalyticsDashboard }))
 );
-const AgentsGrid = React.lazy(() =>
+const AgentsGrid = lazy(() =>
   import('../dashboard/AgentsGrid').then((m) => ({ default: m.AgentsGrid }))
 );
-const SkillsGrid = React.lazy(() =>
+const SkillsGrid = lazy(() =>
   import('../dashboard/SkillsGrid').then((m) => ({ default: m.SkillsGrid }))
 );
-const PluginsGrid = React.lazy(() =>
+const PluginsGrid = lazy(() =>
   import('../dashboard/PluginsGrid').then((m) => ({ default: m.PluginsGrid }))
 );
-const AnnotationList = React.lazy(() =>
+const AnnotationList = lazy(() =>
   import('../sidebar/AnnotationList').then((m) => ({ default: m.AnnotationList }))
 );
-const TodosDashboard = React.lazy(() =>
+const TodosDashboard = lazy(() =>
   import('../dashboard/TodosDashboard').then((m) => ({ default: m.TodosDashboard }))
 );
-const NotificationsView = React.lazy(() =>
+const NotificationsView = lazy(() =>
   import('../notifications/NotificationsView').then((m) => ({ default: m.NotificationsView }))
 );
-const SearchView = React.lazy(() =>
+const SearchView = lazy(() =>
   import('../search/SearchView').then((m) => ({ default: m.SearchView }))
 );
-const SettingsView = React.lazy(() =>
+const SettingsView = lazy(() =>
   import('../settings/SettingsView').then((m) => ({ default: m.SettingsView }))
 );
-const GlobalContentView = React.lazy(() =>
+const GlobalContentView = lazy(() =>
   import('./GlobalContentView').then((m) => ({ default: m.GlobalContentView }))
 );
 
-const LazyFallback = (): React.JSX.Element => (
+const LazyFallback = (): JSX.Element => (
   <div className="bg-background flex flex-1 items-center justify-center">
     <Loader2 className="text-muted-foreground size-5 animate-spin" />
   </div>
@@ -61,7 +60,7 @@ interface PaneContentProps {
   pane: Pane;
 }
 
-export const PaneContent = ({ pane }: PaneContentProps): React.JSX.Element => {
+export const PaneContent = ({ pane }: PaneContentProps): JSX.Element => {
   const activeTabId = pane.activeTabId;
   const activeActivity = useStore((s) => s.activeActivity);
 

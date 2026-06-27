@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-
+import { JSX, MouseEvent as ReactMouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useDefaultFilterPreset } from '@renderer/hooks/useDefaultFilterPreset';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -16,7 +15,7 @@ const MIN_WIDTH = 200;
 const MAX_WIDTH = 500;
 const DEFAULT_WIDTH = 280;
 
-export const Sidebar = (): React.JSX.Element | null => {
+export const Sidebar = (): JSX.Element | null => {
   const {
     projects,
     projectsLoading,
@@ -89,7 +88,7 @@ export const Sidebar = (): React.JSX.Element | null => {
     };
   }, [isResizing, handleMouseMove, handleMouseUp]);
 
-  const handleResizeStart = (e: React.MouseEvent): void => {
+  const handleResizeStart = (e: ReactMouseEvent): void => {
     e.preventDefault();
     setIsResizing(true);
   };

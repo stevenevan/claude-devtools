@@ -5,9 +5,6 @@ function isAIChunk(chunk: Chunk | EnhancedChunk): chunk is AIChunk {
   return 'chunkType' in chunk && chunk.chunkType === 'ai';
 }
 
-/**
- * Type guard to check if a chunk is an EnhancedAIChunk.
- */
 export function isEnhancedAIChunk(chunk: Chunk | EnhancedChunk): chunk is EnhancedAIChunk {
   return isAIChunk(chunk) && 'semanticSteps' in chunk;
 }

@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import {
   RepositoryDropdown,
   SelectedRepositoryItem,
@@ -19,7 +20,7 @@ export const RepositoryScopeSection = ({
   onAdd,
   onRemove,
   disabled,
-}: Readonly<RepositoryScopeSectionProps>): React.JSX.Element => {
+}: Readonly<RepositoryScopeSectionProps>): JSX.Element => {
   return (
     <details className="mt-4">
       <summary className="text-muted-foreground hover:text-muted-foreground cursor-pointer text-xs tracking-widest uppercase">

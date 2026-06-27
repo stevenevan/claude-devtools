@@ -1,18 +1,9 @@
 // SSH API
 
-/**
- * SSH connection state.
- */
 export type SshConnectionState = 'disconnected' | 'connecting' | 'retrying' | 'connected' | 'error';
 
-/**
- * SSH authentication method.
- */
 export type SshAuthMethod = 'password' | 'privateKey' | 'agent' | 'auto';
 
-/**
- * SSH config host entry resolved from ~/.ssh/config.
- */
 export interface SshConfigHostEntry {
   alias: string;
   hostName?: string;
@@ -21,9 +12,6 @@ export interface SshConfigHostEntry {
   hasIdentityFile: boolean;
 }
 
-/**
- * SSH connection configuration sent from renderer.
- */
 export interface SshConnectionConfig {
   host: string;
   port: number;
@@ -33,9 +21,6 @@ export interface SshConnectionConfig {
   privateKeyPath?: string;
 }
 
-/**
- * Saved SSH connection profile (no password stored).
- */
 export interface SshConnectionProfile {
   id: string;
   name: string;
@@ -46,9 +31,6 @@ export interface SshConnectionProfile {
   privateKeyPath?: string;
 }
 
-/**
- * SSH connection status returned from main process.
- */
 export interface SshConnectionStatus {
   state: SshConnectionState;
   host: string | null;
@@ -56,12 +38,6 @@ export interface SshConnectionStatus {
   remoteProjectsPath: string | null;
 }
 
-/**
- * SSH API exposed via preload.
- */
-/**
- * Saved SSH connection config (no password).
- */
 export interface SshLastConnection {
   host: string;
   port: number;

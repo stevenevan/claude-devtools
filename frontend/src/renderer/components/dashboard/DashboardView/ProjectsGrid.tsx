@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
-
+import { JSX, useEffect, useMemo } from 'react';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 import { useStore } from '@renderer/store';
 import { FolderGit2, Search } from 'lucide-react';
@@ -18,7 +17,7 @@ interface ProjectsGridProps {
 export const ProjectsGrid = ({
   searchQuery,
   maxProjects = 12,
-}: Readonly<ProjectsGridProps>): React.JSX.Element => {
+}: Readonly<ProjectsGridProps>): JSX.Element => {
   const {
     repositoryGroups,
     repositoryGroupsLoading,

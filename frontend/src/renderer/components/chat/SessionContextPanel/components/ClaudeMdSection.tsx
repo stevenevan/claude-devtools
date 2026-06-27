@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, ReactElement } from 'react';
 
 import { cn } from '@renderer/lib/utils';
 import { ChevronRight } from 'lucide-react';
@@ -24,7 +24,7 @@ export const ClaudeMdSubSection = ({
   isDirectory,
   projectRoot,
   onNavigateToTurn,
-}: Readonly<ClaudeMdSubSectionProps>): React.ReactElement => {
+}: Readonly<ClaudeMdSubSectionProps>): ReactElement => {
   const [expanded, setExpanded] = useState(true);
   const sectionTokens = injections.reduce((sum, inj) => sum + inj.estimatedTokens, 0);
 

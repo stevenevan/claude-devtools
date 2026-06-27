@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-
+import { JSX, KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from '@renderer/store';
 import { Tag, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -12,7 +11,7 @@ const EMPTY_ARRAY: never[] = [];
 
 export const SessionTagEditor = ({
   sessionId,
-}: Readonly<SessionTagEditorProps>): React.JSX.Element => {
+}: Readonly<SessionTagEditorProps>): JSX.Element => {
   const { tags, fetchSessionTags, setSessionTags } = useStore(
     useShallow((s) => ({
       tags: s.sessionTags.get(sessionId) ?? EMPTY_ARRAY,
@@ -49,7 +48,7 @@ export const SessionTagEditor = ({
     [sessionId, tags, setSessionTags]
   );
 
-  const handleKeyDown = (e: React.KeyboardEvent): void => {
+  const handleKeyDown = (e: KeyboardEvent): void => {
     if (e.key === 'Enter' && inputValue.trim()) {
       e.preventDefault();
       addTag(inputValue);

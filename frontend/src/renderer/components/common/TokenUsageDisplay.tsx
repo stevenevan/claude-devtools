@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-
+import { JSX, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
 import { Separator } from '@renderer/components/ui/separator';
 import { cn } from '@renderer/lib/utils';
@@ -37,7 +36,7 @@ const SessionContextSection = ({
   totalTokens: number;
   thinkingTokens?: number;
   textOutputTokens?: number;
-}>): React.JSX.Element => {
+}>): JSX.Element => {
   const [expanded, setExpanded] = useState(false);
 
   const { tokensByCategory } = contextStats;
@@ -190,7 +189,7 @@ export const TokenUsageDisplay = ({
   contextStats,
   phaseNumber,
   totalPhases,
-}: Readonly<TokenUsageDisplayProps>): React.JSX.Element => {
+}: Readonly<TokenUsageDisplayProps>): JSX.Element => {
   const totalTokens = inputTokens + cacheReadTokens + cacheCreationTokens + outputTokens;
   const formattedTotal = formatTokens(totalTokens);
 

@@ -1,8 +1,6 @@
-/**
- * SessionSummaryBar - Compact bar showing session-level metrics at a glance.
- * Sits between SearchBar and ChatHistory in the MiddlePanel.
- */
 
+
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatDuration, formatTokensCompact } from '@renderer/utils/formatters';
@@ -31,7 +29,7 @@ function shortModelName(model: string | undefined): string {
 
 export const SessionSummaryBar = ({
   tabId,
-}: Readonly<SessionSummaryBarProps>): React.JSX.Element | null => {
+}: Readonly<SessionSummaryBarProps>): JSX.Element | null => {
   const {
     metrics,
     totalAIGroups,

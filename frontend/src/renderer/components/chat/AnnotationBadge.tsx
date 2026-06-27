@@ -1,5 +1,4 @@
-import { useMemo, useState } from 'react';
-
+import { JSX, useMemo, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -15,7 +14,7 @@ interface AnnotationBadgeProps {
 
 export const AnnotationBadge = ({
   targetId,
-}: Readonly<AnnotationBadgeProps>): React.JSX.Element | null => {
+}: Readonly<AnnotationBadgeProps>): JSX.Element | null => {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [addingNew, setAddingNew] = useState(false);

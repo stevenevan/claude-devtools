@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { Switch } from '@renderer/components/ui/switch';
 
 import { SettingRow, SettingsSectionHeader } from '../../components';
@@ -15,7 +16,7 @@ export const StartupSubsection = ({
   safeConfig,
   saving,
   onGeneralToggle,
-}: StartupSubsectionProps): React.JSX.Element => {
+}: StartupSubsectionProps): JSX.Element => {
   return (
     <>
       <SettingsSectionHeader title="Startup" />

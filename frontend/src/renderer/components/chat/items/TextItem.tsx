@@ -1,4 +1,4 @@
-import React from 'react';
+import { CSSProperties, FC, memo } from 'react';
 
 import { MessageSquare } from 'lucide-react';
 
@@ -16,15 +16,15 @@ interface TextItemProps {
   preview: string;
   onClick: () => void;
   isExpanded: boolean;
-  /** Additional classes for highlighting (e.g., error deep linking) */
+
   highlightClasses?: string;
-  /** Inline styles for highlighting (used by custom hex colors) */
-  highlightStyle?: React.CSSProperties;
-  /** Notification dot color for custom triggers */
+
+  highlightStyle?: CSSProperties;
+
   notificationDotColor?: TriggerColor;
 }
 
-export const TextItem: React.FC<TextItemProps> = React.memo(function TextItem({
+export const TextItem: FC<TextItemProps> = memo(function TextItem({
   step,
   preview,
   onClick,

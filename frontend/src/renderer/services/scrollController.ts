@@ -1,17 +1,4 @@
-/**
- * ScrollController — central authority for who currently "owns" a chat scroll
- * write. The writer identity is an open string union so future sprints can
- * introduce new writers (`replay-cursor`, `virtualizer`, ...) without needing
- * to extend a fixed enum.
- *
- * Semantics:
- * - `acquire(writer, durationMs)` claims authority for a short window so a
- *   follow-up sync observer (minimap listening to scroll events, for example)
- *   can skip echoing back a write that is still in-flight.
- * - `release(writer)` drops the claim early if the writer finishes sooner.
- * - `isOwnedBy(writer)` is what observers check before re-acting to a scroll.
- * - `owner()` lets debugging panels inspect state.
- */
+
 
 export type ScrollWriter =
   | 'user-scroll'

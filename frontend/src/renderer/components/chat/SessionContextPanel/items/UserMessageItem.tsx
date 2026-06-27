@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactElement } from 'react';
 
 import { MessageSquare } from 'lucide-react';
 
@@ -14,7 +14,7 @@ interface UserMessageItemProps {
 export const UserMessageItem = ({
   injection,
   onNavigateToTurn,
-}: Readonly<UserMessageItemProps>): React.ReactElement => {
+}: Readonly<UserMessageItemProps>): ReactElement => {
   const turnIndex = injection.turnIndex;
   const isClickable = onNavigateToTurn && turnIndex >= 0;
 

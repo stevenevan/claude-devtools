@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-
+import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { isNearBottom, useAutoScrollBottom } from '@renderer/hooks/useAutoScrollBottom';
 import { useStore } from '@renderer/store';
 
@@ -8,7 +7,7 @@ import type { ChatItem } from '@renderer/types/groups';
 const SCROLL_THRESHOLD = 300;
 
 interface UseChatHistoryScrollOptions {
-  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
+  scrollContainerRef: RefObject<HTMLDivElement | null>;
   conversation: { items: ChatItem[] } | null;
   conversationLoading: boolean;
   isThisTabActive: boolean;
@@ -19,8 +18,8 @@ interface UseChatHistoryScrollOptions {
   currentSearchIndex: number;
   searchMatches: { itemId: string; matchIndexInItem: number }[];
   ensureGroupVisible: (groupId: string) => Promise<void>;
-  aiGroupRefs: React.RefObject<Map<string, HTMLElement>>;
-  chatItemRefs: React.RefObject<Map<string, HTMLElement>>;
+  aiGroupRefs: RefObject<Map<string, HTMLElement>>;
+  chatItemRefs: RefObject<Map<string, HTMLElement>>;
 }
 
 interface UseChatHistoryScrollReturn {

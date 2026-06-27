@@ -1,12 +1,11 @@
-import { useEffect, useReducer } from 'react';
-
+import { JSX, useEffect, useReducer } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { useStore } from '@renderer/store';
 import { Compass, X } from 'lucide-react';
 
 import { initialTourState, TOUR_STEPS, tourReducer } from './tourReducer';
 
-export const OnboardingTour = (): React.JSX.Element | null => {
+export const OnboardingTour = (): JSX.Element | null => {
   const onboardingCompleted = useStore((s) => s.appConfig?.onboardingCompleted ?? false);
   const updateConfig = useStore((s) => s.updateConfig);
   const [state, dispatch] = useReducer(tourReducer, initialTourState);

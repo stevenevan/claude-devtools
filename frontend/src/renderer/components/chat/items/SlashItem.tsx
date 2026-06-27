@@ -1,4 +1,4 @@
-import React from 'react';
+import { CSSProperties, FC } from 'react';
 
 import { Slash } from 'lucide-react';
 
@@ -13,24 +13,15 @@ interface SlashItemProps {
   slash: SlashItemType;
   onClick: () => void;
   isExpanded: boolean;
-  /** Additional classes for highlighting (e.g., error deep linking) */
+
   highlightClasses?: string;
-  /** Inline styles for highlighting (used by custom hex colors) */
-  highlightStyle?: React.CSSProperties;
-  /** Notification dot color for custom triggers */
+
+  highlightStyle?: CSSProperties;
+
   notificationDotColor?: TriggerColor;
 }
 
-/**
- * SlashItem displays a slash command invocation.
- * This unified component handles all slash types:
- * - Skills (e.g., /isolate-context)
- * - Built-in commands (e.g., /model, /context)
- * - Plugin commands
- * - MCP commands
- * - User-defined commands
- */
-export const SlashItem: React.FC<SlashItemProps> = ({
+export const SlashItem: FC<SlashItemProps> = ({
   slash,
   onClick,
   isExpanded,

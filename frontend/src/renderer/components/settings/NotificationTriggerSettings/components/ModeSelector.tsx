@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 
 import { MODE_OPTIONS } from '../utils/constants';
@@ -14,7 +15,7 @@ export const ModeSelector = ({
   value,
   onChange,
   disabled = false,
-}: Readonly<ModeSelectorProps>): React.JSX.Element => {
+}: Readonly<ModeSelectorProps>): JSX.Element => {
   return (
     <div className="bg-card inline-flex gap-0.5 rounded-md p-0.5">
       {MODE_OPTIONS.map((mode) => {

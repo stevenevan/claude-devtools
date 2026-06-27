@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 
@@ -19,7 +20,7 @@ export const TriggerPreview = ({
   onTest,
   onViewSession,
   isFormContext = false,
-}: Readonly<TriggerPreviewProps>): React.JSX.Element => {
+}: Readonly<TriggerPreviewProps>): JSX.Element => {
   const isLoading = loading ?? previewResult?.loading;
 
   // Safeguard: ensure count is at least the errors array length (handles edge cases where totalCount is 0 but errors exist)

@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-
+import { JSX, useEffect } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Pause, Play, Square, StepBack, StepForward } from 'lucide-react';
@@ -9,10 +8,6 @@ import type { ReplaySpeed } from '@renderer/store/slices/replaySlice';
 
 const SPEED_OPTIONS: readonly ReplaySpeed[] = [1, 2, 4];
 
-/**
- * Milliseconds per step at 1x speed. Higher speeds divide this by the speed
- * factor so 4x replays 4 chunks per tick window.
- */
 const TICK_BASE_MS = 600;
 
 interface ReplayControlsProps {
@@ -21,7 +16,7 @@ interface ReplayControlsProps {
 
 export const ReplayControls = ({
   totalChunks,
-}: Readonly<ReplayControlsProps>): React.JSX.Element | null => {
+}: Readonly<ReplayControlsProps>): JSX.Element | null => {
   const {
     replayMode,
     replayCursorIndex,

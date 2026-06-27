@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState, ReactNode, ReactElement } from 'react';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
 import { cn } from '@renderer/lib/utils';
@@ -58,9 +58,9 @@ const PopoverSection = ({
   title: string;
   count: number;
   tokenCount: number;
-  children: React.ReactNode;
+  children: ReactNode;
   defaultExpanded?: boolean;
-}>): React.ReactElement => {
+}>): ReactElement => {
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
@@ -96,7 +96,7 @@ const PopoverSection = ({
 export const ContextBadge = ({
   stats,
   projectRoot,
-}: Readonly<ContextBadgeProps>): React.ReactElement | null => {
+}: Readonly<ContextBadgeProps>): ReactElement | null => {
   const totalNew = useMemo(
     () =>
       stats.newCounts.claudeMd +

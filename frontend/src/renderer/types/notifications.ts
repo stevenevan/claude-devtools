@@ -1,9 +1,4 @@
-/**
- * Notification and configuration types for claude-devtools.
- *
- * Re-exports types from shared for backwards compatibility.
- * The canonical definitions are in @shared/types/notifications.
- */
+
 
 export {
   type AppConfig,

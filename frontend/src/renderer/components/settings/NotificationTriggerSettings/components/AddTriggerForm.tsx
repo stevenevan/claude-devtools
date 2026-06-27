@@ -1,5 +1,4 @@
-import { useCallback } from 'react';
-
+import { FormEvent, JSX, useCallback } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { ChevronDown, ChevronUp, Loader2, Plus } from 'lucide-react';
 
@@ -28,7 +27,7 @@ interface AddTriggerFormProps {
 export const AddTriggerForm = ({
   saving,
   onAdd,
-}: Readonly<AddTriggerFormProps>): React.JSX.Element => {
+}: Readonly<AddTriggerFormProps>): JSX.Element => {
   // Use form state hook
   const formState = useAddTriggerFormState();
   const {
@@ -107,7 +106,7 @@ export const AddTriggerForm = ({
     handleTestTrigger,
   ]);
 
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+  const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
     if (!name.trim()) return;
     if (mode === 'content_match' && !validatePattern(matchPattern)) return;

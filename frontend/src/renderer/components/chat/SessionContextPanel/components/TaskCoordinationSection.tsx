@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactElement } from 'react';
 
 import { TaskCoordinationItem } from '../items/TaskCoordinationItem';
 
@@ -20,7 +20,7 @@ export const TaskCoordinationSection = ({
   isExpanded,
   onToggle,
   onNavigateToTurn,
-}: Readonly<TaskCoordinationSectionProps>): React.ReactElement | null => {
+}: Readonly<TaskCoordinationSectionProps>): ReactElement | null => {
   if (injections.length === 0) return null;
 
   return (

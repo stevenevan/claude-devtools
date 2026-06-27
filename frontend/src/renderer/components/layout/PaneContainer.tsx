@@ -1,5 +1,4 @@
-import { Fragment, useCallback, useState } from 'react';
-
+import { Fragment, JSX, useCallback, useState } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -17,7 +16,7 @@ import { DragOverlayTab } from './SortableTab';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import type { Tab } from '@renderer/types/tabs';
 
-export const PaneContainer = (): React.JSX.Element => {
+export const PaneContainer = (): JSX.Element => {
   const panes = useStore((s) => s.paneLayout.panes);
 
   const [activeTab, setActiveTab] = useState<Tab | null>(null);

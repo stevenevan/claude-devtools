@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC } from 'react';
 
 import { useStore } from '@renderer/store';
 import { useShallow } from 'zustand/react/shallow';
@@ -16,7 +16,7 @@ interface MiddlePanelProps {
 
 const EMPTY_ARRAY: never[] = [];
 
-export const MiddlePanel: React.FC<MiddlePanelProps> = ({ tabId }) => {
+export const MiddlePanel: FC<MiddlePanelProps> = ({ tabId }) => {
   const {
     flameGraphVisible,
     teamTreeVisible,

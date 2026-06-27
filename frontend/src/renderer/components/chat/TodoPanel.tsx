@@ -1,10 +1,6 @@
-/**
- * TodoPanel - Displays session task list from ~/.claude/todos/{sessionId}.json.
- * Shows as a collapsible sidebar panel within the chat view.
- */
 
-import { useMemo, useState } from 'react';
 
+import { JSX, ReactNode, useMemo, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { parseTodoData } from '@renderer/types/todos';
@@ -26,7 +22,7 @@ interface TodoPanelProps {
   onClose: () => void;
 }
 
-const statusIcon: Record<TodoItem['status'], React.ReactNode> = {
+const statusIcon: Record<TodoItem['status'], ReactNode> = {
   completed: <CheckCircle2 className="size-4 shrink-0 text-emerald-400" />,
   in_progress: <Loader2 className="size-4 shrink-0 animate-spin text-blue-400" />,
   pending: <Circle className="text-text-muted size-4 shrink-0" />,
@@ -38,7 +34,7 @@ const statusLabel: Record<TodoItem['status'], string> = {
   pending: 'Pending',
 };
 
-export const TodoPanel = ({ todoData, onClose }: Readonly<TodoPanelProps>): React.JSX.Element => {
+export const TodoPanel = ({ todoData, onClose }: Readonly<TodoPanelProps>): JSX.Element => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const allItems = useMemo(() => parseTodoData(todoData), [todoData]);
   const completedCount = allItems.filter((t) => t.status === 'completed').length;

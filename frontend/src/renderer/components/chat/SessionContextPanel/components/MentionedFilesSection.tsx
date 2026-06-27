@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactElement } from 'react';
 
 import { MentionedFileItem } from '../items/MentionedFileItem';
 
@@ -22,7 +22,7 @@ export const MentionedFilesSection = ({
   onToggle,
   projectRoot,
   onNavigateToTurn,
-}: Readonly<MentionedFilesSectionProps>): React.ReactElement | null => {
+}: Readonly<MentionedFilesSectionProps>): ReactElement | null => {
   if (injections.length === 0) return null;
 
   return (

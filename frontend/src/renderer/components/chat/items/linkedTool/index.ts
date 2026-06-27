@@ -1,8 +1,4 @@
-/**
- * Linked Tool Sub-components
- *
- * Exports all specialized tool viewer components.
- */
+
 
 export { BashToolViewer } from './BashToolViewer';
 export { CollapsibleOutputSection } from './CollapsibleOutputSection';

@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactElement } from 'react';
 
 import { ToolOutputItem } from '../items/ToolOutputItem';
 
@@ -20,7 +20,7 @@ export const ToolOutputsSection = ({
   isExpanded,
   onToggle,
   onNavigateToTurn,
-}: Readonly<ToolOutputsSectionProps>): React.ReactElement | null => {
+}: Readonly<ToolOutputsSectionProps>): ReactElement | null => {
   if (injections.length === 0) return null;
 
   return (

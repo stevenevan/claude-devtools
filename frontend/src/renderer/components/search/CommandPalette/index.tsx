@@ -1,5 +1,5 @@
-import React from 'react';
 
+import { JSX } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import {
   Command,
@@ -29,7 +29,7 @@ import { ProjectResults } from './ProjectResults';
 import { SessionResults } from './SessionResults';
 import { useCommandPaletteSearch } from './useCommandPaletteSearch';
 
-export const CommandPalette = (): React.JSX.Element | null => {
+export const CommandPalette = (): JSX.Element | null => {
   const {
     query,
     setQuery,

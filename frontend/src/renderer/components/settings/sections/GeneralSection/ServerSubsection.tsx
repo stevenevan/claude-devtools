@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
-
+import { JSX, useCallback, useEffect, useState } from 'react';
 import { api } from '@renderer/api';
 import { Switch } from '@renderer/components/ui/switch';
 import { useClipboard } from '@renderer/hooks/mantine';
@@ -18,7 +17,7 @@ interface ServerSubsectionProps {
 export const ServerSubsection = ({
   saving,
   isElectron,
-}: ServerSubsectionProps): React.JSX.Element => {
+}: ServerSubsectionProps): JSX.Element => {
   const [serverStatus, setServerStatus] = useState<HttpServerStatus>({
     running: false,
     port: 3456,

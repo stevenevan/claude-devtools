@@ -1,15 +1,8 @@
-/**
- * Render Helpers
- *
- * Shared rendering functions for tool input and output.
- */
 
-import React from 'react';
 
-/**
- * Renders the input section based on tool type with theme-aware styling.
- */
-export function renderInput(toolName: string, input: Record<string, unknown>): React.ReactElement {
+import { ReactElement } from 'react';
+
+export function renderInput(toolName: string, input: Record<string, unknown>): ReactElement {
   // Special rendering for Edit tool - show diff-like format
   if (toolName === 'Edit') {
     const filePath = input.file_path as string | undefined;
@@ -101,14 +94,6 @@ function formatInputValue(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
-/**
- * Renders the output section with theme-aware styling.
- */
-/**
- * Extracts display text from tool output content.
- * Handles content block arrays from the API by extracting text fields
- * and pretty-printing JSON when possible.
- */
 export function extractOutputText(content: string | unknown[]): string {
   let displayText: string;
 
@@ -160,7 +145,7 @@ function isContentBlock(value: unknown): boolean {
   );
 }
 
-export function renderOutput(content: string | unknown[]): React.ReactElement {
+export function renderOutput(content: string | unknown[]): ReactElement {
   const displayText = extractOutputText(content);
   return <pre className="text-foreground break-all whitespace-pre-wrap">{displayText}</pre>;
 }

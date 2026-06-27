@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-
+import { cloneElement, JSX, ReactElement, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { useStore } from '@renderer/store';
 import { formatShortcut } from '@renderer/utils/stringUtils';
@@ -7,13 +6,13 @@ import { Command, Search } from 'lucide-react';
 
 interface GlobalContentViewProps {
   title: string;
-  children: React.ReactElement<{ searchQuery: string }>;
+  children: ReactElement<{ searchQuery: string }>;
 }
 
 export const GlobalContentView = ({
   title,
   children,
-}: Readonly<GlobalContentViewProps>): React.JSX.Element => {
+}: Readonly<GlobalContentViewProps>): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const openCommandPalette = useStore((s) => s.openCommandPalette);
@@ -77,7 +76,7 @@ export const GlobalContentView = ({
           )}
         </div>
 
-        {React.cloneElement(children, { searchQuery })}
+        {cloneElement(children, { searchQuery })}
       </div>
     </div>
   );

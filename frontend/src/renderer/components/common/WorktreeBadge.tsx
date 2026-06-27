@@ -1,3 +1,4 @@
+import { ReactElement } from 'react';
 import { cn } from '@renderer/lib/utils';
 
 import type { WorktreeSource } from '@renderer/types/data';
@@ -24,7 +25,7 @@ export const WorktreeBadge = ({
   source,
   isMain = false,
   className = '',
-}: Readonly<WorktreeBadgeProps>): React.ReactElement | null => {
+}: Readonly<WorktreeBadgeProps>): ReactElement | null => {
   const baseClasses = cn(
     'inline-flex shrink-0 items-center rounded-sm px-1 py-px text-[9px] font-medium',
     className

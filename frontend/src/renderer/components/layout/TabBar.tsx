@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-
+import { CSSProperties, JSX, MouseEvent, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { isDesktopMode } from '@renderer/api';
@@ -17,7 +16,7 @@ interface TabBarProps {
   paneId: string;
 }
 
-export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
+export const TabBar = ({ paneId }: TabBarProps): JSX.Element => {
   const {
     pane,
     paneCount,
@@ -107,7 +106,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
   }, [selectedTabIds.length, clearTabSelection]);
 
   const handleTabClick = useCallback(
-    (tabId: string, e: React.MouseEvent) => {
+    (tabId: string, e: MouseEvent) => {
       const isMeta = e.metaKey || e.ctrlKey;
       const isShift = e.shiftKey;
 
@@ -142,7 +141,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
   );
 
   const handleMouseDown = useCallback(
-    (tabId: string, e: React.MouseEvent) => {
+    (tabId: string, e: MouseEvent) => {
       if (e.button === 1) {
         e.preventDefault();
         closeTab(tabId);
@@ -191,7 +190,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
               ? 'var(--macos-traffic-light-padding-left, 72px)'
               : '8px',
           WebkitAppRegion: isDesktopMode() && isLeftmostPane ? 'drag' : undefined,
-        } as React.CSSProperties
+        } as CSSProperties
       }
     >
       {/* Expand sidebar button - show when collapsed (only in leftmost pane) */}
@@ -199,7 +198,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         <button
           onClick={toggleSidebar}
           className="text-muted-foreground hover:bg-card hover:text-foreground mr-2 shrink-0 rounded-md p-1.5 transition-colors"
-          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+          style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
           title="Expand sidebar"
         >
           <PanelLeft className="size-4" />
@@ -222,7 +221,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
             WebkitAppRegion: 'no-drag',
             outline: isDroppableOver ? '1px dashed rgb(99,102,241)' : 'none',
             outlineOffset: '-1px',
-          } as React.CSSProperties
+          } as CSSProperties
         }
       >
         <SortableContext items={tabIds} strategy={horizontalListSortingStrategy}>
@@ -273,14 +272,14 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         style={
           {
             WebkitAppRegion: isDesktopMode() && isLeftmostPane ? 'drag' : undefined,
-          } as React.CSSProperties
+          } as CSSProperties
         }
       />
 
       {/* Right side actions */}
       <div
         className="ml-2 flex shrink-0 items-center gap-1"
-        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+        style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
       >
         <Button variant="ghost" size="icon" onClick={openDashboard} title="New tab">
           <Plus className="size-4" />

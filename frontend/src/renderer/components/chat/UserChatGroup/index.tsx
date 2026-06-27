@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
-
+import { JSX, memo, useEffect, useMemo, useState } from 'react';
 import { api } from '@renderer/api';
 import { useTabUI } from '@renderer/hooks/useTabUI';
 import { useStore } from '@renderer/store';
@@ -28,17 +27,7 @@ interface UserChatGroupProps {
   userGroup: UserGroup;
 }
 
-/**
- * UserChatGroup displays a user's input message.
- * Features:
- * - Right-aligned bubble layout with subtle blue styling
- * - Header with user icon, label, and timestamp
- * - Markdown rendering with inline highlighted mentions (@paths)
- * - Copy button on hover
- * - Toggle for long content (>500 chars)
- * - Shows image count indicator
- */
-const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): React.JSX.Element => {
+const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): JSX.Element => {
   'use no memo'; // counter in createSearchContext must reset each render; compiler memoization would stale it
   const { content, timestamp, id: groupId } = userGroup;
   const [isManuallyExpanded, setIsManuallyExpanded] = useState(false);
@@ -207,4 +196,4 @@ const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): React.
   );
 };
 
-export const UserChatGroup = React.memo(UserChatGroupInner);
+export const UserChatGroup = memo(UserChatGroupInner);

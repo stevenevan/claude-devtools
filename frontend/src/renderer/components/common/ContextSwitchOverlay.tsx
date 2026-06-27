@@ -1,8 +1,8 @@
-import React from 'react';
+import { FC } from 'react';
 
 import { useStore } from '@renderer/store';
 
-export const ContextSwitchOverlay: React.FC = () => {
+export const ContextSwitchOverlay: FC = () => {
   const isContextSwitching = useStore((state) => state.isContextSwitching);
   const targetContextId = useStore((state) => state.targetContextId);
 

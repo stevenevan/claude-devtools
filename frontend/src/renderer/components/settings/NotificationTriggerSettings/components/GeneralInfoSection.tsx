@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 
 import { TOOL_NAME_OPTIONS } from '../utils/constants';
@@ -18,7 +19,7 @@ export const GeneralInfoSection = ({
   saving,
   onNameChange,
   onToolNameChange,
-}: Readonly<GeneralInfoSectionProps>): React.JSX.Element => {
+}: Readonly<GeneralInfoSectionProps>): JSX.Element => {
   return (
     <div className="space-y-3">
       <SectionHeader title="General Info" />

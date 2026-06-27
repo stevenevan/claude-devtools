@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo, ReactElement } from 'react';
 
 import { CopyButton } from '@renderer/components/common/CopyButton';
 
@@ -153,7 +153,7 @@ export const FlatInjectionList = ({
   onNavigateToTurn,
   onNavigateToTool,
   onNavigateToUserGroup,
-}: Readonly<FlatInjectionListProps>): React.ReactElement => {
+}: Readonly<FlatInjectionListProps>): ReactElement => {
   const rows = useMemo(() => flattenInjections(injections), [injections]);
 
   return (

@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
-
+import { JSX, useCallback, useEffect, useState } from 'react';
 import { api } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { Alert, AlertDescription } from '@renderer/components/ui/alert';
@@ -20,7 +19,7 @@ import { SettingRow, SettingsSectionHeader } from '../../components';
 
 import type { ClaudeRootInfo, WslClaudeRootCandidate } from '@shared/types';
 
-export const ClaudeRootSubsection = (): React.JSX.Element => {
+export const ClaudeRootSubsection = (): JSX.Element => {
   const connectionMode = useStore((s) => s.connectionMode);
   const fetchProjects = useStore((s) => s.fetchProjects);
   const fetchRepositoryGroups = useStore((s) => s.fetchRepositoryGroups);

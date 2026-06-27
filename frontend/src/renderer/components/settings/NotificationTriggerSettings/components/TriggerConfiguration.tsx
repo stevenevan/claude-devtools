@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 
 const SELECT_INPUT_BASE =
@@ -57,7 +58,7 @@ export const TriggerConfiguration = ({
   onTokenThresholdBlur,
   onTokenTypeChange,
   onColorChange,
-}: Readonly<TriggerConfigurationProps>): React.JSX.Element => {
+}: Readonly<TriggerConfigurationProps>): JSX.Element => {
   const availableMatchFields = getAvailableMatchFields(trigger.contentType, trigger.toolName);
 
   return (
@@ -203,7 +204,7 @@ const ContentMatchConfig = ({
   onMatchFieldChange,
   onPatternChange,
   onPatternBlur,
-}: Readonly<ContentMatchConfigProps>): React.JSX.Element => {
+}: Readonly<ContentMatchConfigProps>): JSX.Element => {
   return (
     <div className="space-y-3">
       {/* Match Field */}
@@ -292,7 +293,7 @@ const TokenThresholdConfig = ({
   onTokenTypeChange,
   onTokenThresholdChange,
   onTokenThresholdBlur,
-}: Readonly<TokenThresholdConfigProps>): React.JSX.Element => {
+}: Readonly<TokenThresholdConfigProps>): JSX.Element => {
   return (
     <div className="space-y-3">
       <div className="border-border/50 flex items-center justify-between border-b py-2">
