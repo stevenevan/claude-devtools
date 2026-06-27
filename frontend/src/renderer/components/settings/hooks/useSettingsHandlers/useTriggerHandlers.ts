@@ -23,6 +23,7 @@ export function useTriggerHandlers({
   SettingsHandlers,
   'handleAddTrigger' | 'handleUpdateTrigger' | 'handleRemoveTrigger'
 > {
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleAddTrigger = useCallback(
     async (trigger: Omit<NotificationTrigger, 'isBuiltin'>) => {
       try {
@@ -40,6 +41,7 @@ export function useTriggerHandlers({
     [setSaving, setConfig, setOptimisticConfig, setError]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleUpdateTrigger = useCallback(
     async (triggerId: string, updates: Partial<NotificationTrigger>) => {
       setOptimisticConfig((prev) => {
@@ -74,6 +76,7 @@ export function useTriggerHandlers({
     [setSaving, setConfig, setOptimisticConfig, setError, configRef]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleRemoveTrigger = useCallback(
     async (triggerId: string) => {
       try {

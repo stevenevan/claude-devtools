@@ -49,6 +49,7 @@ export function useTabNavigationController(
   const abortControllerRef = useRef<AbortController | null>(null);
   const lastFailureAtRef = useRef<number>(0);
 
+  // ponytail: useCallback required — in executeNavigation dep array
   const handleHighlightEnd = useCallback(() => {
     setHighlightedGroupId(null);
     setCurrentToolUseId(null);
@@ -63,6 +64,7 @@ export function useTabNavigationController(
     }
   }, []);
 
+  // ponytail: useCallback required — in useEffect dep arrays and executeNavigation dep array
   const abortNavigation = useCallback(() => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -74,6 +76,7 @@ export function useTabNavigationController(
     }
   }, []);
 
+  // ponytail: useCallback required — in useEffect dep arrays
   const executeNavigation = useCallback(
     async (request: TabNavigationRequest): Promise<void> => {
       abortNavigation();

@@ -48,6 +48,7 @@ export function useAddTriggerFormState(): AddTriggerFormStateReturn {
   const [color, setColor] = useState<TriggerColor>('red');
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // ponytail: useCallback required — returned from hook; passed to useAddTriggerFormHandlers dep array
   const resetForm = useCallback(() => {
     setName('');
     setToolName('');

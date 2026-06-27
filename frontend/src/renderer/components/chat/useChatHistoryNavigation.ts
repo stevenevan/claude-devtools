@@ -36,6 +36,7 @@ export function useChatHistoryNavigation(args: UseChatHistoryNavigationArgs): {
     setContextNavToolUseId,
   } = args;
 
+  // ponytail: useCallback required — in handleNavigateToTurn/UserGroup/Tool dep arrays
   const scheduleHighlightReset = useCallback(
     (extra?: () => void) => {
       if (navigationHighlightTimerRef.current) {
@@ -51,6 +52,7 @@ export function useChatHistoryNavigation(args: UseChatHistoryNavigationArgs): {
     [navigationHighlightTimerRef, setHighlightedGroupId, setIsNavigationHighlight]
   );
 
+  // ponytail: useCallback required — returned from hook; callers pass to components/effects
   const handleNavigateToTurn = useCallback(
     (turnIndex: number) => {
       if (!conversation) return;
@@ -82,6 +84,7 @@ export function useChatHistoryNavigation(args: UseChatHistoryNavigationArgs): {
     ]
   );
 
+  // ponytail: useCallback required — returned from hook; callers pass to components/effects
   const handleNavigateToUserGroup = useCallback(
     (turnIndex: number) => {
       if (!conversation) return;
@@ -116,6 +119,7 @@ export function useChatHistoryNavigation(args: UseChatHistoryNavigationArgs): {
     ]
   );
 
+  // ponytail: useCallback required — returned from hook; callers pass to components/effects
   const handleNavigateToTool = useCallback(
     (turnIndex: number, toolUseId: string) => {
       if (!conversation) return;

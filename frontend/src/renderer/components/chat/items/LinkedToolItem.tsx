@@ -49,6 +49,7 @@ interface LinkedToolItemProps {
   registerRef?: (el: HTMLDivElement | null) => void;
 }
 
+// ponytail: memo kept — virtualized row
 export const LinkedToolItem: FC<LinkedToolItemProps> = memo(function LinkedToolItem({
   linkedTool,
   onClick,

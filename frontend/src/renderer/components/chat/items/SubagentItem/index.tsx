@@ -69,6 +69,7 @@ export const SubagentItem: FC<SubagentItemProps> = ({
 
   // Register outer card as a tool ref target for the parent Task tool_use ID
   // so the navigation controller can scroll directly to this SubagentItem
+  // ponytail: useCallback required — callback ref; new fn on every render would re-trigger DOM attachment
   const outerCardRef = useCallback(
     (el: HTMLDivElement | null) => {
       if (subagent.parentTaskId && registerToolRef) {

@@ -1,4 +1,4 @@
-import { JSX, useMemo } from 'react';
+import { JSX } from 'react';
 import { isDesktopMode } from '@renderer/api';
 
 import { AppearanceSubsection } from './AppearanceSubsection';
@@ -27,7 +27,7 @@ export const GeneralSection = ({
   onDisplayToggle,
   onCodeBlockThemeChange,
 }: GeneralSectionProps): JSX.Element => {
-  const isElectron = useMemo(() => isDesktopMode(), []);
+  const isElectron = isDesktopMode();
 
   return (
     <div>

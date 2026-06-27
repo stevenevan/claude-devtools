@@ -11,6 +11,7 @@ export const PaneResizeHandle = ({ leftPaneId }: PaneResizeHandleProps): JSX.Ele
   const resizePanes = useStore((s) => s.resizePanes);
   const paneLayout = useStore((s) => s.paneLayout);
 
+  // ponytail: useCallback required — in useEffect dep array
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!isResizing) return;
@@ -38,6 +39,7 @@ export const PaneResizeHandle = ({ leftPaneId }: PaneResizeHandleProps): JSX.Ele
     [isResizing, leftPaneId, paneLayout.panes, resizePanes]
   );
 
+  // ponytail: useCallback required — in useEffect dep array
   const handleMouseUp = useCallback(() => {
     setIsResizing(false);
   }, []);

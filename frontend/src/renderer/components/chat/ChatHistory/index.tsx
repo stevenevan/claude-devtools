@@ -139,6 +139,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
   const isSearchActive = searchQuery.trim().length > 0;
   const shouldVirtualize = (conversation?.items.length ?? 0) >= VIRTUALIZATION_THRESHOLD;
 
+  // ponytail: useCallback required — passed to useTabNavigationController as setSearchQuery (in its dep array)
   const setSearchQueryForTab = useCallback(
     (query: string): void => {
       setSearchQuery(query, conversation);
@@ -167,6 +168,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     measureElement: (element) => element.getBoundingClientRect().height,
   });
 
+  // ponytail: useCallback required — dep in useChatHistoryScroll, useTurnNavigationListener, useChatHistoryNavigation hooks
   const ensureGroupVisible = useCallback(
     async (groupId: string) => {
       if (!shouldVirtualize) {
@@ -299,6 +301,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     };
   }, []);
 
+  // ponytail: useCallback required — captures rowVirtualizer in dep array; passed to SessionMinimap
   const handleMinimapJump = useCallback(
     (index: number) => {
       if (!conversation) return;

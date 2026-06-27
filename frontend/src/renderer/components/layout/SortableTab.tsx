@@ -101,6 +101,7 @@ export const SortableTab = ({
   const Icon = TAB_ICONS[tab.type];
   const isSessionTab = tab.type === 'session';
 
+  // ponytail: useCallback required — callback ref merging setNodeRef + setRef; must be stable
   const handleRef = useCallback(
     (el: HTMLDivElement | null) => {
       setNodeRef(el);

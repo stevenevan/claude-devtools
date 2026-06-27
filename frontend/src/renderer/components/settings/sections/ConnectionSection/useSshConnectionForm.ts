@@ -77,6 +77,7 @@ export const useSshConnectionForm = (): UseSshConnectionForm => {
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [claudeRootInfo, setClaudeRootInfo] = useState<ClaudeRootInfo | null>(null);
 
+  // ponytail: useCallback required — in useEffect dep array
   const loadProfiles = useCallback(async () => {
     try {
       const config = await api.config.get();
@@ -87,6 +88,7 @@ export const useSshConnectionForm = (): UseSshConnectionForm => {
     }
   }, []);
 
+  // ponytail: useCallback required — in useEffect dep array
   const loadClaudeRootInfo = useCallback(async () => {
     try {
       const info = await api.config.getClaudeRootInfo();

@@ -52,6 +52,7 @@ export function useChatHistoryScroll(
   const prevShouldDisableRef = useRef(shouldDisableAutoScroll);
   const wasActiveRef = useRef(isThisTabActive);
 
+  // ponytail: useCallback required — in useEffect dep array
   const checkScrollButton = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;

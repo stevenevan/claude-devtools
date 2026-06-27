@@ -1,4 +1,4 @@
-import { JSX, useCallback, useEffect, useState } from 'react';
+import { JSX, useEffect, useState } from 'react';
 import { api } from '@renderer/api';
 import { Switch } from '@renderer/components/ui/switch';
 import { useClipboard } from '@renderer/hooks/mantine';
@@ -31,7 +31,7 @@ export const ServerSubsection = ({
     }
   }, [isElectron]);
 
-  const handleServerToggle = useCallback(async (enabled: boolean) => {
+  const handleServerToggle = async (enabled: boolean): Promise<void> => {
     setServerLoading(true);
     try {
       const status = enabled ? await api.httpServer.start() : await api.httpServer.stop();
@@ -41,10 +41,9 @@ export const ServerSubsection = ({
     } finally {
       setServerLoading(false);
     }
-  }, []);
+  };
 
   const serverUrl = `http://localhost:${serverStatus.port}`;
-  const handleCopyUrl = useCallback(() => copy(serverUrl), [copy, serverUrl]);
 
   if (isElectron) {
     return (
@@ -73,7 +72,7 @@ export const ServerSubsection = ({
               {serverUrl}
             </code>
             <button
-              onClick={handleCopyUrl}
+              onClick={() => copy(serverUrl)}
               className={cn(
                 'ml-auto flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-medium transition-colors hover:bg-white/5',
                 copied ? 'text-green-500' : 'text-muted-foreground'

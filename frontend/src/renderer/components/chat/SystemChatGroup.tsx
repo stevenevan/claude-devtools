@@ -38,4 +38,5 @@ const SystemChatGroupInner = ({
   );
 };
 
+// ponytail: memo kept — virtualized row
 export const SystemChatGroup = memo(SystemChatGroupInner);

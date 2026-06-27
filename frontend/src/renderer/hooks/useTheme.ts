@@ -45,14 +45,14 @@ export function useTheme(): {
     }
   });
 
-  const setPreset = useCallback((p: ThemePreset) => {
+  const setPreset = (p: ThemePreset): void => {
     setPresetState(p);
     try {
       localStorage.setItem(PRESET_CACHE_KEY, p);
     } catch {
       // localStorage may not be available
     }
-  }, []);
+  };
 
   // Fetch config on mount if not loaded
   useEffect(() => {
@@ -63,6 +63,7 @@ export function useTheme(): {
 
   const configuredTheme: Theme = appConfig?.general?.theme ?? 'dark';
 
+  // ponytail: useCallback required — in useEffect dep array
   const getSystemTheme = useCallback((): ResolvedTheme => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }, []);

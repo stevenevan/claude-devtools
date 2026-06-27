@@ -60,6 +60,7 @@ export function useAddTriggerFormHandlers({
     resetForm,
   } = formState;
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleModeChange = useCallback(
     (newMode: TriggerMode) => {
       setMode(newMode);
@@ -70,6 +71,7 @@ export function useAddTriggerFormHandlers({
     [setMode, setContentType]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleContentTypeChange = useCallback(
     (newContentType: TriggerContentType) => {
       setContentType(newContentType);
@@ -82,6 +84,7 @@ export function useAddTriggerFormHandlers({
     [toolName, setContentType, setMatchField, setToolName]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleToolNameChange = useCallback(
     (newToolName: string) => {
       setToolName(newToolName);
@@ -91,6 +94,7 @@ export function useAddTriggerFormHandlers({
     [contentType, setToolName, setMatchField]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleAddRepository = useCallback(
     (item: RepositoryDropdownItem) => {
       if (!repositoryIds.includes(item.id)) {
@@ -100,6 +104,7 @@ export function useAddTriggerFormHandlers({
     [repositoryIds, setRepositoryIds]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleRemoveIgnorePattern = useCallback(
     (idx: number) => {
       const newPatterns = [...ignorePatterns];
@@ -109,6 +114,7 @@ export function useAddTriggerFormHandlers({
     [ignorePatterns, setIgnorePatterns]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleAddIgnorePattern = useCallback(
     (pattern: string) => {
       setIgnorePatterns([...ignorePatterns, pattern]);
@@ -116,6 +122,7 @@ export function useAddTriggerFormHandlers({
     [ignorePatterns, setIgnorePatterns]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleRemoveRepository = useCallback(
     (idx: number) => {
       const newIds = [...repositoryIds];
@@ -125,6 +132,7 @@ export function useAddTriggerFormHandlers({
     [repositoryIds, setRepositoryIds]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleMatchPatternChange = useCallback(
     (value: string) => {
       setMatchPattern(value);
@@ -133,6 +141,7 @@ export function useAddTriggerFormHandlers({
     [setMatchPattern, validatePattern]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleTokenThresholdChange = useCallback(
     (value: string) => {
       const val = value.replace(/\D/g, '');
@@ -141,12 +150,14 @@ export function useAddTriggerFormHandlers({
     [setTokenThreshold]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleCancel = useCallback(() => {
     resetForm();
     clearPreview();
     setIsExpanded(false);
   }, [resetForm, clearPreview, setIsExpanded]);
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const buildNewTrigger = useCallback(
     (generateId: () => string): Omit<NotificationTrigger, 'isBuiltin'> => {
       return {

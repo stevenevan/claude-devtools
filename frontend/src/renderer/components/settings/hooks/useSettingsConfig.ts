@@ -100,6 +100,7 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
     }
   }, [repositoryGroups.length, fetchRepositoryGroups]);
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays (useAdvancedHandlers etc.)
   const updateConfig = useCallback(
     async (section: keyof AppConfig, data: Partial<AppConfig[keyof AppConfig]>) => {
       // Optimistic update - immediately reflect the change in UI

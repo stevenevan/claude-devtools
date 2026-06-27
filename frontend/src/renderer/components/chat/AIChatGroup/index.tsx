@@ -335,4 +335,5 @@ const AIChatGroupInner = ({
   );
 };
 
+// ponytail: memo kept — virtualized row
 export const AIChatGroup = memo(AIChatGroupInner);

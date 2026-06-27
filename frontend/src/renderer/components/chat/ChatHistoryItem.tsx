@@ -128,4 +128,5 @@ const ChatHistoryItemInner = ({
   }
 };
 
+// ponytail: memo kept — virtualized row
 export const ChatHistoryItem = memo(ChatHistoryItemInner);

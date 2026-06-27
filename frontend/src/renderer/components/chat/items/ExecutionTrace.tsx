@@ -33,6 +33,7 @@ interface ExecutionTraceProps {
 
 // Execution Trace Component
 
+// ponytail: memo kept — virtualized row
 export const ExecutionTrace: FC<ExecutionTraceProps> = memo(function ExecutionTrace({
   items,
   aiGroupId: _aiGroupId,

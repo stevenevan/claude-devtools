@@ -1,4 +1,4 @@
-import { JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { getTriggerColorDef } from '@shared/constants/triggerColors';
@@ -12,6 +12,7 @@ import type { DetectedError } from '@renderer/types/data';
 
 const ROW_HEIGHT = 56;
 const OVERSCAN = 5;
+const estimateSize = (): number => ROW_HEIGHT;
 
 const OTHER_LABEL = 'Other';
 
@@ -103,9 +104,6 @@ export const NotificationsView = (): JSX.Element => {
       return label === activeFilter;
     });
   }, [sortedNotifications, activeFilter]);
-
-  // Estimate item size
-  const estimateSize = useCallback(() => ROW_HEIGHT, []);
 
   // Set up virtualizer
   const rowVirtualizer = useVirtualizer({

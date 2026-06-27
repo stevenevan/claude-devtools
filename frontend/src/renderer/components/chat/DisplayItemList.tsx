@@ -1,4 +1,4 @@
-import { JSX, memo, ReactNode, useCallback, useState } from 'react';
+import { JSX, memo, ReactNode, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { formatTokensCompact } from '@renderer/utils/formatters';
 import { truncateText } from '@renderer/utils/stringUtils';
@@ -32,6 +32,7 @@ interface DisplayItemListProps {
   registerToolRef?: (toolId: string, el: HTMLDivElement | null) => void;
 }
 
+// ponytail: memo kept — virtualized row
 export const DisplayItemList = memo(function DisplayItemList({
   items,
   onItemClick,
@@ -45,9 +46,9 @@ export const DisplayItemList = memo(function DisplayItemList({
   // Reply-link highlight: when hovering a reply badge, dim everything except the linked pair
   const [replyLinkToolId, setReplyLinkToolId] = useState<string | null>(null);
 
-  const handleReplyHover = useCallback((toolId: string | null) => {
+  const handleReplyHover = (toolId: string | null): void => {
     setReplyLinkToolId(toolId);
-  }, []);
+  };
 
 
   const isItemInReplyLink = (item: AIGroupDisplayItem): boolean => {

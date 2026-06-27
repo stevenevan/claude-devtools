@@ -97,6 +97,7 @@ export const DateGroupedSessions = ({
     sessionsHasMore,
   });
 
+  // ponytail: useCallback required — passed to useVirtualizer, deps change on virtualItems
   const estimateSize = useCallback(
     (index: number) => {
       const item = virtualItems[index];
@@ -160,23 +161,23 @@ export const DateGroupedSessions = ({
     [sidebarSelectedSessionIds, hiddenSet]
   );
 
-  const handleBulkHide = useCallback(() => {
+  const handleBulkHide = () => {
     void hideMultipleSessions(sidebarSelectedSessionIds);
     clearSidebarSelection();
-  }, [hideMultipleSessions, sidebarSelectedSessionIds, clearSidebarSelection]);
+  };
 
-  const handleBulkUnhide = useCallback(() => {
+  const handleBulkUnhide = () => {
     const hiddenSelected = sidebarSelectedSessionIds.filter((id) => hiddenSet.has(id));
     void unhideMultipleSessions(hiddenSelected);
     clearSidebarSelection();
-  }, [unhideMultipleSessions, sidebarSelectedSessionIds, hiddenSet, clearSidebarSelection]);
+  };
 
-  const handleBulkPin = useCallback(() => {
+  const handleBulkPin = () => {
     void pinMultipleSessions(sidebarSelectedSessionIds);
     clearSidebarSelection();
-  }, [pinMultipleSessions, sidebarSelectedSessionIds, clearSidebarSelection]);
+  };
 
-  const handleBulkTag = useCallback(() => {
+  const handleBulkTag = () => {
     const input = window.prompt('Tag to apply to selected sessions');
     const trimmed = input?.trim();
     if (!trimmed) return;
@@ -186,12 +187,7 @@ export const DateGroupedSessions = ({
       await setSessionTagsAction(id, [...current, trimmed]);
     });
     void Promise.all(tasks).then(() => clearSidebarSelection());
-  }, [
-    sidebarSelectedSessionIds,
-    setSessionTagsAction,
-    getSessionTagsAction,
-    clearSidebarSelection,
-  ]);
+  };
 
   if (!selectedProjectId) {
     return (

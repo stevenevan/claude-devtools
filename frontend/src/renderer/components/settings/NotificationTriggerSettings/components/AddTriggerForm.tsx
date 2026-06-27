@@ -1,4 +1,4 @@
-import { FormEvent, JSX, useCallback } from 'react';
+import { FormEvent, JSX } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { ChevronDown, ChevronUp, Loader2, Plus } from 'lucide-react';
 
@@ -73,7 +73,7 @@ export const AddTriggerForm = ({
   const selectedRepositoryItems = useRepositoryLookup(repositoryIds);
 
   // Test trigger using the shared hook
-  const handleTest = useCallback(async (): Promise<void> => {
+  const handleTest = async (): Promise<void> => {
     if (mode === 'content_match' && !validatePattern(matchPattern)) return;
 
     const testTrigger = buildTriggerForTest({
@@ -90,21 +90,7 @@ export const AddTriggerForm = ({
     });
 
     await handleTestTrigger(testTrigger);
-  }, [
-    mode,
-    matchPattern,
-    validatePattern,
-    buildTriggerForTest,
-    name,
-    contentType,
-    matchField,
-    tokenThreshold,
-    tokenType,
-    toolName,
-    ignorePatterns,
-    repositoryIds,
-    handleTestTrigger,
-  ]);
+  };
 
   const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();

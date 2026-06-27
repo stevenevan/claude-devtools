@@ -1,4 +1,4 @@
-import { useCallback, CSSProperties, ReactElement, MouseEvent } from 'react';
+import { CSSProperties, ReactElement, MouseEvent } from 'react';
 
 import { useClipboard } from '@renderer/hooks/mantine';
 import { cn } from '@renderer/lib/utils';
@@ -19,14 +19,11 @@ export const CopyablePath = ({
 }: Readonly<CopyablePathProps>): ReactElement => {
   const { copy, copied } = useClipboard({ timeout: 1500 });
 
-  const handleCopy = useCallback(
-    (e: MouseEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
-      copy(copyText);
-    },
-    [copy, copyText]
-  );
+  const handleCopy = (e: MouseEvent): void => {
+    e.stopPropagation();
+    e.preventDefault();
+    copy(copyText);
+  };
 
   return (
     <div

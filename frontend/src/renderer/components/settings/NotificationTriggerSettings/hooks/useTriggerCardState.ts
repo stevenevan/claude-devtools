@@ -73,11 +73,13 @@ export function useTriggerCardState({
   );
 
   // Toggle enabled/disabled
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleToggleEnabled = useCallback(() => {
     void onUpdate({ enabled: !trigger.enabled });
   }, [trigger.enabled, onUpdate]);
 
   // Save name on blur or Enter
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleNameSave = useCallback(() => {
     if (localName.trim() && localName !== trigger.name) {
       void onUpdate({ name: localName.trim() });
@@ -86,6 +88,7 @@ export function useTriggerCardState({
   }, [localName, trigger.name, onUpdate]);
 
   // Save pattern on blur
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handlePatternBlur = useCallback(() => {
     if (validatePattern(localPattern) && localPattern !== trigger.matchPattern) {
       void onUpdate({ matchPattern: localPattern });
@@ -93,6 +96,7 @@ export function useTriggerCardState({
   }, [localPattern, trigger.matchPattern, onUpdate, validatePattern]);
 
   // Update local pattern and validate
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handlePatternChange = useCallback(
     (value: string) => {
       setLocalPattern(value);
@@ -102,6 +106,7 @@ export function useTriggerCardState({
   );
 
   // Content type change - reset matchField to first available
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleContentTypeChange = useCallback(
     (value: TriggerContentType) => {
       const newMatchFields = getAvailableMatchFields(value, trigger.toolName ?? undefined);
@@ -120,6 +125,7 @@ export function useTriggerCardState({
   );
 
   // Tool name change - reset matchField to first available
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleToolNameChange = useCallback(
     (value: string) => {
       const newMatchFields = getAvailableMatchFields(trigger.contentType, value || undefined);
@@ -133,6 +139,7 @@ export function useTriggerCardState({
   );
 
   // Match field change
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleMatchFieldChange = useCallback(
     (value: string) => {
       void onUpdate({ matchField: value as TriggerMatchField });
@@ -141,6 +148,7 @@ export function useTriggerCardState({
   );
 
   // Mode change with appropriate defaults
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleModeChange = useCallback(
     (newMode: TriggerMode) => {
       setLocalMode(newMode);
@@ -174,11 +182,13 @@ export function useTriggerCardState({
   );
 
   // Token threshold change — local only, commit on blur
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleTokenThresholdChange = useCallback((value: number) => {
     setLocalTokenThreshold(value);
   }, []);
 
   // Commit token threshold to config
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleTokenThresholdBlur = useCallback(() => {
     if (localTokenThreshold !== (trigger.tokenThreshold ?? 1000)) {
       void onUpdate({ tokenThreshold: localTokenThreshold });
@@ -186,6 +196,7 @@ export function useTriggerCardState({
   }, [localTokenThreshold, trigger.tokenThreshold, onUpdate]);
 
   // Token type change
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleTokenTypeChange = useCallback(
     (value: TriggerTokenType) => {
       setLocalTokenType(value);
@@ -195,6 +206,7 @@ export function useTriggerCardState({
   );
 
   // Add ignore pattern
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleAddIgnorePattern = useCallback(
     (pattern: string) => {
       const newPatterns = [...(trigger.ignorePatterns ?? []), pattern];
@@ -204,6 +216,7 @@ export function useTriggerCardState({
   );
 
   // Remove ignore pattern
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleRemoveIgnorePattern = useCallback(
     (index: number) => {
       const newPatterns = [...(trigger.ignorePatterns ?? [])];
@@ -214,6 +227,7 @@ export function useTriggerCardState({
   );
 
   // Add repository
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleAddRepository = useCallback(
     (item: RepositoryDropdownItem) => {
       const currentIds = trigger.repositoryIds ?? [];
@@ -225,6 +239,7 @@ export function useTriggerCardState({
   );
 
   // Remove repository
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleRemoveRepository = useCallback(
     (index: number) => {
       const newIds = [...(trigger.repositoryIds ?? [])];
@@ -235,6 +250,7 @@ export function useTriggerCardState({
   );
 
   // Color change
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleColorChange = useCallback(
     (color: TriggerColor) => {
       void onUpdate({ color });

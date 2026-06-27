@@ -49,17 +49,20 @@ export function useTriggerForm(_options: UseTriggerFormOptions = {}): UseTrigger
 
   const navigateToError = useStore((state) => state.navigateToError);
 
+  // ponytail: useCallback required — returned from hook; passed to useTriggerCardState/useAddTriggerFormHandlers dep arrays
   const validatePattern = useCallback((pattern: string): boolean => {
     const error = validateRegexPattern(pattern);
     setPatternError(error);
     return error === null;
   }, []);
 
+  // ponytail: useCallback required — returned from hook; passed to useAddTriggerFormHandlers dep arrays
   const clearPreview = useCallback(() => {
     setPreviewResult(null);
   }, []);
 
   // Capped by main process: max 50 errors, 10k totalCount, 100 sessions, 30s timeout.
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleTestTrigger = useCallback(async (trigger: NotificationTrigger) => {
     setPreviewResult({ loading: true, totalCount: 0, errors: [] });
 
@@ -77,6 +80,7 @@ export function useTriggerForm(_options: UseTriggerFormOptions = {}): UseTrigger
     }
   }, []);
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleViewSession = useCallback(
     (error: TriggerTestResult['errors'][0]) => {
       navigateToError({
@@ -98,6 +102,7 @@ export function useTriggerForm(_options: UseTriggerFormOptions = {}): UseTrigger
     [navigateToError]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const buildTriggerForTest = useCallback(
     (formState: {
       name: string;

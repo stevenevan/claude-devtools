@@ -39,14 +39,14 @@ export const Sidebar = (): JSX.Element | null => {
   useDefaultFilterPreset();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  const handleToggleFilter = useCallback((filter: SidebarFilter) => {
+  const handleToggleFilter = (filter: SidebarFilter): void => {
     setActiveFilters((prev) => {
       const next = new Set(prev);
       if (next.has(filter)) next.delete(filter);
       else next.add(filter);
       return next;
     });
-  }, []);
+  };
 
   const showSidebar = activeActivity === 'projects';
 
@@ -56,6 +56,7 @@ export const Sidebar = (): JSX.Element | null => {
     }
   }, [projects.length, projectsLoading, fetchProjects]);
 
+  // ponytail: useCallback required — in useEffect dep array
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!isResizing) return;
@@ -68,6 +69,7 @@ export const Sidebar = (): JSX.Element | null => {
     [isResizing]
   );
 
+  // ponytail: useCallback required — in useEffect dep array
   const handleMouseUp = useCallback(() => {
     setIsResizing(false);
   }, []);

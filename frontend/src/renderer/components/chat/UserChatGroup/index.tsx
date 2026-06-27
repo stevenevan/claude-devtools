@@ -196,4 +196,5 @@ const UserChatGroupInner = ({ userGroup }: Readonly<UserChatGroupProps>): JSX.El
   );
 };
 
+// ponytail: memo kept — virtualized row
 export const UserChatGroup = memo(UserChatGroupInner);

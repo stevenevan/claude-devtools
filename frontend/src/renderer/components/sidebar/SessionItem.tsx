@@ -1,4 +1,4 @@
-import { JSX, memo, MouseEvent, useCallback, useMemo } from 'react';
+import { JSX, memo, MouseEvent, useMemo } from 'react';
 import { ContextMenu, ContextMenuTrigger } from '@renderer/components/ui/context-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/ui/tooltip';
 import { cn } from '@renderer/lib/utils';
@@ -91,6 +91,7 @@ const ConsumptionBadge = ({
   );
 };
 
+// ponytail: memo kept — virtualized row
 export const SessionItem = memo(function SessionItem({
   session,
   isActive,
@@ -157,7 +158,7 @@ export const SessionItem = memo(function SessionItem({
 
   const sessionLabel = session.customTitle ?? session.firstMessage?.slice(0, 50) ?? 'Session';
 
-  const handleOpenInCurrentPane = useCallback(() => {
+  const handleOpenInCurrentPane = () => {
     if (!activeProjectId) return;
     openTab(
       {
@@ -169,9 +170,9 @@ export const SessionItem = memo(function SessionItem({
       { replaceActiveTab: true }
     );
     selectSession(session.id);
-  }, [activeProjectId, openTab, selectSession, session.id, sessionLabel]);
+  };
 
-  const handleOpenInNewTab = useCallback(() => {
+  const handleOpenInNewTab = () => {
     if (!activeProjectId) return;
     openTab(
       {
@@ -183,9 +184,9 @@ export const SessionItem = memo(function SessionItem({
       { forceNewTab: true }
     );
     selectSession(session.id);
-  }, [activeProjectId, openTab, selectSession, session.id, sessionLabel]);
+  };
 
-  const handleSplitRightAndOpen = useCallback(() => {
+  const handleSplitRightAndOpen = () => {
     if (!activeProjectId) return;
     // First open the tab in the focused pane
     openTab({
@@ -202,9 +203,9 @@ export const SessionItem = memo(function SessionItem({
     if (activeTabId) {
       splitPane(focusedPaneId, activeTabId, 'right');
     }
-  }, [activeProjectId, openTab, selectSession, session.id, sessionLabel, splitPane]);
+  };
 
-  const handleCompareWith = useCallback(() => {
+  const handleCompareWith = () => {
     if (!activeProjectId || !selectedSessionId || selectedSessionId === session.id) return;
     openTab({
       type: 'comparison',
@@ -214,7 +215,7 @@ export const SessionItem = memo(function SessionItem({
       compareProjectId: activeProjectId,
       label: 'Compare Sessions',
     });
-  }, [activeProjectId, openTab, selectedSessionId, session.id]);
+  };
 
   // Height must match SESSION_HEIGHT (48px) in DateGroupedSessions.tsx for virtual scroll
   return (

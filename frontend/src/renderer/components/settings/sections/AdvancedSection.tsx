@@ -1,4 +1,4 @@
-import { JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { JSX, useEffect, useRef, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import appIcon from '@renderer/favicon.png';
@@ -26,7 +26,7 @@ export const AdvancedSection = ({
   onImportConfig,
   onOpenInEditor,
 }: AdvancedSectionProps): JSX.Element => {
-  const isElectron = useMemo(() => isDesktopMode(), []);
+  const isElectron = isDesktopMode();
   const [version, setVersion] = useState<string>('');
   const updateStatus = useStore((s) => s.updateStatus);
   const availableVersion = useStore((s) => s.availableVersion);
@@ -52,9 +52,6 @@ export const AdvancedSection = ({
       .catch((err: unknown) => logger.error('failed to fetch app version', { error: String(err) }));
   }, []);
 
-  const handleCheckForUpdates = useCallback(() => {
-    checkForUpdates();
-  }, [checkForUpdates]);
 
   const getUpdateButtonContent = (): JSX.Element => {
     switch (updateStatus) {
@@ -129,7 +126,7 @@ export const AdvancedSection = ({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleCheckForUpdates}
+                onClick={checkForUpdates}
                 disabled={updateStatus === 'checking'}
                 className={cn(
                   updateStatus === 'not-available'

@@ -11,6 +11,7 @@ export function useGeneralHandlers({
   SettingsHandlers,
   'handleGeneralToggle' | 'handleThemeChange' | 'handleDefaultTabChange'
 > {
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleGeneralToggle = useCallback(
     (key: keyof AppConfig['general'], value: boolean) => {
       void updateConfig('general', { [key]: value });
@@ -18,6 +19,7 @@ export function useGeneralHandlers({
     [updateConfig]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleThemeChange = useCallback(
     (value: 'dark' | 'light' | 'system') => {
       void updateConfig('general', { theme: value });
@@ -25,6 +27,7 @@ export function useGeneralHandlers({
     [updateConfig]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleDefaultTabChange = useCallback(
     (value: 'dashboard' | 'last-session') => {
       void updateConfig('general', { defaultTab: value });

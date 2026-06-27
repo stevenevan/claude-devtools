@@ -24,6 +24,7 @@ interface TextItemProps {
   notificationDotColor?: TriggerColor;
 }
 
+// ponytail: memo kept — virtualized row
 export const TextItem: FC<TextItemProps> = memo(function TextItem({
   step,
   preview,

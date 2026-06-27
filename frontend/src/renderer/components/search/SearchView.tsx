@@ -83,6 +83,7 @@ export const SearchView = (): JSX.Element => {
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  // ponytail: useCallback required — in useEffect dep array
   const runSearch = useCallback(async (q: string, date: DatePreset, status: StatusFilter) => {
     setLoading(true);
     setHasSearched(true);

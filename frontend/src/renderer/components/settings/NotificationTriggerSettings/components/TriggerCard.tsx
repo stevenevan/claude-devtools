@@ -25,12 +25,13 @@ const TriggerCardInner = ({
   onRemove,
 }: Readonly<TriggerCardProps>): JSX.Element => {
   // Wrap callbacks to include trigger.id
+  // ponytail: useCallback required — passed to hook dep arrays (useTriggerForm, useTriggerCardState)
   const handleUpdate = useCallback(
     (updates: Partial<NotificationTrigger>) => onUpdate(trigger.id, updates),
     [onUpdate, trigger.id]
   );
 
-  const handleRemove = useCallback(() => onRemove(trigger.id), [onRemove, trigger.id]);
+  const handleRemove = (): Promise<void> => onRemove(trigger.id);
 
   // Use shared form hook for validation and preview
   const { patternError, validatePattern, previewResult, handleTestTrigger, handleViewSession } =
@@ -141,4 +142,5 @@ const TriggerCardInner = ({
 };
 
 // Memoize to prevent re-rendering when other triggers change
+// ponytail: memo kept — unlisted instance, keeping to avoid regression
 export const TriggerCard = memo(TriggerCardInner);

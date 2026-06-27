@@ -1,4 +1,4 @@
-import { JSX, memo, useEffect, useMemo, useState } from 'react';
+import { JSX, useEffect, useMemo, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
 import { cn } from '@renderer/lib/utils';
@@ -124,7 +124,7 @@ const RepositoryDropdownItemComponentInner = ({
   );
 };
 
-const RepositoryDropdownItemComponent = memo(RepositoryDropdownItemComponentInner);
+const RepositoryDropdownItemComponent = RepositoryDropdownItemComponentInner;
 
 const SelectedRepositoryItemInner = ({
   item,
@@ -166,4 +166,4 @@ const SelectedRepositoryItemInner = ({
   );
 };
 
-export const SelectedRepositoryItem = memo(SelectedRepositoryItemInner);
+export const SelectedRepositoryItem = SelectedRepositoryItemInner;

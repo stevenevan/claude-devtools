@@ -102,6 +102,7 @@ export const SessionMinimap = ({
 
   const totalWeight = items.reduce((sum, item) => sum + getItemWeight(item), 0);
 
+  // ponytail: useCallback required — in useEffect dep array
   const updateViewport = useCallback(() => {
     const container = scrollContainerRef.current;
     const minimap = minimapRef.current;
@@ -144,6 +145,7 @@ export const SessionMinimap = ({
     };
   }, [scrollContainerRef, updateViewport]);
 
+  // ponytail: useCallback required — in useEffect dep array
   const applyScrollRatio = useCallback(
     (ratio: number, writer: 'minimap' | 'navigation' = 'minimap') => {
       const container = scrollContainerRef.current;
@@ -155,61 +157,52 @@ export const SessionMinimap = ({
     [scrollContainerRef]
   );
 
-  const handleClick = useCallback(
-    (e: ReactMouseEvent) => {
-      // Suppress click right after a drag so scrubbing doesn't snap to a click.
-      if (dragState.current) {
-        dragState.current = null;
+  const handleClick = (e: ReactMouseEvent): void => {
+    // Suppress click right after a drag so scrubbing doesn't snap to a click.
+    if (dragState.current) {
+      dragState.current = null;
+      return;
+    }
+    const minimap = minimapRef.current;
+    if (!minimap) return;
+
+    const rect = minimap.getBoundingClientRect();
+    const clickY = e.clientY - rect.top;
+    const ratio = minimapYToScroll(clickY, zoom, panRatio, rect.height);
+
+    // Find item nearest the click for turn-navigation semantics.
+    let accumulated = 0;
+    for (let i = 0; i < items.length; i++) {
+      accumulated += getItemWeight(items[i]);
+      if (accumulated / totalWeight >= ratio) {
+        onJumpToIndex(i);
         return;
       }
-      const minimap = minimapRef.current;
-      if (!minimap) return;
+    }
+    if (items.length > 0) onJumpToIndex(items.length - 1);
+  };
 
-      const rect = minimap.getBoundingClientRect();
-      const clickY = e.clientY - rect.top;
-      const ratio = minimapYToScroll(clickY, zoom, panRatio, rect.height);
+  const handleWheel = (e: WheelEvent<HTMLDivElement>): void => {
+    const minimap = minimapRef.current;
+    if (!minimap) return;
+    e.preventDefault();
+    const rect = minimap.getBoundingClientRect();
+    const pointer = (e.clientY - rect.top) / rect.height;
+    const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+    const result = zoomAround(zoom, panRatio, pointer, factor);
+    setZoom(result.zoom);
+    setPanRatio(result.panRatio);
+  };
 
-      // Find item nearest the click for turn-navigation semantics.
-      let accumulated = 0;
-      for (let i = 0; i < items.length; i++) {
-        accumulated += getItemWeight(items[i]);
-        if (accumulated / totalWeight >= ratio) {
-          onJumpToIndex(i);
-          return;
-        }
-      }
-      if (items.length > 0) onJumpToIndex(items.length - 1);
-    },
-    [items, totalWeight, onJumpToIndex, zoom, panRatio]
-  );
-
-  const handleWheel = useCallback(
-    (e: WheelEvent<HTMLDivElement>) => {
-      const minimap = minimapRef.current;
-      if (!minimap) return;
-      e.preventDefault();
-      const rect = minimap.getBoundingClientRect();
-      const pointer = (e.clientY - rect.top) / rect.height;
-      const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
-      const result = zoomAround(zoom, panRatio, pointer, factor);
-      setZoom(result.zoom);
-      setPanRatio(result.panRatio);
-    },
-    [zoom, panRatio]
-  );
-
-  const handleMouseDown = useCallback(
-    (e: ReactMouseEvent<HTMLDivElement>) => {
-      if (e.button !== 0) return;
-      // Shift-drag pans (when zoomed); plain drag scrubs playhead.
-      dragState.current = {
-        kind: e.shiftKey && zoom > 1 ? 'pan' : 'scrub',
-        startY: e.clientY,
-        startPan: panRatio,
-      };
-    },
-    [panRatio, zoom]
-  );
+  const handleMouseDown = (e: ReactMouseEvent<HTMLDivElement>): void => {
+    if (e.button !== 0) return;
+    // Shift-drag pans (when zoomed); plain drag scrubs playhead.
+    dragState.current = {
+      kind: e.shiftKey && zoom > 1 ? 'pan' : 'scrub',
+      startY: e.clientY,
+      startPan: panRatio,
+    };
+  };
 
   useEffect(() => {
     const handleMove = (e: MouseEvent): void => {

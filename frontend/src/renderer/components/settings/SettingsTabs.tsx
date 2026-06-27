@@ -44,7 +44,7 @@ export const SettingsTabs = ({
   onSectionChange,
   children,
 }: Readonly<SettingsTabsProps>): JSX.Element => {
-  const isElectron = useMemo(() => isDesktopMode(), []);
+  const isElectron = isDesktopMode();
   const visibleTabs = useMemo(
     () => tabs.filter((tab) => !tab.electronOnly || isElectron),
     [isElectron]

@@ -24,6 +24,7 @@ export function useAIGroupExpansion({
   expandDisplayItem,
 }: UseAIGroupExpansionParams): void {
   // Helper function to find the item ID containing the highlighted tool
+  // ponytail: useCallback required — in useEffect dep array
   const findHighlightedItemId = useCallback(
     (toolUseId: string): string | null => {
       for (let i = 0; i < displayItems.length; i++) {

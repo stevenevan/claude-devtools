@@ -29,6 +29,7 @@ export function useNotificationHandlers({
   | 'handleAddIgnoredRepository'
   | 'handleRemoveIgnoredRepository'
 > {
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleNotificationToggle = useCallback(
     (key: keyof AppConfig['notifications'], value: boolean) => {
       void updateConfig('notifications', { [key]: value });
@@ -36,6 +37,7 @@ export function useNotificationHandlers({
     [updateConfig]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleSnooze = useCallback(
     async (minutes: number) => {
       try {
@@ -53,6 +55,7 @@ export function useNotificationHandlers({
     [setSaving, setConfig, setOptimisticConfig, setError]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleClearSnooze = useCallback(async () => {
     try {
       setSaving(true);
@@ -67,6 +70,7 @@ export function useNotificationHandlers({
     }
   }, [setSaving, setConfig, setOptimisticConfig, setError]);
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleAddIgnoredRepository = useCallback(
     async (item: RepositoryDropdownItem) => {
       try {
@@ -84,6 +88,7 @@ export function useNotificationHandlers({
     [setSaving, setConfig, setOptimisticConfig, setError]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleRemoveIgnoredRepository = useCallback(
     async (repositoryId: string) => {
       try {

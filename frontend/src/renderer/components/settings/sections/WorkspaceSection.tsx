@@ -49,15 +49,16 @@ export const WorkspaceSection = (): JSX.Element => {
   const [formAuthMethod, setFormAuthMethod] = useState<SshAuthMethod>(defaultForm.authMethod);
   const [formPrivateKeyPath, setFormPrivateKeyPath] = useState(defaultForm.privateKeyPath);
 
-  const resetForm = useCallback(() => {
+  const resetForm = (): void => {
     setFormName(defaultForm.name);
     setFormHost(defaultForm.host);
     setFormPort(defaultForm.port);
     setFormUsername(defaultForm.username);
     setFormAuthMethod(defaultForm.authMethod);
     setFormPrivateKeyPath(defaultForm.privateKeyPath);
-  }, []);
+  };
 
+  // ponytail: useCallback required — in useEffect dep array
   const loadProfiles = useCallback(async () => {
     try {
       const config = await api.config.get();

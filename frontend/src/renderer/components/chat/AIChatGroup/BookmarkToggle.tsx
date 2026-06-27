@@ -4,6 +4,7 @@ import { useStore } from '@renderer/store';
 import { Bookmark, BookmarkCheck } from 'lucide-react';
 
 export const BookmarkToggle = ({ groupId }: Readonly<{ groupId: string }>): JSX.Element => {
+  // ponytail: useCallback required — inline selector passed to useStore must be stable to avoid infinite re-render
   const isBookmarked = useStore(
     useCallback((s) => s.bookmarks.some((b) => b.groupId === groupId), [groupId])
   );

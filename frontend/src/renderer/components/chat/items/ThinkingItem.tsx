@@ -24,6 +24,7 @@ interface ThinkingItemProps {
   notificationDotColor?: TriggerColor;
 }
 
+// ponytail: memo kept — virtualized row
 export const ThinkingItem: FC<ThinkingItemProps> = memo(function ThinkingItem({
   step,
   preview,

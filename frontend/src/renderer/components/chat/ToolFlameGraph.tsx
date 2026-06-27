@@ -1,4 +1,4 @@
-import { JSX, MouseEvent as ReactMouseEvent, useCallback, useEffect, useMemo, useRef, useState, WheelEvent } from 'react';
+import { JSX, MouseEvent as ReactMouseEvent, useEffect, useMemo, useRef, useState, WheelEvent } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { buildFlameLayout } from '@renderer/utils/flameGraphLayout';
 import { formatDurationMs } from '@renderer/utils/formatters';
@@ -81,32 +81,29 @@ export const ToolFlameGraph = ({
 
   const effectiveScale = scale ?? (containerWidth > 0 ? containerWidth / totalMs : 1);
 
-  const handleWheel = useCallback(
-    (e: WheelEvent<HTMLDivElement>) => {
-      if (!e.ctrlKey && !e.metaKey && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-        // Horizontal trackpad pan — let native scroll handle; fall through to pan.
-      }
-      e.preventDefault();
-      const el = scrollRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const pointerMs = (mouseX - pan) / effectiveScale;
+  const handleWheel = (e: WheelEvent<HTMLDivElement>): void => {
+    if (!e.ctrlKey && !e.metaKey && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      // Horizontal trackpad pan — let native scroll handle; fall through to pan.
+    }
+    e.preventDefault();
+    const el = scrollRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const pointerMs = (mouseX - pan) / effectiveScale;
 
-      const delta = e.deltaY;
-      const nextScale = Math.min(
-        MAX_SCALE,
-        Math.max(MIN_SCALE, effectiveScale * (delta < 0 ? ZOOM_FACTOR : 1 / ZOOM_FACTOR))
-      );
-      if (nextScale === effectiveScale) return;
+    const delta = e.deltaY;
+    const nextScale = Math.min(
+      MAX_SCALE,
+      Math.max(MIN_SCALE, effectiveScale * (delta < 0 ? ZOOM_FACTOR : 1 / ZOOM_FACTOR))
+    );
+    if (nextScale === effectiveScale) return;
 
-      // Keep the hovered timestamp pinned under the cursor.
-      const nextPan = mouseX - pointerMs * nextScale;
-      setScale(nextScale);
-      setPan(nextPan);
-    },
-    [effectiveScale, pan]
-  );
+    // Keep the hovered timestamp pinned under the cursor.
+    const nextPan = mouseX - pointerMs * nextScale;
+    setScale(nextScale);
+    setPan(nextPan);
+  };
 
   const handleMouseDown = (e: ReactMouseEvent<HTMLDivElement>): void => {
     if (e.button !== 0) return;

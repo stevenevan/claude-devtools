@@ -105,54 +105,48 @@ export const TabBar = ({ paneId }: TabBarProps): JSX.Element => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [selectedTabIds.length, clearTabSelection]);
 
-  const handleTabClick = useCallback(
-    (tabId: string, e: MouseEvent) => {
-      const isMeta = e.metaKey || e.ctrlKey;
-      const isShift = e.shiftKey;
+  const handleTabClick = (tabId: string, e: MouseEvent): void => {
+    const isMeta = e.metaKey || e.ctrlKey;
+    const isShift = e.shiftKey;
 
-      if (isMeta) {
-        if (selectedSet.has(tabId)) {
-          setSelectedTabIds(selectedTabIds.filter((id) => id !== tabId));
-        } else {
-          setSelectedTabIds([...selectedTabIds, tabId]);
-        }
-        lastClickedTabIdRef.current = tabId;
-        return;
+    if (isMeta) {
+      if (selectedSet.has(tabId)) {
+        setSelectedTabIds(selectedTabIds.filter((id) => id !== tabId));
+      } else {
+        setSelectedTabIds([...selectedTabIds, tabId]);
       }
-
-      if (isShift && lastClickedTabIdRef.current) {
-        const lastIndex = openTabs.findIndex((t) => t.id === lastClickedTabIdRef.current);
-        const currentIndex = openTabs.findIndex((t) => t.id === tabId);
-        if (lastIndex !== -1 && currentIndex !== -1) {
-          const start = Math.min(lastIndex, currentIndex);
-          const end = Math.max(lastIndex, currentIndex);
-          const rangeIds = openTabs.slice(start, end + 1).map((t) => t.id);
-          const merged = new Set([...selectedTabIds, ...rangeIds]);
-          setSelectedTabIds([...merged]);
-        }
-        return;
-      }
-
-      clearTabSelection();
       lastClickedTabIdRef.current = tabId;
-      setActiveTab(tabId);
-    },
-    [openTabs, selectedTabIds, selectedSet, setActiveTab, setSelectedTabIds, clearTabSelection]
-  );
+      return;
+    }
 
-  const handleMouseDown = useCallback(
-    (tabId: string, e: MouseEvent) => {
-      if (e.button === 1) {
-        e.preventDefault();
-        closeTab(tabId);
-        return;
+    if (isShift && lastClickedTabIdRef.current) {
+      const lastIndex = openTabs.findIndex((t) => t.id === lastClickedTabIdRef.current);
+      const currentIndex = openTabs.findIndex((t) => t.id === tabId);
+      if (lastIndex !== -1 && currentIndex !== -1) {
+        const start = Math.min(lastIndex, currentIndex);
+        const end = Math.max(lastIndex, currentIndex);
+        const rangeIds = openTabs.slice(start, end + 1).map((t) => t.id);
+        const merged = new Set([...selectedTabIds, ...rangeIds]);
+        setSelectedTabIds([...merged]);
       }
-      if (e.button === 0 && (e.shiftKey || e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-      }
-    },
-    [closeTab]
-  );
+      return;
+    }
+
+    clearTabSelection();
+    lastClickedTabIdRef.current = tabId;
+    setActiveTab(tabId);
+  };
+
+  const handleMouseDown = (tabId: string, e: MouseEvent): void => {
+    if (e.button === 1) {
+      e.preventDefault();
+      closeTab(tabId);
+      return;
+    }
+    if (e.button === 0 && (e.shiftKey || e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+    }
+  };
 
   const handleRefresh = async (): Promise<void> => {
     if (activeTab?.type === 'session' && activeTab.projectId && activeTab.sessionId) {
@@ -165,6 +159,7 @@ export const TabBar = ({ paneId }: TabBarProps): JSX.Element => {
   };
 
   // Ref setter for SortableTab
+  // ponytail: useCallback required — stable ref passed to SortableTab setRef prop (used for auto-scroll DOM lookups)
   const setTabRef = useCallback((tabId: string, el: HTMLDivElement | null) => {
     if (el) {
       tabRefsMap.current.set(tabId, el);
