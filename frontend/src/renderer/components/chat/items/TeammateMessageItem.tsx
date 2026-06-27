@@ -2,7 +2,7 @@ import { useMemo, CSSProperties, FC } from 'react';
 
 import { getTeamColorSet } from '@renderer/constants/teamColors';
 import { cn } from '@renderer/lib/utils';
-import { formatTokensCompact } from '@renderer/utils/formatters';
+import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { ChevronRight, CornerDownLeft, MessageSquare, RefreshCw } from 'lucide-react';
 
 import { MarkdownViewer } from '../viewers/MarkdownViewer';

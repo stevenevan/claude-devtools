@@ -1,6 +1,8 @@
 import { parseAllTeammateMessages } from '@shared/utils/teammateMessageParser';
 
-import { estimateTokens, toDate } from '../aiGroupHelpers';
+import { estimateTokens } from '@shared/utils/tokenFormatting';
+
+import { toDate } from '../aiGroupHelpers';
 import { extractSlashes, type PrecedingSlashInfo } from '../slashCommandExtractor';
 import { linkToolCallsToResults } from '../toolLinkingEngine';
 

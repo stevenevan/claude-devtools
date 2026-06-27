@@ -1,6 +1,8 @@
 import { parseAllTeammateMessages } from '@shared/utils/teammateMessageParser';
 
-import { estimateTokens, formatToolInput, formatToolResult, toDate } from '../aiGroupHelpers';
+import { estimateTokens } from '@shared/utils/tokenFormatting';
+
+import { formatToolInput, formatToolResult, toDate } from '../aiGroupHelpers';
 import { extractSlashes } from '../slashCommandExtractor';
 
 import { linkTeammateReplies, sortDisplayItemsChronologically } from './helpers';

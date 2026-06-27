@@ -10,11 +10,11 @@ import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { countPendingTodos } from '@renderer/types/todos';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { ChevronsDown, MessageSquare } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { LiveMetricsBar } from '../../common/LiveMetricsBar';
 import { computeContextInjectionsForPhase } from '../chatHistoryDerivations';
-import { ChatHistoryEmptyState } from '../ChatHistoryEmptyState';
 import { ChatHistoryLoadingState } from '../ChatHistoryLoadingState';
 import { ChatHistoryVirtualizer } from '../ChatHistoryVirtualizer';
 import { ContextHeatmap } from '../ContextHeatmap';
@@ -25,8 +25,6 @@ import { useSearchMatchSync } from '../useSearchMatchSync';
 import { ChatHistorySidePanels } from './ChatHistorySidePanels';
 import { ChatHistoryToolbar } from './ChatHistoryToolbar';
 import { CONTEXT_PANEL_WIDTH_PX, waitForDoubleRaf } from './helpers';
-import { ScrollToBottomButton } from './ScrollToBottomButton';
-import { SessionTitleHeader } from './SessionTitleHeader';
 import { useChatHistoryRefs } from './useChatHistoryRefs';
 
 interface ChatHistoryProps {
@@ -321,7 +319,17 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
 
   if (conversationLoading) return <ChatHistoryLoadingState />;
 
-  if (!conversation || conversation.items.length === 0) return <ChatHistoryEmptyState />;
+  if (!conversation || conversation.items.length === 0) {
+    return (
+      <div className="bg-background flex flex-1 items-center justify-center overflow-hidden">
+        <div className="text-muted-foreground space-y-2 text-center">
+          <MessageSquare className="mx-auto mb-4 size-12 opacity-30" />
+          <div className="text-muted-foreground text-xl font-medium">No conversation history</div>
+          <div className="text-sm">This session does not contain any messages yet.</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -372,10 +380,21 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
               allContextInjections.length > 0 && '-mt-8'
             )}
           >
-            <SessionTitleHeader
-              customTitle={sessionDetail?.session?.customTitle}
-              agentName={sessionDetail?.session?.agentName}
-            />
+            {(sessionDetail?.session?.customTitle || sessionDetail?.session?.agentName) && (
+              <div className="mb-6">
+                {sessionDetail.session.customTitle && (
+                  <h1 className="text-foreground text-lg font-semibold">
+                    {sessionDetail.session.customTitle}
+                  </h1>
+                )}
+                {sessionDetail.session.agentName &&
+                  sessionDetail.session.agentName !== sessionDetail.session.customTitle && (
+                    <p className="text-muted-foreground mt-1 text-sm">
+                      Agent: {sessionDetail.session.agentName}
+                    </p>
+                  )}
+              </div>
+            )}
             <div className="space-y-6">
               <ChatHistoryVirtualizer
                 items={conversation.items}
@@ -397,17 +416,23 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
         </div>
 
         {showScrollButton && (
-          <ScrollToBottomButton
+          <button
             onClick={() => {
               scrollToBottom('smooth');
               setShowScrollButton(false);
             }}
-            rightOffset={
-              isContextPanelVisible && allContextInjections.length > 0
-                ? `calc(${CONTEXT_PANEL_WIDTH_PX}px + 1rem)`
-                : '1rem'
-            }
-          />
+            className="text-muted-foreground border-border bg-muted absolute bottom-5 z-20 flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs shadow-lg backdrop-blur-md transition-all"
+            style={{
+              right:
+                isContextPanelVisible && allContextInjections.length > 0
+                  ? `calc(${CONTEXT_PANEL_WIDTH_PX}px + 1rem)`
+                  : '1rem',
+            }}
+            title="Scroll to bottom"
+          >
+            <ChevronsDown className="size-3.5" />
+            <span>Bottom</span>
+          </button>
         )}
 
         <ChatHistorySidePanels

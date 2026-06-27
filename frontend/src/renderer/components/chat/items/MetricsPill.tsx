@@ -1,7 +1,7 @@
 import { ReactElement } from 'react';
 
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@renderer/components/ui/hover-card';
-import { formatTokensCompact } from '@renderer/utils/formatters';
+import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 
 import type { PhaseTokenBreakdown } from '@renderer/types/data';
 

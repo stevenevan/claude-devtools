@@ -1,4 +1,6 @@
-import { estimateTokens, formatToolInput, formatToolResult, toDate } from './aiGroupHelpers';
+import { estimateTokens } from '@shared/utils/tokenFormatting';
+
+import { formatToolInput, formatToolResult, toDate } from './aiGroupHelpers';
 
 import type { ParsedMessage, SemanticStep } from '../types/data';
 import type { LinkedToolItem } from '../types/groups';

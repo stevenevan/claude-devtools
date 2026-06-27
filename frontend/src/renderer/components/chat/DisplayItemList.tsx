@@ -1,6 +1,6 @@
 import { JSX, memo, ReactNode, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
-import { formatTokensCompact } from '@renderer/utils/formatters';
+import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { truncateText } from '@renderer/utils/stringUtils';
 import { format } from 'date-fns';
 import { ChevronRight, Layers, MailOpen } from 'lucide-react';

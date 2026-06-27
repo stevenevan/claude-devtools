@@ -2,7 +2,8 @@
 
 import { JSX, useEffect, useState } from 'react';
 import { api } from '@renderer/api';
-import { formatDuration, formatTokensCompact } from '@renderer/utils/formatters';
+import { formatDuration } from '@renderer/utils/formatters';
+import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { parseModelString } from '@shared/utils/modelParser';
 import {
   ArrowLeftRight,

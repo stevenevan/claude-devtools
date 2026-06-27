@@ -1,6 +1,8 @@
 import { extractSlashInfo, isCommandContent } from '@shared/utils/contentSanitizer';
 
-import { estimateTokens, toDate } from './aiGroupHelpers';
+import { estimateTokens } from '@shared/utils/tokenFormatting';
+
+import { toDate } from './aiGroupHelpers';
 
 import type { ParsedMessage } from '@renderer/types/data';
 import type { SlashItem } from '@renderer/types/groups';
