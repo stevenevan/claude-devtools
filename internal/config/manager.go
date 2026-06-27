@@ -247,9 +247,6 @@ func mergeJSONIntoGeneral(g *GeneralConfig, obj map[string]json.RawMessage) {
 	if v, ok := obj["launchAtLogin"]; ok {
 		_ = json.Unmarshal(v, &g.LaunchAtLogin)
 	}
-	if v, ok := obj["showDockIcon"]; ok {
-		_ = json.Unmarshal(v, &g.ShowDockIcon)
-	}
 	if v, ok := obj["theme"]; ok {
 		_ = json.Unmarshal(v, &g.Theme)
 	}
@@ -274,17 +271,9 @@ func mergeJSONIntoGeneral(g *GeneralConfig, obj map[string]json.RawMessage) {
 	}
 }
 
-func mergeJSONIntoDisplay(d *DisplayConfig, obj map[string]json.RawMessage) {
-	if v, ok := obj["showTimestamps"]; ok {
-		_ = json.Unmarshal(v, &d.ShowTimestamps)
-	}
-	if v, ok := obj["compactMode"]; ok {
-		_ = json.Unmarshal(v, &d.CompactMode)
-	}
-	if v, ok := obj["syntaxHighlighting"]; ok {
-		_ = json.Unmarshal(v, &d.SyntaxHighlighting)
-	}
-}
+// ponytail: no-op — the only merged display keys (showTimestamps/compactMode/syntaxHighlighting)
+// were dead and removed. codeBlockTheme/showLineNumbers/wordWrap are not merged here (pre-existing).
+func mergeJSONIntoDisplay(_ *DisplayConfig, _ map[string]json.RawMessage) {}
 
 func mergeJSONIntoHTTPServer(h *HttpServerConfig, obj map[string]json.RawMessage) {
 	if v, ok := obj["enabled"]; ok {
@@ -462,7 +451,6 @@ func mergeConfigWithDefaults(raw map[string]json.RawMessage) AppConfig {
 	}
 
 	unmarshalOr("httpServer", &cfg.HTTPServer, defaults.HTTPServer)
-	unmarshalOr("budget", &cfg.Budget, defaults.Budget)
 	unmarshalOr("dashboard", &cfg.Dashboard, defaults.Dashboard)
 	if cfg.Dashboard.WidgetOrder == nil {
 		cfg.Dashboard.WidgetOrder = []string{}
@@ -497,13 +485,6 @@ func mergeConfigWithDefaults(raw map[string]json.RawMessage) AppConfig {
 		var eps []WebhookEndpoint
 		if json.Unmarshal(v, &eps) == nil && eps != nil {
 			cfg.WebhookEndpoints = eps
-		}
-	}
-
-	if v, ok := raw["cacheMaxSessions"]; ok {
-		var n int
-		if json.Unmarshal(v, &n) == nil && n >= 1 {
-			cfg.CacheMaxSessions = n
 		}
 	}
 

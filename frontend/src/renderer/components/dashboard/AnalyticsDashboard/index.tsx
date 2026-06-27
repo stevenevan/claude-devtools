@@ -1,15 +1,6 @@
-/**
- * AnalyticsDashboard - Usage analytics with token/cost charts, project breakdown,
- * model usage, and session timeline.
- *
- * Display helpers (StatCard, ChartSection, custom tooltips, DayRangeSelector,
- * TopSessions, DashboardSkeleton, formatters) live in
- * `analyticsDashboardHelpers.tsx` so this file stays focused on data wiring +
- * layout.
- */
 
-import React, { useState } from 'react';
 
+import { JSX, useState } from 'react';
 import {
   Collapsible,
   CollapsibleContent,
@@ -35,7 +26,7 @@ import { DistributionCharts } from './DistributionCharts';
 import { StatCardsRow } from './StatCardsRow';
 import { TokenUsageBarChart } from './TokenUsageBarChart';
 
-export const AnalyticsDashboard = (): React.JSX.Element => {
+export const AnalyticsDashboard = (): JSX.Element => {
   const showBudget = useWidgetVisible('budget-panel');
   const showProductivity = useWidgetVisible('productivity-panel');
   const showDuration = useWidgetVisible('duration-panel');

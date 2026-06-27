@@ -1,7 +1,4 @@
-/**
- * Type definitions for Claude Code task data.
- * Parsed from ~/.claude/todos/{sessionId}.json files.
- */
+
 
 export interface TodoItem {
   content: string;

@@ -20,6 +20,7 @@ export function useDisclosure(
   const [opened, setOpened] = useState(initialState);
   const { onOpen, onClose } = options;
 
+  // ponytail: useCallback required — returned from hook; callers include in toggle dep array
   const open = useCallback(() => {
     setOpened((isOpened) => {
       if (!isOpened) {
@@ -30,6 +31,7 @@ export function useDisclosure(
     });
   }, [onOpen]);
 
+  // ponytail: useCallback required — returned from hook; callers include in toggle dep array
   const close = useCallback(() => {
     setOpened((isOpened) => {
       if (isOpened) {
@@ -40,6 +42,7 @@ export function useDisclosure(
     });
   }, [onClose]);
 
+  // ponytail: useCallback required — returned from hook; callers may include in dep arrays
   const toggle = useCallback(() => {
     if (opened) {
       close();

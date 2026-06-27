@@ -1,5 +1,4 @@
-import { useEffect, useMemo } from 'react';
-
+import { JSX, useEffect, useMemo } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -12,7 +11,7 @@ import { CollectionsPanel } from '../chat/CollectionsPanel';
 
 import type { AnnotationEntry } from '@shared/types';
 
-export const AnnotationList = (): React.JSX.Element => {
+export const AnnotationList = (): JSX.Element => {
   const { annotations, annotationsLoading, fetchAnnotations, removeAnnotation, navigateToSession } =
     useStore(
       useShallow((s) => ({
@@ -81,7 +80,7 @@ const AnnotationRow = ({
   annotation: AnnotationEntry;
   onNavigate: () => void;
   onRemove: () => void;
-}>): React.JSX.Element => {
+}>): JSX.Element => {
   const timeAgo = formatDistanceToNowStrict(new Date(annotation.updatedAt), { addSuffix: true });
 
   return (

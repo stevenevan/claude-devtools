@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-
+import { JSX, useEffect } from 'react';
 import { useStore } from '@renderer/store';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -13,7 +12,7 @@ import type { Tab } from '@renderer/types/tabs';
 export const SessionTabContent = ({
   tab,
   isActive,
-}: Readonly<{ tab: Tab; isActive: boolean }>): React.JSX.Element => {
+}: Readonly<{ tab: Tab; isActive: boolean }>): JSX.Element => {
   const { fetchSessionDetail, closeTab, initTabUIState } = useStore(
     useShallow((s) => ({
       fetchSessionDetail: s.fetchSessionDetail,

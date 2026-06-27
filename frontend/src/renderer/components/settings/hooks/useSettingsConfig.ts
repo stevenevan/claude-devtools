@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-
+import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '@renderer/api';
 import { useStore } from '@renderer/store';
 import { useShallow } from 'zustand/react/shallow';
@@ -20,7 +19,6 @@ export interface RepositoryDropdownItem {
 export interface SafeConfig {
   general: {
     launchAtLogin: boolean;
-    showDockIcon: boolean;
     theme: 'dark' | 'light' | 'system';
     defaultTab: 'dashboard' | 'last-session';
     claudeRootPath: string | null;
@@ -38,9 +36,6 @@ export interface SafeConfig {
     triggers: AppConfig['notifications']['triggers'];
   };
   display: {
-    showTimestamps: boolean;
-    compactMode: boolean;
-    syntaxHighlighting: boolean;
     codeBlockTheme: string;
     showLineNumbers: boolean;
     wordWrap: boolean;
@@ -56,7 +51,7 @@ interface UseSettingsConfigReturn {
   setError: (error: string | null) => void;
   setSaving: (saving: boolean) => void;
   setConfig: (config: AppConfig | null) => void;
-  setOptimisticConfig: React.Dispatch<React.SetStateAction<AppConfig | null>>;
+  setOptimisticConfig: Dispatch<SetStateAction<AppConfig | null>>;
   updateConfig: (
     section: keyof AppConfig,
     data: Partial<AppConfig[keyof AppConfig]>
@@ -105,6 +100,7 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
     }
   }, [repositoryGroups.length, fetchRepositoryGroups]);
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays (useAdvancedHandlers etc.)
   const updateConfig = useCallback(
     async (section: keyof AppConfig, data: Partial<AppConfig[keyof AppConfig]>) => {
       // Optimistic update - immediately reflect the change in UI
@@ -144,7 +140,6 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
     (): SafeConfig => ({
       general: {
         launchAtLogin: displayConfig?.general?.launchAtLogin ?? false,
-        showDockIcon: displayConfig?.general?.showDockIcon ?? true,
         theme: displayConfig?.general?.theme ?? 'dark',
         defaultTab: displayConfig?.general?.defaultTab ?? 'dashboard',
         claudeRootPath: displayConfig?.general?.claudeRootPath ?? null,
@@ -162,9 +157,6 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
         triggers: displayConfig?.notifications?.triggers ?? [],
       },
       display: {
-        showTimestamps: displayConfig?.display?.showTimestamps ?? true,
-        compactMode: displayConfig?.display?.compactMode ?? false,
-        syntaxHighlighting: displayConfig?.display?.syntaxHighlighting ?? true,
         codeBlockTheme: displayConfig?.display?.codeBlockTheme ?? 'default',
         showLineNumbers: displayConfig?.display?.showLineNumbers ?? true,
         wordWrap: displayConfig?.display?.wordWrap ?? false,

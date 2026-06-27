@@ -1,4 +1,4 @@
-import React from 'react';
+import { forwardRef } from 'react';
 
 import { Button as ButtonPrimitive } from '@base-ui/react/button';
 import { cn } from '@renderer/lib/utils';
@@ -39,7 +39,7 @@ const buttonVariants = cva(
   }
 );
 
-const Button = React.forwardRef<
+const Button = forwardRef<
   HTMLButtonElement,
   ButtonPrimitive.Props & VariantProps<typeof buttonVariants>
 >(({ className, variant = 'default', size = 'default', ...props }, ref) => {

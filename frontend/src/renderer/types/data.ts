@@ -1,14 +1,4 @@
-/**
- * Type definitions for the renderer process.
- *
- * This module re-exports types from the main process types and adds
- * renderer-specific types and utilities. For most uses, import from
- * the index.ts barrel file instead.
- *
- * Import hierarchy:
- * - Main types: Domain models, JSONL format, parsed messages, chunks
- * - Renderer types: API interfaces, notifications, visualization
- */
+
 
 // Re-exports from Main Process Types
 
@@ -104,18 +94,10 @@ export function isEnhancedCompactChunk(
   return 'chunkType' in chunk && chunk.chunkType === 'compact' && 'rawMessages' in chunk;
 }
 
-/**
- * Type guard to check if a single chunk is an EnhancedChunk.
- * Enhanced chunks have 'chunkType' and 'rawMessages' properties.
- */
 function isEnhancedChunk(chunk: Chunk | EnhancedChunk): chunk is EnhancedChunk {
   return 'chunkType' in chunk && 'rawMessages' in chunk;
 }
 
-/**
- * Type guard to check if an array of chunks are all EnhancedChunks.
- * Returns the array typed as EnhancedChunk[] if valid.
- */
 export function asEnhancedChunkArray(chunks: Chunk[]): EnhancedChunk[] | null {
   if (chunks.length === 0) {
     return [];

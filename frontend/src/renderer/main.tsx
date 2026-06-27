@@ -1,6 +1,6 @@
 import './index.css';
 
-import React from 'react';
+import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 
 import { initializeApi } from './api';
@@ -9,8 +9,8 @@ import { App } from './App';
 // Resolve sidecar port before rendering (async in Tauri, no-op otherwise)
 void initializeApi().then(() => {
   ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode>
+    <StrictMode>
       <App />
-    </React.StrictMode>
+    </StrictMode>
   );
 });

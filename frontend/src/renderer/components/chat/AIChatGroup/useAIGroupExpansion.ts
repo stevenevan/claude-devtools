@@ -13,10 +13,6 @@ interface UseAIGroupExpansionParams {
   expandDisplayItem: (aiGroupId: string, itemId: string) => void;
 }
 
-/**
- * Coordinates auto-expansion of display items when search or error-highlight
- * navigates to an AI group. Returns no value — runs effects only.
- */
 export function useAIGroupExpansion({
   aiGroupId,
   displayItems,
@@ -28,6 +24,7 @@ export function useAIGroupExpansion({
   expandDisplayItem,
 }: UseAIGroupExpansionParams): void {
   // Helper function to find the item ID containing the highlighted tool
+  // ponytail: useCallback required — in useEffect dep array
   const findHighlightedItemId = useCallback(
     (toolUseId: string): string | null => {
       for (let i = 0; i < displayItems.length; i++) {

@@ -1,9 +1,4 @@
-/**
- * Comparison tab slice - extracted from tabSlice (sprint 28 prerequisite) to
- * hold the multi-session comparison list and its add/remove helpers. Keeping
- * it separate trims tabSlice from ~733 lines under the 800 cap and gives
- * comparison features a natural home as they grow.
- */
+
 
 import type { AppState } from '../types';
 import type { Tab } from '@renderer/types/tabs';
@@ -12,12 +7,9 @@ import type { StateCreator } from 'zustand';
 const MAX_COMPARE_COLUMNS = 5;
 
 export interface ComparisonTabSlice {
-  /**
-   * Append a session to the active comparison tab. No-op if it's already
-   * one of the compared sessions or the tab has hit MAX_COMPARE_COLUMNS.
-   */
+
   addCompareSession: (tabId: string, projectId: string, sessionId: string) => void;
-  /** Remove a session from a comparison tab's extra list. */
+
   removeCompareSession: (tabId: string, sessionId: string) => void;
 }
 

@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-
+import { JSX, useEffect, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatShortcut } from '@renderer/utils/stringUtils';
@@ -16,7 +15,7 @@ export const CommandSearch = ({
   value,
   onChange,
   placeholder = 'Search projects...',
-}: Readonly<CommandSearchProps>): React.JSX.Element => {
+}: Readonly<CommandSearchProps>): JSX.Element => {
   const [isFocused, setIsFocused] = useState(false);
   const { openCommandPalette, selectedProjectId } = useStore(
     useShallow((s) => ({

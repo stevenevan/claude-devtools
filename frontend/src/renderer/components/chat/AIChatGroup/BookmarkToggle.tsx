@@ -1,14 +1,10 @@
-import React, { useCallback } from 'react';
-
+import { JSX, useCallback } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Bookmark, BookmarkCheck } from 'lucide-react';
 
-/**
- * Bookmark toggle button for AI groups.
- * Shows filled icon when bookmarked, toggles add/remove on click.
- */
-export const BookmarkToggle = ({ groupId }: Readonly<{ groupId: string }>): React.JSX.Element => {
+export const BookmarkToggle = ({ groupId }: Readonly<{ groupId: string }>): JSX.Element => {
+  // ponytail: useCallback required — inline selector passed to useStore must be stable to avoid infinite re-render
   const isBookmarked = useStore(
     useCallback((s) => s.bookmarks.some((b) => b.groupId === groupId), [groupId])
   );

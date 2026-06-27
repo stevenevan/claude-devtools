@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-
+import { JSX, MouseEvent as ReactMouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useDefaultFilterPreset } from '@renderer/hooks/useDefaultFilterPreset';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -16,7 +15,7 @@ const MIN_WIDTH = 200;
 const MAX_WIDTH = 500;
 const DEFAULT_WIDTH = 280;
 
-export const Sidebar = (): React.JSX.Element | null => {
+export const Sidebar = (): JSX.Element | null => {
   const {
     projects,
     projectsLoading,
@@ -40,14 +39,14 @@ export const Sidebar = (): React.JSX.Element | null => {
   useDefaultFilterPreset();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  const handleToggleFilter = useCallback((filter: SidebarFilter) => {
+  const handleToggleFilter = (filter: SidebarFilter): void => {
     setActiveFilters((prev) => {
       const next = new Set(prev);
       if (next.has(filter)) next.delete(filter);
       else next.add(filter);
       return next;
     });
-  }, []);
+  };
 
   const showSidebar = activeActivity === 'projects';
 
@@ -57,6 +56,7 @@ export const Sidebar = (): React.JSX.Element | null => {
     }
   }, [projects.length, projectsLoading, fetchProjects]);
 
+  // ponytail: useCallback required — in useEffect dep array
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!isResizing) return;
@@ -69,6 +69,7 @@ export const Sidebar = (): React.JSX.Element | null => {
     [isResizing]
   );
 
+  // ponytail: useCallback required — in useEffect dep array
   const handleMouseUp = useCallback(() => {
     setIsResizing(false);
   }, []);
@@ -89,7 +90,7 @@ export const Sidebar = (): React.JSX.Element | null => {
     };
   }, [isResizing, handleMouseMove, handleMouseUp]);
 
-  const handleResizeStart = (e: React.MouseEvent): void => {
+  const handleResizeStart = (e: ReactMouseEvent): void => {
     e.preventDefault();
     setIsResizing(true);
   };

@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-
+import { JSX, useEffect, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { Activity, Clock, Coins, Zap } from 'lucide-react';
 
@@ -44,7 +43,7 @@ export const LiveMetricsBar = ({
   isStreaming,
   startTime,
   className,
-}: Readonly<LiveMetricsBarProps>): React.JSX.Element | null => {
+}: Readonly<LiveMetricsBarProps>): JSX.Element | null => {
   const [, setTick] = useState(0);
 
   useEffect(() => {

@@ -55,14 +55,4 @@ func compactSortedJSON(raw json.RawMessage) string {
 	return strings.TrimRight(buf.String(), "\n")
 }
 
-func derefStr(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
-}
-
-func ptrStr(s string) *string  { return &s }
-func ptrBool(b bool) *bool      { return &b }
-func ptrF64(f float64) *float64 { return &f }
-func ptrU32(u uint32) *uint32   { return &u }
+// ptr helpers consolidated into internal/ptr (ptr.To / ptr.Deref).

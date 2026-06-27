@@ -1,10 +1,4 @@
-/**
- * refreshSessionInPlace body, extracted from sessionDetailSlice.
- *
- * Background incremental refresh used by file-change events. No loading
- * states, no UI resets — preserves the user's current view so live
- * updates don't flicker.
- */
+
 import { api } from '@renderer/api';
 import { asEnhancedChunkArray } from '@renderer/types/data';
 import { transformChunksToConversation } from '@renderer/utils/groupTransformer';

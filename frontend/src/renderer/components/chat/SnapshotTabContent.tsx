@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-
+import { JSX, useEffect, useState } from 'react';
 import { useStore } from '@renderer/store';
 import { Camera } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -11,7 +10,7 @@ interface Props {
   tab: Tab;
 }
 
-export const SnapshotTabContent = ({ tab }: Readonly<Props>): React.JSX.Element => {
+export const SnapshotTabContent = ({ tab }: Readonly<Props>): JSX.Element => {
   const { loadSnapshotDetail, snapshots } = useStore(
     useShallow((s) => ({
       loadSnapshotDetail: s.loadSnapshotDetail,

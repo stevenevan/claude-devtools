@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { markdownComponents } from '@renderer/components/chat/markdownComponents';
 import { Button } from '@renderer/components/ui/button';
 import {
@@ -30,7 +31,7 @@ function normalizeReleaseNotes(html: string): string {
   return text.replace(/\n{3,}/g, '\n\n').trim();
 }
 
-export const UpdateDialog = (): React.JSX.Element => {
+export const UpdateDialog = (): JSX.Element => {
   const showUpdateDialog = useStore((s) => s.showUpdateDialog);
   const availableVersion = useStore((s) => s.availableVersion);
   const releaseNotes = useStore((s) => s.releaseNotes);

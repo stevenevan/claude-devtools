@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo, ReactElement } from 'react';
 
 import { CLAUDE_MD_GROUP_CONFIG, CLAUDE_MD_GROUP_ORDER } from '../types';
 
@@ -24,7 +24,7 @@ export const ClaudeMdFilesSection = ({
   onToggle,
   projectRoot,
   onNavigateToTurn,
-}: Readonly<ClaudeMdFilesSectionProps>): React.ReactElement | null => {
+}: Readonly<ClaudeMdFilesSectionProps>): ReactElement | null => {
   const claudeMdGroups = useMemo(() => {
     const groups = new Map<ClaudeMdGroupCategory, ClaudeMdContextInjection[]>();
 

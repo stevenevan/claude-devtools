@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-
+import { JSX, useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
@@ -65,7 +64,7 @@ function formatTimestamp(ts: number): string {
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-export const SearchView = (): React.JSX.Element => {
+export const SearchView = (): JSX.Element => {
   const { openTab, setActiveActivity } = useStore(
     useShallow((s) => ({
       openTab: s.openTab,
@@ -84,6 +83,7 @@ export const SearchView = (): React.JSX.Element => {
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
+  // ponytail: useCallback required — in useEffect dep array
   const runSearch = useCallback(async (q: string, date: DatePreset, status: StatusFilter) => {
     setLoading(true);
     setHasSearched(true);

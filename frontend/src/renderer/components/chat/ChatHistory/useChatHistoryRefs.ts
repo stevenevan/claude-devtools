@@ -1,5 +1,4 @@
-import { useCallback } from 'react';
-
+import { MutableRefObject, useCallback } from 'react';
 interface ChatHistoryRefs {
   registerAIGroupRefCombined: (groupId: string) => (el: HTMLElement | null) => void;
   registerChatItemRef: (groupId: string) => (el: HTMLElement | null) => void;
@@ -8,10 +7,11 @@ interface ChatHistoryRefs {
 
 export const useChatHistoryRefs = (
   registerAIGroupRef: (groupId: string) => ((el: HTMLElement | null) => void) | void,
-  aiGroupRefs: React.MutableRefObject<Map<string, HTMLElement>>,
-  chatItemRefs: React.MutableRefObject<Map<string, HTMLElement>>,
-  toolItemRefs: React.MutableRefObject<Map<string, HTMLElement>>
+  aiGroupRefs: MutableRefObject<Map<string, HTMLElement>>,
+  chatItemRefs: MutableRefObject<Map<string, HTMLElement>>,
+  toolItemRefs: MutableRefObject<Map<string, HTMLElement>>
 ): ChatHistoryRefs => {
+  // ponytail: useCallback required — stable ref passed to ChatHistoryVirtualizer registerAIGroupRef prop
   const registerAIGroupRefCombined = useCallback(
     (groupId: string) => {
       const visibilityRef = registerAIGroupRef(groupId);
@@ -24,6 +24,7 @@ export const useChatHistoryRefs = (
     [registerAIGroupRef, aiGroupRefs]
   );
 
+  // ponytail: useCallback required — stable ref passed to ChatHistoryVirtualizer registerChatItemRef prop
   const registerChatItemRef = useCallback(
     (groupId: string) => {
       return (el: HTMLElement | null) => {
@@ -34,6 +35,7 @@ export const useChatHistoryRefs = (
     [chatItemRefs]
   );
 
+  // ponytail: useCallback required — stable ref passed to ChatHistoryVirtualizer registerToolRef prop
   const registerToolRef = useCallback(
     (toolId: string, el: HTMLElement | null) => {
       if (el) toolItemRefs.current.set(toolId, el);

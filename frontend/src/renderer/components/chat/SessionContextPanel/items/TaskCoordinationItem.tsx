@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, ReactElement } from 'react';
 
 import { cn } from '@renderer/lib/utils';
 import { ChevronRight, Users } from 'lucide-react';
@@ -15,7 +15,7 @@ interface TaskCoordinationItemProps {
 export const TaskCoordinationItem = ({
   injection,
   onNavigateToTurn,
-}: Readonly<TaskCoordinationItemProps>): React.ReactElement => {
+}: Readonly<TaskCoordinationItemProps>): ReactElement => {
   const [expanded, setExpanded] = useState(false);
   const turnIndex = injection.turnIndex;
   const isClickable = onNavigateToTurn && turnIndex >= 0;

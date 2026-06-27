@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"claude-devtools/internal/ptr"
 )
 
 // ActiveGapCapMs is the maximum gap that counts as active time (5 minutes).
@@ -154,7 +156,7 @@ func ScanSessionFast(filePath string) *SessionSummary {
 		if firstUser == nil &&
 			role == "user" &&
 			(entry.IsMeta == nil || !*entry.IsMeta) &&
-			derefStr(entry.Type) == "user" {
+			ptr.Deref(entry.Type) == "user" {
 			if entry.Message != nil && entry.Message.Content != nil {
 				firstUser = extractFirstUserText(*entry.Message.Content)
 			}
@@ -236,12 +238,12 @@ func parseTimestampMs(ts string) *float64 {
 
 func resolveFields(entry *quickEntry) (role, model string, usage *quickUsage) {
 	if entry.Message != nil {
-		role = derefStr(entry.Message.Role)
-		model = derefStr(entry.Message.Model)
+		role = ptr.Deref(entry.Message.Role)
+		model = ptr.Deref(entry.Message.Model)
 		usage = entry.Message.Usage
 	} else {
-		role = derefStr(entry.Role)
-		model = derefStr(entry.Model)
+		role = ptr.Deref(entry.Role)
+		model = ptr.Deref(entry.Model)
 		usage = entry.Usage
 	}
 	return
@@ -311,13 +313,6 @@ func truncatePreview(text string) *string {
 		return &s
 	}
 	return &trimmed
-}
-
-func derefStr(p *string) string {
-	if p == nil {
-		return ""
-	}
-	return *p
 }
 
 func u64val(p *uint64) uint64 {

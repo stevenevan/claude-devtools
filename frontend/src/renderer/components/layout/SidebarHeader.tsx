@@ -1,17 +1,6 @@
-/**
- * SidebarHeader - Shows "Projects" title or project name with back button.
- *
- * Layout:
- * - No project selected: "Projects" title + collapse button
- * - Project selected: Back button + project name + collapse button, optional worktree selector
- *
- * Visual requirements:
- * - Row 1 is the drag region for window movement
- * - Row 1 reserves left space for macOS traffic lights via shared layout CSS variable
- */
 
-import { useEffect, useState } from 'react';
 
+import { CSSProperties, JSX, useEffect, useState } from 'react';
 import { isDesktopMode } from '@renderer/api';
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
 import { cn } from '@renderer/lib/utils';
@@ -24,10 +13,6 @@ import { WorktreeBadge } from '../common/WorktreeBadge';
 
 import type { Worktree, WorktreeSource } from '@renderer/types/data';
 
-/**
- * Group worktrees by source for organized dropdown display.
- * Returns: main worktree first, then groups sorted by most recent activity.
- */
 interface WorktreeGroup {
   source: WorktreeSource;
   label: string;
@@ -87,7 +72,7 @@ const WorktreeItem = ({
   worktree,
   isSelected,
   onSelect,
-}: Readonly<WorktreeItemProps>): React.JSX.Element => {
+}: Readonly<WorktreeItemProps>): JSX.Element => {
   return (
     <button
       onClick={onSelect}
@@ -117,7 +102,7 @@ const WorktreeItem = ({
   );
 };
 
-export const SidebarHeader = (): React.JSX.Element => {
+export const SidebarHeader = (): JSX.Element => {
   const isMacElectron = isDesktopMode() && window.navigator.userAgent.toLowerCase().includes('mac');
 
   const {
@@ -189,14 +174,14 @@ export const SidebarHeader = (): React.JSX.Element => {
           isMacElectron ? 'pl-[var(--macos-traffic-light-padding-left,72px)]' : 'pl-2'
         )}
         data-tauri-drag-region
-        style={isMacElectron ? ({ WebkitAppRegion: 'drag' } as React.CSSProperties) : undefined}
+        style={isMacElectron ? ({ WebkitAppRegion: 'drag' } as CSSProperties) : undefined}
       >
         {hasProject ? (
           <>
             <button
               onClick={clearActiveProject}
               className="text-muted-foreground hover:text-foreground hover:bg-card shrink-0 rounded-md p-1.5 transition-colors"
-              style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+              style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
               title="Back to projects"
             >
               <ChevronLeft className="size-4" />
@@ -220,7 +205,7 @@ export const SidebarHeader = (): React.JSX.Element => {
         <button
           onClick={toggleSidebar}
           className="text-muted-foreground hover:text-foreground hover:bg-card ml-auto shrink-0 rounded-md p-1.5 transition-colors"
-          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+          style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
           title={`Collapse sidebar (${formatShortcut('B')})`}
         >
           <PanelLeft className="size-4" />

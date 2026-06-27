@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-
+import { JSX, useEffect, useState } from 'react';
 import { api } from '@renderer/api';
 import { cn } from '@renderer/lib/utils';
 import { createLogger } from '@shared/utils/logger';
@@ -33,7 +32,7 @@ interface TrendIndicatorProps {
   slope: number;
 }
 
-const TrendIndicator = ({ slope }: Readonly<TrendIndicatorProps>): React.JSX.Element => {
+const TrendIndicator = ({ slope }: Readonly<TrendIndicatorProps>): JSX.Element => {
   const absSlope = Math.abs(slope);
   const label = `${slope >= 0 ? '+' : '-'}${formatUsd(absSlope)}/day`;
 
@@ -57,7 +56,7 @@ const TrendIndicator = ({ slope }: Readonly<TrendIndicatorProps>): React.JSX.Ele
   );
 };
 
-export const BudgetPanel = (): React.JSX.Element => {
+export const BudgetPanel = (): JSX.Element => {
   const [forecast, setForecast] = useState<CostForecast | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);

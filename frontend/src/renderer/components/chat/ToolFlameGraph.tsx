@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
+import { JSX, MouseEvent as ReactMouseEvent, useEffect, useMemo, useRef, useState, WheelEvent } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { buildFlameLayout } from '@renderer/utils/flameGraphLayout';
+import { formatDurationMs } from '@renderer/utils/formatters';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 
 import type { FlameBar, ToolCategory } from '@renderer/utils/flameGraphLayout';
@@ -26,7 +26,7 @@ const CATEGORY_COLOR: Record<ToolCategory, string> = {
 
 interface ToolFlameGraphProps {
   chunks: Chunk[];
-  /** Tool call id to spotlight (from external selection). */
+
   focusedToolCallId?: string | null;
   onBarClick?: (bar: FlameBar) => void;
   className?: string;
@@ -38,12 +38,6 @@ interface TooltipState {
   y: number;
 }
 
-function formatDurationMs(ms: number): string {
-  if (ms < 1000) return `${Math.round(ms)}ms`;
-  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
-  return `${(ms / 60_000).toFixed(1)}m`;
-}
-
 function tokensSent(bar: FlameBar): number {
   return bar.durationMs;
 }
@@ -53,7 +47,7 @@ export const ToolFlameGraph = ({
   focusedToolCallId,
   onBarClick,
   className,
-}: Readonly<ToolFlameGraphProps>): React.JSX.Element | null => {
+}: Readonly<ToolFlameGraphProps>): JSX.Element | null => {
   const layout = useMemo(() => buildFlameLayout({ chunks }), [chunks]);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -87,34 +81,31 @@ export const ToolFlameGraph = ({
 
   const effectiveScale = scale ?? (containerWidth > 0 ? containerWidth / totalMs : 1);
 
-  const handleWheel = useCallback(
-    (e: React.WheelEvent<HTMLDivElement>) => {
-      if (!e.ctrlKey && !e.metaKey && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-        // Horizontal trackpad pan — let native scroll handle; fall through to pan.
-      }
-      e.preventDefault();
-      const el = scrollRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const pointerMs = (mouseX - pan) / effectiveScale;
+  const handleWheel = (e: WheelEvent<HTMLDivElement>): void => {
+    if (!e.ctrlKey && !e.metaKey && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+      // Horizontal trackpad pan — let native scroll handle; fall through to pan.
+    }
+    e.preventDefault();
+    const el = scrollRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const pointerMs = (mouseX - pan) / effectiveScale;
 
-      const delta = e.deltaY;
-      const nextScale = Math.min(
-        MAX_SCALE,
-        Math.max(MIN_SCALE, effectiveScale * (delta < 0 ? ZOOM_FACTOR : 1 / ZOOM_FACTOR))
-      );
-      if (nextScale === effectiveScale) return;
+    const delta = e.deltaY;
+    const nextScale = Math.min(
+      MAX_SCALE,
+      Math.max(MIN_SCALE, effectiveScale * (delta < 0 ? ZOOM_FACTOR : 1 / ZOOM_FACTOR))
+    );
+    if (nextScale === effectiveScale) return;
 
-      // Keep the hovered timestamp pinned under the cursor.
-      const nextPan = mouseX - pointerMs * nextScale;
-      setScale(nextScale);
-      setPan(nextPan);
-    },
-    [effectiveScale, pan]
-  );
+    // Keep the hovered timestamp pinned under the cursor.
+    const nextPan = mouseX - pointerMs * nextScale;
+    setScale(nextScale);
+    setPan(nextPan);
+  };
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>): void => {
+  const handleMouseDown = (e: ReactMouseEvent<HTMLDivElement>): void => {
     if (e.button !== 0) return;
     dragState.current = { startX: e.clientX, startPan: pan };
   };

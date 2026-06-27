@@ -1,13 +1,9 @@
-import React from 'react';
+import { ReactNode, Children, isValidElement, cloneElement } from 'react';
 
-/**
- * Recursively walks React children and replaces text nodes containing @path
- * references with styled spans using validated path state.
- */
 // eslint-disable-next-line sonarjs/function-return-type -- React child manipulation inherently returns mixed node types
-function highlightTextNode(text: string, validatedPaths: Record<string, boolean>): React.ReactNode {
+function highlightTextNode(text: string, validatedPaths: Record<string, boolean>): ReactNode {
   const pathPattern = /@[^\s,)}\]]+/g;
-  const parts: React.ReactNode[] = [];
+  const parts: ReactNode[] = [];
   let lastIndex = 0;
   let match;
 
@@ -47,17 +43,17 @@ function highlightTextNode(text: string, validatedPaths: Record<string, boolean>
 
 // eslint-disable-next-line sonarjs/function-return-type -- React child manipulation inherently returns mixed node types
 export function highlightPaths(
-  children: React.ReactNode,
+  children: ReactNode,
   validatedPaths: Record<string, boolean>
-): React.ReactNode {
+): ReactNode {
   // eslint-disable-next-line sonarjs/function-return-type -- React child manipulation inherently returns mixed node types
-  return React.Children.map(children, (child): React.ReactNode => {
+  return Children.map(children, (child): ReactNode => {
     if (typeof child === 'string') {
       return highlightTextNode(child, validatedPaths);
     }
 
-    if (React.isValidElement<{ children?: React.ReactNode }>(child) && child.props.children) {
-      return React.cloneElement(
+    if (isValidElement<{ children?: ReactNode }>(child) && child.props.children) {
+      return cloneElement(
         child,
         undefined,
         highlightPaths(child.props.children, validatedPaths)

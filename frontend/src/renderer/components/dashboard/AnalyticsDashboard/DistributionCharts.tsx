@@ -1,5 +1,5 @@
-import React from 'react';
 
+import { JSX } from 'react';
 import type { TopSessionEntry } from '@shared/types';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { Cpu } from 'lucide-react';
@@ -20,7 +20,7 @@ export const DistributionCharts = ({
   projectUsage,
   modelUsage,
   topSessions,
-}: DistributionChartsProps): React.JSX.Element => {
+}: DistributionChartsProps): JSX.Element => {
   return (
     <div className="mb-6 grid gap-6 lg:grid-cols-3">
       <ChartSection title="By Project" subtitle="Token distribution across projects">

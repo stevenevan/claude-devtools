@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 
 interface TurnCell {
@@ -16,7 +17,7 @@ export const SessionComparisonColumn = ({
   title,
   cells,
   className,
-}: Readonly<SessionComparisonColumnProps>): React.JSX.Element => (
+}: Readonly<SessionComparisonColumnProps>): JSX.Element => (
   <div className={cn('flex min-w-0 flex-1 flex-col gap-2', className)}>
     <div className="text-foreground truncate text-[11px] font-medium">{title}</div>
     <div className="flex flex-col gap-2">

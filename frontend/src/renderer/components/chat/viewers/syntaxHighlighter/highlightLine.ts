@@ -1,15 +1,15 @@
-import React from 'react';
+import { ReactNode, createElement } from 'react';
 
 import { KEYWORDS } from './keywords';
 
-export function highlightLine(line: string, language: string): React.ReactNode[] {
+export function highlightLine(line: string, language: string): ReactNode[] {
   const keywords = KEYWORDS[language] || new Set();
 
   if (keywords.size === 0 && !['json', 'css', 'html', 'bash', 'markdown'].includes(language)) {
     return [line];
   }
 
-  const segments: React.ReactNode[] = [];
+  const segments: ReactNode[] = [];
   let currentPos = 0;
   const lineLength = line.length;
 
@@ -21,7 +21,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       if (endQuote !== -1) {
         const str = remaining.slice(0, endQuote + 1);
         segments.push(
-          React.createElement('span', { key: currentPos, style: { color: 'rgb(74 222 128)' } }, str)
+          createElement('span', { key: currentPos, style: { color: 'rgb(74 222 128)' } }, str)
         );
         currentPos += str.length;
         continue;
@@ -33,7 +33,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       if (endQuote !== -1) {
         const str = remaining.slice(0, endQuote + 1);
         segments.push(
-          React.createElement('span', { key: currentPos, style: { color: 'rgb(74 222 128)' } }, str)
+          createElement('span', { key: currentPos, style: { color: 'rgb(74 222 128)' } }, str)
         );
         currentPos += str.length;
         continue;
@@ -45,7 +45,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       if (endQuote !== -1) {
         const str = remaining.slice(0, endQuote + 1);
         segments.push(
-          React.createElement('span', { key: currentPos, style: { color: 'rgb(74 222 128)' } }, str)
+          createElement('span', { key: currentPos, style: { color: 'rgb(74 222 128)' } }, str)
         );
         currentPos += str.length;
         continue;
@@ -54,7 +54,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
 
     if (remaining.startsWith('//')) {
       segments.push(
-        React.createElement(
+        createElement(
           'span',
           { key: currentPos, style: { color: 'rgb(113 113 122)', fontStyle: 'italic' } },
           remaining
@@ -72,7 +72,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       remaining.startsWith('#')
     ) {
       segments.push(
-        React.createElement(
+        createElement(
           'span',
           { key: currentPos, style: { color: 'rgb(113 113 122)', fontStyle: 'italic' } },
           remaining
@@ -83,7 +83,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
 
     if (language === 'sql' && remaining.startsWith('--')) {
       segments.push(
-        React.createElement(
+        createElement(
           'span',
           { key: currentPos, style: { color: 'rgb(113 113 122)', fontStyle: 'italic' } },
           remaining
@@ -95,7 +95,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
     const numberMatch = /^(\d+\.?\d*)/.exec(remaining);
     if (numberMatch && (currentPos === 0 || /\W/.test(line[currentPos - 1]))) {
       segments.push(
-        React.createElement(
+        createElement(
           'span',
           { key: currentPos, style: { color: 'rgb(251 146 60)' } },
           numberMatch[1]
@@ -110,7 +110,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
       const word = wordMatch[1];
       if (keywords.has(word) || (language === 'sql' && keywords.has(word.toUpperCase()))) {
         segments.push(
-          React.createElement(
+          createElement(
             'span',
             { key: currentPos, style: { color: 'rgb(192 132 252)', fontWeight: 500 } },
             word
@@ -118,7 +118,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
         );
       } else if ((word[0]?.toUpperCase() ?? '') === word[0] && word.length > 1) {
         segments.push(
-          React.createElement(
+          createElement(
             'span',
             { key: currentPos, style: { color: 'rgb(250 204 21)' } },
             word
@@ -134,7 +134,7 @@ export function highlightLine(line: string, language: string): React.ReactNode[]
     const opMatch = /^([=<>!+\-*/%&|^~?:;,.{}()[\]])/.exec(remaining);
     if (opMatch) {
       segments.push(
-        React.createElement(
+        createElement(
           'span',
           { key: currentPos, style: { color: 'rgb(161 161 170)' } },
           opMatch[1]

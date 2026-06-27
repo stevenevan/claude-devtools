@@ -1,14 +1,6 @@
-/**
- * FileGraphView - force-directed visualization of file interactions within a
- * session. Uses a minimal Verlet-style simulation inline (no external dep) to
- * keep install lean; scales comfortably to 200 nodes.
- *
- * Node size = total interaction count · color intensity = edit count.
- * Edge color keyed by op kind: read-to-edit / edit-to-write / co-access.
- */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '@renderer/api';
 import { cn } from '@renderer/lib/utils';
 import { createLogger } from '@shared/utils/logger';
@@ -141,7 +133,7 @@ export const FileGraphView = ({
   sessionId,
   onTurnClick,
   className,
-}: Readonly<FileGraphViewProps>): React.JSX.Element | null => {
+}: Readonly<FileGraphViewProps>): JSX.Element | null => {
   const [data, setData] = useState<FileGraphResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

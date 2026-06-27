@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
-
+import { JSX, useEffect, useRef, useState } from 'react';
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import { Activity, Database, RefreshCw, Trash2 } from 'lucide-react';
@@ -19,7 +18,7 @@ function formatPct(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
 }
 
-export const BackendDebugPanel = (): React.JSX.Element => {
+export const BackendDebugPanel = (): JSX.Element => {
   const [timings, setTimings] = useState<BackendTimingSummary[]>([]);
   const [stats, setStats] = useState<BackendCacheStats | null>(null);
   const [capacityDraft, setCapacityDraft] = useState<number>(50);
@@ -169,7 +168,7 @@ interface StatProps {
   value: string;
 }
 
-const Stat = ({ label, value }: Readonly<StatProps>): React.JSX.Element => (
+const Stat = ({ label, value }: Readonly<StatProps>): JSX.Element => (
   <div className="border-border bg-surface flex flex-col gap-0.5 rounded-md border p-2">
     <span className="text-text-muted text-[10px] tracking-wider uppercase">{label}</span>
     <span className="text-text text-sm font-medium">{value}</span>

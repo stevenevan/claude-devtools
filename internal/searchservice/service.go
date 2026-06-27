@@ -6,14 +6,15 @@ package searchservice
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
+	"strings"
 
 	"claude-devtools/internal/analysis"
 	"claude-devtools/internal/cache"
 	"claude-devtools/internal/discovery"
 	"claude-devtools/internal/domain"
 	"claude-devtools/internal/parsing"
+	"claude-devtools/internal/ptr"
 	"claude-devtools/internal/search"
 )
 
@@ -26,25 +27,6 @@ func New(c *cache.SessionCache) *SearchService { return &SearchService{cache: c}
 
 func (s *SearchService) Ready() (bool, error) { return true, nil }
 
-// ---------------------------------------------------------------------------
-// Internal path helpers (mirrors sessionservice pattern)
-// ---------------------------------------------------------------------------
-
-func claudeDir() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("cannot resolve home directory: %w", err)
-	}
-	return filepath.Join(home, ".claude"), nil
-}
-
-func projectsDir() (string, error) {
-	cd, err := claudeDir()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(cd, "projects"), nil
-}
 
 // ---------------------------------------------------------------------------
 // SearchResult — shared lightweight result type
@@ -59,16 +41,16 @@ type SessionSearchResult struct {
 
 // SessionSearchItem is one entry in a search result.
 type SessionSearchItem struct {
-	SessionID          string   `json:"sessionId"`
-	ProjectID          string   `json:"projectId"`
-	ProjectPath        *string  `json:"projectPath,omitempty"`
-	Preview            *string  `json:"preview"`
-	CustomTitle        *string  `json:"customTitle,omitempty"`
-	AgentName          *string  `json:"agentName,omitempty"`
-	Timestamp          float64  `json:"timestamp"`
-	MessageCount       *uint32  `json:"messageCount,omitempty"`
-	IsOngoing          *bool    `json:"isOngoing,omitempty"`
-	HasSubagents       *bool    `json:"hasSubagents,omitempty"`
+	SessionID          string  `json:"sessionId"`
+	ProjectID          string  `json:"projectId"`
+	ProjectPath        *string `json:"projectPath,omitempty"`
+	Preview            *string `json:"preview"`
+	CustomTitle        *string `json:"customTitle,omitempty"`
+	AgentName          *string `json:"agentName,omitempty"`
+	Timestamp          float64 `json:"timestamp"`
+	MessageCount       *uint32 `json:"messageCount,omitempty"`
+	IsOngoing          *bool   `json:"isOngoing,omitempty"`
+	HasSubagents       *bool   `json:"hasSubagents,omitempty"`
 	ContextConsumption *uint64 `json:"contextConsumption,omitempty"`
 }
 
@@ -82,11 +64,11 @@ func (s *SearchService) SearchSessions(
 	maxResults *int,
 	registry *discovery.SubprojectRegistry,
 ) (SessionSearchResult, error) {
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return SessionSearchResult{}, err
 	}
-	cd, err := claudeDir()
+	cd, err := discovery.ClaudeDir()
 	if err != nil {
 		return SessionSearchResult{}, err
 	}
@@ -95,7 +77,7 @@ func (s *SearchService) SearchSessions(
 	if maxResults != nil {
 		limit = *maxResults
 	}
-	queryLower := lowerStr(query)
+	queryLower := strings.ToLower(query)
 
 	opts := discovery.SessionsPaginationOptions{}
 	all, err := discovery.ListSessionsPaginated(pd, cd, projectID, nil, 10000, opts, registry)
@@ -136,11 +118,11 @@ func (s *SearchService) SearchAllProjects(
 	maxResults *int,
 	registry *discovery.SubprojectRegistry,
 ) (SessionSearchResult, error) {
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return SessionSearchResult{}, err
 	}
-	cd, err := claudeDir()
+	cd, err := discovery.ClaudeDir()
 	if err != nil {
 		return SessionSearchResult{}, err
 	}
@@ -149,7 +131,7 @@ func (s *SearchService) SearchAllProjects(
 	if maxResults != nil {
 		limit = *maxResults
 	}
-	queryLower := lowerStr(query)
+	queryLower := strings.ToLower(query)
 
 	projects, err := discovery.ScanProjects(pd, registry)
 	if err != nil {
@@ -209,11 +191,11 @@ func (s *SearchService) SearchSessionsFiltered(
 	maxCreatedAt *float64,
 	registry *discovery.SubprojectRegistry,
 ) (FilteredSearchResult, error) {
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return FilteredSearchResult{}, err
 	}
-	cd, err := claudeDir()
+	cd, err := discovery.ClaudeDir()
 	if err != nil {
 		return FilteredSearchResult{}, err
 	}
@@ -225,7 +207,7 @@ func (s *SearchService) SearchSessionsFiltered(
 
 	var queryLower *string
 	if query != nil {
-		ql := lowerStr(*query)
+		ql := strings.ToLower(*query)
 		queryLower = &ql
 	}
 
@@ -292,7 +274,7 @@ func (s *SearchService) SearchSessionsFiltered(
 				Timestamp:          sess.CreatedAt,
 				MessageCount:       &sess.MessageCount,
 				IsOngoing:          sess.IsOngoing,
-				HasSubagents:       boolPtr(sess.HasSubagents),
+				HasSubagents:       ptr.To(sess.HasSubagents),
 				ContextConsumption: sess.ContextConsumption,
 			})
 		}
@@ -321,7 +303,7 @@ func (s *SearchService) SearchSessionContent(
 		return search.ContentSearchResult{}, fmt.Errorf("invalid session ID")
 	}
 
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return search.ContentSearchResult{}, err
 	}
@@ -367,30 +349,8 @@ func (s *SearchService) ParseNlQuery(query string) (search.ParsedFilter, error) 
 // Helpers
 // ---------------------------------------------------------------------------
 
-func lowerStr(s string) string {
-	// inline to avoid extra import — mirrors Rust .to_lowercase()
-	result := make([]byte, len(s))
-	for i := 0; i < len(s); i++ {
-		c := s[i]
-		if c >= 'A' && c <= 'Z' {
-			c += 'a' - 'A'
-		}
-		result[i] = c
-	}
-	return string(result)
-}
-
+// containsCI reports whether s contains subLower, case-insensitively.
+// subLower must already be lowercased by the caller (via strings.ToLower).
 func containsCI(s, subLower string) bool {
-	return len(lowerStr(s)) >= len(subLower) && containsStr(lowerStr(s), subLower)
+	return strings.Contains(strings.ToLower(s), subLower)
 }
-
-func containsStr(s, sub string) bool {
-	for i := 0; i <= len(s)-len(sub); i++ {
-		if s[i:i+len(sub)] == sub {
-			return true
-		}
-	}
-	return false
-}
-
-func boolPtr(b bool) *bool { return &b }

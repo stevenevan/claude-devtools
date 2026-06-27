@@ -1,3 +1,4 @@
+import { ComponentType } from 'react';
 import type { NotificationTrigger, TriggerMode, TriggerTestResult } from '@renderer/types/data';
 
 export interface PreviewResult {
@@ -11,7 +12,7 @@ export interface PreviewResult {
 export interface ModeConfig {
   value: TriggerMode;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
 }
 
 export interface NotificationTriggerSettingsProps {

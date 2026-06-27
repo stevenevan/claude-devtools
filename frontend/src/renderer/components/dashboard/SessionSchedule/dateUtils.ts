@@ -1,14 +1,7 @@
-export function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
+import { isSameDay, isToday } from 'date-fns';
 
-export function isTodayDate(date: Date): boolean {
-  return isSameDay(date, new Date());
-}
+export { isSameDay };
+export const isTodayDate = isToday;
 
 export function formatHourLabel(h: number): string {
   if (h === 0) return '12 AM';

@@ -9,6 +9,7 @@ package analysis
 
 import (
 	"sort"
+	"strconv"
 	"strings"
 	"unicode/utf8"
 
@@ -98,7 +99,7 @@ func toolSummary(messages []domain.ParsedMessage) string {
 
 	parts := make([]string, len(entries))
 	for i, e := range entries {
-		parts[i] = e.name + "×" + uint32ToStr(e.count)
+		parts[i] = e.name + "×" + strconv.FormatUint(uint64(e.count), 10)
 	}
 	return strings.Join(parts, ", ")
 }
@@ -154,17 +155,3 @@ func isParsedRealUserMsg(m domain.ParsedMessage) bool {
 	return false
 }
 
-// uint32ToStr converts a uint32 to its decimal string without fmt (avoids import).
-func uint32ToStr(n uint32) string {
-	if n == 0 {
-		return "0"
-	}
-	var buf [10]byte
-	pos := len(buf)
-	for n > 0 {
-		pos--
-		buf[pos] = byte('0' + n%10)
-		n /= 10
-	}
-	return string(buf[pos:])
-}

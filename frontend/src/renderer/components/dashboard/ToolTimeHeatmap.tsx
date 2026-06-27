@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
-
+import { JSX, useEffect, useMemo, useState } from 'react';
 import { api } from '@renderer/api';
 import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
 import { cn } from '@renderer/lib/utils';
@@ -26,7 +25,7 @@ function cellIntensity(count: number, max: number): number {
 export const ToolTimeHeatmap = ({
   projectId,
   days,
-}: Readonly<ToolTimeHeatmapProps>): React.JSX.Element | null => {
+}: Readonly<ToolTimeHeatmapProps>): JSX.Element | null => {
   const [data, setData] = useState<ToolTimeHeatmapResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

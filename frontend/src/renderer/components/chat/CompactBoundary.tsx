@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-
+import { JSX, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { formatTokensCompact as formatTokens } from '@shared/utils/tokenFormatting';
 import { format } from 'date-fns';
@@ -17,19 +16,9 @@ interface CompactBoundaryProps {
   compactGroup: CompactGroup;
 }
 
-/**
- * CompactBoundary displays an interactive, collapsible marker indicating where
- * the conversation was compacted.
- *
- * Features:
- * - Minimalist design with subtle border and hover states
- * - Click to expand/collapse compacted content
- * - Scrollable content area with enforced max-height
- * - Linear/Notion-inspired aesthetics
- */
 export const CompactBoundary = ({
   compactGroup,
-}: Readonly<CompactBoundaryProps>): React.JSX.Element => {
+}: Readonly<CompactBoundaryProps>): JSX.Element => {
   const { timestamp, message } = compactGroup;
   const [isExpanded, setIsExpanded] = useState(false);
 

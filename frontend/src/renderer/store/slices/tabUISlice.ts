@@ -4,25 +4,25 @@ import type { AppState } from '../types';
 import type { StateCreator } from 'zustand';
 
 export interface TabUIState {
-  /** Which AI groups are expanded (by aiGroupId) */
+
   expandedAIGroupIds: Set<string>;
 
-  /** Which display items within AI groups are expanded: Map<aiGroupId, Set<itemId>> */
+
   expandedDisplayItemIds: Map<string, Set<string>>;
 
-  /** Which subagent traces are manually expanded (by subagentId) */
+
   expandedSubagentTraceIds: Set<string>;
 
-  /** Whether the context panel is visible */
+
   showContextPanel: boolean;
 
-  /** Selected context phase for filtering (null = current/latest phase) */
+
   selectedContextPhase: number | null;
 
-  /** Saved scroll position for restoring when switching back to this tab */
+
   savedScrollTop?: number;
 
-  /** Focused turn index for J/K navigation (-1 = none) */
+
   focusedTurnIndex: number;
 }
 

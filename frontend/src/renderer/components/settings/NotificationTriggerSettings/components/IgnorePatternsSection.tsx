@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { X } from 'lucide-react';
 
@@ -13,7 +14,7 @@ export const IgnorePatternsSection = ({
   onAdd,
   onRemove,
   disabled,
-}: Readonly<IgnorePatternsSectionProps>): React.JSX.Element => {
+}: Readonly<IgnorePatternsSectionProps>): JSX.Element => {
   return (
     <details className="mt-4">
       <summary className="text-muted-foreground hover:text-foreground cursor-pointer text-xs tracking-widest uppercase">

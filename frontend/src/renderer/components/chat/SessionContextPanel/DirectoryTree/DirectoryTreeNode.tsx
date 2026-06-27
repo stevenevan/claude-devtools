@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, ReactElement } from 'react';
 
 import { CopyablePath } from '@renderer/components/common/CopyablePath';
 import { cn } from '@renderer/lib/utils';
@@ -19,7 +19,7 @@ export const DirectoryTreeNode = ({
   node,
   depth = 0,
   onNavigateToTurn,
-}: Readonly<DirectoryTreeNodeProps>): React.ReactElement | null => {
+}: Readonly<DirectoryTreeNodeProps>): ReactElement | null => {
   const [expanded, setExpanded] = useState(true);
   const indent = depth * 12;
 

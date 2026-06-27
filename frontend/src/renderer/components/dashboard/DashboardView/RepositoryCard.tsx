@@ -1,5 +1,5 @@
-import React from 'react';
 
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { FolderGit2, GitBranch } from 'lucide-react';
@@ -12,9 +12,6 @@ interface RepositoryCardProps {
   isHighlighted?: boolean;
 }
 
-/**
- * Truncate path to show ~/relative/path format
- */
 function formatProjectPath(path: string): string {
   const p = path.replace(/\\/g, '/');
 
@@ -53,7 +50,7 @@ export const RepositoryCard = ({
   repo,
   onClick,
   isHighlighted,
-}: Readonly<RepositoryCardProps>): React.JSX.Element => {
+}: Readonly<RepositoryCardProps>): JSX.Element => {
   const lastActivity = repo.mostRecentSession
     ? formatDistanceToNow(new Date(repo.mostRecentSession), { addSuffix: true })
     : 'No recent activity';

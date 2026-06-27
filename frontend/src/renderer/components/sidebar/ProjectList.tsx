@@ -1,9 +1,10 @@
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { FolderGit2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
-export const ProjectList = (): React.JSX.Element => {
+export const ProjectList = (): JSX.Element => {
   const {
     projects,
     repositoryGroups,

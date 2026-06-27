@@ -1,7 +1,6 @@
 import type { AppState } from '../types';
 import type { StateCreator } from 'zustand';
 
-/** Top-level navigation sections in the Activity Bar. */
 export type ActivityView =
   | 'projects'
   | 'analytics'
@@ -24,8 +23,7 @@ export interface UISlice {
   flameGraphVisible: boolean;
   teamTreeVisible: boolean;
   fileGraphVisible: boolean;
-  /** Session IDs marked as duration outliers (wall > p95 × 1.5). Populated
-   * by the DurationPanel effect; sidebar SessionItem reads it for a badge. */
+
   durationOutlierSessionIds: Set<string>;
 
   openCommandPalette: () => void;

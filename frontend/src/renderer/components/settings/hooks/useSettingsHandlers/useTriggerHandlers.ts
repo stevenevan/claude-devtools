@@ -1,5 +1,4 @@
-import { useCallback } from 'react';
-
+import { RefObject, useCallback } from 'react';
 import { api } from '@renderer/api';
 import { useStore } from '@renderer/store';
 
@@ -12,7 +11,7 @@ const setStoreState = useStore.setState.bind(useStore);
 type TriggerHandlersProps = Pick<
   UseSettingsHandlersProps,
   'setSaving' | 'setConfig' | 'setOptimisticConfig' | 'setError'
-> & { configRef: React.RefObject<AppConfig | null> };
+> & { configRef: RefObject<AppConfig | null> };
 
 export function useTriggerHandlers({
   setSaving,
@@ -24,6 +23,7 @@ export function useTriggerHandlers({
   SettingsHandlers,
   'handleAddTrigger' | 'handleUpdateTrigger' | 'handleRemoveTrigger'
 > {
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleAddTrigger = useCallback(
     async (trigger: Omit<NotificationTrigger, 'isBuiltin'>) => {
       try {
@@ -41,6 +41,7 @@ export function useTriggerHandlers({
     [setSaving, setConfig, setOptimisticConfig, setError]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleUpdateTrigger = useCallback(
     async (triggerId: string, updates: Partial<NotificationTrigger>) => {
       setOptimisticConfig((prev) => {
@@ -75,6 +76,7 @@ export function useTriggerHandlers({
     [setSaving, setConfig, setOptimisticConfig, setError, configRef]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleRemoveTrigger = useCallback(
     async (triggerId: string) => {
       try {

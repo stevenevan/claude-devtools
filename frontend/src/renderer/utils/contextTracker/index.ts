@@ -19,12 +19,8 @@ import {
   createUserMessageInjection,
   wrapClaudeMdInjection,
 } from './injections';
-import {
-  createDirectoryInjection,
-  isAbsolutePath,
-  joinPaths,
-  normalizeForComparison,
-} from './pathHelpers';
+import { createDirectoryInjection } from '../claudeMd/injectionFactory';
+import { isAbsolutePath, joinPaths, normalizeForComparison } from '../claudeMd/pathHelpers';
 
 import type {
   ClaudeMdContextInjection,
@@ -56,7 +52,7 @@ interface ComputeContextStatsParams {
   projectRoot: string;
   claudeMdTokenData?: Record<string, ClaudeMdFileInfo>;
   mentionedFileTokenData?: Map<string, MentionedFileInfo>;
-  /** Token data for validated directory CLAUDE.md files (keyed by full path) */
+
   directoryTokenData?: Record<string, ClaudeMdFileInfo>;
 }
 

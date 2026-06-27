@@ -24,6 +24,7 @@ export function useVisibleAIGroup(options: UseVisibleAIGroupOptions): UseVisible
   const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Calculate and report the topmost visible AI Group
+  // ponytail: useCallback required — in useEffect dep array
   const updateTopmostVisible = useCallback(() => {
     if (visibleAIGroupIds.current.size === 0) {
       return;
@@ -93,6 +94,7 @@ export function useVisibleAIGroup(options: UseVisibleAIGroupOptions): UseVisible
   }, [threshold, updateTopmostVisible, rootRef]);
 
   // Register an AI Group element for observation
+  // ponytail: useCallback required — returned from hook; used in useChatHistoryRefs dep array
   const registerAIGroupRef = useCallback((aiGroupId: string) => {
     return (element: HTMLElement | null) => {
       const observer = observerRef.current;

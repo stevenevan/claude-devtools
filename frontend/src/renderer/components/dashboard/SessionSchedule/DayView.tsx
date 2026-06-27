@@ -1,5 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
-
+import { JSX, useMemo, useRef, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -11,7 +10,7 @@ import { resolveOverlaps } from './resolveOverlaps';
 
 import type { DayViewProps, PositionedEvent } from './types';
 
-export const DayView = ({ events, isSingleDay }: Readonly<DayViewProps>): React.JSX.Element => {
+export const DayView = ({ events, isSingleDay }: Readonly<DayViewProps>): JSX.Element => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const defaultDate = useMemo(() => {

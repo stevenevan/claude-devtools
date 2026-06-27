@@ -1,5 +1,4 @@
-import { useState } from 'react';
-
+import { JSX, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { MoreHorizontal, Star } from 'lucide-react';
@@ -24,7 +23,7 @@ export const PresetChip = ({
   onRename,
   onDelete,
   onSetDefault,
-}: Readonly<Props>): React.JSX.Element => {
+}: Readonly<Props>): JSX.Element => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [draftName, setDraftName] = useState(preset.name);

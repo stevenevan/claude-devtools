@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-
+import { JSX, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -68,7 +67,7 @@ const SECTIONS: ShortcutSection[] = [
 export const ShortcutCheatSheet = ({
   open,
   onClose,
-}: Readonly<ShortcutCheatSheetProps>): React.JSX.Element => {
+}: Readonly<ShortcutCheatSheetProps>): JSX.Element => {
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent): void => {

@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import {
   RepositoryDropdown,
   SelectedRepositoryItem,
@@ -66,7 +67,7 @@ export const NotificationsSection = ({
   onAddTrigger,
   onUpdateTrigger,
   onRemoveTrigger,
-}: NotificationsSectionProps): React.JSX.Element => {
+}: NotificationsSectionProps): JSX.Element => {
   return (
     <div>
       <NotificationTriggerSettings

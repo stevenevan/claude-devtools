@@ -11,6 +11,7 @@ export function useDisplayHandlers({
   SettingsHandlers,
   'handleDisplayToggle' | 'handleCodeBlockThemeChange'
 > {
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleDisplayToggle = useCallback(
     (key: keyof AppConfig['display'], value: boolean) => {
       void updateConfig('display', { [key]: value });
@@ -18,6 +19,7 @@ export function useDisplayHandlers({
     [updateConfig]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleCodeBlockThemeChange = useCallback(
     (value: string) => {
       void updateConfig('display', { codeBlockTheme: value });

@@ -1,5 +1,4 @@
-import { useEffect, useMemo } from 'react';
-
+import { JSX, useEffect, useMemo } from 'react';
 import { useSessionDurationStats } from '@renderer/hooks/useSessionDurationStats';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -41,7 +40,7 @@ interface OutlierRowProps {
   onOpen: () => void;
 }
 
-const OutlierRow = ({ session, p95Ms, onOpen }: Readonly<OutlierRowProps>): React.JSX.Element => {
+const OutlierRow = ({ session, p95Ms, onOpen }: Readonly<OutlierRowProps>): JSX.Element => {
   const ratio = p95Ms > 0 ? session.wallMs / p95Ms : 1;
   return (
     <button
@@ -59,7 +58,7 @@ const OutlierRow = ({ session, p95Ms, onOpen }: Readonly<OutlierRowProps>): Reac
   );
 };
 
-export const DurationPanel = (): React.JSX.Element => {
+export const DurationPanel = (): JSX.Element => {
   const { data, loading, error } = useSessionDurationStats(DEFAULT_WINDOW_DAYS);
   const setDurationOutlierSessionIds = useStore((s) => s.setDurationOutlierSessionIds);
   const navigateToSession = useStore((s) => s.navigateToSession);

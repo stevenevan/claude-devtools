@@ -1,5 +1,4 @@
-import React, { useMemo } from 'react';
-
+import { JSX, useMemo } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { alignColumns } from '@renderer/utils/comparisonAlignment';
@@ -20,7 +19,7 @@ interface MultiConversationDiffProps {
 export const MultiConversationDiff = ({
   details,
   tab,
-}: Readonly<MultiConversationDiffProps>): React.JSX.Element => {
+}: Readonly<MultiConversationDiffProps>): JSX.Element => {
   const columns = useMemo(
     () =>
       details.map((d) =>

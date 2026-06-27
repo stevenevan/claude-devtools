@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Loader2, Monitor, RefreshCw, Wifi, WifiOff } from 'lucide-react';
@@ -11,7 +12,7 @@ interface ConnectionStatusBadgeProps {
 export const ConnectionStatusBadge = ({
   contextId,
   className,
-}: Readonly<ConnectionStatusBadgeProps>): React.JSX.Element => {
+}: Readonly<ConnectionStatusBadgeProps>): JSX.Element => {
   const { connectionState, connectedHost } = useStore(
     useShallow((s) => ({
       connectionState: s.connectionState,

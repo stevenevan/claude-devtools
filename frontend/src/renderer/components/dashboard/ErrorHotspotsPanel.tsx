@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-
+import { JSX, useEffect, useState } from 'react';
 import { api } from '@renderer/api';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -19,7 +18,7 @@ interface ErrorHotspotsPanelProps {
 
 export const ErrorHotspotsPanel = ({
   days,
-}: Readonly<ErrorHotspotsPanelProps>): React.JSX.Element | null => {
+}: Readonly<ErrorHotspotsPanelProps>): JSX.Element | null => {
   const selectedProjectId = useStore((s) => s.selectedProjectId);
   const navigateToSession = useStore((s) => s.navigateToSession);
 
@@ -103,7 +102,7 @@ const HotspotRow = ({
 }: Readonly<{
   hotspot: RepeatedToolError;
   onOpenSession: (sessionId: string) => void;
-}>): React.JSX.Element => {
+}>): JSX.Element => {
   const [expanded, setExpanded] = useState(false);
   const lastSeen = formatDistanceToNowStrict(new Date(hotspot.lastSeenMs), {
     addSuffix: true,

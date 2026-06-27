@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-
+import { FC, JSX, memo, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
-import { formatTokensCompact } from '@renderer/utils/formatters';
+import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { truncateText } from '@renderer/utils/stringUtils';
 import { format } from 'date-fns';
 import { ChevronRight, Layers, MailOpen } from 'lucide-react';
@@ -23,18 +22,19 @@ interface ExecutionTraceProps {
   items: AIGroupDisplayItem[];
   aiGroupId: string;
   highlightToolUseId?: string;
-  /** Custom highlight color from trigger */
+
   highlightColor?: TriggerColor;
-  /** Map of tool use ID to trigger color for notification dots */
+
   notificationColorMap?: Map<string, TriggerColor>;
   searchExpandedItemId?: string | null;
-  /** Optional callback to register tool element refs for scroll targeting */
+
   registerToolRef?: (toolId: string, el: HTMLDivElement | null) => void;
 }
 
 // Execution Trace Component
 
-export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function ExecutionTrace({
+// ponytail: memo kept — virtualized row
+export const ExecutionTrace: FC<ExecutionTraceProps> = memo(function ExecutionTrace({
   items,
   aiGroupId: _aiGroupId,
   highlightToolUseId,
@@ -42,7 +42,7 @@ export const ExecutionTrace: React.FC<ExecutionTraceProps> = React.memo(function
   notificationColorMap,
   searchExpandedItemId,
   registerToolRef,
-}): React.JSX.Element {
+}): JSX.Element {
   const [manualExpandedItemId, setManualExpandedItemId] = useState<string | null>(null);
 
   // Use searchExpandedItemId if set, otherwise use manually expanded item

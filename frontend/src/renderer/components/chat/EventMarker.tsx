@@ -1,5 +1,5 @@
-import React from 'react';
 
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { format } from 'date-fns';
 import { AlertTriangle, BookMarked, Inbox, Radio, Timer } from 'lucide-react';
@@ -113,11 +113,7 @@ function getDetail(eventGroup: EventGroup): string {
   }
 }
 
-/**
- * EventMarker displays a lightweight inline marker for system events
- * (api_error, bridge_status, memory_saved) in the session timeline.
- */
-export const EventMarker = ({ eventGroup }: Readonly<EventMarkerProps>): React.JSX.Element => {
+export const EventMarker = ({ eventGroup }: Readonly<EventMarkerProps>): JSX.Element => {
   const { timestamp, eventData } = eventGroup;
   const style =
     EVENT_STYLES[eventData.subtype as keyof typeof EVENT_STYLES] ?? EVENT_STYLES.api_error;

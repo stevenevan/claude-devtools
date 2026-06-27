@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode, FC, useState } from 'react';
 
 import {
   Collapsible,
@@ -12,16 +12,16 @@ import { type ItemStatus, StatusDot } from '../BaseItem';
 
 interface CollapsibleOutputSectionProps {
   status: ItemStatus;
-  children: React.ReactNode;
+  children: ReactNode;
   label?: string;
 }
 
-export const CollapsibleOutputSection: React.FC<CollapsibleOutputSectionProps> = ({
+export const CollapsibleOutputSection: FC<CollapsibleOutputSectionProps> = ({
   status,
   children,
   label = 'Output',
 }) => {
-  const [isExpanded, setIsExpanded] = React.useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>

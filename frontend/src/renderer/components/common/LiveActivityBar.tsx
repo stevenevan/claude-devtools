@@ -1,3 +1,4 @@
+import { ElementType, JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { Brain, Code, FileText, Loader2, Pencil, Search, Terminal } from 'lucide-react';
 
@@ -17,7 +18,7 @@ function getInputPreview(step: SemanticStep): string {
 }
 
 function getActivityFromStep(step: SemanticStep | null | undefined): {
-  icon: React.ElementType;
+  icon: ElementType;
   label: string;
 } {
   if (!step) {
@@ -84,7 +85,7 @@ function truncatePath(pathOrInput: string): string {
 export const LiveActivityBar = ({
   lastStep,
   className,
-}: Readonly<LiveActivityBarProps>): React.JSX.Element => {
+}: Readonly<LiveActivityBarProps>): JSX.Element => {
   const { icon: Icon, label } = getActivityFromStep(lastStep);
   const isSpinner = Icon === Loader2;
 

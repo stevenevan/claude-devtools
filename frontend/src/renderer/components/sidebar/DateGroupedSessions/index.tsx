@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-
+import { JSX, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useStore } from '@renderer/store';
+import { Skeleton } from '@renderer/components/ui/skeleton';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Loader2, MessageSquareOff, Pin } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -10,7 +10,6 @@ import { SessionItem } from '../SessionItem';
 import { BulkActionBar } from './BulkActionBar';
 import { HEADER_HEIGHT, LOADER_HEIGHT, OVERSCAN, SESSION_HEIGHT } from './constants';
 import { HeaderToolbar } from './HeaderToolbar';
-import { SkeletonLoader } from './SkeletonLoader';
 import { useSessionListItems } from './useSessionListItems';
 
 import type { SidebarFilter } from '../SidebarQuickFilters';
@@ -21,7 +20,7 @@ interface DateGroupedSessionsProps {
 
 export const DateGroupedSessions = ({
   sidebarFilters,
-}: DateGroupedSessionsProps = {}): React.JSX.Element => {
+}: DateGroupedSessionsProps = {}): JSX.Element => {
   const {
     sessions,
     selectedSessionId,
@@ -98,6 +97,7 @@ export const DateGroupedSessions = ({
     sessionsHasMore,
   });
 
+  // ponytail: useCallback required — passed to useVirtualizer, deps change on virtualItems
   const estimateSize = useCallback(
     (index: number) => {
       const item = virtualItems[index];
@@ -161,23 +161,23 @@ export const DateGroupedSessions = ({
     [sidebarSelectedSessionIds, hiddenSet]
   );
 
-  const handleBulkHide = useCallback(() => {
+  const handleBulkHide = () => {
     void hideMultipleSessions(sidebarSelectedSessionIds);
     clearSidebarSelection();
-  }, [hideMultipleSessions, sidebarSelectedSessionIds, clearSidebarSelection]);
+  };
 
-  const handleBulkUnhide = useCallback(() => {
+  const handleBulkUnhide = () => {
     const hiddenSelected = sidebarSelectedSessionIds.filter((id) => hiddenSet.has(id));
     void unhideMultipleSessions(hiddenSelected);
     clearSidebarSelection();
-  }, [unhideMultipleSessions, sidebarSelectedSessionIds, hiddenSet, clearSidebarSelection]);
+  };
 
-  const handleBulkPin = useCallback(() => {
+  const handleBulkPin = () => {
     void pinMultipleSessions(sidebarSelectedSessionIds);
     clearSidebarSelection();
-  }, [pinMultipleSessions, sidebarSelectedSessionIds, clearSidebarSelection]);
+  };
 
-  const handleBulkTag = useCallback(() => {
+  const handleBulkTag = () => {
     const input = window.prompt('Tag to apply to selected sessions');
     const trimmed = input?.trim();
     if (!trimmed) return;
@@ -187,12 +187,7 @@ export const DateGroupedSessions = ({
       await setSessionTagsAction(id, [...current, trimmed]);
     });
     void Promise.all(tasks).then(() => clearSidebarSelection());
-  }, [
-    sidebarSelectedSessionIds,
-    setSessionTagsAction,
-    getSessionTagsAction,
-    clearSidebarSelection,
-  ]);
+  };
 
   if (!selectedProjectId) {
     return (
@@ -205,7 +200,24 @@ export const DateGroupedSessions = ({
   }
 
   if (sessionsLoading && sessions.length === 0) {
-    return <SkeletonLoader />;
+    const skeletonWidths = [
+      { header: '30%', title: '75%', sub: '90%' },
+      { header: '22%', title: '60%', sub: '80%' },
+      { header: '26%', title: '85%', sub: '65%' },
+    ];
+    return (
+      <div className="p-4">
+        <div className="space-y-3">
+          {skeletonWidths.map((w, i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="h-3 rounded-xs" style={{ width: w.header }} />
+              <Skeleton className="h-4 rounded-xs" style={{ width: w.title }} />
+              <Skeleton className="h-3 rounded-xs" style={{ width: w.sub }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (sessionsError) {

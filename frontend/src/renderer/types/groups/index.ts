@@ -1,7 +1,4 @@
-/**
- * Type definitions for the new chat history architecture.
- * These types separate user input from AI responses for a chat-style display.
- */
+
 
 export type { SemanticStep } from '../data';
 export type {

@@ -1,5 +1,4 @@
-import { useMemo } from 'react';
-
+import { JSX, useMemo } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import {
@@ -51,7 +50,7 @@ interface CustomAreaTooltipProps {
 const CustomAreaTooltip = ({
   active,
   payload,
-}: Readonly<CustomAreaTooltipProps>): React.JSX.Element | null => {
+}: Readonly<CustomAreaTooltipProps>): JSX.Element | null => {
   if (!active || !payload || payload.length === 0) return null;
   const bucket = payload[0].payload;
   return (
@@ -75,7 +74,7 @@ interface SummaryStatProps {
   delta?: number | null;
 }
 
-const SummaryStat = ({ label, value, delta }: Readonly<SummaryStatProps>): React.JSX.Element => {
+const SummaryStat = ({ label, value, delta }: Readonly<SummaryStatProps>): JSX.Element => {
   const hasDelta = typeof delta === 'number';
   const positive = hasDelta && delta > 0;
   const negative = hasDelta && delta < 0;
@@ -107,7 +106,7 @@ const SummaryStat = ({ label, value, delta }: Readonly<SummaryStatProps>): React
 export const CostTrendChart = ({
   buckets,
   bucketNoun,
-}: Readonly<CostTrendChartProps>): React.JSX.Element => {
+}: Readonly<CostTrendChartProps>): JSX.Element => {
   const summary = useMemo(() => computeCostSummary(buckets), [buckets]);
 
   return (

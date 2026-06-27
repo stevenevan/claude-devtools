@@ -1,12 +1,6 @@
-/**
- * LinkedToolItem
- *
- * Main component for rendering linked tool calls in the chat view.
- * Uses specialized viewers for different tool types and shared utilities
- * for summary generation and token calculation.
- */
 
-import React, { useRef } from 'react';
+
+import { useRef, FC, memo, MutableRefObject, CSSProperties } from 'react';
 
 import { getTeamColorSet } from '@renderer/constants/teamColors';
 import {
@@ -45,17 +39,18 @@ interface LinkedToolItemProps {
   linkedTool: LinkedToolItemType;
   onClick: () => void;
   isExpanded: boolean;
-  /** Whether this item should be highlighted for error deep linking */
+
   isHighlighted?: boolean;
-  /** Custom highlight color from trigger */
+
   highlightColor?: TriggerColor;
-  /** Notification dot color for this tool item */
+
   notificationDotColor?: TriggerColor;
-  /** Optional ref registration callback for external scroll control */
+
   registerRef?: (el: HTMLDivElement | null) => void;
 }
 
-export const LinkedToolItem: React.FC<LinkedToolItemProps> = React.memo(function LinkedToolItem({
+// ponytail: memo kept — virtualized row
+export const LinkedToolItem: FC<LinkedToolItemProps> = memo(function LinkedToolItem({
   linkedTool,
   onClick,
   isExpanded,
@@ -71,7 +66,7 @@ export const LinkedToolItem: React.FC<LinkedToolItemProps> = React.memo(function
   // Combined ref callback - handles both internal ref and external registration
   const handleRef = (el: HTMLDivElement | null): void => {
     // Update internal ref
-    (elementRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+    (elementRef as MutableRefObject<HTMLDivElement | null>).current = el;
     // Call external registration if provided
     registerRef?.(el);
   };
@@ -119,7 +114,7 @@ export const LinkedToolItem: React.FC<LinkedToolItemProps> = React.memo(function
   // Highlight animation for error deep linking (supports custom hex)
   const effectiveColor = highlightColor ?? 'red';
   let highlightClasses = '';
-  let highlightStyle: React.CSSProperties | undefined;
+  let highlightStyle: CSSProperties | undefined;
   if (isHighlighted) {
     if (isPresetColorKey(effectiveColor)) {
       highlightClasses = TOOL_HIGHLIGHT_CLASSES[effectiveColor];

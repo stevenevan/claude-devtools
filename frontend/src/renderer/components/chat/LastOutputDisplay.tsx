@@ -1,5 +1,5 @@
-import React from 'react';
 
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { AlertTriangle, CheckCircle, FileCheck, XCircle } from 'lucide-react';
@@ -19,32 +19,21 @@ import type { SemanticStep } from '@shared/types/chunks';
 interface LastOutputDisplayProps {
   lastOutput: AIGroupLastOutput | null;
   aiGroupId: string;
-  /** Whether this is the last AI group in the conversation */
+
   isLastGroup?: boolean;
-  /** Whether the session is ongoing (from sessions array, same source as sidebar) */
+
   isSessionOngoing?: boolean;
-  /** Last semantic step for the LiveActivityBar (when session is ongoing) */
+
   lastStep?: SemanticStep | null;
 }
 
-/**
- * LastOutputDisplay shows the always-visible last text output OR last tool result.
- * This is what the user sees as "the answer" from the AI.
- *
- * Features:
- * - Shows text output with elegant prose styling
- * - Shows tool result with tool name and icon
- * - Handles error states for tool results
- * - Shows timestamp
- * - Expandable for long content
- */
 export const LastOutputDisplay = ({
   lastOutput,
   aiGroupId,
   isLastGroup = false,
   isSessionOngoing = false,
   lastStep,
-}: Readonly<LastOutputDisplayProps>): React.JSX.Element | null => {
+}: Readonly<LastOutputDisplayProps>): JSX.Element | null => {
   'use no memo'; // counter in createSearchContext must reset each render; compiler memoization would stale it
   // Only re-render if THIS AI group has search matches
   const { searchQuery, searchMatches, currentSearchIndex } = useStore(

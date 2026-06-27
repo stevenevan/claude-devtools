@@ -1,37 +1,22 @@
-/**
- * N-way alignment for session comparison — extends 2-way LCS to arbitrary
- * column counts. For an N × max(len) output grid, each row holds one entry
- * per column (or null when that column has no item at the shared index).
- *
- * Implementation: align columns pairwise against the first column using
- * classic LCS over item "signatures", then merge the per-column LCS tables
- * into a single shared row index. This is O(N * L1 * Lmax) but N ≤ 5 keeps
- * that comfortable at chat-length scale.
- */
+
 
 export type SignatureFn<T> = (item: T) => string;
 
 export interface AlignmentRow<T> {
-  /** Parallel array: one entry per input column, null if no item in that column. */
+
   cells: (T | null)[];
-  /** True when this row is present in >= 2 columns. */
+
   isShared: boolean;
-  /** True when at least one column diverges vs. the first column. */
+
   isDivergent: boolean;
 }
 
 export interface AlignmentResult<T> {
   rows: AlignmentRow<T>[];
-  /** Row indices where a divergence vs. the first column starts. */
+
   divergenceRowIndices: number[];
 }
 
-/**
- * Compute LCS between `base` and `other`, returning parallel arrays of length
- * `base.length` that map each base index to either the matching `other` index
- * or -1 (no match). Ties broken so that later other-indices are preferred —
- * stable per consumption order doesn't matter for divergence marking.
- */
 function lcsIndexMap<T>(base: T[], other: T[], sig: SignatureFn<T>): number[] {
   const m = base.length;
   const n = other.length;
@@ -68,12 +53,6 @@ function lcsIndexMap<T>(base: T[], other: T[], sig: SignatureFn<T>): number[] {
   return mapping;
 }
 
-/**
- * Align N columns into shared rows. Every base-column row becomes a shared
- * row; when a column diverges (no LCS match) its extra items are interleaved
- * into standalone rows that sit between the last matched shared row and the
- * next one.
- */
 export function alignColumns<T>(columns: T[][], sig: SignatureFn<T>): AlignmentResult<T> {
   if (columns.length === 0) {
     return { rows: [], divergenceRowIndices: [] };

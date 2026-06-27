@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"claude-devtools/internal/discovery"
 )
@@ -287,11 +288,11 @@ func parseFrontmatter(content string) map[string]string {
 	for len(s) > 0 && (s[0] == ' ' || s[0] == '\t' || s[0] == '\n' || s[0] == '\r') {
 		s = s[1:]
 	}
-	if !hasPrefixStr(s, "---") {
+	if !strings.HasPrefix(s, "---") {
 		return out
 	}
 	rest := s[3:]
-	end := indexSubstr(rest, "\n---")
+	end := strings.Index(rest, "\n---")
 	if end < 0 {
 		return out
 	}
@@ -503,7 +504,7 @@ func ReadGlobalPlugins() ([]Plugin, error) {
 
 			name := key
 			marketplace := ""
-			if at := indexRune(key, '@'); at >= 0 {
+			if at := strings.IndexRune(key, '@'); at >= 0 {
 				name = key[:at]
 				marketplace = key[at+1:]
 			}
@@ -557,31 +558,6 @@ func strField(m map[string]any, k string) string {
 		return v
 	}
 	return ""
-}
-
-func indexRune(s string, r rune) int {
-	for i, ch := range s {
-		if ch == r {
-			return i
-		}
-	}
-	return -1
-}
-
-func hasPrefixStr(s, prefix string) bool {
-	return len(s) >= len(prefix) && s[:len(prefix)] == prefix
-}
-
-func indexSubstr(s, sub string) int {
-	if len(sub) > len(s) {
-		return -1
-	}
-	for i := 0; i <= len(s)-len(sub); i++ {
-		if s[i:i+len(sub)] == sub {
-			return i
-		}
-	}
-	return -1
 }
 
 func splitLines(s string) []string {

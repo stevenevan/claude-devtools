@@ -1,6 +1,6 @@
 import type { JSX } from 'react';
 import { type computeSubagentPhaseBreakdown } from '@renderer/utils/aiGroupHelpers';
-import { formatTokensCompact } from '@renderer/utils/formatters';
+import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { ArrowUpRight, CircleDot, Sigma } from 'lucide-react';
 
 import type { Process } from '@renderer/types/data';

@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
-
+import { JSX, useMemo, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
-import { formatDuration, formatTokensCompact } from '@renderer/utils/formatters';
+import { formatDuration } from '@renderer/utils/formatters';
+import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { Bot, ChevronRight, Home, Loader2, Search, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -10,11 +10,7 @@ import { Button } from '../ui/button';
 
 import type { SubagentDetail } from '@renderer/types/data';
 
-/**
- * SubagentDetailPanel - Full-screen overlay for viewing subagent conversation details.
- * Shows breadcrumb navigation, search filter, and metrics summary.
- */
-export const SubagentDetailPanel = (): React.JSX.Element | null => {
+export const SubagentDetailPanel = (): JSX.Element | null => {
   const {
     drillDownStack,
     currentSubagentDetail,
@@ -132,7 +128,7 @@ export const SubagentDetailPanel = (): React.JSX.Element | null => {
 const SubagentContent = ({
   detail,
   searchQuery,
-}: Readonly<{ detail: SubagentDetail; searchQuery: string }>): React.JSX.Element => {
+}: Readonly<{ detail: SubagentDetail; searchQuery: string }>): JSX.Element => {
   const query = searchQuery.toLowerCase().trim();
 
   const filteredGroups = useMemo(() => {
@@ -198,7 +194,7 @@ const SemanticGroupCard = ({
 }: Readonly<{
   group: NonNullable<SubagentDetail['semanticStepGroups']>[number];
   searchQuery: string;
-}>): React.JSX.Element => {
+}>): JSX.Element => {
   const [isExpanded, setIsExpanded] = useState(!!searchQuery);
 
   return (

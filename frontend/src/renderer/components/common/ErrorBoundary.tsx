@@ -1,4 +1,4 @@
-import React, { Component, type ErrorInfo, type ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 import { createLogger } from '@shared/utils/logger';
 import { AlertTriangle, RefreshCw } from 'lucide-react';

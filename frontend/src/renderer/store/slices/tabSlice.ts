@@ -1,10 +1,4 @@
-/**
- * Tab slice - manages tab state and actions.
- *
- * Facade pattern: All tab mutations operate on the paneLayout and sync
- * root-level openTabs/activeTabId/selectedTabIds from the focused pane
- * for backward compatibility.
- */
+
 
 import {
   createSearchNavigationRequest,

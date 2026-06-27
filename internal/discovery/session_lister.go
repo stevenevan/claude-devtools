@@ -11,9 +11,11 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 
 	"claude-devtools/internal/domain"
+	"claude-devtools/internal/ptr"
 )
 
 // SessionsPaginationOptions mirrors types/domain::SessionsPaginationOptions.
@@ -140,7 +142,7 @@ func ListSessionsPaginated(
 			HasSubagents:     hasSubs,
 			MessageCount:     0,
 			IsOngoing:        isOngoing,
-			MetadataLevel:    strPtr("light"),
+			MetadataLevel:    ptr.To("light"),
 			CustomTitle:      preview.customTitle,
 			AgentName:        preview.agentName,
 		})
@@ -156,11 +158,9 @@ func ListSessionsPaginated(
 
 // sortSessionsByMtimeDesc sorts in place, descending mtime.
 func sortSessionsByMtimeDesc(files []sessionFile) {
-	for i := 1; i < len(files); i++ {
-		for j := i; j > 0 && files[j].mtime > files[j-1].mtime; j-- {
-			files[j], files[j-1] = files[j-1], files[j]
-		}
-	}
+	sort.SliceStable(files, func(i, j int) bool {
+		return files[i].mtime > files[j].mtime
+	})
 }
 
 // --- Session preview ---

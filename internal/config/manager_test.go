@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"claude-devtools/internal/ptr"
 )
 
 // tempConfig creates a ConfigState that writes to an isolated temp directory,
@@ -443,10 +445,10 @@ func TestNormalizeClaudeRootPath(t *testing.T) {
 		wantSufx string
 	}{
 		{nil, true, ""},
-		{strPtr(""), true, ""},
-		{strPtr("   "), true, ""},
-		{strPtr("relative/path"), true, ""},
-		{strPtr("/Users/foo/"), false, "/Users/foo"},
+		{ptr.To(""), true, ""},
+		{ptr.To("   "), true, ""},
+		{ptr.To("relative/path"), true, ""},
+		{ptr.To("/Users/foo/"), false, "/Users/foo"},
 	}
 	for _, tc := range cases {
 		t.Run(fmt.Sprintf("%v", tc.input), func(t *testing.T) {

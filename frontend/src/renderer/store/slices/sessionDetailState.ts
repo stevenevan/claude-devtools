@@ -1,7 +1,4 @@
-/**
- * Shared per-tab session data shape used by sessionDetailSlice and its
- * sibling fetch/refresh action files.
- */
+
 import type { ClaudeMdStats } from '@renderer/types/claudeMd';
 import type { ContextPhaseInfo, ContextStats } from '@renderer/types/contextInjection';
 import type { SessionDetail } from '@renderer/types/data';
@@ -18,7 +15,7 @@ export interface TabSessionData {
   sessionPhaseInfo: ContextPhaseInfo | null;
   visibleAIGroupId: string | null;
   selectedAIGroup: AIGroup | null;
-  /** Whether this tab is streaming real-time updates from an ongoing session. */
+
   isStreaming: boolean;
 }
 

@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-
+import { JSX, useEffect } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { useStore } from '@renderer/store';
 import { Camera, Trash2 } from 'lucide-react';
@@ -29,7 +28,7 @@ function formatDate(ms: number): string {
   return new Date(ms).toLocaleString();
 }
 
-export const SnapshotsView = (): React.JSX.Element => {
+export const SnapshotsView = (): JSX.Element => {
   const { snapshots, snapshotsLoading, fetchSnapshots, deleteSnapshot, openTab } = useStore(
     useShallow((s) => ({
       snapshots: s.snapshots,

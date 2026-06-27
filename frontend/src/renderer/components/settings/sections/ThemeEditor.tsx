@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-
+import { ChangeEvent, JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { useStore } from '@renderer/store';
 import {
@@ -47,7 +46,7 @@ function readBaselineOverrides(): Record<string, string> {
   return out;
 }
 
-export const ThemeEditor = (): React.JSX.Element => {
+export const ThemeEditor = (): JSX.Element => {
   const appConfig = useStore((s) => s.appConfig);
   const saveCustomTheme = useStore((s) => s.saveCustomTheme);
   const deleteCustomTheme = useStore((s) => s.deleteCustomTheme);
@@ -119,7 +118,7 @@ export const ThemeEditor = (): React.JSX.Element => {
     URL.revokeObjectURL(url);
   };
 
-  const handleImport = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  const handleImport = (e: ChangeEvent<HTMLInputElement>): void => {
     const input = e.target;
     const file = input.files?.[0];
     if (!file) return;

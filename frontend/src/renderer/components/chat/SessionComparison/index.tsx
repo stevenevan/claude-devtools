@@ -1,12 +1,9 @@
-/**
- * SessionComparison - Side-by-side comparison of two sessions.
- * Shows metrics, tool usage, and conversation differences.
- */
 
-import React, { useEffect, useState } from 'react';
 
+import { JSX, useEffect, useState } from 'react';
 import { api } from '@renderer/api';
-import { formatDuration, formatTokensCompact } from '@renderer/utils/formatters';
+import { formatDuration } from '@renderer/utils/formatters';
+import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { parseModelString } from '@shared/utils/modelParser';
 import {
   ArrowLeftRight,
@@ -31,7 +28,7 @@ interface SessionComparisonProps {
   tab: Tab;
 }
 
-export const SessionComparison = ({ tab }: Readonly<SessionComparisonProps>): React.JSX.Element => {
+export const SessionComparison = ({ tab }: Readonly<SessionComparisonProps>): JSX.Element => {
   const [leftDetail, setLeftDetail] = useState<SessionDetail | null>(null);
   const [rightDetail, setRightDetail] = useState<SessionDetail | null>(null);
   const [extraDetails, setExtraDetails] = useState<SessionDetail[]>([]);

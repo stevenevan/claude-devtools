@@ -96,10 +96,7 @@ export function createRefreshHelpers(): RefreshHelpers {
     pendingProjectRefreshTimers.set(projectId, timer);
   };
 
-  /**
-   * Check if a session is visible in any pane (not just the focused pane's active tab).
-   * This ensures file change and task-list listeners refresh sessions shown in any split pane.
-   */
+
   const isSessionVisibleInAnyPane = (sessionId: string): boolean => {
     const { paneLayout } = useStore.getState();
     return paneLayout.panes.some(

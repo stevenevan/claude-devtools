@@ -1,9 +1,10 @@
+import { ElementType, JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { Activity, Bookmark, GitBranch } from 'lucide-react';
 
 export type SidebarFilter = 'ongoing' | 'subagents' | 'bookmarked';
 
-const FILTERS: { value: SidebarFilter; label: string; icon: React.ElementType }[] = [
+const FILTERS: { value: SidebarFilter; label: string; icon: ElementType }[] = [
   { value: 'ongoing', label: 'Ongoing', icon: Activity },
   { value: 'subagents', label: 'Subagents', icon: GitBranch },
   { value: 'bookmarked', label: 'Bookmarked', icon: Bookmark },
@@ -17,7 +18,7 @@ interface SidebarQuickFiltersProps {
 export const SidebarQuickFilters = ({
   activeFilters,
   onToggle,
-}: Readonly<SidebarQuickFiltersProps>): React.JSX.Element => {
+}: Readonly<SidebarQuickFiltersProps>): JSX.Element => {
   return (
     <div className="flex items-center gap-1.5 px-3 py-1.5">
       {FILTERS.map(({ value, label, icon: Icon }) => {

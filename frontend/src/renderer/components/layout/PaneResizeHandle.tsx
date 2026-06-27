@@ -1,18 +1,17 @@
-import { useCallback, useEffect, useState } from 'react';
-
+import { JSX, MouseEvent as ReactMouseEvent, useCallback, useEffect, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 
 interface PaneResizeHandleProps {
   leftPaneId: string;
-  rightPaneId: string;
 }
 
-export const PaneResizeHandle = ({ leftPaneId }: PaneResizeHandleProps): React.JSX.Element => {
+export const PaneResizeHandle = ({ leftPaneId }: PaneResizeHandleProps): JSX.Element => {
   const [isResizing, setIsResizing] = useState(false);
   const resizePanes = useStore((s) => s.resizePanes);
   const paneLayout = useStore((s) => s.paneLayout);
 
+  // ponytail: useCallback required — in useEffect dep array
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       if (!isResizing) return;
@@ -40,6 +39,7 @@ export const PaneResizeHandle = ({ leftPaneId }: PaneResizeHandleProps): React.J
     [isResizing, leftPaneId, paneLayout.panes, resizePanes]
   );
 
+  // ponytail: useCallback required — in useEffect dep array
   const handleMouseUp = useCallback(() => {
     setIsResizing(false);
   }, []);
@@ -60,7 +60,7 @@ export const PaneResizeHandle = ({ leftPaneId }: PaneResizeHandleProps): React.J
     };
   }, [isResizing, handleMouseMove, handleMouseUp]);
 
-  const handleMouseDown = (e: React.MouseEvent): void => {
+  const handleMouseDown = (e: ReactMouseEvent): void => {
     e.preventDefault();
     setIsResizing(true);
   };

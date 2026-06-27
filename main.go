@@ -34,12 +34,12 @@ func main() {
 		Services: []application.Service{
 			application.NewService(sessionservice.New(sessionCache)),
 			application.NewService(searchservice.New(sessionCache)),
-			application.NewService(analyticsservice.New(sessionCache)),
+			application.NewService(analyticsservice.New()),
 			application.NewService(&configservice.ConfigService{}),
 			application.NewService(&notifyservice.NotificationService{}),
 			application.NewService(&sshservice.SshService{}),
 			application.NewService(&filesservice.FilesService{}),
-			application.NewService(snapshotservice.New(sessionCache)),
+			application.NewService(snapshotservice.New()),
 			application.NewService(timingservice.New(sessionCache)),
 			application.NewService(&systemservice.SystemService{}),
 			// watcher service registered here in W3

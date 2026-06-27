@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { Monitor } from 'lucide-react';
 
 import { SettingRow } from '../../components/SettingRow';
@@ -8,7 +9,7 @@ import { SavedProfiles } from './SavedProfiles';
 import { SshConnectionForm } from './SshConnectionForm';
 import { useSshConnectionForm } from './useSshConnectionForm';
 
-export const ConnectionSection = (): React.JSX.Element => {
+export const ConnectionSection = (): JSX.Element => {
   const {
     host,
     setHost,

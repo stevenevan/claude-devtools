@@ -1,6 +1,4 @@
-/**
- * Update slice - manages OTA auto-update state and actions.
- */
+
 
 import { api } from '@renderer/api';
 import { createLogger } from '@shared/utils/logger';

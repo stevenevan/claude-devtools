@@ -1,5 +1,4 @@
-import { useMemo } from 'react';
-
+import { ComponentType, JSX, ReactNode, useMemo } from 'react';
 import { isDesktopMode } from '@renderer/api';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs';
 import { Bell, HardDrive, Keyboard, Palette, Plug, Server, Settings, Wrench } from 'lucide-react';
@@ -17,13 +16,13 @@ export type SettingsSection =
 interface SettingsTabsProps {
   activeSection: SettingsSection;
   onSectionChange: (section: SettingsSection) => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 interface TabConfig {
   id: SettingsSection;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   electronOnly?: boolean;
 }
 
@@ -44,8 +43,8 @@ export const SettingsTabs = ({
   activeSection,
   onSectionChange,
   children,
-}: Readonly<SettingsTabsProps>): React.JSX.Element => {
-  const isElectron = useMemo(() => isDesktopMode(), []);
+}: Readonly<SettingsTabsProps>): JSX.Element => {
+  const isElectron = isDesktopMode();
   const visibleTabs = useMemo(
     () => tabs.filter((tab) => !tab.electronOnly || isElectron),
     [isElectron]

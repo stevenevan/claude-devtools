@@ -1,6 +1,5 @@
 // Hex input commits on blur/Enter only — avoids config saves while typing.
-import { useCallback, useState } from 'react';
-
+import { JSX, KeyboardEvent, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import {
   isPresetColorKey,
@@ -21,48 +20,42 @@ export const ColorPaletteSelector = ({
   value,
   onChange,
   disabled,
-}: Readonly<ColorPaletteSelectorProps>): React.JSX.Element => {
+}: Readonly<ColorPaletteSelectorProps>): JSX.Element => {
   const isCustom = !!value && !isPresetColorKey(value);
   const [hexInput, setHexInput] = useState(isCustom ? value : '');
   const [showHexInput, setShowHexInput] = useState(isCustom);
 
   // Only update local state on each keystroke — do NOT call onChange here.
-  const handleHexInputChange = useCallback((raw: string) => {
+  const handleHexInputChange = (raw: string): void => {
     const v = raw.startsWith('#') ? raw : raw.length > 0 ? `#${raw}` : '';
     setHexInput(v);
-  }, []);
+  };
 
   // Commit hex value on blur or Enter
-  const commitHex = useCallback(() => {
+  const commitHex = (): void => {
     if (hexInput && HEX_RE.test(hexInput)) {
       onChange(hexInput as `#${string}`);
     }
-  }, [hexInput, onChange]);
+  };
 
-  const handleHexKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        commitHex();
-      }
-    },
-    [commitHex]
-  );
+  const handleHexKeyDown = (e: KeyboardEvent): void => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      commitHex();
+    }
+  };
 
-  const handlePresetClick = useCallback(
-    (color: TriggerColor) => {
-      onChange(color);
-      setShowHexInput(false);
-    },
-    [onChange]
-  );
+  const handlePresetClick = (color: TriggerColor): void => {
+    onChange(color);
+    setShowHexInput(false);
+  };
 
-  const handleCustomClick = useCallback(() => {
+  const handleCustomClick = (): void => {
     setShowHexInput(true);
     if (hexInput && HEX_RE.test(hexInput)) {
       onChange(hexInput as `#${string}`);
     }
-  }, [hexInput, onChange]);
+  };
 
   // Preview swatch shows live hex input (local state) when typing, otherwise the committed value
   const previewHex =

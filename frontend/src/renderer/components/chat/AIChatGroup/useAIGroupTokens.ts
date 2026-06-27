@@ -11,11 +11,6 @@ export interface AIGroupTokensResult {
   textOutputTokens: number;
 }
 
-/**
- * Compute token-related metrics from AI group responses.
- * - lastUsage: usage data from the last assistant message (current context window snapshot)
- * - thinkingTokens / textOutputTokens: estimated from content blocks
- */
 export function useAIGroupTokens(responses: ParsedMessage[] | undefined): AIGroupTokensResult {
   // Get the LAST assistant message's usage (represents current context window snapshot)
   // This is the correct metric to display - not the summed values across all messages

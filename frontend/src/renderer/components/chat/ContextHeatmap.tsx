@@ -1,5 +1,4 @@
-import { useMemo, useState } from 'react';
-
+import { JSX, useMemo, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { buildTurnBreakdown } from '@renderer/utils/contextTracker';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
@@ -38,7 +37,7 @@ export const ContextHeatmap = ({
   statsMap,
   onSelectTurn,
   className,
-}: Readonly<ContextHeatmapProps>): React.JSX.Element | null => {
+}: Readonly<ContextHeatmapProps>): JSX.Element | null => {
   const breakdowns = useMemo(() => buildBreakdowns(items, statsMap), [items, statsMap]);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 

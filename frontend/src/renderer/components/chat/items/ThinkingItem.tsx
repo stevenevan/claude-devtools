@@ -1,4 +1,4 @@
-import React from 'react';
+import { CSSProperties, FC, memo } from 'react';
 
 import { Brain } from 'lucide-react';
 
@@ -16,15 +16,16 @@ interface ThinkingItemProps {
   preview: string;
   onClick: () => void;
   isExpanded: boolean;
-  /** Additional classes for highlighting (e.g., error deep linking) */
+
   highlightClasses?: string;
-  /** Inline styles for highlighting (used by custom hex colors) */
-  highlightStyle?: React.CSSProperties;
-  /** Notification dot color for custom triggers */
+
+  highlightStyle?: CSSProperties;
+
   notificationDotColor?: TriggerColor;
 }
 
-export const ThinkingItem: React.FC<ThinkingItemProps> = React.memo(function ThinkingItem({
+// ponytail: memo kept — virtualized row
+export const ThinkingItem: FC<ThinkingItemProps> = memo(function ThinkingItem({
   step,
   preview,
   onClick,

@@ -1,4 +1,4 @@
-import React from 'react';
+import { CSSProperties, ReactNode, Children, isValidElement, cloneElement, createElement } from 'react';
 
 import type { SearchMatch } from '@renderer/store/types';
 
@@ -6,19 +6,19 @@ import type { SearchMatch } from '@renderer/store/types';
 export const EMPTY_SEARCH_MATCHES: SearchMatch[] = [];
 
 // Highlight styles matching SearchHighlight.tsx
-const baseStyles: React.CSSProperties = {
+const baseStyles: CSSProperties = {
   borderRadius: '0.125rem',
   padding: '0 0.125rem',
 };
 
-const currentHighlightStyles: React.CSSProperties = {
+const currentHighlightStyles: CSSProperties = {
   ...baseStyles,
   backgroundColor: 'rgb(202 138 4 / 0.7)',
   color: 'rgb(254 249 195)',
   boxShadow: '0 0 0 1px rgb(234 179 8)',
 };
 
-const inactiveHighlightStyles: React.CSSProperties = {
+const inactiveHighlightStyles: CSSProperties = {
   ...baseStyles,
   backgroundColor: 'rgb(133 77 14 / 0.5)',
   color: 'rgb(254 240 138)',
@@ -56,9 +56,9 @@ export function createSearchContext(
 }
 
 // eslint-disable-next-line sonarjs/function-return-type -- mixed text/element return
-function highlightSearchText(text: string, ctx: SearchContext): React.ReactNode {
+function highlightSearchText(text: string, ctx: SearchContext): ReactNode {
   const lowerText = text.toLowerCase();
-  const parts: React.ReactNode[] = [];
+  const parts: ReactNode[] = [];
   let lastIndex = 0;
   let pos = 0;
 
@@ -71,7 +71,7 @@ function highlightSearchText(text: string, ctx: SearchContext): React.ReactNode 
       ctx.isCurrentItem && ctx.currentMatchIndexInItem === ctx.matchCounter.current;
 
     parts.push(
-      React.createElement(
+      createElement(
         'mark',
         {
           key: `s-${pos}-${ctx.matchCounter.current}`,
@@ -100,16 +100,16 @@ function highlightSearchText(text: string, ctx: SearchContext): React.ReactNode 
 
 // eslint-disable-next-line sonarjs/function-return-type -- React child manipulation inherently returns mixed node types
 export function highlightSearchInChildren(
-  children: React.ReactNode,
+  children: ReactNode,
   ctx: SearchContext
-): React.ReactNode {
+): ReactNode {
   // eslint-disable-next-line sonarjs/function-return-type -- React child manipulation inherently returns mixed node types
-  return React.Children.map(children, (child): React.ReactNode => {
+  return Children.map(children, (child): ReactNode => {
     if (typeof child === 'string') {
       return highlightSearchText(child, ctx);
     }
 
-    if (React.isValidElement<{ children?: React.ReactNode }>(child)) {
+    if (isValidElement<{ children?: ReactNode }>(child)) {
       // Skip <mark> elements already created by search highlighting to prevent
       // double-counting when hl() is applied at multiple markdown component levels
       // (e.g., both the `strong` and `p` components process the same text)
@@ -118,7 +118,7 @@ export function highlightSearchInChildren(
       }
 
       if (child.props.children) {
-        return React.cloneElement(
+        return cloneElement(
           child,
           undefined,
           highlightSearchInChildren(child.props.children, ctx)

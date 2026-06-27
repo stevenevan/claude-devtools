@@ -14,7 +14,6 @@ export function formatCost(cost?: number): string {
   return `$${cost.toFixed(2)}`;
 }
 
-/** Count tool calls by name from session detail chunks. */
 export function countTools(detail: SessionDetail): Map<string, number> {
   const counts = new Map<string, number>();
   for (const chunk of detail.chunks) {
@@ -29,7 +28,6 @@ export function countTools(detail: SessionDetail): Map<string, number> {
   return counts;
 }
 
-/** Extract turn summaries (user message + AI response summary) from chunks. */
 export function extractTurns(detail: SessionDetail): TurnSummary[] {
   const turns: TurnSummary[] = [];
   const chunks = detail.chunks;
@@ -72,7 +70,6 @@ export function extractTurns(detail: SessionDetail): TurnSummary[] {
   return turns;
 }
 
-/** Check if two strings are meaningfully different. */
 export function isDivergent(a: string, b: string): boolean {
   if (a === b) return false;
   // Normalize whitespace for comparison

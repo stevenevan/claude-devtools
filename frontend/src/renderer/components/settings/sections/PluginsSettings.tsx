@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-
+import { JSX, useEffect, useState } from 'react';
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import { useStore } from '@renderer/store';
@@ -13,7 +12,7 @@ const logger = createLogger('PluginsSettings');
 
 const EMPTY_ARRAY: never[] = [];
 
-export const PluginsSettings = (): React.JSX.Element => {
+export const PluginsSettings = (): JSX.Element => {
   const { enabledIds, setPluginEnabled } = useStore(
     useShallow((s) => ({
       enabledIds: s.appConfig?.plugins?.enabled ?? EMPTY_ARRAY,

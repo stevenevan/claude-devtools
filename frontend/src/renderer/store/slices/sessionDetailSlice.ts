@@ -1,9 +1,4 @@
-/**
- * Session detail slice - manages session detail, conversation, and stats.
- *
- * The heavy fetch / refresh bodies live in sibling files so this slice
- * stays focused on state shape + tiny method wrappers.
- */
+
 import { fetchSessionDetailAction } from './sessionDetailFetch';
 import { refreshSessionInPlaceAction } from './sessionDetailRefresh';
 

@@ -1,5 +1,4 @@
-import { useEffect, useMemo } from 'react';
-
+import { JSX, useEffect, useMemo } from 'react';
 import { api } from '@renderer/api';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 import { cn } from '@renderer/lib/utils';
@@ -25,7 +24,7 @@ interface SkillCardProps {
   isHighlighted?: boolean;
 }
 
-const SkillCard = ({ skill, isHighlighted }: Readonly<SkillCardProps>): React.JSX.Element => {
+const SkillCard = ({ skill, isHighlighted }: Readonly<SkillCardProps>): JSX.Element => {
   const displayName = formatSkillName(skill.name);
 
   return (
@@ -59,7 +58,7 @@ const SkillCard = ({ skill, isHighlighted }: Readonly<SkillCardProps>): React.JS
 
 // Skeleton
 
-const SkillsGridSkeleton = (): React.JSX.Element => {
+const SkillsGridSkeleton = (): JSX.Element => {
   const titleWidths = [55, 70, 60, 50];
   const descWidths = [80, 90, 75, 85];
 
@@ -92,7 +91,7 @@ interface SkillsGridProps {
   searchQuery: string;
 }
 
-export const SkillsGrid = ({ searchQuery }: Readonly<SkillsGridProps>): React.JSX.Element => {
+export const SkillsGrid = ({ searchQuery }: Readonly<SkillsGridProps>): JSX.Element => {
   const { globalSkills, globalSkillsLoading, fetchGlobalSkills } = useStore(
     useShallow((s) => ({
       globalSkills: s.globalSkills,

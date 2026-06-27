@@ -26,32 +26,32 @@ export interface BreadcrumbItem {
 }
 
 export interface SearchMatch {
-  /** ID of the chat item containing this match */
+
   itemId: string;
-  /** Type of item ('user' | 'ai') - system items are not searched */
+
   itemType: 'user' | 'ai';
-  /** Which match within this item (0-based) */
+
   matchIndexInItem: number;
-  /** Global index across all matches */
+
   globalIndex: number;
-  /** Display item ID within the AI group (e.g., "lastOutput") */
+
   displayItemId?: string;
 }
 
 export interface SearchNavigationContext {
-  /** The search query */
+
   query: string;
-  /** Timestamp of the message containing the search match */
+
   messageTimestamp: number;
-  /** The matched text */
+
   matchedText: string;
-  /** Optional exact target group ID (e.g., "user-..." or "ai-...") */
+
   targetGroupId?: string;
-  /** Optional exact match index within the target group's searchable text */
+
   targetMatchIndexInItem?: number;
-  /** Optional character offset of the match in the searchable text */
+
   targetMatchStartOffset?: number;
-  /** Optional source message UUID for diagnostics/fallback mapping */
+
   targetMessageUuid?: string;
 }
 

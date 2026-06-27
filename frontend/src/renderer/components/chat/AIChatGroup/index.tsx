@@ -1,5 +1,4 @@
-import React, { useMemo } from 'react';
-
+import { JSX, memo, useMemo } from 'react';
 import { useTabUI } from '@renderer/hooks/useTabUI';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -26,30 +25,20 @@ import type { TriggerColor } from '@shared/constants/triggerColors';
 
 interface AIChatGroupProps {
   aiGroup: AIGroup;
-  /** Tool use ID to highlight for error deep linking */
+
   highlightToolUseId?: string;
-  /** Custom highlight color from trigger */
+
   highlightColor?: TriggerColor;
-  /** Register ref for individual tool items (for precise scroll targeting) */
+
   registerToolRef?: (toolId: string, el: HTMLElement | null) => void;
 }
 
-/**
- * AIChatGroup displays an AI response using a clean, minimal card-based design.
- *
- * Features:
- * - Card container with subtle zinc styling
- * - Clickable header with Bot icon, "Claude" label, and items summary
- * - LastOutputDisplay: Always visible last output (text or tool result)
- * - DisplayItemList: Shows items when expanded with inline expansion support
- * - Manages local expansion state and inline item expansion
- */
 const AIChatGroupInner = ({
   aiGroup,
   highlightToolUseId,
   highlightColor,
   registerToolRef,
-}: Readonly<AIChatGroupProps>): React.JSX.Element => {
+}: Readonly<AIChatGroupProps>): JSX.Element => {
   // Per-tab UI state for expansion (completely isolated per tab)
   const {
     tabId,
@@ -346,4 +335,5 @@ const AIChatGroupInner = ({
   );
 };
 
-export const AIChatGroup = React.memo(AIChatGroupInner);
+// ponytail: memo kept — virtualized row
+export const AIChatGroup = memo(AIChatGroupInner);

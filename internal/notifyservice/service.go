@@ -171,7 +171,6 @@ func (s *NotificationService) DetectAndNotify(
 	notifEnabled := cfg.Notifications.Enabled
 	snoozedUntil := cfg.Notifications.SnoozedUntil
 	ignoredRegex := cfg.Notifications.IgnoredRegex
-	soundEnabled := cfg.Notifications.SoundEnabled
 
 	s.state.Lock()
 	defer s.state.Unlock()
@@ -183,7 +182,7 @@ func (s *NotificationService) DetectAndNotify(
 			emitEvent("notification:new", stored)
 			emitEvent("notification:updated", s.state.UpdatedPayload())
 			if shouldNative {
-				showNativeNotification(stored, soundEnabled)
+				showNativeNotification(stored)
 			}
 		}
 	}
@@ -192,7 +191,7 @@ func (s *NotificationService) DetectAndNotify(
 
 // showNativeNotification fires a desktop toast via beeep.
 // Mirrors notifications/commands.rs::show_native_notification.
-func showNativeNotification(stored *notifications.StoredNotification, _ bool) {
+func showNativeNotification(stored *notifications.StoredNotification) {
 	body := stored.Message
 	if len(body) > 200 {
 		body = body[:200]

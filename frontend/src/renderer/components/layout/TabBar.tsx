@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-
+import { CSSProperties, JSX, MouseEvent, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { horizontalListSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import { isDesktopMode } from '@renderer/api';
@@ -17,7 +16,7 @@ interface TabBarProps {
   paneId: string;
 }
 
-export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
+export const TabBar = ({ paneId }: TabBarProps): JSX.Element => {
   const {
     pane,
     paneCount,
@@ -106,54 +105,48 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [selectedTabIds.length, clearTabSelection]);
 
-  const handleTabClick = useCallback(
-    (tabId: string, e: React.MouseEvent) => {
-      const isMeta = e.metaKey || e.ctrlKey;
-      const isShift = e.shiftKey;
+  const handleTabClick = (tabId: string, e: MouseEvent): void => {
+    const isMeta = e.metaKey || e.ctrlKey;
+    const isShift = e.shiftKey;
 
-      if (isMeta) {
-        if (selectedSet.has(tabId)) {
-          setSelectedTabIds(selectedTabIds.filter((id) => id !== tabId));
-        } else {
-          setSelectedTabIds([...selectedTabIds, tabId]);
-        }
-        lastClickedTabIdRef.current = tabId;
-        return;
+    if (isMeta) {
+      if (selectedSet.has(tabId)) {
+        setSelectedTabIds(selectedTabIds.filter((id) => id !== tabId));
+      } else {
+        setSelectedTabIds([...selectedTabIds, tabId]);
       }
-
-      if (isShift && lastClickedTabIdRef.current) {
-        const lastIndex = openTabs.findIndex((t) => t.id === lastClickedTabIdRef.current);
-        const currentIndex = openTabs.findIndex((t) => t.id === tabId);
-        if (lastIndex !== -1 && currentIndex !== -1) {
-          const start = Math.min(lastIndex, currentIndex);
-          const end = Math.max(lastIndex, currentIndex);
-          const rangeIds = openTabs.slice(start, end + 1).map((t) => t.id);
-          const merged = new Set([...selectedTabIds, ...rangeIds]);
-          setSelectedTabIds([...merged]);
-        }
-        return;
-      }
-
-      clearTabSelection();
       lastClickedTabIdRef.current = tabId;
-      setActiveTab(tabId);
-    },
-    [openTabs, selectedTabIds, selectedSet, setActiveTab, setSelectedTabIds, clearTabSelection]
-  );
+      return;
+    }
 
-  const handleMouseDown = useCallback(
-    (tabId: string, e: React.MouseEvent) => {
-      if (e.button === 1) {
-        e.preventDefault();
-        closeTab(tabId);
-        return;
+    if (isShift && lastClickedTabIdRef.current) {
+      const lastIndex = openTabs.findIndex((t) => t.id === lastClickedTabIdRef.current);
+      const currentIndex = openTabs.findIndex((t) => t.id === tabId);
+      if (lastIndex !== -1 && currentIndex !== -1) {
+        const start = Math.min(lastIndex, currentIndex);
+        const end = Math.max(lastIndex, currentIndex);
+        const rangeIds = openTabs.slice(start, end + 1).map((t) => t.id);
+        const merged = new Set([...selectedTabIds, ...rangeIds]);
+        setSelectedTabIds([...merged]);
       }
-      if (e.button === 0 && (e.shiftKey || e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-      }
-    },
-    [closeTab]
-  );
+      return;
+    }
+
+    clearTabSelection();
+    lastClickedTabIdRef.current = tabId;
+    setActiveTab(tabId);
+  };
+
+  const handleMouseDown = (tabId: string, e: MouseEvent): void => {
+    if (e.button === 1) {
+      e.preventDefault();
+      closeTab(tabId);
+      return;
+    }
+    if (e.button === 0 && (e.shiftKey || e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+    }
+  };
 
   const handleRefresh = async (): Promise<void> => {
     if (activeTab?.type === 'session' && activeTab.projectId && activeTab.sessionId) {
@@ -166,6 +159,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
   };
 
   // Ref setter for SortableTab
+  // ponytail: useCallback required — stable ref passed to SortableTab setRef prop (used for auto-scroll DOM lookups)
   const setTabRef = useCallback((tabId: string, el: HTMLDivElement | null) => {
     if (el) {
       tabRefsMap.current.set(tabId, el);
@@ -191,7 +185,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
               ? 'var(--macos-traffic-light-padding-left, 72px)'
               : '8px',
           WebkitAppRegion: isDesktopMode() && isLeftmostPane ? 'drag' : undefined,
-        } as React.CSSProperties
+        } as CSSProperties
       }
     >
       {/* Expand sidebar button - show when collapsed (only in leftmost pane) */}
@@ -199,7 +193,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         <button
           onClick={toggleSidebar}
           className="text-muted-foreground hover:bg-card hover:text-foreground mr-2 shrink-0 rounded-md p-1.5 transition-colors"
-          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+          style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
           title="Expand sidebar"
         >
           <PanelLeft className="size-4" />
@@ -222,7 +216,7 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
             WebkitAppRegion: 'no-drag',
             outline: isDroppableOver ? '1px dashed rgb(99,102,241)' : 'none',
             outlineOffset: '-1px',
-          } as React.CSSProperties
+          } as CSSProperties
         }
       >
         <SortableContext items={tabIds} strategy={horizontalListSortingStrategy}>
@@ -273,14 +267,14 @@ export const TabBar = ({ paneId }: TabBarProps): React.JSX.Element => {
         style={
           {
             WebkitAppRegion: isDesktopMode() && isLeftmostPane ? 'drag' : undefined,
-          } as React.CSSProperties
+          } as CSSProperties
         }
       />
 
       {/* Right side actions */}
       <div
         className="ml-2 flex shrink-0 items-center gap-1"
-        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+        style={{ WebkitAppRegion: 'no-drag' } as CSSProperties}
       >
         <Button variant="ghost" size="icon" onClick={openDashboard} title="New tab">
           <Plus className="size-4" />

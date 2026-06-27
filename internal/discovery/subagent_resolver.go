@@ -9,11 +9,13 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
 	"claude-devtools/internal/domain"
 	"claude-devtools/internal/parsing"
+	"claude-devtools/internal/ptr"
 )
 
 const parallelWindowMS = 100.0
@@ -184,7 +186,7 @@ func linkToTaskCalls(subagents []domain.Process, taskCalls []domain.ToolCall, me
 			if subagents[i].ID != agentID {
 				continue
 			}
-			subagents[i].ParentTaskID = strPtr(sourceID)
+			subagents[i].ParentTaskID = ptr.To(sourceID)
 			for _, tc := range taskCalls {
 				if tc.ID == sourceID {
 					enrichFromTaskCall(&subagents[i], tc)
@@ -227,7 +229,7 @@ func linkToTaskCalls(subagents []domain.Process, taskCalls []domain.ToolCall, me
 	for i := 0; i < len(unlinkedIdxs) && i < len(unmatchedTasks); i++ {
 		idx := unlinkedIdxs[i]
 		tc := unmatchedTasks[i]
-		subagents[idx].ParentTaskID = strPtr(tc.ID)
+		subagents[idx].ParentTaskID = ptr.To(tc.ID)
 		enrichFromTaskCall(&subagents[idx], tc)
 	}
 }
@@ -262,11 +264,9 @@ func detectParallelExecution(subagents []domain.Process) {
 
 // sortProcessesByStartTime sorts in-place by StartTime ascending.
 func sortProcessesByStartTime(procs []domain.Process) {
-	for i := 1; i < len(procs); i++ {
-		for j := i; j > 0 && procs[j].StartTime < procs[j-1].StartTime; j-- {
-			procs[j], procs[j-1] = procs[j-1], procs[j]
-		}
-	}
+	sort.SliceStable(procs, func(i, j int) bool {
+		return procs[i].StartTime < procs[j].StartTime
+	})
 }
 
 // tsDiffMS returns millis(a) - millis(b), treating unparseable timestamps as 0.
@@ -280,5 +280,3 @@ func tsDiffMS(a, b string) float64 {
 	}
 	return parse(a) - parse(b)
 }
-
-func strPtr(s string) *string { return &s }

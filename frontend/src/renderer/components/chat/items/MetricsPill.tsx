@@ -1,7 +1,7 @@
-import React from 'react';
+import { ReactElement } from 'react';
 
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@renderer/components/ui/hover-card';
-import { formatTokensCompact } from '@renderer/utils/formatters';
+import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 
 import type { PhaseTokenBreakdown } from '@renderer/types/data';
 
@@ -17,11 +17,11 @@ interface MetricsPillProps {
     cache_read_input_tokens?: number;
     cache_creation_input_tokens?: number;
   };
-  /** Label override for the right segment (e.g. "Context Window" for team members) */
+
   isolatedLabel?: string;
-  /** Override isolated total (for multi-phase total consumption) */
+
   isolatedOverride?: number;
-  /** Phase breakdown for tooltip (shown when multiple phases exist) */
+
   phaseBreakdown?: PhaseTokenBreakdown[];
 }
 
@@ -31,7 +31,7 @@ export const MetricsPill = ({
   isolatedLabel,
   isolatedOverride,
   phaseBreakdown,
-}: Readonly<MetricsPillProps>): React.ReactElement | null => {
+}: Readonly<MetricsPillProps>): ReactElement | null => {
   const hasMainImpact = mainSessionImpact && mainSessionImpact.totalTokens > 0;
   const hasIsolated =
     isolatedOverride != null

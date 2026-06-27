@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { CSSProperties, ReactElement, MouseEvent } from 'react';
 
 import { useClipboard } from '@renderer/hooks/mantine';
 import { cn } from '@renderer/lib/utils';
@@ -8,7 +8,7 @@ interface CopyablePathProps {
   displayText: string;
   copyText: string;
   className?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 }
 
 export const CopyablePath = ({
@@ -16,17 +16,14 @@ export const CopyablePath = ({
   copyText,
   className = '',
   style,
-}: Readonly<CopyablePathProps>): React.ReactElement => {
+}: Readonly<CopyablePathProps>): ReactElement => {
   const { copy, copied } = useClipboard({ timeout: 1500 });
 
-  const handleCopy = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
-      copy(copyText);
-    },
-    [copy, copyText]
-  );
+  const handleCopy = (e: MouseEvent): void => {
+    e.stopPropagation();
+    e.preventDefault();
+    copy(copyText);
+  };
 
   return (
     <div
@@ -36,7 +33,7 @@ export const CopyablePath = ({
       title={copyText}
       onClick={handleCopy}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') void handleCopy(e as unknown as React.MouseEvent);
+        if (e.key === 'Enter' || e.key === ' ') void handleCopy(e as unknown as MouseEvent);
       }}
     >
       <span className={cn('min-w-0 truncate', className)} style={style}>

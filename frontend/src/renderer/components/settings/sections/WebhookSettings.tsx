@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-
+import { JSX, useEffect, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import { useStore } from '@renderer/store';
@@ -18,7 +17,7 @@ function newEndpointDraft(): WebhookEndpoint {
   };
 }
 
-export const WebhookSettings = (): React.JSX.Element => {
+export const WebhookSettings = (): JSX.Element => {
   const persisted = useStore((s) => s.appConfig?.webhookEndpoints ?? []);
   const fetchConfig = useStore((s) => s.fetchConfig);
 

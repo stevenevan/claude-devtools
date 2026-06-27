@@ -5,6 +5,7 @@ package search
 import (
 	"encoding/json"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -478,7 +479,7 @@ func parseRelativeWindow(query string, nowMS float64) *float64 {
 	if numEnd == 0 {
 		return nil
 	}
-	n := parseUint(after[:numEnd])
+	n, _ := strconv.ParseUint(after[:numEnd], 10, 64)
 	rest := strings.TrimLeft(after[numEnd:], " \t")
 	var multiplierDays uint64
 	switch {
@@ -534,11 +535,11 @@ func parseDollarAmount(query string) *float64 {
 	if end == 0 {
 		return nil
 	}
-	f := parseFloat64(after[:end])
-	if f == nil {
+	v, err := strconv.ParseFloat(after[:end], 64)
+	if err != nil {
 		return nil
 	}
-	return f
+	return &v
 }
 
 func parseQuotedOrWordAfter(query, prefix string) string {
@@ -564,41 +565,3 @@ func parseQuotedOrWordAfter(query, prefix string) string {
 	return trimmed[:end]
 }
 
-// ---------------------------------------------------------------------------
-// Mini numeric parsers (no strconv import needed — keep package lean)
-// ---------------------------------------------------------------------------
-
-func parseUint(s string) uint64 {
-	var n uint64
-	for _, ch := range s {
-		if ch < '0' || ch > '9' {
-			break
-		}
-		n = n*10 + uint64(ch-'0')
-	}
-	return n
-}
-
-func parseFloat64(s string) *float64 {
-	// Use strconv via indirect path. We already import strings/time so one more
-	// stdlib import is fine — just done at package level.
-	// Actually use inline parsing to avoid adding strconv to import block above.
-	// Split on '.'.
-	parts := strings.SplitN(s, ".", 2)
-	intPart := parseUint(parts[0])
-	result := float64(intPart)
-	if len(parts) == 2 {
-		frac := parts[1]
-		div := 1.0
-		fracVal := 0.0
-		for _, ch := range frac {
-			if ch < '0' || ch > '9' {
-				break
-			}
-			div *= 10
-			fracVal = fracVal*10 + float64(ch-'0')
-		}
-		result += fracVal / div
-	}
-	return &result
-}

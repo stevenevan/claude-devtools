@@ -1,8 +1,8 @@
-import React, { useMemo } from 'react';
+import { useMemo, CSSProperties, FC } from 'react';
 
 import { getTeamColorSet } from '@renderer/constants/teamColors';
 import { cn } from '@renderer/lib/utils';
-import { formatTokensCompact } from '@renderer/utils/formatters';
+import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { ChevronRight, CornerDownLeft, MessageSquare, RefreshCw } from 'lucide-react';
 
 import { MarkdownViewer } from '../viewers/MarkdownViewer';
@@ -15,15 +15,14 @@ interface TeammateMessageItemProps {
   teammateMessage: TeammateMessage;
   onClick: () => void;
   isExpanded: boolean;
-  /** Callback to spotlight the reply link: pass toolId on hover, null on leave */
+
   onReplyHover?: (toolId: string | null) => void;
-  /** Additional classes for highlighting (e.g., error deep linking) */
+
   highlightClasses?: string;
-  /** Inline styles for highlighting (used by custom hex colors) */
-  highlightStyle?: React.CSSProperties;
+
+  highlightStyle?: CSSProperties;
 }
 
-/** Operational noise types that should be rendered minimally */
 const NOISE_TYPES = new Set([
   'idle_notification',
   'shutdown_approved',
@@ -31,7 +30,6 @@ const NOISE_TYPES = new Set([
   'shutdown_request',
 ]);
 
-/** Human-readable labels for noise message types */
 const NOISE_LABELS: Record<string, string> = {
   idle_notification: 'Idle',
   shutdown_approved: 'Shutdown confirmed',
@@ -39,10 +37,6 @@ const NOISE_LABELS: Record<string, string> = {
   shutdown_request: 'Shutdown requested',
 };
 
-/**
- * Detect operational noise in teammate message content.
- * Returns label if noise, null if real content.
- */
 function detectNoise(content: string, teammateId: string): string | null {
   // System messages are always noise
   if (teammateId === 'system') {
@@ -94,17 +88,7 @@ function isResendMessage(message: TeammateMessage): boolean {
 
 // Component
 
-/**
- * TeammateMessageItem - Card component for teammate messages.
- *
- * Visual distinction from SubagentItem:
- * - Left color accent border (3px)
- * - "Message" type label after name badge
- * - No metrics pill, no duration, no model info
- *
- * Operational noise (idle/shutdown/terminated) renders as minimal inline text.
- */
-export const TeammateMessageItem: React.FC<TeammateMessageItemProps> = ({
+export const TeammateMessageItem: FC<TeammateMessageItemProps> = ({
   teammateMessage,
   onClick,
   isExpanded,

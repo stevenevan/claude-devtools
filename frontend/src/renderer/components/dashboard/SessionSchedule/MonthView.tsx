@@ -1,5 +1,4 @@
-import React, { useMemo, useState } from 'react';
-
+import { JSX, useMemo, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -11,7 +10,7 @@ import { MonthDayCell } from './MonthDayCell';
 import type { MonthViewProps } from './types';
 import type { ScheduleEvent } from '@renderer/hooks/useAnalyticsData';
 
-export const MonthView = ({ events, monthCount }: Readonly<MonthViewProps>): React.JSX.Element => {
+export const MonthView = ({ events, monthCount }: Readonly<MonthViewProps>): JSX.Element => {
   const defaultMonth = useMemo(() => {
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);

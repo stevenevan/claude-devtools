@@ -1,3 +1,4 @@
+import { ComponentType, JSX } from 'react';
 import { isDesktopMode } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import {
@@ -26,7 +27,7 @@ import { useShallow } from 'zustand/react/shallow';
 import type { ActivityView } from '@renderer/store/slices/uiSlice';
 
 interface ActivityBarItemProps {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   label: string;
   shortcut?: string;
   activity: ActivityView;
@@ -42,7 +43,7 @@ const ActivityBarItem = ({
   isActive,
   onClick,
   badge,
-}: Readonly<ActivityBarItemProps>): React.JSX.Element => {
+}: Readonly<ActivityBarItemProps>): JSX.Element => {
   return (
     <Tooltip>
       <TooltipTrigger
@@ -83,7 +84,7 @@ const ActivityBarItem = ({
   );
 };
 
-export const ActivityBar = (): React.JSX.Element => {
+export const ActivityBar = (): JSX.Element => {
   const {
     activeActivity,
     setActiveActivity,

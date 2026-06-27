@@ -1,6 +1,6 @@
-import React from 'react';
+import { JSX } from 'react';
 
-export function highlightMatch(context: string, matchedText: string): React.JSX.Element {
+export function highlightMatch(context: string, matchedText: string): JSX.Element {
   const lowerContext = context.toLowerCase();
   const lowerMatch = matchedText.toLowerCase();
   const matchIndex = lowerContext.indexOf(lowerMatch);

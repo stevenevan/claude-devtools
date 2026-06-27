@@ -4,10 +4,8 @@ import type { SearchMatch } from '../../types';
 import type { SessionConversation } from '@renderer/types/groups';
 import type { ContentSearchMatch } from '@shared/types';
 
-/** Maximum number of search matches to track. Beyond this, results are capped. */
 export const MAX_SEARCH_MATCHES = 500;
 
-/** Sessions with more items than this threshold route search to Rust backend. */
 export const RUST_SEARCH_THRESHOLD = 200;
 
 let counter = 0;
@@ -26,7 +24,6 @@ export const isSearchDebugEnabled = (): boolean => {
   }
 };
 
-/** Map Rust ContentSearchMatch to the store's SearchMatch type. */
 export function mapRustMatchesToStoreMatches(rustMatches: ContentSearchMatch[]): SearchMatch[] {
   const matchCountByChunk = new Map<string, number>();
   return rustMatches.map((rm, globalIndex) => {
@@ -42,10 +39,6 @@ export function mapRustMatchesToStoreMatches(rustMatches: ContentSearchMatch[]):
   });
 }
 
-/**
- * Perform JS-side search (for small sessions or Rust fallback).
- * Supports both plain text and regex modes.
- */
 export function performJsSearch(
   query: string,
   conversation: SessionConversation,

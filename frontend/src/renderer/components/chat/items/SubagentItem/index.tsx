@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState, FC } from 'react';
 
 import { cn } from '@renderer/lib/utils';
 import { formatDuration } from '@renderer/utils/formatters';
@@ -21,17 +21,17 @@ interface SubagentItemProps {
   onClick: () => void;
   isExpanded: boolean;
   aiGroupId: string;
-  /** Tool use ID to highlight for error deep linking */
+
   highlightToolUseId?: string;
-  /** Custom highlight color from trigger */
+
   highlightColor?: TriggerColor;
-  /** Map of tool use ID to trigger color for notification dots */
+
   notificationColorMap?: Map<string, TriggerColor>;
-  /** Optional callback to register tool element refs for scroll targeting */
+
   registerToolRef?: (toolId: string, el: HTMLDivElement | null) => void;
 }
 
-export const SubagentItem: React.FC<SubagentItemProps> = ({
+export const SubagentItem: FC<SubagentItemProps> = ({
   step,
   subagent,
   onClick,
@@ -69,6 +69,7 @@ export const SubagentItem: React.FC<SubagentItemProps> = ({
 
   // Register outer card as a tool ref target for the parent Task tool_use ID
   // so the navigation controller can scroll directly to this SubagentItem
+  // ponytail: useCallback required — callback ref; new fn on every render would re-trigger DOM attachment
   const outerCardRef = useCallback(
     (el: HTMLDivElement | null) => {
       if (subagent.parentTaskId && registerToolRef) {

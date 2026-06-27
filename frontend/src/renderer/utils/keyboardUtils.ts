@@ -2,11 +2,11 @@ export function isMacOS(): boolean {
   return navigator.userAgent.toLowerCase().includes('mac');
 }
 
-export function getModifierKeyName(): string {
+function getModifierKeyName(): string {
   return isMacOS() ? 'Cmd' : 'Ctrl';
 }
 
-export function getModifierKeySymbol(): string {
+function getModifierKeySymbol(): string {
   return isMacOS() ? '⌘' : 'Ctrl';
 }
 

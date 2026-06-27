@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -49,8 +50,8 @@ func DiscoverAgentSocket() string {
 		uid := os.Getuid()
 		candidates = append(candidates,
 			// #nosec G204 — UID is from os.Getuid(), not user input.
-			filepath.Join("/run/user", itoa(uid), "ssh-agent.socket"),
-			filepath.Join("/run/user", itoa(uid), "keyring", "ssh"),
+			filepath.Join("/run/user", strconv.Itoa(uid), "ssh-agent.socket"),
+			filepath.Join("/run/user", strconv.Itoa(uid), "keyring", "ssh"),
 		)
 	}
 
@@ -79,17 +80,3 @@ func queryLaunchctl() string {
 	return ""
 }
 
-// itoa converts a non-negative int to decimal string without fmt.
-func itoa(n int) string {
-	if n == 0 {
-		return "0"
-	}
-	var buf [20]byte
-	pos := len(buf)
-	for n > 0 {
-		pos--
-		buf[pos] = byte('0' + n%10)
-		n /= 10
-	}
-	return string(buf[pos:])
-}

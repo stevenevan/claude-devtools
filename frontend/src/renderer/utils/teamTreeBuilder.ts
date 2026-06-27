@@ -8,11 +8,11 @@ export type TeamNodeKind = 'team' | 'member' | 'solo';
 export interface TeamTreeNode {
   id: string;
   kind: TeamNodeKind;
-  /** Display label (team name for team, member name / subagentType for member). */
+
   label: string;
-  /** Process backing this node, if any. Team root nodes have no process. */
+
   process?: Process;
-  /** Dot color (hex or CSS colour token). */
+
   color?: string;
   status: 'active' | 'completed';
   toolCount: number;

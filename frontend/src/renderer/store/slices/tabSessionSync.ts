@@ -1,11 +1,4 @@
-/**
- * Session-sync helper extracted from tabSlice.setActiveTab.
- *
- * When the active tab is a session tab, the global sidebar state
- * (selected repo/worktree/session + active project) needs to match the
- * tab. This file owns that synchronization without dragging it into the
- * already-large tabSlice action.
- */
+
 import type { AppState } from '../types';
 import type { Tab } from '@renderer/types/tabs';
 

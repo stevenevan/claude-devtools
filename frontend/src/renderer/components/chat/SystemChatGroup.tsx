@@ -1,5 +1,4 @@
-import React from 'react';
-
+import { JSX, memo } from 'react';
 import { format } from 'date-fns';
 import { Terminal } from 'lucide-react';
 
@@ -14,7 +13,7 @@ interface SystemChatGroupProps {
 
 const SystemChatGroupInner = ({
   systemGroup,
-}: Readonly<SystemChatGroupProps>): React.JSX.Element => {
+}: Readonly<SystemChatGroupProps>): JSX.Element => {
   const { commandOutput, timestamp } = systemGroup;
 
   const cleanOutput = commandOutput.replace(ANSI_ESCAPE_REGEX, '');
@@ -39,4 +38,5 @@ const SystemChatGroupInner = ({
   );
 };
 
-export const SystemChatGroup = React.memo(SystemChatGroupInner);
+// ponytail: memo kept — virtualized row
+export const SystemChatGroup = memo(SystemChatGroupInner);

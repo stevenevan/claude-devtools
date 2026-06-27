@@ -1,5 +1,4 @@
 import { createLogger } from '@shared/utils/logger';
-import { estimateTokens } from '@shared/utils/tokenFormatting';
 
 import { truncateText } from './stringUtils';
 
@@ -7,8 +6,6 @@ import type { ParsedMessage, PhaseTokenBreakdown, Process } from '../types/data'
 import type { LinkedToolItem } from '../types/groups';
 
 const logger = createLogger('Util:aiGroupHelpers');
-
-export { estimateTokens };
 
 // Handles both Date objects and ISO string timestamps from IPC serialization
 export function toDate(timestamp: Date | string | number): Date {

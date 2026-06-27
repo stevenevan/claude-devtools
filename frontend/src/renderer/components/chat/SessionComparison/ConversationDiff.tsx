@@ -1,5 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-
+import { JSX, useCallback, useMemo, useRef, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
 
@@ -17,7 +16,7 @@ interface ConversationDiffProps {
 export const ConversationDiff = ({
   leftDetail,
   rightDetail,
-}: Readonly<ConversationDiffProps>): React.JSX.Element | null => {
+}: Readonly<ConversationDiffProps>): JSX.Element | null => {
   const leftTurns = useMemo(() => extractTurns(leftDetail), [leftDetail]);
   const rightTurns = useMemo(() => extractTurns(rightDetail), [rightDetail]);
 

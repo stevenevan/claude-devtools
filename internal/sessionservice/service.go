@@ -20,6 +20,7 @@ import (
 	"claude-devtools/internal/discovery"
 	"claude-devtools/internal/domain"
 	"claude-devtools/internal/parsing"
+	"claude-devtools/internal/ptr"
 )
 
 // SessionService exposes session discovery + detail.
@@ -32,7 +33,7 @@ func New(c *cache.SessionCache) *SessionService { return &SessionService{cache: 
 
 // GetProjects lists projects under ~/.claude/projects (commands/projects.rs::get_projects).
 func (s *SessionService) GetProjects() ([]domain.Project, error) {
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return nil, err
 	}
@@ -40,25 +41,6 @@ func (s *SessionService) GetProjects() ([]domain.Project, error) {
 	return discovery.ScanProjects(pd, registry)
 }
 
-// --------------------------------------------------------------------------
-// Path helpers (mirrors commands/path_util.rs)
-// --------------------------------------------------------------------------
-
-func claudeDir() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("cannot resolve home directory: %w", err)
-	}
-	return filepath.Join(home, ".claude"), nil
-}
-
-func projectsDir() (string, error) {
-	cd, err := claudeDir()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(cd, "projects"), nil
-}
 
 func validateSessionIDPair(projectID, sessionID string) error {
 	if !discovery.IsValidProjectID(projectID) {
@@ -109,7 +91,7 @@ func buildSessionDetail(
 		HasSubagents:  len(subagents) > 0,
 		MessageCount:  uint32(len(parsed.Messages)),
 		IsOngoing:     isOngoing,
-		MetadataLevel: strPtr("deep"),
+		MetadataLevel: ptr.To("deep"),
 		CustomTitle:   parsed.CustomTitle,
 		AgentName:     parsed.AgentName,
 	}
@@ -126,7 +108,7 @@ func (s *SessionService) GetSessionDetail(projectID, sessionID string) (domain.S
 	if err := validateSessionIDPair(projectID, sessionID); err != nil {
 		return domain.SessionDetail{}, err
 	}
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return domain.SessionDetail{}, err
 	}
@@ -165,7 +147,7 @@ func (s *SessionService) GetSessionDetailIncremental(projectID, sessionID string
 	if err := validateSessionIDPair(projectID, sessionID); err != nil {
 		return domain.SessionDetail{}, err
 	}
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return domain.SessionDetail{}, err
 	}
@@ -249,11 +231,11 @@ func (s *SessionService) GetSessionDetailIncremental(projectID, sessionID string
 
 // GetSessions returns all sessions for a project (no pagination).
 func (s *SessionService) GetSessions(projectID string, registry *discovery.SubprojectRegistry) ([]domain.Session, error) {
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return nil, err
 	}
-	cd, err := claudeDir()
+	cd, err := discovery.ClaudeDir()
 	if err != nil {
 		return nil, err
 	}
@@ -295,11 +277,11 @@ func (s *SessionService) GetSessionsPaginated(
 	options *discovery.SessionsPaginationOptions,
 	registry *discovery.SubprojectRegistry,
 ) (domain.PaginatedSessionsResult, error) {
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return domain.PaginatedSessionsResult{}, err
 	}
-	cd, err := claudeDir()
+	cd, err := discovery.ClaudeDir()
 	if err != nil {
 		return domain.PaginatedSessionsResult{}, err
 	}
@@ -329,7 +311,7 @@ func (s *SessionService) ParseSession(projectID, sessionID string) (domain.Sessi
 	if err := validateSessionIDPair(projectID, sessionID); err != nil {
 		return domain.Session{}, err
 	}
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return domain.Session{}, err
 	}
@@ -359,7 +341,7 @@ func (s *SessionService) ParseSession(projectID, sessionID string) (domain.Sessi
 		HasSubagents:  false,
 		MessageCount:  uint32(len(parsed.Messages)),
 		IsOngoing:     isOngoing,
-		MetadataLevel: strPtr("deep"),
+		MetadataLevel: ptr.To("deep"),
 		CustomTitle:   parsed.CustomTitle,
 		AgentName:     parsed.AgentName,
 	}, nil
@@ -370,7 +352,7 @@ func (s *SessionService) ParseSessionMetrics(projectID, sessionID string) (domai
 	if err := validateSessionIDPair(projectID, sessionID); err != nil {
 		return domain.SessionMetrics{}, err
 	}
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return domain.SessionMetrics{}, err
 	}
@@ -402,7 +384,7 @@ func (s *SessionService) GetSubagentDetail(projectID, sessionID, subagentID stri
 	if err := validateSessionIDPair(projectID, sessionID); err != nil {
 		return nil, err
 	}
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return nil, err
 	}
@@ -431,7 +413,7 @@ func (s *SessionService) GetSubagentDetail(projectID, sessionID, subagentID stri
 		HasSubagents:  false,
 		MessageCount:  uint32(len(parsed.Messages)),
 		IsOngoing:     isOngoing,
-		MetadataLevel: strPtr("deep"),
+		MetadataLevel: ptr.To("deep"),
 	}
 
 	detail := analysis.BuildSessionDetail(session, parsed.Messages, []domain.Process{})
@@ -465,7 +447,7 @@ type AggregatedSessionTodos struct {
 
 // GetAllTodos aggregates todo files across the given project IDs.
 func (s *SessionService) GetAllTodos(projectIDs []string) ([]AggregatedSessionTodos, error) {
-	cd, err := claudeDir()
+	cd, err := discovery.ClaudeDir()
 	if err != nil {
 		return nil, err
 	}
@@ -557,7 +539,7 @@ func (s *SessionService) GetSessionTldr(projectID, sessionID string) (analysis.S
 	if err := validateSessionIDPair(projectID, sessionID); err != nil {
 		return analysis.SessionTldr{}, err
 	}
-	pd, err := projectsDir()
+	pd, err := discovery.ProjectsDir()
 	if err != nil {
 		return analysis.SessionTldr{}, err
 	}
@@ -621,9 +603,3 @@ func (s *SessionService) GetRepositoryGroups() []any { return []any{} }
 func (s *SessionService) GetWorktreeSessions(worktreeID string) []domain.Session {
 	return []domain.Session{}
 }
-
-// --------------------------------------------------------------------------
-// Internal helpers
-// --------------------------------------------------------------------------
-
-func strPtr(s string) *string { return &s }

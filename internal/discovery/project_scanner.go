@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"claude-devtools/internal/domain"
@@ -219,21 +220,15 @@ func extractCWDFromFile(filePath string) string {
 
 // sortProjectsByMostRecent sorts in-place by MostRecentSession descending.
 func sortProjectsByMostRecent(projects []domain.Project) {
-	for i := 1; i < len(projects); i++ {
-		for j := i; j > 0; j-- {
-			aTime := 0.0
-			if projects[j].MostRecentSession != nil {
-				aTime = *projects[j].MostRecentSession
-			}
-			bTime := 0.0
-			if projects[j-1].MostRecentSession != nil {
-				bTime = *projects[j-1].MostRecentSession
-			}
-			if aTime > bTime {
-				projects[j], projects[j-1] = projects[j-1], projects[j]
-			} else {
-				break
-			}
+	sort.SliceStable(projects, func(i, j int) bool {
+		aTime := 0.0
+		if projects[i].MostRecentSession != nil {
+			aTime = *projects[i].MostRecentSession
 		}
-	}
+		bTime := 0.0
+		if projects[j].MostRecentSession != nil {
+			bTime = *projects[j].MostRecentSession
+		}
+		return aTime > bTime
+	})
 }

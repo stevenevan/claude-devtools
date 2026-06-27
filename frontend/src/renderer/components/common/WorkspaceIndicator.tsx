@@ -1,5 +1,4 @@
-import { useState } from 'react';
-
+import { JSX, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -8,7 +7,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { ConnectionStatusBadge } from './ConnectionStatusBadge';
 
-export const WorkspaceIndicator = (): React.JSX.Element | null => {
+export const WorkspaceIndicator = (): JSX.Element | null => {
   const { activeContextId, isContextSwitching, availableContexts, switchContext } = useStore(
     useShallow((s) => ({
       activeContextId: s.activeContextId,
@@ -99,7 +98,7 @@ const ContextItem = ({
   label,
   isSelected,
   onSelect,
-}: Readonly<ContextItemProps>): React.JSX.Element => {
+}: Readonly<ContextItemProps>): JSX.Element => {
   return (
     <button
       onClick={onSelect}

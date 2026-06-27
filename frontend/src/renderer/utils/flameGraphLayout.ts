@@ -11,7 +11,7 @@ export interface FlameBar {
   endMs: number;
   durationMs: number;
   isError: boolean;
-  /** Parent task-tool id for subagent-spawned tools. */
+
   parentId?: string;
 }
 
@@ -63,11 +63,6 @@ function execToBar(exec: ToolExecution, depth: number, parentId?: string): Flame
   };
 }
 
-/**
- * Walk a subagent Process, pulling tool_use/tool_result pairs from its message
- * stream into FlameBars nested under `depth`. Unresolved tool_use calls are
- * emitted as open-ended bars ending at the process end.
- */
 function subagentBars(process: Process, depth: number, parentId: string): FlameBar[] {
   const bars: FlameBar[] = [];
   const pending = new Map<string, { name: string; startMs: number }>();
@@ -136,11 +131,6 @@ function isAIChunk(chunk: Chunk): chunk is AIChunk {
   return chunk.chunkType === 'ai';
 }
 
-/**
- * Flatten tool executions and subagent-spawned tool calls into depth-layered
- * flame bars. Depth 0 = main-session tools + Task tool_use; depth 1 = tools
- * spawned inside a subagent.
- */
 export function buildFlameLayout({ chunks }: BuildFlameLayoutInput): FlameGraphLayout {
   const bars: FlameBar[] = [];
   let minStart = Number.POSITIVE_INFINITY;

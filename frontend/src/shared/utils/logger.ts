@@ -1,18 +1,4 @@
-/**
- * Centralized logging utility for the application.
- *
- * Provides namespace-prefixed logging with environment-based filtering:
- * - Development: All log levels (DEBUG, INFO, WARN, ERROR)
- * - Production: Only ERROR logs are shown
- *
- * Usage:
- * ```typescript
- * import { createLogger } from '@shared/utils/logger';
- * const logger = createLogger('IPC:config');
- * logger.info('Config loaded');
- * logger.error('Failed to load config', error);
- * ```
- */
+
 
 enum LogLevel {
   DEBUG = 0,

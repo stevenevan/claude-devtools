@@ -1,10 +1,6 @@
-/**
- * BashToolViewer - Specialized viewer for Bash tool calls.
- * Shows command with syntax highlighting, exit code badge, and
- * output with large-output truncation.
- */
 
-import React from 'react';
+
+import { FC, useState } from 'react';
 
 import {
   Collapsible,
@@ -44,8 +40,8 @@ function getOutputText(result: LinkedToolItem['result']): string {
   return String(content);
 }
 
-export const BashToolViewer: React.FC<BashToolViewerProps> = ({ linkedTool }) => {
-  const [showFullOutput, setShowFullOutput] = React.useState(false);
+export const BashToolViewer: FC<BashToolViewerProps> = ({ linkedTool }) => {
+  const [showFullOutput, setShowFullOutput] = useState(false);
 
   const command = getCommand(linkedTool.input);
   const description = getDescription(linkedTool.input);

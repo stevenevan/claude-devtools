@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { Eye, EyeOff, Pin, Tag, X } from 'lucide-react';
 
 interface BulkActionBarProps {
@@ -20,7 +21,7 @@ export const BulkActionBar = ({
   onHide,
   onUnhide,
   onClear,
-}: BulkActionBarProps): React.JSX.Element => {
+}: BulkActionBarProps): JSX.Element => {
   return (
     <div className="border-border bg-card flex items-center gap-1.5 border-b px-3 py-1.5">
       <span className="text-muted-foreground text-[11px] font-medium">

@@ -1,5 +1,6 @@
+import { JSX } from 'react';
 import { AddTriggerForm } from './components/AddTriggerForm';
-import { SectionHeader } from './components/SectionHeader';
+import { SettingsSectionHeader as SectionHeader } from '@renderer/components/settings/components/SettingsSectionHeader';
 import { TriggerCard } from './components/TriggerCard';
 
 import type { NotificationTriggerSettingsProps } from './types';
@@ -13,7 +14,7 @@ export const NotificationTriggerSettings = ({
   onUpdateTrigger,
   onAddTrigger,
   onRemoveTrigger,
-}: Readonly<NotificationTriggerSettingsProps>): React.JSX.Element => {
+}: Readonly<NotificationTriggerSettingsProps>): JSX.Element => {
   const builtinTriggers = triggers.filter((t) => t.isBuiltin);
   const customTriggers = triggers.filter((t) => !t.isBuiltin);
 

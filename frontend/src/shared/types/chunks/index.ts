@@ -1,16 +1,4 @@
-/**
- * Chunk and visualization types for claude-devtools.
- *
- * This module contains:
- * - Chunk types (UserChunk, AIChunk, SystemChunk, CompactChunk)
- * - Process/subagent execution types
- * - Conversation grouping types
- * - Semantic step types for detailed visualization
- * - Enhanced chunk types with visualization data
- * - Session detail types
- * - Chunk type guards
- * - Constants
- */
+
 
 export type { Process } from './processes';
 export type {

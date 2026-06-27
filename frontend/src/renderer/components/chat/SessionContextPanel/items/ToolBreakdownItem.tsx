@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactElement } from 'react';
 
 import { formatTokens } from '../utils/formatting';
 
@@ -10,7 +10,7 @@ interface ToolBreakdownItemProps {
 
 export const ToolBreakdownItem = ({
   tool,
-}: Readonly<ToolBreakdownItemProps>): React.ReactElement => {
+}: Readonly<ToolBreakdownItemProps>): ReactElement => {
   return (
     <div className="flex items-center gap-2 py-0.5 text-xs">
       <span className="text-muted-foreground">{tool.toolName}</span>

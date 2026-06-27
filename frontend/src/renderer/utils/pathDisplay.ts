@@ -36,10 +36,6 @@ export function shortenDisplayPath(fullPath: string, projectRoot?: string, maxLe
   return `${head}${sep}\u2026${sep}${tail}`;
 }
 
-/**
- * Infer the user's home directory from a known absolute project path.
- * Works for macOS (/Users/x), Linux (/home/x), and Windows (C:\Users\x).
- */
 function inferHomeDir(projectRoot: string): string | null {
   const match =
     /^(\/Users\/[^/]+)/.exec(projectRoot) ??

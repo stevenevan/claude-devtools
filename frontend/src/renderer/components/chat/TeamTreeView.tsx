@@ -1,5 +1,4 @@
-import { useMemo } from 'react';
-
+import { JSX, useMemo } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { buildTeamTree } from '@renderer/utils/teamTreeBuilder';
 import { ChevronRight, Users } from 'lucide-react';
@@ -23,7 +22,7 @@ const TeamTreeNodeRow = ({
   node,
   depth,
   onSelect,
-}: Readonly<TeamTreeNodeRowProps>): React.JSX.Element => (
+}: Readonly<TeamTreeNodeRowProps>): JSX.Element => (
   <div className="flex flex-col">
     <button
       onClick={() => node.process && onSelect?.(node.process)}
@@ -73,7 +72,7 @@ export const TeamTreeView = ({
   processes,
   onSelectProcess,
   className,
-}: Readonly<TeamTreeViewProps>): React.JSX.Element => {
+}: Readonly<TeamTreeViewProps>): JSX.Element => {
   const tree = useMemo(() => buildTeamTree(processes), [processes]);
 
   if (tree.length === 0) {

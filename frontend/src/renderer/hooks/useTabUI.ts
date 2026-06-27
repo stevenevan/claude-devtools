@@ -63,6 +63,7 @@ export function useTabUI(): UseTabUIReturn {
     }))
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const isAIGroupExpanded = useCallback(
     (aiGroupId: string): boolean => {
       return tabState?.expandedAIGroupIds.has(aiGroupId) ?? false;
@@ -70,6 +71,7 @@ export function useTabUI(): UseTabUIReturn {
     [tabState]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const toggleAIGroupExpansion = useCallback(
     (aiGroupId: string): void => {
       if (!tabId) return;
@@ -78,6 +80,7 @@ export function useTabUI(): UseTabUIReturn {
     [tabId, toggleAIGroupExpansionForTab]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const expandAIGroup = useCallback(
     (aiGroupId: string): void => {
       if (!tabId) return;
@@ -86,6 +89,7 @@ export function useTabUI(): UseTabUIReturn {
     [tabId, expandAIGroupForTab]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const getExpandedDisplayItemIds = useCallback(
     (aiGroupId: string): Set<string> => {
       return tabState?.expandedDisplayItemIds.get(aiGroupId) ?? new Set<string>();
@@ -93,6 +97,7 @@ export function useTabUI(): UseTabUIReturn {
     [tabState]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const toggleDisplayItemExpansion = useCallback(
     (aiGroupId: string, itemId: string): void => {
       if (!tabId) return;
@@ -101,6 +106,7 @@ export function useTabUI(): UseTabUIReturn {
     [tabId, toggleDisplayItemExpansionForTab]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const expandDisplayItem = useCallback(
     (aiGroupId: string, itemId: string): void => {
       if (!tabId) return;
@@ -109,6 +115,7 @@ export function useTabUI(): UseTabUIReturn {
     [tabId, expandDisplayItemForTab]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const isSubagentTraceExpanded = useCallback(
     (subagentId: string): boolean => {
       return tabState?.expandedSubagentTraceIds.has(subagentId) ?? false;
@@ -116,6 +123,7 @@ export function useTabUI(): UseTabUIReturn {
     [tabState]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const toggleSubagentTraceExpansion = useCallback(
     (subagentId: string): void => {
       if (!tabId) return;
@@ -124,6 +132,7 @@ export function useTabUI(): UseTabUIReturn {
     [tabId, toggleSubagentTraceExpansionForTab]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const expandSubagentTrace = useCallback(
     (subagentId: string): void => {
       if (!tabId) return;
@@ -134,6 +143,7 @@ export function useTabUI(): UseTabUIReturn {
 
   const isContextPanelVisible = tabState?.showContextPanel ?? false;
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const setContextPanelVisible = useCallback(
     (visible: boolean): void => {
       if (!tabId) return;
@@ -144,6 +154,7 @@ export function useTabUI(): UseTabUIReturn {
 
   const selectedContextPhase = tabState?.selectedContextPhase ?? null;
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const setSelectedContextPhase = useCallback(
     (phase: number | null): void => {
       if (!tabId) return;
@@ -154,6 +165,7 @@ export function useTabUI(): UseTabUIReturn {
 
   const savedScrollTop = tabState?.savedScrollTop;
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const saveScrollPosition = useCallback(
     (scrollTop: number): void => {
       if (!tabId) return;
@@ -162,6 +174,7 @@ export function useTabUI(): UseTabUIReturn {
     [tabId, saveScrollPositionForTab]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const initializeTabUI = useCallback((): void => {
     if (!tabId) return;
     initTabUIState(tabId);

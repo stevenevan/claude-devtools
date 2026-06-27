@@ -1,7 +1,6 @@
-import React, { useCallback, useState } from 'react';
-
+import { JSX, memo, ReactNode, useState } from 'react';
 import { cn } from '@renderer/lib/utils';
-import { formatTokensCompact } from '@renderer/utils/formatters';
+import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 import { truncateText } from '@renderer/utils/stringUtils';
 import { format } from 'date-fns';
 import { ChevronRight, Layers, MailOpen } from 'lucide-react';
@@ -23,29 +22,18 @@ interface DisplayItemListProps {
   onItemClick: (itemId: string) => void;
   expandedItemIds: Set<string>;
   aiGroupId: string;
-  /** Tool use ID to highlight for error deep linking */
+
   highlightToolUseId?: string;
-  /** Custom highlight color from trigger */
+
   highlightColor?: TriggerColor;
-  /** Map of tool use ID to trigger color for notification dots */
+
   notificationColorMap?: Map<string, TriggerColor>;
-  /** Optional callback to register tool element refs for scroll targeting */
+
   registerToolRef?: (toolId: string, el: HTMLDivElement | null) => void;
 }
 
-/**
- * Renders a flat list of AIGroupDisplayItem[] into the appropriate components.
- *
- * This component maps each display item to its corresponding component based on type:
- * - thinking -> ThinkingItem
- * - output -> TextItem
- * - tool -> LinkedToolItem
- * - subagent -> SubagentItem
- * - slash -> SlashItem
- *
- * The list is completely flat with no nested toggles or hierarchies.
- */
-export const DisplayItemList = React.memo(function DisplayItemList({
+// ponytail: memo kept — virtualized row
+export const DisplayItemList = memo(function DisplayItemList({
   items,
   onItemClick,
   expandedItemIds,
@@ -54,15 +42,15 @@ export const DisplayItemList = React.memo(function DisplayItemList({
   highlightColor,
   notificationColorMap,
   registerToolRef,
-}: Readonly<DisplayItemListProps>): React.JSX.Element {
+}: Readonly<DisplayItemListProps>): JSX.Element {
   // Reply-link highlight: when hovering a reply badge, dim everything except the linked pair
   const [replyLinkToolId, setReplyLinkToolId] = useState<string | null>(null);
 
-  const handleReplyHover = useCallback((toolId: string | null) => {
+  const handleReplyHover = (toolId: string | null): void => {
     setReplyLinkToolId(toolId);
-  }, []);
+  };
 
-  /** Check if an item is part of the currently highlighted reply link */
+
   const isItemInReplyLink = (item: AIGroupDisplayItem): boolean => {
     if (!replyLinkToolId) return false;
     if (item.type === 'tool' && item.tool.id === replyLinkToolId) return true;
@@ -81,7 +69,7 @@ export const DisplayItemList = React.memo(function DisplayItemList({
     <div className="space-y-2">
       {items.map((item, index) => {
         let itemKey = '';
-        let element: React.ReactNode = null;
+        let element: ReactNode = null;
 
         switch (item.type) {
           case 'thinking': {

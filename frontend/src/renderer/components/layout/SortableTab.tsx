@@ -1,5 +1,4 @@
-import { useCallback } from 'react';
-
+import { CSSProperties, JSX, MouseEvent, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -35,8 +34,8 @@ interface SortableTabProps {
   isActive: boolean;
   isSelected: boolean;
   selectedCount: number;
-  onTabClick: (tabId: string, e: React.MouseEvent) => void;
-  onMouseDown: (tabId: string, e: React.MouseEvent) => void;
+  onTabClick: (tabId: string, e: MouseEvent) => void;
+  onMouseDown: (tabId: string, e: MouseEvent) => void;
   onClose: (tabId: string) => void;
   onCloseOtherTabs: (tabId: string) => void;
   onCloseAllTabs: () => void;
@@ -73,7 +72,7 @@ export const SortableTab = ({
   onSplitLeft,
   disableSplit,
   setRef,
-}: SortableTabProps): React.JSX.Element => {
+}: SortableTabProps): JSX.Element => {
   const { isPinned, isHidden, isStreaming, togglePinSession, toggleHideSession } = useStore(
     useShallow((s) => ({
       isPinned:
@@ -102,6 +101,7 @@ export const SortableTab = ({
   const Icon = TAB_ICONS[tab.type];
   const isSessionTab = tab.type === 'session';
 
+  // ponytail: useCallback required — callback ref merging setNodeRef + setRef; must be stable
   const handleRef = useCallback(
     (el: HTMLDivElement | null) => {
       setNodeRef(el);
@@ -138,14 +138,14 @@ export const SortableTab = ({
                 transform: CSS.Transform.toString(transform),
                 transition: isDragging ? 'none' : transition,
                 opacity: isDragging ? 0.3 : undefined,
-              } as React.CSSProperties
+              } as CSSProperties
             }
             onClick={(e) => onTabClick(tab.id, e)}
             onMouseDown={(e) => onMouseDown(tab.id, e)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                onTabClick(tab.id, e as unknown as React.MouseEvent);
+                onTabClick(tab.id, e as unknown as MouseEvent);
               }
             }}
           />
@@ -223,7 +223,7 @@ export const SortableTab = ({
   );
 };
 
-export const DragOverlayTab = ({ tab }: { tab: Tab }): React.JSX.Element => {
+export const DragOverlayTab = ({ tab }: { tab: Tab }): JSX.Element => {
   const Icon = TAB_ICONS[tab.type];
 
   return (

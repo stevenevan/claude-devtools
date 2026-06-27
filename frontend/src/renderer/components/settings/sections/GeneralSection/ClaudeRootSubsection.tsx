@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
-
+import { JSX, useCallback, useEffect, useState } from 'react';
 import { api } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { Alert, AlertDescription } from '@renderer/components/ui/alert';
@@ -20,7 +19,7 @@ import { SettingRow, SettingsSectionHeader } from '../../components';
 
 import type { ClaudeRootInfo, WslClaudeRootCandidate } from '@shared/types';
 
-export const ClaudeRootSubsection = (): React.JSX.Element => {
+export const ClaudeRootSubsection = (): JSX.Element => {
   const connectionMode = useStore((s) => s.connectionMode);
   const fetchProjects = useStore((s) => s.fetchProjects);
   const fetchRepositoryGroups = useStore((s) => s.fetchRepositoryGroups);
@@ -32,6 +31,7 @@ export const ClaudeRootSubsection = (): React.JSX.Element => {
   const [wslCandidates, setWslCandidates] = useState<WslClaudeRootCandidate[]>([]);
   const [showWslModal, setShowWslModal] = useState(false);
 
+  // ponytail: useCallback required — in useEffect dep array
   const loadClaudeRootInfo = useCallback(async () => {
     try {
       const info = await api.config.getClaudeRootInfo();
@@ -47,6 +47,7 @@ export const ClaudeRootSubsection = (): React.JSX.Element => {
     void loadClaudeRootInfo();
   }, [loadClaudeRootInfo]);
 
+  // ponytail: useCallback required — in applyClaudeRootPath dep array
   const resetWorkspaceForRootChange = useCallback((): void => {
     useStore.setState({
       projects: [],
@@ -70,6 +71,7 @@ export const ClaudeRootSubsection = (): React.JSX.Element => {
     });
   }, []);
 
+  // ponytail: useCallback required — used in dependent useCallback dep arrays
   const applyClaudeRootPath = useCallback(
     async (claudeRootPath: string | null): Promise<void> => {
       try {
@@ -98,6 +100,7 @@ export const ClaudeRootSubsection = (): React.JSX.Element => {
     ]
   );
 
+  // ponytail: useCallback required — in handleUseWslForClaude dep array
   const handleSelectClaudeRootFolder = useCallback(async (): Promise<void> => {
     setClaudeRootError(null);
 
@@ -131,10 +134,11 @@ export const ClaudeRootSubsection = (): React.JSX.Element => {
     await applyClaudeRootPath(selection.path);
   }, [applyClaudeRootPath]);
 
-  const handleResetClaudeRoot = useCallback(async (): Promise<void> => {
+  const handleResetClaudeRoot = async (): Promise<void> => {
     await applyClaudeRootPath(null);
-  }, [applyClaudeRootPath]);
+  };
 
+  // ponytail: useCallback required — in handleUseWslForClaude dep array
   const applyWslCandidate = useCallback(
     async (candidate: WslClaudeRootCandidate): Promise<void> => {
       if (!candidate.hasProjectsDir) {
@@ -154,7 +158,7 @@ export const ClaudeRootSubsection = (): React.JSX.Element => {
     [applyClaudeRootPath]
   );
 
-  const handleUseWslForClaude = useCallback(async (): Promise<void> => {
+  const handleUseWslForClaude = async (): Promise<void> => {
     try {
       setFindingWslRoots(true);
       setClaudeRootError(null);
@@ -188,7 +192,7 @@ export const ClaudeRootSubsection = (): React.JSX.Element => {
     } finally {
       setFindingWslRoots(false);
     }
-  }, [applyWslCandidate, handleSelectClaudeRootFolder]);
+  };
 
   const isCustomClaudeRoot = Boolean(claudeRootInfo?.customPath);
   const resolvedClaudeRootPath = claudeRootInfo?.resolvedPath ?? '~/.claude';

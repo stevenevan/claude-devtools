@@ -1,20 +1,12 @@
-/**
- * Minimap layout math — converts between chat scroll position and minimap
- * coordinates under a zoom factor.
- *
- * Zoom semantics:
- * - 1x shows the whole session in the minimap viewport.
- * - N x shows 1/N of the session; `panRatio` slides the visible window.
- * - `panRatio` is clamped so the visible window stays inside [0,1].
- */
+
 
 export const MIN_ZOOM = 1;
 export const MAX_ZOOM = 8;
 
 export interface MinimapViewport {
-  /** Start of the visible slice in session fraction [0,1]. */
+
   startRatio: number;
-  /** End of the visible slice in session fraction [0,1]. */
+
   endRatio: number;
 }
 
@@ -38,11 +30,6 @@ export function visibleRange(zoom: number, panRatio: number): MinimapViewport {
   return { startRatio: pan, endRatio: pan + span };
 }
 
-/**
- * Scroll progress (0..1) of the chat container → minimap Y coordinate (px)
- * under the current zoom/pan. Returns null when the scroll position is
- * outside the visible slice.
- */
 export function scrollToMinimapY(
   scrollRatio: number,
   zoom: number,
@@ -55,10 +42,6 @@ export function scrollToMinimapY(
   return localRatio * minimapHeight;
 }
 
-/**
- * Minimap Y (px, 0..minimapHeight) → scroll ratio (0..1) on the chat
- * container under the current zoom/pan.
- */
 export function minimapYToScroll(
   y: number,
   zoom: number,
@@ -71,11 +54,6 @@ export function minimapYToScroll(
   return startRatio + localRatio * (endRatio - startRatio);
 }
 
-/**
- * Given a desired zoom delta centered at a pointer position on the minimap,
- * compute the new zoom + pan so the pointer stays pinned on the same
- * session fraction.
- */
 export function zoomAround(
   prevZoom: number,
   prevPan: number,
@@ -92,11 +70,6 @@ export function zoomAround(
   return { zoom: nextZoom, panRatio: nextStart };
 }
 
-/**
- * Find the nearest chunk boundary (start of an item) in either direction from
- * the current scroll ratio. Returns the new scroll ratio to jump to, or the
- * current one if no boundary exists.
- */
 export function neighborChunkBoundary(
   itemStartRatios: readonly number[],
   currentRatio: number,

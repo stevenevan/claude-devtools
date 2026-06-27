@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-
+import { JSX, useEffect, useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,7 +60,7 @@ export async function confirm(opts: {
 }
 
 // Mount once at the app root (e.g. in App.tsx).
-export const ConfirmDialog = (): React.JSX.Element => {
+export const ConfirmDialog = (): JSX.Element => {
   const [state, setState] = useState<ConfirmDialogState>(initialState);
 
   useEffect(() => {

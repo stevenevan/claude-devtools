@@ -1,10 +1,4 @@
-/**
- * Snapshot slice — manages saved session snapshots (sprint 36).
- *
- * Snapshots are gzip-compressed `SessionDetail` payloads written to disk
- * by the Rust backend. The slice tracks the metadata list plus a
- * per-tab cache of opened payloads keyed by snapshot id.
- */
+
 
 import { api } from '@renderer/api';
 import { createLogger } from '@shared/utils/logger';

@@ -1,10 +1,4 @@
-/**
- * useKeyboardShortcuts - Global keyboard shortcut handler
- * Handles app-wide keyboard shortcuts for tab management, navigation, and pane management.
- *
- * Pane-scoped: Tab cycling (Ctrl+Tab, Cmd+1-9, Cmd+Shift+[/]) operates within the focused pane.
- * Pane shortcuts: Cmd+Option+1-4 (focus pane), Cmd+\ (split right), Cmd+Option+W (close pane).
- */
+
 
 import { useEffect } from 'react';
 

@@ -3,6 +3,7 @@ package analysis
 import (
 	"claude-devtools/internal/domain"
 	"claude-devtools/internal/parsing"
+	"claude-devtools/internal/ptr"
 )
 
 // chunkBuildState buffers AI messages and flushes them into one AI chunk on the
@@ -33,7 +34,7 @@ func (s *chunkBuildState) flushAIChunk(subagents []domain.Process, all []domain.
 	}
 	var pc *uint32
 	if s.progressCount > 0 {
-		pc = ptrU32(s.progressCount)
+		pc = ptr.To(s.progressCount)
 	}
 	var pt *[]string
 	if len(s.progressTexts) > 0 {

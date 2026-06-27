@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
-
+import { JSX, useEffect, useMemo, useState } from 'react';
 import { api } from '@renderer/api';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -23,7 +22,7 @@ interface ProjectGroup {
   completedItems: number;
 }
 
-export const TodosDashboard = (): React.JSX.Element => {
+export const TodosDashboard = (): JSX.Element => {
   const { projects, repositoryGroups, navigateToSession } = useStore(
     useShallow((s) => ({
       projects: s.projects,
@@ -165,7 +164,7 @@ const ProjectSection = ({
 }: Readonly<{
   group: ProjectGroup;
   onOpenSession: (sessionId: string) => void;
-}>): React.JSX.Element => {
+}>): JSX.Element => {
   const progress = group.totalItems === 0 ? 0 : group.completedItems / group.totalItems;
   return (
     <div className="border-border bg-background/50 rounded-md border p-4">
@@ -204,7 +203,7 @@ const SessionTodoCard = ({
 }: Readonly<{
   session: AggregatedSessionTodos;
   onOpen: () => void;
-}>): React.JSX.Element => {
+}>): JSX.Element => {
   const items = parseTodoData(session.items);
   const updated = formatDistanceToNowStrict(new Date(session.updatedAt), { addSuffix: true });
 

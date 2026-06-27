@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
-
+import { RefObject, useCallback, useEffect, useRef } from 'react';
 interface UseAutoScrollBottomOptions {
   threshold?: number;
   smoothDuration?: number;
@@ -8,13 +7,13 @@ interface UseAutoScrollBottomOptions {
   // Unlike enabled, disabled is for transient disabling during specific operations (e.g. navigation).
   disabled?: boolean;
   // When provided, hook uses this ref instead of creating its own (for sharing with other hooks).
-  externalRef?: React.RefObject<HTMLDivElement | null>;
+  externalRef?: RefObject<HTMLDivElement | null>;
   // When this value changes, reset isAtBottom to true (for tab/session switches).
   resetKey?: string | null;
 }
 
 interface UseAutoScrollBottomReturn {
-  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
+  scrollContainerRef: RefObject<HTMLDivElement | null>;
   // Returns a function to avoid accessing ref.current during render.
   getIsAtBottom: () => boolean;
   scrollToBottom: (behavior?: ScrollBehavior) => void;
@@ -57,6 +56,7 @@ export function useAutoScrollBottom(
   const prevResetKeyRef = useRef(resetKey);
   const needsInitialScrollRef = useRef(false);
 
+  // ponytail: useCallback required — in handleScroll dep array
   const checkIsAtBottom = useCallback((): boolean => {
     const container = scrollContainerRef.current;
     if (!container) return true;
@@ -66,6 +66,7 @@ export function useAutoScrollBottom(
     // eslint-disable-next-line react-hooks/exhaustive-deps -- scrollContainerRef is a ref, stable across renders
   }, [threshold]);
 
+  // ponytail: useCallback required — in useEffect dep array (content-change effect)
   const scrollToBottom = useCallback(
     (behavior: ScrollBehavior = 'smooth') => {
       const container = scrollContainerRef.current;
@@ -97,6 +98,7 @@ export function useAutoScrollBottom(
     [smoothDuration]
   );
 
+  // ponytail: useCallback required — in useEffect dep array
   const handleScroll = useCallback(() => {
     // Ignore scroll events during programmatic scrolling
     if (isScrollingRef.current) return;
@@ -165,6 +167,7 @@ export function useAutoScrollBottom(
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Dynamic dependencies array is intentional design
   }, [...dependencies, enabled, disabled, autoBehavior, scrollToBottom]);
 
+  // ponytail: useCallback required — returned from hook; callers may include in dep arrays
   const getIsAtBottom = useCallback((): boolean => {
     return isAtBottomRef.current;
   }, []);

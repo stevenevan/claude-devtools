@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, Dispatch, SetStateAction } from 'react';
 
 import { api } from '@renderer/api';
 import { useStore } from '@renderer/store';
@@ -13,9 +13,9 @@ type SearchMode = 'projects' | 'sessions';
 
 interface UseCommandPaletteSearch {
   query: string;
-  setQuery: React.Dispatch<React.SetStateAction<string>>;
+  setQuery: Dispatch<SetStateAction<string>>;
   globalSearchEnabled: boolean;
-  setGlobalSearchEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+  setGlobalSearchEnabled: Dispatch<SetStateAction<boolean>>;
   searchMode: SearchMode;
   filteredProjects: RepositoryGroup[];
   sessionResults: SearchResult[];
@@ -145,6 +145,7 @@ export const useCommandPaletteSearch = (): UseCommandPaletteSearch => {
     return () => clearTimeout(timeoutId);
   }, [query, selectedProjectId, commandPaletteOpen, searchMode, globalSearchEnabled]);
 
+  // ponytail: useCallback required — returned from hook; consumers may include in dep arrays
   const handleProjectSelect = useCallback(
     (repoId: string) => {
       closeCommandPalette();
@@ -153,6 +154,7 @@ export const useCommandPaletteSearch = (): UseCommandPaletteSearch => {
     [closeCommandPalette, selectRepository]
   );
 
+  // ponytail: useCallback required — returned from hook; consumers may include in dep arrays
   const handleSessionSelect = useCallback(
     (result: SearchResult) => {
       closeCommandPalette();
@@ -169,6 +171,7 @@ export const useCommandPaletteSearch = (): UseCommandPaletteSearch => {
     [closeCommandPalette, navigateToSession, query]
   );
 
+  // ponytail: useCallback required — returned from hook; consumers may include in dep arrays
   const handleOpenChange = useCallback(
     (open: boolean) => {
       if (!open) closeCommandPalette();

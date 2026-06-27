@@ -5,21 +5,11 @@ package config
 import (
 	"fmt"
 	"regexp"
+
+	"claude-devtools/internal/ptr"
 )
 
 const maxPatternLength = 100
-
-// boolPtr returns a pointer to b (helper for trigger construction).
-func boolPtr(b bool) *bool { return &b }
-
-// strPtr returns a pointer to s.
-func strPtr(s string) *string { return &s }
-
-// float64Ptr returns a pointer to f.
-func float64Ptr(f float64) *float64 { return &f }
-
-// strSlicePtr returns a pointer to a string slice literal.
-func strSlicePtr(ss []string) *[]string { return &ss }
 
 // DefaultTriggers mirrors triggers::default_triggers() in Rust.
 func DefaultTriggers() []NotificationTrigger {
@@ -30,23 +20,23 @@ func DefaultTriggers() []NotificationTrigger {
 			Enabled:      false,
 			ContentType:  "tool_use",
 			Mode:         "content_match",
-			MatchPattern: strPtr("/.env"),
-			IsBuiltin:    boolPtr(true),
-			Color:        strPtr("red"),
+			MatchPattern: ptr.To("/.env"),
+			IsBuiltin:    ptr.To(true),
+			Color:        ptr.To("red"),
 		},
 		{
-			ID:          "builtin-tool-result-error",
-			Name:        "Tool Result Error",
-			Enabled:     false,
-			ContentType: "tool_result",
-			Mode:        "error_status",
-			RequireError: boolPtr(true),
-			IgnorePatterns: strSlicePtr([]string{
+			ID:           "builtin-tool-result-error",
+			Name:         "Tool Result Error",
+			Enabled:      false,
+			ContentType:  "tool_result",
+			Mode:         "error_status",
+			RequireError: ptr.To(true),
+			IgnorePatterns: ptr.To([]string{
 				`The user doesn't want to proceed with this tool use\.`,
 				`\[Request interrupted by user for tool use\]`,
 			}),
-			IsBuiltin: boolPtr(true),
-			Color:     strPtr("orange"),
+			IsBuiltin: ptr.To(true),
+			Color:     ptr.To("orange"),
 		},
 		{
 			ID:             "builtin-high-token-usage",
@@ -54,10 +44,10 @@ func DefaultTriggers() []NotificationTrigger {
 			Enabled:        false,
 			ContentType:    "tool_result",
 			Mode:           "token_threshold",
-			TokenThreshold: float64Ptr(8000.0),
-			TokenType:      strPtr("total"),
-			Color:          strPtr("yellow"),
-			IsBuiltin:      boolPtr(true),
+			TokenThreshold: ptr.To(8000.0),
+			TokenType:      ptr.To("total"),
+			Color:          ptr.To("yellow"),
+			IsBuiltin:      ptr.To(true),
 		},
 	}
 }

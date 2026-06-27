@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState, ReactElement } from 'react';
 
 import { CopyButton } from '@renderer/components/common/CopyButton';
 import { cn } from '@renderer/lib/utils';
@@ -78,7 +78,7 @@ const ToolOutputRankedItem = ({
   injection: ToolOutputInjection;
   onNavigateToTurn?: (turnIndex: number) => void;
   onNavigateToTool?: (turnIndex: number, toolUseId: string) => void;
-}>): React.ReactElement => {
+}>): ReactElement => {
   const [expanded, setExpanded] = useState(false);
   const hasBreakdown = injection.toolBreakdown.length > 0;
   const categoryInfo = CATEGORY_COLORS['tool-output'];
@@ -165,7 +165,7 @@ export const RankedInjectionList = ({
   onNavigateToTurn,
   onNavigateToTool,
   onNavigateToUserGroup,
-}: Readonly<RankedInjectionListProps>): React.ReactElement => {
+}: Readonly<RankedInjectionListProps>): ReactElement => {
   const sortedInjections = useMemo(
     () => [...injections].sort((a, b) => b.estimatedTokens - a.estimatedTokens),
     [injections]

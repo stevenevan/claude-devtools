@@ -1,5 +1,4 @@
-import { useCallback } from 'react';
-
+import { FormEvent, JSX } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { ChevronDown, ChevronUp, Loader2, Plus } from 'lucide-react';
 
@@ -15,7 +14,7 @@ import { GeneralInfoSection } from './GeneralInfoSection';
 import { IgnorePatternsSection } from './IgnorePatternsSection';
 import { ModeSelector } from './ModeSelector';
 import { RepositoryScopeSection } from './RepositoryScopeSection';
-import { SectionHeader } from './SectionHeader';
+import { SettingsSectionHeader as SectionHeader } from '@renderer/components/settings/components/SettingsSectionHeader';
 import { TriggerPreview } from './TriggerPreview';
 
 import type { NotificationTrigger } from '@renderer/types/data';
@@ -28,7 +27,7 @@ interface AddTriggerFormProps {
 export const AddTriggerForm = ({
   saving,
   onAdd,
-}: Readonly<AddTriggerFormProps>): React.JSX.Element => {
+}: Readonly<AddTriggerFormProps>): JSX.Element => {
   // Use form state hook
   const formState = useAddTriggerFormState();
   const {
@@ -74,7 +73,7 @@ export const AddTriggerForm = ({
   const selectedRepositoryItems = useRepositoryLookup(repositoryIds);
 
   // Test trigger using the shared hook
-  const handleTest = useCallback(async (): Promise<void> => {
+  const handleTest = async (): Promise<void> => {
     if (mode === 'content_match' && !validatePattern(matchPattern)) return;
 
     const testTrigger = buildTriggerForTest({
@@ -91,23 +90,9 @@ export const AddTriggerForm = ({
     });
 
     await handleTestTrigger(testTrigger);
-  }, [
-    mode,
-    matchPattern,
-    validatePattern,
-    buildTriggerForTest,
-    name,
-    contentType,
-    matchField,
-    tokenThreshold,
-    tokenType,
-    toolName,
-    ignorePatterns,
-    repositoryIds,
-    handleTestTrigger,
-  ]);
+  };
 
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+  const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
     if (!name.trim()) return;
     if (mode === 'content_match' && !validatePattern(matchPattern)) return;

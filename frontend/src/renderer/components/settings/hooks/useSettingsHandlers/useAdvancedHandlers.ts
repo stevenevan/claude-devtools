@@ -1,5 +1,4 @@
-import { useCallback } from 'react';
-
+import { RefObject, useCallback } from 'react';
 import { api } from '@renderer/api';
 import { useStore } from '@renderer/store';
 
@@ -12,7 +11,7 @@ const setStoreState = useStore.setState.bind(useStore);
 type AdvancedHandlersProps = Pick<
   UseSettingsHandlersProps,
   'setSaving' | 'setConfig' | 'setOptimisticConfig' | 'setError'
-> & { configRef: React.RefObject<AppConfig | null> };
+> & { configRef: RefObject<AppConfig | null> };
 
 export function useAdvancedHandlers({
   setSaving,
@@ -24,6 +23,7 @@ export function useAdvancedHandlers({
   SettingsHandlers,
   'handleResetToDefaults' | 'handleExportConfig' | 'handleImportConfig' | 'handleOpenInEditor'
 > {
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleResetToDefaults = useCallback(async () => {
     if (!confirm('Are you sure you want to reset all settings to defaults?')) {
       return;
@@ -67,7 +67,6 @@ export function useAdvancedHandlers({
         },
         general: {
           launchAtLogin: false,
-          showDockIcon: true,
           theme: 'dark',
           defaultTab: 'dashboard',
           claudeRootPath: null,
@@ -75,9 +74,6 @@ export function useAdvancedHandlers({
           useNativeTitleBar: false,
         },
         display: {
-          showTimestamps: true,
-          compactMode: false,
-          syntaxHighlighting: true,
           codeBlockTheme: 'default',
           showLineNumbers: true,
           wordWrap: false,
@@ -101,6 +97,7 @@ export function useAdvancedHandlers({
     }
   }, [setSaving, setConfig, setOptimisticConfig, setError]);
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleExportConfig = useCallback(() => {
     if (!configRef.current) return;
     const dataStr = JSON.stringify(configRef.current, null, 2);
@@ -115,6 +112,7 @@ export function useAdvancedHandlers({
     URL.revokeObjectURL(url);
   }, [configRef]);
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleOpenInEditor = useCallback(async () => {
     try {
       await api.config.openInEditor();
@@ -123,6 +121,7 @@ export function useAdvancedHandlers({
     }
   }, [setError]);
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleImportConfig = useCallback(() => {
     const input = document.createElement('input');
     input.type = 'file';

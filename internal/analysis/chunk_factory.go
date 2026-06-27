@@ -6,6 +6,7 @@ import (
 
 	"claude-devtools/internal/domain"
 	"claude-devtools/internal/parsing"
+	"claude-devtools/internal/ptr"
 )
 
 func metricsOf(m domain.ParsedMessage) domain.SessionMetrics {
@@ -35,7 +36,7 @@ func buildCompactChunk(m *domain.ParsedMessage) domain.EnhancedChunk {
 }
 
 func buildEventChunk(m *domain.ParsedMessage) domain.EnhancedChunk {
-	ed := domain.SystemEventData{Subtype: derefStr(m.Subtype)}
+	ed := domain.SystemEventData{Subtype: ptr.Deref(m.Subtype)}
 	if m.EventData != nil {
 		ed = *m.EventData
 	}
@@ -140,7 +141,7 @@ func buildToolExecutions(messages []domain.ParsedMessage) []domain.ToolExecution
 				res := msg.ToolResults[0]
 				execs = append(execs, domain.ToolExecution{
 					ToolCall: ce.call, Result: &res, StartTime: ce.start,
-					EndTime: ptrStr(msg.Timestamp), DurationMs: ptrF64(maxF(timestampDiffMs(msg.Timestamp, ce.start), 0)),
+					EndTime: ptr.To(msg.Timestamp), DurationMs: ptr.To(maxF(timestampDiffMs(msg.Timestamp, ce.start), 0)),
 				})
 			}
 		}
@@ -159,7 +160,7 @@ func buildToolExecutions(messages []domain.ParsedMessage) []domain.ToolExecution
 			if ce, ok := callMap[result.ToolUseID]; ok {
 				execs = append(execs, domain.ToolExecution{
 					ToolCall: ce.call, Result: &result, StartTime: ce.start,
-					EndTime: ptrStr(msg.Timestamp), DurationMs: ptrF64(maxF(timestampDiffMs(msg.Timestamp, ce.start), 0)),
+					EndTime: ptr.To(msg.Timestamp), DurationMs: ptr.To(maxF(timestampDiffMs(msg.Timestamp, ce.start), 0)),
 				})
 			}
 		}

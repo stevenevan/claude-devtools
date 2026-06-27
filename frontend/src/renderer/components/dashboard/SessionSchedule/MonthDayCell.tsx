@@ -1,5 +1,5 @@
-import React from 'react';
 
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 
 import { MAX_EVENTS_PER_DAY } from './constants';
@@ -12,7 +12,7 @@ export const MonthDayCell = ({
   isCurrentMonth,
   events,
   compact,
-}: Readonly<MonthDayCellProps>): React.JSX.Element => {
+}: Readonly<MonthDayCellProps>): JSX.Element => {
   const isToday = isTodayDate(date);
   const visibleEvents = events.slice(0, MAX_EVENTS_PER_DAY);
   const overflow = events.length - MAX_EVENTS_PER_DAY;

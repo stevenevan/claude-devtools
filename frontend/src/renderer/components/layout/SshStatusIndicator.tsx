@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Loader2, Plug, ServerCrash, Wifi, WifiOff } from 'lucide-react';
@@ -26,7 +27,7 @@ function statusMeta(state: SshConnectionState): StatusMeta {
   }
 }
 
-export const SshStatusIndicator = (): React.JSX.Element | null => {
+export const SshStatusIndicator = (): JSX.Element | null => {
   const { mode, state, host, error } = useStore(
     useShallow((s) => ({
       mode: s.connectionMode,

@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-
+import { JSX, KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { useStore } from '@renderer/store';
 import { Tag, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -12,7 +11,7 @@ const EMPTY_ARRAY: never[] = [];
 
 export const SessionTagEditor = ({
   sessionId,
-}: Readonly<SessionTagEditorProps>): React.JSX.Element => {
+}: Readonly<SessionTagEditorProps>): JSX.Element => {
   const { tags, fetchSessionTags, setSessionTags } = useStore(
     useShallow((s) => ({
       tags: s.sessionTags.get(sessionId) ?? EMPTY_ARRAY,
@@ -29,27 +28,21 @@ export const SessionTagEditor = ({
     void fetchSessionTags(sessionId);
   }, [sessionId, fetchSessionTags]);
 
-  const addTag = useCallback(
-    (tag: string) => {
-      const trimmed = tag.trim().toLowerCase();
-      if (!trimmed || tags.includes(trimmed)) return;
-      void setSessionTags(sessionId, [...tags, trimmed]);
-      setInputValue('');
-    },
-    [sessionId, tags, setSessionTags]
-  );
+  const addTag = (tag: string): void => {
+    const trimmed = tag.trim().toLowerCase();
+    if (!trimmed || tags.includes(trimmed)) return;
+    void setSessionTags(sessionId, [...tags, trimmed]);
+    setInputValue('');
+  };
 
-  const removeTag = useCallback(
-    (tag: string) => {
-      void setSessionTags(
-        sessionId,
-        tags.filter((t) => t !== tag)
-      );
-    },
-    [sessionId, tags, setSessionTags]
-  );
+  const removeTag = (tag: string): void => {
+    void setSessionTags(
+      sessionId,
+      tags.filter((t) => t !== tag)
+    );
+  };
 
-  const handleKeyDown = (e: React.KeyboardEvent): void => {
+  const handleKeyDown = (e: KeyboardEvent): void => {
     if (e.key === 'Enter' && inputValue.trim()) {
       e.preventDefault();
       addTag(inputValue);

@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 
 const SELECT_INPUT_BASE =
@@ -7,7 +8,7 @@ import { AlertCircle } from 'lucide-react';
 import { CONTENT_TYPE_OPTIONS } from '../utils/constants';
 import { getAvailableMatchFields } from '../utils/trigger';
 
-import { SectionHeader } from './SectionHeader';
+import { SettingsSectionHeader as SectionHeader } from '@renderer/components/settings/components/SettingsSectionHeader';
 
 import type { TriggerContentType, TriggerMode, TriggerTokenType } from '@renderer/types/data';
 
@@ -43,7 +44,7 @@ export const DynamicConfigSection = ({
   onMatchPatternChange,
   onTokenThresholdChange,
   onTokenTypeChange,
-}: Readonly<DynamicConfigSectionProps>): React.JSX.Element => {
+}: Readonly<DynamicConfigSectionProps>): JSX.Element => {
   // Get available match fields based on content type and tool name
   const availableMatchFields = getAvailableMatchFields(contentType, toolName || undefined);
 
