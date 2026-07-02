@@ -1,12 +1,23 @@
 import { ComponentType, JSX, ReactNode, useMemo } from 'react';
 import { isDesktopMode } from '@renderer/api';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@renderer/components/ui/tabs';
-import { Bell, HardDrive, Keyboard, Palette, Plug, Server, Settings, Wrench } from 'lucide-react';
+import {
+  Bell,
+  HardDrive,
+  Keyboard,
+  Palette,
+  Plug,
+  Server,
+  Settings,
+  Terminal,
+  Wrench,
+} from 'lucide-react';
 
 export type SettingsSection =
   | 'general'
   | 'connection'
   | 'workspace'
+  | 'claudeCode'
   | 'notifications'
   | 'shortcuts'
   | 'themes'
@@ -30,6 +41,7 @@ const tabs: TabConfig[] = [
   { id: 'general', label: 'General', icon: Settings },
   { id: 'connection', label: 'Connection', icon: Server, electronOnly: true },
   { id: 'workspace', label: 'Workspaces', icon: HardDrive, electronOnly: true },
+  { id: 'claudeCode', label: 'Claude Code', icon: Terminal, electronOnly: true },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard },
   { id: 'themes', label: 'Themes', icon: Palette },

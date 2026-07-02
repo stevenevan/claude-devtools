@@ -52,6 +52,13 @@ export type * from './ssh';
 export type * from './system';
 export type * from './webhook';
 
+export interface GlobalSettingsPatch {
+  env: Record<string, string>;
+  allow: string[];
+  deny: string[];
+  ask: string[];
+}
+
 export interface ElectronAPI {
   getAppVersion: () => Promise<string>;
   getProjects: () => Promise<Project[]>;
@@ -157,6 +164,7 @@ export interface ElectronAPI {
   readGlobalSkills: () => Promise<GlobalSkill[]>;
   readGlobalPlugins: () => Promise<GlobalPlugin[]>;
   readGlobalSettings: () => Promise<Record<string, unknown>>;
+  updateGlobalSettings: (patch: GlobalSettingsPatch) => Promise<void>;
 
   // Notifications API
   notifications: NotificationsAPI;

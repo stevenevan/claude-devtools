@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { useSettingsConfig, useSettingsHandlers } from './hooks';
 import {
   AdvancedSection,
+  ClaudeCodeSection,
   ConnectionSection,
   GeneralSection,
   KeyboardShortcutsSection,
@@ -113,6 +114,10 @@ export const SettingsView = (): JSX.Element | null => {
 
           <SettingsTabContent value="workspace" className="mt-4">
             <WorkspaceSection />
+          </SettingsTabContent>
+
+          <SettingsTabContent value="claudeCode" className="mt-4">
+            <ClaudeCodeSection />
           </SettingsTabContent>
 
           <SettingsTabContent value="notifications" className="mt-4">

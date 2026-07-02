@@ -7,12 +7,19 @@ import {
   ReadGlobalSettings,
   ReadGlobalSkills,
   ReadMentionedFile,
+  UpdateGlobalSettings,
   ValidateMentions,
   ValidatePath,
 } from '../../../../bindings/claude-devtools/internal/filesservice/filesservice';
 
 import type { ClaudeMdFileInfo, ElectronAPI } from '@shared/types';
-import type { AgentConfig, GlobalAgent, GlobalPlugin, GlobalSkill } from '@shared/types/api';
+import type {
+  AgentConfig,
+  GlobalAgent,
+  GlobalPlugin,
+  GlobalSettingsPatch,
+  GlobalSkill,
+} from '@shared/types/api';
 
 type FilesSlice = Pick<
   ElectronAPI,
@@ -26,6 +33,7 @@ type FilesSlice = Pick<
   | 'readGlobalSkills'
   | 'readGlobalPlugins'
   | 'readGlobalSettings'
+  | 'updateGlobalSettings'
 >;
 
 export const filesApi: FilesSlice = {
@@ -76,4 +84,9 @@ export const filesApi: FilesSlice = {
 
   readGlobalSettings: (): Promise<Record<string, unknown>> =>
     ReadGlobalSettings() as unknown as Promise<Record<string, unknown>>,
+
+  updateGlobalSettings: (patch: GlobalSettingsPatch): Promise<void> =>
+    UpdateGlobalSettings(
+      patch as unknown as Parameters<typeof UpdateGlobalSettings>[0]
+    ) as unknown as Promise<void>,
 };

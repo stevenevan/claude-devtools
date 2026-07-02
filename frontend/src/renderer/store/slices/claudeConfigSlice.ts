@@ -4,7 +4,7 @@ import { api } from '@renderer/api';
 import { createLogger } from '@shared/utils/logger';
 
 import type { AppState } from '../types';
-import type { GlobalAgent, GlobalPlugin, GlobalSkill } from '@shared/types/api';
+import type { GlobalAgent, GlobalPlugin, GlobalSettingsPatch, GlobalSkill } from '@shared/types/api';
 import type { StateCreator } from 'zustand';
 
 const logger = createLogger('Store:ClaudeConfig');
@@ -29,6 +29,7 @@ export interface ClaudeConfigSlice {
   globalSettingsLoading: boolean;
   globalSettingsError: string | null;
   fetchGlobalSettings: () => Promise<void>;
+  saveGlobalSettings: (patch: GlobalSettingsPatch) => Promise<void>;
 }
 
 export const createClaudeConfigSlice: StateCreator<AppState, [], [], ClaudeConfigSlice> = (
@@ -100,6 +101,16 @@ export const createClaudeConfigSlice: StateCreator<AppState, [], [], ClaudeConfi
       const message = error instanceof Error ? error.message : String(error);
       logger.error('Failed to fetch global settings:', message);
       set({ globalSettingsError: message, globalSettingsLoading: false });
+    }
+  },
+  saveGlobalSettings: async (patch: GlobalSettingsPatch) => {
+    try {
+      await api.updateGlobalSettings(patch);
+      await get().fetchGlobalSettings();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.error('Failed to save global settings:', message);
+      throw error;
     }
   },
 });
