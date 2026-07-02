@@ -1,4 +1,5 @@
 export { AdvancedSection } from './AdvancedSection';
+export { ClaudeCodeSection } from './ClaudeCodeSection';
 export { ConnectionSection } from './ConnectionSection';
 export { GeneralSection } from './GeneralSection';
 export { KeyboardShortcutsSection } from './KeyboardShortcutsSection';

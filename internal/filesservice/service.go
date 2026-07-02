@@ -1,5 +1,5 @@
 // Package filesservice is a thin Wails service wrapper over internal/files.
-// It exposes all 10 file-related commands.
+// It exposes all 11 file-related commands.
 // Layering: imports only internal/files (which imports only discovery/stdlib).
 // No application import here — no events emitted by file commands.
 package filesservice
@@ -8,10 +8,10 @@ import (
 	"claude-devtools/internal/files"
 )
 
-// FilesService exposes 10 commands: ValidatePath, ValidateMentions,
+// FilesService exposes 11 commands: ValidatePath, ValidateMentions,
 // ReadClaudeMdFiles, ReadDirectoryClaudeMd, ReadMentionedFile,
 // ReadAgentConfigs, ReadGlobalAgents, ReadGlobalSkills, ReadGlobalPlugins,
-// ReadGlobalSettings.
+// ReadGlobalSettings, UpdateGlobalSettings.
 type FilesService struct{}
 
 func (s *FilesService) Ready() (bool, error) { return true, nil }
@@ -81,4 +81,10 @@ func (s *FilesService) ReadGlobalPlugins() ([]files.Plugin, error) {
 // Mirrors configs.rs::read_global_settings.
 func (s *FilesService) ReadGlobalSettings() (any, error) {
 	return files.ReadGlobalSettings()
+}
+
+// UpdateGlobalSettings merges a patch (env + permissions allow/deny/ask)
+// into ~/.claude/settings.json, preserving every other key.
+func (s *FilesService) UpdateGlobalSettings(patch files.SettingsPatch) error {
+	return files.UpdateGlobalSettings(patch)
 }
