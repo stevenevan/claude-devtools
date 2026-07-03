@@ -47,6 +47,9 @@ const SettingsView = lazy(() =>
 const GlobalContentView = lazy(() =>
   import('./GlobalContentView').then((m) => ({ default: m.GlobalContentView }))
 );
+const MaintenanceView = lazy(() =>
+  import('../maintenance/MaintenanceView').then((m) => ({ default: m.MaintenanceView }))
+);
 
 const LazyFallback = (): JSX.Element => (
   <div className="bg-background flex flex-1 items-center justify-center">
@@ -77,7 +80,8 @@ export const PaneContent = ({ pane }: PaneContentProps): JSX.Element => {
     activeActivity === 'todos' ||
     activeActivity === 'settings' ||
     activeActivity === 'notifications' ||
-    activeActivity === 'search';
+    activeActivity === 'search' ||
+    activeActivity === 'maintenance';
   const showGlobalContent = isGlobalActivity || showDefaultContent;
 
   return (
@@ -112,6 +116,7 @@ export const PaneContent = ({ pane }: PaneContentProps): JSX.Element => {
               {activeActivity === 'notifications' && <NotificationsView />}
               {activeActivity === 'search' && <SearchView />}
               {activeActivity === 'settings' && <SettingsView />}
+              {activeActivity === 'maintenance' && <MaintenanceView />}
             </Suspense>
           </ErrorBoundary>
         </div>

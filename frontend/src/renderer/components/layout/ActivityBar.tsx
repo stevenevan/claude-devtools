@@ -21,6 +21,7 @@ import {
   Puzzle,
   Settings,
   Sparkles,
+  Wrench,
 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -185,6 +186,15 @@ export const ActivityBar = (): JSX.Element => {
             isActive={false}
             onClick={() => setHelpPanelOpen(true)}
           />
+          {isDesktopMode() && (
+            <ActivityBarItem
+              icon={Wrench}
+              label="Maintenance"
+              activity="maintenance"
+              isActive={activeActivity === 'maintenance'}
+              onClick={() => setActiveActivity('maintenance')}
+            />
+          )}
           <ActivityBarItem
             icon={Settings}
             label="Settings"

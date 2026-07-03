@@ -30,6 +30,7 @@ import type { AgentConfig, GlobalAgent, GlobalPlugin, GlobalSkill } from './agen
 import type { BackendCacheStats, BackendTimingSummary } from './backend';
 import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
+import type { MaintenanceAPI } from './maintenance';
 import type { NotificationsAPI } from './notificationsApi';
 import type { PluginsAPI } from './plugins';
 import type { ParsedNLQuery } from './search';
@@ -43,6 +44,7 @@ export type * from './agents';
 export type * from './backend';
 export type * from './config';
 export type * from './context';
+export type * from './maintenance';
 export type * from './notificationsApi';
 export type * from './plugins';
 export type * from './search';
@@ -177,6 +179,9 @@ export interface ElectronAPI {
 
   // Session snapshots (sprint 36)
   snapshots: SnapshotsAPI;
+
+  // Storage maintenance (Week 1 read-only scan)
+  maintenance: MaintenanceAPI;
 
   // Plugins (sprint 38)
   plugins: PluginsAPI;
