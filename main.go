@@ -10,6 +10,7 @@ import (
 	"claude-devtools/internal/cache"
 	"claude-devtools/internal/configservice"
 	"claude-devtools/internal/filesservice"
+	"claude-devtools/internal/maintenanceservice"
 	"claude-devtools/internal/notifyservice"
 	"claude-devtools/internal/searchservice"
 	"claude-devtools/internal/sessionservice"
@@ -42,6 +43,7 @@ func main() {
 			application.NewService(snapshotservice.New()),
 			application.NewService(timingservice.New(sessionCache)),
 			application.NewService(&systemservice.SystemService{}),
+			application.NewService(&maintenanceservice.MaintenanceService{}),
 			// watcher service registered here in W3
 		},
 		Assets: application.AssetOptions{

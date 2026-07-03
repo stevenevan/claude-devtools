@@ -19,6 +19,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"claude-devtools/internal/config"
 	"claude-devtools/internal/domain"
 )
 
@@ -40,11 +41,11 @@ func snapshotsDir() (string, error) {
 	if override := os.Getenv("CLAUDE_DEVTOOLS_SNAPSHOTS_DIR"); override != "" {
 		dir = override
 	} else {
-		home, err := os.UserHomeDir()
+		appDataDir, err := config.AppDataDir()
 		if err != nil {
-			return "", fmt.Errorf("cannot resolve home directory")
+			return "", err
 		}
-		dir = filepath.Join(home, ".claude-devtools", "snapshots")
+		dir = filepath.Join(appDataDir, "snapshots")
 	}
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return "", fmt.Errorf("cannot create snapshots dir: %w", err)

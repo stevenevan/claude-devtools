@@ -2,6 +2,7 @@ import { useStore } from '../useStore';
 
 import { attachConnectionListeners } from './connection';
 import { attachFileChangeListeners } from './fileChange';
+import { attachMaintenanceListeners } from './maintenance';
 import { attachNotificationListeners } from './notifications';
 import { createRefreshHelpers } from './refreshHelpers';
 import { attachUpdaterListeners } from './updater';
@@ -32,6 +33,7 @@ export function initializeNotificationListeners(): () => void {
   attachFileChangeListeners(ctx);
   attachUpdaterListeners(ctx);
   attachConnectionListeners(ctx);
+  attachMaintenanceListeners(ctx);
 
   return () => {
     for (const timer of ctx.pendingSessionRefreshTimers.values()) {
