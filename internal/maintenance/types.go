@@ -1,7 +1,7 @@
-// Package maintenance implements read-only disk-usage scanning of the
-// claude-devtools data tree. Pure logic: no application.Get(), no
-// os.UserHomeDir() — scan roots are resolved by the caller (maintenanceservice)
-// via internal/config and injected in.
+// Package maintenance implements disk-usage scanning and the safe-delete
+// (trash/restore/empty) engine for the claude-devtools data tree. Pure
+// logic: no application.Get(), no os.UserHomeDir() — roots are resolved by
+// the caller (maintenanceservice) via internal/config and injected in.
 package maintenance
 
 import "time"

@@ -1,6 +1,7 @@
 // Package maintenanceservice wires internal/maintenance into the Wails
-// service layer: resolves scan roots via internal/config, throttles
-// scan-progress events, and enforces one in-flight scan at a time.
+// service layer: resolves scan/trash roots via internal/config, throttles
+// scan-progress events, enforces one in-flight scan at a time, and gates the
+// safe-delete engine (trash/restore/empty) behind the local-only SSH check.
 // internal/maintenance is pure — no Wails import there.
 package maintenanceservice
 
@@ -22,13 +23,24 @@ import (
 // never per-entry (projects/ alone can hold 900+ files).
 const progressThrottle = 150 * time.Millisecond
 
-// MaintenanceService exposes read-only disk-usage scanning of the claude
-// root + app-data tree.
+// MaintenanceService exposes read-only disk-usage scanning plus the
+// safe-delete/trash engine for the claude root + app-data tree.
 type MaintenanceService struct {
-	ctx    context.Context
-	config *config.ConfigState
-	mu     sync.Mutex
-	cancel context.CancelFunc
+	ctx       context.Context
+	config    *config.ConfigState
+	mu        sync.Mutex
+	cancel    context.CancelFunc
+	sshActive func() bool
+}
+
+// New wires the SSH gate (SEC-server-gate): destructive ops (TrashItems,
+// RestoreTrash, EmptyTrash) refuse while an SSH session is active, since the
+// safe-delete engine must only ever touch the local machine. The caller
+// passes a closure over the already-registered SshService pointer (mirrors
+// cache.Default()'s shared-pointer injection precedent) — a fresh SshService
+// would nil-panic in GetState().
+func New(sshActive func() bool) *MaintenanceService {
+	return &MaintenanceService{sshActive: sshActive}
 }
 
 func (s *MaintenanceService) ServiceStartup(ctx context.Context, _ application.ServiceOptions) error {
@@ -106,6 +118,80 @@ func (s *MaintenanceService) resolveRoots() ([]string, error) {
 		roots = append(roots, appDataDir)
 	}
 	return roots, nil
+}
+
+// errSSHActive mirrors SEC-server-gate: the safe-delete engine operates on
+// the local machine only.
+var errSSHActive = fmt.Errorf("maintenance operates on the local machine only; disconnect the SSH session first")
+
+// TrashItems moves paths into the trash, muting the file watcher for the
+// duration of the batch (frontend/src/renderer/store/listeners/fileChange.ts
+// honors maintenance:mute-watcher) so a large batch doesn't storm the
+// session-list refresh. L4: s.mu is held for the SSH-gate check AND the
+// move so two destructive calls can't interleave.
+func (s *MaintenanceService) TrashItems(paths []string) (maintenance.TrashReceipt, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.sshActive() {
+		return maintenance.TrashReceipt{}, errSSHActive
+	}
+
+	roots, err := s.resolveRoots()
+	if err != nil {
+		return maintenance.TrashReceipt{}, err
+	}
+	appDataDir, err := config.AppDataDir()
+	if err != nil {
+		return maintenance.TrashReceipt{}, err
+	}
+
+	emitEvent("maintenance:mute-watcher", map[string]any{"muted": true})
+	defer emitEvent("maintenance:mute-watcher", map[string]any{"muted": false})
+
+	return maintenance.TrashItems(roots, appDataDir, paths)
+}
+
+// ListTrash lists every trash receipt. Read-only: no SSH gate, no mutex.
+func (s *MaintenanceService) ListTrash() ([]maintenance.TrashReceipt, error) {
+	appDataDir, err := config.AppDataDir()
+	if err != nil {
+		return nil, err
+	}
+	return maintenance.ListTrash(appDataDir)
+}
+
+// RestoreTrash restores every item in receiptID to its original location.
+func (s *MaintenanceService) RestoreTrash(id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.sshActive() {
+		return errSSHActive
+	}
+
+	roots, err := s.resolveRoots()
+	if err != nil {
+		return err
+	}
+	appDataDir, err := config.AppDataDir()
+	if err != nil {
+		return err
+	}
+	return maintenance.RestoreTrash(roots, appDataDir, id)
+}
+
+// EmptyTrash permanently deletes the given receipts.
+func (s *MaintenanceService) EmptyTrash(ids []string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.sshActive() {
+		return errSSHActive
+	}
+
+	appDataDir, err := config.AppDataDir()
+	if err != nil {
+		return err
+	}
+	return maintenance.EmptyTrash(appDataDir, ids)
 }
 
 // throttledProgress builds a progress callback that emits

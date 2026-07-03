@@ -2,12 +2,14 @@ import { api } from '@renderer/api';
 
 import { useStore } from '../useStore';
 
+import { isWatcherMuted } from './maintenance';
+
 import type { ListenerContext } from './types';
 
 export function attachFileChangeListeners(ctx: ListenerContext): void {
   if (api.onTodoChange) {
     const cleanup = api.onTodoChange((event) => {
-      if (!event.sessionId || event.type === 'unlink') {
+      if (!event.sessionId || event.type === 'unlink' || isWatcherMuted()) {
         return;
       }
 
@@ -42,7 +44,7 @@ export function attachFileChangeListeners(ctx: ListenerContext): void {
 
   if (api.onFileChange) {
     const cleanup = api.onFileChange((event) => {
-      if (event.type === 'unlink') {
+      if (event.type === 'unlink' || isWatcherMuted()) {
         return;
       }
 

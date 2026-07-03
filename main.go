@@ -29,6 +29,11 @@ func main() {
 	// cache per service.
 	sessionCache := cache.Default()
 
+	// Constructed first so maintenanceservice's SSH gate closes over the
+	// SAME pointer Wails registers below — a fresh &SshService{} nil-panics
+	// in GetState() since ServiceStartup never ran on it.
+	sshSvc := &sshservice.SshService{}
+
 	app := application.New(application.Options{
 		Name:        "claude-devtools",
 		Description: "Visualizes Claude Code session execution",
@@ -38,12 +43,15 @@ func main() {
 			application.NewService(analyticsservice.New()),
 			application.NewService(&configservice.ConfigService{}),
 			application.NewService(&notifyservice.NotificationService{}),
-			application.NewService(&sshservice.SshService{}),
+			application.NewService(sshSvc),
 			application.NewService(&filesservice.FilesService{}),
 			application.NewService(snapshotservice.New()),
 			application.NewService(timingservice.New(sessionCache)),
 			application.NewService(&systemservice.SystemService{}),
-			application.NewService(&maintenanceservice.MaintenanceService{}),
+			application.NewService(maintenanceservice.New(func() bool {
+				state, _ := sshSvc.GetState()
+				return state != "disconnected"
+			})),
 			// watcher service registered here in W3
 		},
 		Assets: application.AssetOptions{

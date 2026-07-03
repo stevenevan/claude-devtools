@@ -6,6 +6,7 @@ import { HardDrive, Loader2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { StorageTable } from './StorageTable';
+import { TrashPanel } from './TrashPanel';
 
 export const MaintenanceView = (): JSX.Element => {
   const { dirs, scanning, error, progress, connectionMode, scanStorage, cancelScan } = useStore(
@@ -85,6 +86,8 @@ export const MaintenanceView = (): JSX.Element => {
 
       <div className="flex-1 overflow-y-auto">
         <StorageTable dirs={dirs} />
+        <div className="border-border/50 border-t" />
+        <TrashPanel />
       </div>
     </div>
   );
