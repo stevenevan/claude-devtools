@@ -9,9 +9,10 @@ import (
 )
 
 // buildPluginsFixture lays out a realistic <root>/plugins tree:
-//   cache/<marketplace>/<plugin>/<version>/  (two plugins, one enabled)
-//   marketplaces/<name>/
-//   repos/  (empty → anomaly)
+//
+//	cache/<marketplace>/<plugin>/<version>/  (two plugins, one enabled)
+//	marketplaces/<name>/
+//	repos/  (empty → anomaly)
 func buildPluginsFixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()

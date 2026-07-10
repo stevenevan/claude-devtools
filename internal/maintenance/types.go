@@ -21,11 +21,11 @@ type DirUsage struct {
 // routes destructive action through the week-2 TrashItems engine — a Candidate
 // only describes what could be removed, never removes anything itself.
 type Candidate struct {
-	Path    string            `json:"path"`
-	Bytes   int64             `json:"bytes"`
-	Files   int               `json:"files"`
-	ModTime time.Time         `json:"modTime"`
-	Reason  string            `json:"reason"`
+	Path    string    `json:"path"`
+	Bytes   int64     `json:"bytes"`
+	Files   int       `json:"files"`
+	ModTime time.Time `json:"modTime"`
+	Reason  string    `json:"reason"`
 	// Group is a lexically-sortable UI bucket key (W4 "YYYY-MM" month, W29
 	// variant base name, W6/W8/W11 family tag). Empty = ungrouped.
 	Group string `json:"group,omitempty"`
