@@ -1,7 +1,7 @@
 import { JSX } from 'react';
 import { DiffViewer } from '@renderer/components/chat/viewers/DiffViewer';
 
-import { isSecretKey } from '../settings/sections/claudeCode/envSecretMatcher';
+import { redactSecretValues } from './redactSecrets';
 
 interface JsonDiffViewProps {
   left: string;
@@ -19,20 +19,6 @@ function stableKeySort(value: unknown): unknown {
       sorted[key] = stableKeySort((value as Record<string, unknown>)[key]);
     }
     return sorted;
-  }
-  return value;
-}
-
-// Replaces any value whose key looks like a secret with a mask placeholder,
-// so settings.json diffs never render secrets in cleartext.
-function redactSecretValues(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(redactSecretValues);
-  if (value !== null && typeof value === 'object') {
-    const out: Record<string, unknown> = {};
-    for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
-      out[key] = isSecretKey(key) ? '••••' : redactSecretValues(v);
-    }
-    return out;
   }
   return value;
 }

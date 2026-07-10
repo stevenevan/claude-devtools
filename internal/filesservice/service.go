@@ -10,11 +10,12 @@ import (
 	"claude-devtools/internal/files"
 )
 
-// FilesService exposes 16 commands: ValidatePath, ValidateMentions,
+// FilesService exposes 17 commands: ValidatePath, ValidateMentions,
 // ReadClaudeMdFiles, ReadDirectoryClaudeMd, ReadMentionedFile,
 // ReadAgentConfigs, ReadGlobalAgents, ReadGlobalSkills, ReadGlobalPlugins,
 // ReadGlobalSettings, UpdateGlobalSettings, ReadHooks, ToggleHook,
-// SetPluginEnabled, DedupePlugin, DetectPluginDuplicates.
+// SetPluginEnabled, DedupePlugin, DetectPluginDuplicates,
+// EnumerateSettingsSources.
 type FilesService struct{}
 
 func (s *FilesService) Ready() (bool, error) { return true, nil }
@@ -135,4 +136,12 @@ func (s *FilesService) DetectPluginDuplicates() ([]files.DuplicateGroup, error) 
 		return nil, err
 	}
 	return files.DetectPluginDuplicates(plugins), nil
+}
+
+// EnumerateSettingsSources surfaces every settings.json/settings.local.json
+// source that could affect projectRoot (global, global-nested-anomaly,
+// project, project-local) plus a merged, provenance-tracked effective view.
+// Read-only; raw values are unmasked — masking happens client-side.
+func (s *FilesService) EnumerateSettingsSources(projectRoot string) (files.SourcesView, error) {
+	return files.EnumerateSettingsSources(projectRoot)
 }

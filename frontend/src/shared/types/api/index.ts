@@ -79,6 +79,24 @@ export interface DuplicateGroup {
   entries: GlobalPlugin[];
 }
 
+// Source is one settings.json/settings.local.json location on disk. `raw` is
+// the file's exact text, unmasked — masking happens client-side at render.
+export interface Source {
+  path: string;
+  kind: string;
+  exists: boolean;
+  isAnomaly: boolean;
+  raw: string;
+}
+
+// SourcesView is the full settings-source enumeration for a project: every
+// source plus a merged, provenance-tracked effective view.
+export interface SourcesView {
+  sources: Source[];
+  merged: Record<string, unknown>;
+  provenance: Record<string, string>;
+}
+
 export interface ElectronAPI {
   getAppVersion: () => Promise<string>;
   getProjects: () => Promise<Project[]>;
@@ -195,6 +213,7 @@ export interface ElectronAPI {
   setPluginEnabled: (key: string, enable: boolean) => Promise<void>;
   dedupePlugin: (name: string, keepKey: string) => Promise<void>;
   detectPluginDuplicates: () => Promise<DuplicateGroup[]>;
+  enumerateSettingsSources: (projectRoot: string) => Promise<SourcesView>;
 
   // Notifications API
   notifications: NotificationsAPI;

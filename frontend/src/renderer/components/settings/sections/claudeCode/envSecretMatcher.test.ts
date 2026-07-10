@@ -9,6 +9,9 @@ test('isSecretKey matches secret-shaped keys (fail-open fixtures)', () => {
   expect(isSecretKey('ANTHROPIC_API_KEY')).toBe(true);
   expect(isSecretKey('GITHUB_TOKEN')).toBe(true);
   expect(isSecretKey('MY_PAT')).toBe(true);
+  expect(isSecretKey('apiKey')).toBe(true);
+  expect(isSecretKey('secretAccessKey')).toBe(true);
+  expect(isSecretKey('oauthToken')).toBe(true);
 });
 
 test('isSecretKey does not match benign keys', () => {

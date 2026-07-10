@@ -1,6 +1,7 @@
 import {
   DedupePlugin,
   DetectPluginDuplicates,
+  EnumerateSettingsSources,
   ReadAgentConfigs,
   ReadClaudeMdFiles,
   ReadDirectoryClaudeMd,
@@ -26,6 +27,7 @@ import type {
   GlobalSettingsPatch,
   GlobalSkill,
   HookView,
+  SourcesView,
 } from '@shared/types/api';
 
 type FilesSlice = Pick<
@@ -46,6 +48,7 @@ type FilesSlice = Pick<
   | 'setPluginEnabled'
   | 'dedupePlugin'
   | 'detectPluginDuplicates'
+  | 'enumerateSettingsSources'
 >;
 
 export const filesApi: FilesSlice = {
@@ -120,4 +123,7 @@ export const filesApi: FilesSlice = {
 
   detectPluginDuplicates: (): Promise<DuplicateGroup[]> =>
     DetectPluginDuplicates() as unknown as Promise<DuplicateGroup[]>,
+
+  enumerateSettingsSources: (projectRoot: string): Promise<SourcesView> =>
+    EnumerateSettingsSources(projectRoot) as unknown as Promise<SourcesView>,
 };

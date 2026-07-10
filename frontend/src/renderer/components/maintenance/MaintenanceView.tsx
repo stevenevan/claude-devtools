@@ -16,6 +16,7 @@ import { LogsCleanupPanel } from './LogsCleanupPanel';
 import { PlansCleanupPanel } from './PlansCleanupPanel';
 import { PluginsCleanupPanel } from './PluginsCleanupPanel';
 import { ProjectsCleanupPanel } from './ProjectsCleanupPanel';
+import { ProjectSettingsPanel } from './ProjectSettingsPanel';
 import { RuntimeCleanupPanel } from './RuntimeCleanupPanel';
 import { SettingsDiffPanel } from './SettingsDiffPanel';
 import { StorageTable } from './StorageTable';
@@ -44,6 +45,7 @@ const CLEANUP_TABS: MaintenanceTab[] = [
   { id: 'history', label: 'History', render: () => <HistoryPanel /> },
   { id: 'health', label: 'Health', render: () => <HealthPanel /> },
   { id: 'settings-diff', label: 'Settings Diff', render: () => <SettingsDiffPanel /> },
+  { id: 'project-settings', label: 'Project Settings', render: () => <ProjectSettingsPanel /> },
 ];
 
 export const MaintenanceView = (): JSX.Element => {
