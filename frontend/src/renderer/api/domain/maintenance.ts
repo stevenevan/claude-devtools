@@ -4,12 +4,15 @@ import {
   AnalyzeHistory,
   CancelScan,
   ClearFiles,
+  DeleteInstructionFile,
   EmptyTrash,
   GetMaintenanceCutoff,
   GetMaintenanceHealth,
+  ListInstructionFiles,
   ListSettingsGenerations,
   ListTrash,
   PruneHistory,
+  ReadInstructionFile,
   ReadPlanFile,
   ReadSettingsGeneration,
   RestoreSettingsGeneration,
@@ -19,6 +22,7 @@ import {
   ScanClaudeDir,
   SetMaintenanceCutoff,
   TrashItems,
+  WriteInstructionFile,
 } from '../../../../bindings/claude-devtools/internal/maintenanceservice/maintenanceservice';
 
 import { reviveDates } from '../reviveDates';
@@ -29,6 +33,7 @@ import type {
   ElectronAPI,
   HealthStatus,
   HistoryStats,
+  InstructionFile,
   MaintenanceScanProgress,
   TrashReceipt,
 } from '@shared/types';
@@ -123,6 +128,21 @@ export const maintenanceApi: MaintenanceSlice = {
         callback();
       });
       return off;
+    },
+
+    listInstructionFiles: async (): Promise<InstructionFile[]> => {
+      const raw = await ListInstructionFiles();
+      return raw as unknown as InstructionFile[];
+    },
+
+    readInstructionFile: (relPath: string): Promise<string> => ReadInstructionFile(relPath),
+
+    writeInstructionFile: (relPath: string, content: string): Promise<void> =>
+      WriteInstructionFile(relPath, content),
+
+    deleteInstructionFile: async (relPath: string): Promise<TrashReceipt> => {
+      const raw = await DeleteInstructionFile(relPath);
+      return reviveDates(raw as unknown as TrashReceipt);
     },
   },
 };

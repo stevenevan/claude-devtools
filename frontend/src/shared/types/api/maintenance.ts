@@ -82,6 +82,15 @@ export interface HealthStatus {
   flags: HealthFlag[];
 }
 
+// InstructionFile is one entry in listInstructionFiles' result: an
+// allowlisted global instruction file's size and approximate context-window
+// cost (Week 25 context-cost meter).
+export interface InstructionFile {
+  relPath: string;
+  bytes: number;
+  approxTokens: number;
+}
+
 export interface MaintenanceAPI {
   scanClaudeDir: () => Promise<DirUsage[]>;
   cancelScan: () => Promise<void>;
@@ -108,4 +117,12 @@ export interface MaintenanceAPI {
   readSettingsGeneration: (name: string) => Promise<string>;
   restoreSettingsGeneration: (name: string) => Promise<void>;
   onConfigFileChange: (callback: () => void) => () => void;
+
+  // Instruction-file editors (Week 25): global CLAUDE.md/RTK.md/rules/
+  // commands/tools allowlist. List/read are read-only; write/delete are
+  // SSH-gated + serialized on the backend.
+  listInstructionFiles: () => Promise<InstructionFile[]>;
+  readInstructionFile: (relPath: string) => Promise<string>;
+  writeInstructionFile: (relPath: string, content: string) => Promise<void>;
+  deleteInstructionFile: (relPath: string) => Promise<TrashReceipt>;
 }
