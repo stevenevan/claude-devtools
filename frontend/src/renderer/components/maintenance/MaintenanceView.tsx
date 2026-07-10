@@ -8,6 +8,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { FileHistoryCleanupPanel } from './FileHistoryCleanupPanel';
 import { JunkCleanupPanel } from './JunkCleanupPanel';
+import { PlansCleanupPanel } from './PlansCleanupPanel';
 import { PluginsCleanupPanel } from './PluginsCleanupPanel';
 import { RuntimeCleanupPanel } from './RuntimeCleanupPanel';
 import { StorageTable } from './StorageTable';
@@ -28,6 +29,7 @@ const CLEANUP_TABS: MaintenanceTab[] = [
   { id: 'file-history', label: 'File History', render: () => <FileHistoryCleanupPanel /> },
   { id: 'junk', label: 'Junk', render: () => <JunkCleanupPanel /> },
   { id: 'runtime', label: 'Runtime', render: () => <RuntimeCleanupPanel /> },
+  { id: 'plans', label: 'Plans', render: () => <PlansCleanupPanel /> },
 ];
 
 export const MaintenanceView = (): JSX.Element => {

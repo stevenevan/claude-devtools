@@ -47,6 +47,7 @@ export interface MaintenanceAPI {
   scanCategory: (id: string) => Promise<Candidate[]>;
   getCutoff: (id: string) => Promise<number>;
   setCutoff: (id: string, days: number) => Promise<void>;
+  readPlanFile: (name: string) => Promise<string>;
   trashItems: (paths: string[]) => Promise<TrashReceipt>;
   listTrash: () => Promise<TrashReceipt[]>;
   restoreTrash: (id: string) => Promise<void>;

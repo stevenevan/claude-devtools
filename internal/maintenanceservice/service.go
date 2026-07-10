@@ -18,6 +18,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 
 	"claude-devtools/internal/config"
+	"claude-devtools/internal/files"
 	"claude-devtools/internal/maintenance"
 )
 
@@ -193,6 +194,35 @@ func readEnabledPlugins(root string) []string {
 		}
 	}
 	return out
+}
+
+// ReadPlanFile returns the raw contents of a plan file under <root>/plans for
+// the W29 read-only markdown view. name is a bare file name (no separators) and
+// the resolved path is Confine-checked to plans/ — never an arbitrary-file-read
+// primitive (Security M4). Content is capped since plans are text.
+func (s *MaintenanceService) ReadPlanFile(name string) (string, error) {
+	if name == "" || strings.ContainsRune(name, '/') || strings.ContainsRune(name, filepath.Separator) ||
+		name == "." || name == ".." {
+		return "", fmt.Errorf("maintenance: invalid plan file name")
+	}
+	root := s.config.GetClaudeRootInfo().EffectivePath
+	plansDir, err := filepath.EvalSymlinks(filepath.Join(root, "plans"))
+	if err != nil {
+		return "", fmt.Errorf("maintenance: plans dir: %w", err)
+	}
+	confined, err := files.Confine(filepath.Join(plansDir, name), plansDir)
+	if err != nil {
+		return "", err
+	}
+	data, err := os.ReadFile(confined)
+	if err != nil {
+		return "", err
+	}
+	const maxPlanBytes = 2 << 20 // 2 MiB — plans are text
+	if len(data) > maxPlanBytes {
+		data = data[:maxPlanBytes]
+	}
+	return string(data), nil
 }
 
 // CancelScan cancels the in-flight scan, if any. No-op otherwise.

@@ -5,6 +5,7 @@ import {
   EmptyTrash,
   GetMaintenanceCutoff,
   ListTrash,
+  ReadPlanFile,
   RestoreTrash,
   ScanCategory,
   ScanClaudeDir,
@@ -41,6 +42,8 @@ export const maintenanceApi: MaintenanceSlice = {
     getCutoff: (id: string): Promise<number> => GetMaintenanceCutoff(id),
 
     setCutoff: (id: string, days: number): Promise<void> => SetMaintenanceCutoff(id, days),
+
+    readPlanFile: (name: string): Promise<string> => ReadPlanFile(name),
 
     onScanProgress: (callback: (progress: MaintenanceScanProgress) => void): (() => void) => {
       const off = Events.On('maintenance:scan-progress', (e) => {
