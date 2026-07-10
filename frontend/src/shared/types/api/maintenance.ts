@@ -101,4 +101,11 @@ export interface MaintenanceAPI {
   onTrashed: (callback: (projects: string[]) => void) => () => void;
   clearFiles: (paths: string[], truncate: boolean) => Promise<void>;
   getMaintenanceHealth: () => Promise<HealthStatus>;
+
+  // Settings generations diff/restore (Week 15). List/read are read-only (no
+  // gate); restore is the destructive, SSH-gated write.
+  listSettingsGenerations: () => Promise<string[]>;
+  readSettingsGeneration: (name: string) => Promise<string>;
+  restoreSettingsGeneration: (name: string) => Promise<void>;
+  onConfigFileChange: (callback: () => void) => () => void;
 }

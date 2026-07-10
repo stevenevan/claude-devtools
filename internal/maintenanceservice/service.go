@@ -426,6 +426,27 @@ func (s *MaintenanceService) GetMaintenanceHealth() (maintenance.HealthStatus, e
 	return maintenance.MaintenanceHealth(s.config.GetClaudeRootInfo().EffectivePath)
 }
 
+// ListSettingsGenerations / ReadSettingsGeneration are read-only (no gate).
+func (s *MaintenanceService) ListSettingsGenerations() ([]string, error) {
+	return files.ListSettingsGenerations()
+}
+
+func (s *MaintenanceService) ReadSettingsGeneration(name string) (string, error) {
+	return files.ReadSettingsGeneration(name)
+}
+
+// RestoreSettingsGeneration overwrites settings.json with a chosen generation
+// (through the atomic .bak-first ReplaceSettingsJSON). Destructive config write:
+// SSH-gated + serialized under s.mu.
+func (s *MaintenanceService) RestoreSettingsGeneration(name string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.sshActive() {
+		return errSSHActive
+	}
+	return files.RestoreSettingsGeneration(name)
+}
+
 // CancelScan cancels the in-flight scan, if any. No-op otherwise.
 func (s *MaintenanceService) CancelScan() error {
 	s.mu.Lock()

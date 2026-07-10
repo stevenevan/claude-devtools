@@ -37,6 +37,10 @@ export interface MaintenanceSlice {
   // Read-only health snapshot (Week 14).
   health: HealthStatus | null;
 
+  // settings.json generation names (settings.json / .bak / .pre-ponytail) for
+  // the diff/restore panel (Week 15).
+  settingsGenerations: string[];
+
   scanStorage: () => Promise<void>;
   cancelScan: () => Promise<void>;
   setMaintenanceProgress: (progress: MaintenanceScanProgress) => void;
@@ -52,6 +56,8 @@ export interface MaintenanceSlice {
   pruneHistory: (cutoffDays: number) => Promise<TrashReceipt | null>;
   clearFiles: (paths: string[], truncate: boolean, rescanIds?: string[]) => Promise<void>;
   loadHealth: () => Promise<void>;
+  loadSettingsGenerations: () => Promise<void>;
+  restoreSettingsGeneration: (name: string) => Promise<void>;
 }
 
 export const createMaintenanceSlice: StateCreator<AppState, [], [], MaintenanceSlice> = (
@@ -74,6 +80,8 @@ export const createMaintenanceSlice: StateCreator<AppState, [], [], MaintenanceS
   historyStats: null,
 
   health: null,
+
+  settingsGenerations: [],
 
   scanStorage: async () => {
     if (get().connectionMode !== 'local') {
@@ -291,6 +299,32 @@ export const createMaintenanceSlice: StateCreator<AppState, [], [], MaintenanceS
       set({ health });
     } catch (err) {
       logger.error('Failed to load maintenance health:', err);
+    }
+  },
+
+  loadSettingsGenerations: async () => {
+    try {
+      const settingsGenerations = await api.maintenance.listSettingsGenerations();
+      set({ settingsGenerations });
+    } catch (err) {
+      logger.error('Failed to load settings generations:', err);
+    }
+  },
+
+  restoreSettingsGeneration: async (name) => {
+    if (get().connectionMode !== 'local') {
+      set({ trashError: LOCAL_ONLY_ERROR });
+      return;
+    }
+
+    set({ trashLoading: true, trashError: null });
+    try {
+      await api.maintenance.restoreSettingsGeneration(name);
+      await get().loadSettingsGenerations();
+      set({ trashLoading: false });
+    } catch (err) {
+      logger.error('Failed to restore settings generation:', err);
+      set({ trashLoading: false, trashError: err instanceof Error ? err.message : String(err) });
     }
   },
 });

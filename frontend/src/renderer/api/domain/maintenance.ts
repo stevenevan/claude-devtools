@@ -7,9 +7,12 @@ import {
   EmptyTrash,
   GetMaintenanceCutoff,
   GetMaintenanceHealth,
+  ListSettingsGenerations,
   ListTrash,
   PruneHistory,
   ReadPlanFile,
+  ReadSettingsGeneration,
+  RestoreSettingsGeneration,
   RestoreTrash,
   RollbackBinary,
   ScanCategory,
@@ -107,6 +110,19 @@ export const maintenanceApi: MaintenanceSlice = {
     getMaintenanceHealth: async (): Promise<HealthStatus> => {
       const raw = await GetMaintenanceHealth();
       return raw as unknown as HealthStatus;
+    },
+
+    listSettingsGenerations: (): Promise<string[]> => ListSettingsGenerations(),
+
+    readSettingsGeneration: (name: string): Promise<string> => ReadSettingsGeneration(name),
+
+    restoreSettingsGeneration: (name: string): Promise<void> => RestoreSettingsGeneration(name),
+
+    onConfigFileChange: (callback: () => void): (() => void) => {
+      const off = Events.On('config-file-change', () => {
+        callback();
+      });
+      return off;
     },
   },
 };

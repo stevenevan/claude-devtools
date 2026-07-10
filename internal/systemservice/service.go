@@ -1,6 +1,7 @@
 // Package systemservice ports commands/system.rs, commands/window.rs, and plugins.rs.
 // Exposes: GetAppVersion, StartWatching, StopWatching, LogRendererEvent,
-//          GetAllTodos, WindowBusBroadcast, WindowBusReady, PluginsDiscover.
+//
+//	GetAllTodos, WindowBusBroadcast, WindowBusReady, PluginsDiscover.
 //
 // application.Get() is only called here (and notifyservice) — never in pure logic packages.
 package systemservice
@@ -82,7 +83,8 @@ func (s *SystemService) StartWatching() error {
 		s.watcherMu.Unlock()
 		return nil // already watching
 	}
-	r := watcher.New(projectsDir, todosDir, func(event string, payload any) {
+	// configDir = claudeDir so settings.json writes surface as config-file-change.
+	r := watcher.New(projectsDir, todosDir, claudeDir, func(event string, payload any) {
 		emitEvent(event, payload)
 	})
 	s.runner = r
@@ -354,4 +356,3 @@ func isValidProjectID(id string) bool {
 	}
 	return len(id) > 0 && id[0] == '-'
 }
-

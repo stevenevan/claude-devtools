@@ -258,7 +258,7 @@ func TestIntegration_DebouncedFileChange(t *testing.T) {
 		payload any
 	}
 	events := make(chan received, 10)
-	r := watcher.New(projectsDir, todosDir, func(event string, payload any) {
+	r := watcher.New(projectsDir, todosDir, "", func(event string, payload any) {
 		select {
 		case events <- received{event, payload}:
 		default:
@@ -312,5 +312,59 @@ func TestIntegration_DebouncedFileChange(t *testing.T) {
 		t.Errorf("unexpected extra event after debounce: %s", extra.event)
 	case <-time.After(400 * time.Millisecond):
 		// correct: debounce coalesced 5 writes into 1
+	}
+}
+
+// TestIntegration_ConfigFileChange verifies a settings.json write via
+// temp+rename (which breaks a direct-file watch) still surfaces one debounced
+// config-file-change from the parent-dir watch (W15-T3).
+func TestIntegration_ConfigFileChange(t *testing.T) {
+	tmpDir := t.TempDir()
+	realTmp, err := filepath.EvalSymlinks(tmpDir)
+	if err != nil {
+		realTmp = tmpDir
+	}
+	configDir := realTmp
+	projectsDir := filepath.Join(realTmp, "projects")
+	todosDir := filepath.Join(realTmp, "todos")
+	for _, d := range []string{projectsDir, todosDir} {
+		if err := os.MkdirAll(d, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	events := make(chan string, 10)
+	r := watcher.New(projectsDir, todosDir, configDir, func(event string, _ any) {
+		select {
+		case events <- event:
+		default:
+		}
+	})
+	if err := r.Start(); err != nil {
+		t.Skipf("watcher.Start failed: %v", err)
+	}
+	defer r.Stop()
+	time.Sleep(200 * time.Millisecond)
+
+	// Atomic write: settings.json.tmp then rename over settings.json.
+	settingsPath := filepath.Join(configDir, "settings.json")
+	tmpPath := settingsPath + ".tmp"
+	if err := os.WriteFile(tmpPath, []byte(`{"theme":"dark"}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Rename(tmpPath, settingsPath); err != nil {
+		t.Fatal(err)
+	}
+
+	deadline := time.After(3 * time.Second)
+	for {
+		select {
+		case ev := <-events:
+			if ev == "config-file-change" {
+				return // success
+			}
+		case <-deadline:
+			t.Fatal("no config-file-change event within 3 s")
+		}
 	}
 }
