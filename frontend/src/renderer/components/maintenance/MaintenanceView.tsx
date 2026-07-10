@@ -8,6 +8,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { PluginsCleanupPanel } from './PluginsCleanupPanel';
 import { StorageTable } from './StorageTable';
+import { TranscriptsCleanupPanel } from './TranscriptsCleanupPanel';
 import { TrashPanel } from './TrashPanel';
 
 // Maintenance tab registry. Each cleanup week appends its panel here; "storage"
@@ -20,6 +21,7 @@ interface MaintenanceTab {
 
 const CLEANUP_TABS: MaintenanceTab[] = [
   { id: 'plugins', label: 'Plugins', render: () => <PluginsCleanupPanel /> },
+  { id: 'transcripts', label: 'Transcripts', render: () => <TranscriptsCleanupPanel /> },
 ];
 
 export const MaintenanceView = (): JSX.Element => {
