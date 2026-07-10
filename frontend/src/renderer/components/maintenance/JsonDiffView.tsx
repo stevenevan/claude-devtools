@@ -1,11 +1,14 @@
 import { JSX } from 'react';
 import { DiffViewer } from '@renderer/components/chat/viewers/DiffViewer';
 
+import { isSecretKey } from '../settings/sections/claudeCode/envSecretMatcher';
+
 interface JsonDiffViewProps {
   left: string;
   right: string;
   leftLabel?: string;
   rightLabel?: string;
+  redactSecrets?: boolean;
 }
 
 function stableKeySort(value: unknown): unknown {
@@ -20,9 +23,25 @@ function stableKeySort(value: unknown): unknown {
   return value;
 }
 
-function prettyPrint(raw: string): string {
+// Replaces any value whose key looks like a secret with a mask placeholder,
+// so settings.json diffs never render secrets in cleartext.
+function redactSecretValues(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactSecretValues);
+  if (value !== null && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+      out[key] = isSecretKey(key) ? '••••' : redactSecretValues(v);
+    }
+    return out;
+  }
+  return value;
+}
+
+function prettyPrint(raw: string, redactSecrets: boolean): string {
   try {
-    return JSON.stringify(stableKeySort(JSON.parse(raw)), null, 2);
+    const parsed = JSON.parse(raw);
+    const sorted = stableKeySort(redactSecrets ? redactSecretValues(parsed) : parsed);
+    return JSON.stringify(sorted, null, 2);
   } catch {
     return raw;
   }
@@ -36,9 +55,10 @@ export const JsonDiffView = ({
   right,
   leftLabel,
   rightLabel,
+  redactSecrets = false,
 }: Readonly<JsonDiffViewProps>): JSX.Element => {
-  const prettyLeft = prettyPrint(left);
-  const prettyRight = prettyPrint(right);
+  const prettyLeft = prettyPrint(left, redactSecrets);
+  const prettyRight = prettyPrint(right, redactSecrets);
 
   return (
     <div className="flex flex-col gap-2">

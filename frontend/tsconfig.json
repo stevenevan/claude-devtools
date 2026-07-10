@@ -15,7 +15,7 @@
       "@renderer/*": ["./src/renderer/*"],
       "@shared/*": ["./src/shared/*"]
     },
-    "types": ["node"]
+    "types": ["node", "bun"]
   },
   "include": ["src/renderer/**/*", "src/shared/**/*"],
   "exclude": ["node_modules", "dist"]

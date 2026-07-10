@@ -6,13 +6,9 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { SettingsSectionHeader } from '../components';
 
-import type { GlobalSettingsPatch } from '@shared/types/api';
+import { EnvFlagsPanel } from './claudeCode/EnvFlagsPanel';
 
-interface EnvRow {
-  id: string;
-  key: string;
-  value: string;
-}
+import type { GlobalSettingsPatch } from '@shared/types/api';
 
 interface HookSummary {
   event: string;
@@ -33,19 +29,6 @@ function toEnvRecord(value: unknown): Record<string, string> {
 
 function toStringList(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
-}
-
-function envToRows(env: Record<string, string>): EnvRow[] {
-  return Object.entries(env).map(([key, value]) => ({ id: crypto.randomUUID(), key, value }));
-}
-
-function rowsToEnv(rows: EnvRow[]): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const row of rows) {
-    const key = row.key.trim();
-    if (key) out[key] = row.value;
-  }
-  return out;
 }
 
 function summarizeHooks(value: unknown): HookSummary[] {
@@ -155,7 +138,7 @@ export const ClaudeCodeSection = (): JSX.Element | null => {
     }
   }, [globalSettings, globalSettingsLoading, fetchGlobalSettings]);
 
-  const [envRows, setEnvRows] = useState<EnvRow[]>([]);
+  const [env, setEnv] = useState<Record<string, string>>({});
   const [allow, setAllow] = useState<string[]>([]);
   const [deny, setDeny] = useState<string[]>([]);
   const [ask, setAsk] = useState<string[]>([]);
@@ -165,7 +148,7 @@ export const ClaudeCodeSection = (): JSX.Element | null => {
 
   useEffect(() => {
     if (!globalSettings) return;
-    setEnvRows(envToRows(toEnvRecord(globalSettings.env)));
+    setEnv(toEnvRecord(globalSettings.env));
     const permissions = toRecord(globalSettings.permissions);
     setAllow(toStringList(permissions.allow));
     setDeny(toStringList(permissions.deny));
@@ -195,24 +178,12 @@ export const ClaudeCodeSection = (): JSX.Element | null => {
 
   const hookSummary = summarizeHooks(globalSettings.hooks);
 
-  const updateEnvRow = (idx: number, patch: Partial<Pick<EnvRow, 'key' | 'value'>>): void => {
-    setEnvRows((rows) => rows.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
-  };
-
-  const removeEnvRow = (idx: number): void => {
-    setEnvRows((rows) => rows.filter((_, i) => i !== idx));
-  };
-
-  const addEnvRow = (): void => {
-    setEnvRows((rows) => [...rows, { id: crypto.randomUUID(), key: '', value: '' }]);
-  };
-
   const handleSave = async (): Promise<void> => {
     setSaveError(null);
     setSaveSuccess(false);
     setSaving(true);
     const patch: GlobalSettingsPatch = {
-      env: rowsToEnv(envRows),
+      env,
       allow,
       deny,
       ask,
@@ -234,52 +205,7 @@ export const ClaudeCodeSection = (): JSX.Element | null => {
       </p>
 
       <SettingsSectionHeader title="Environment Variables" />
-      <div className="flex flex-col gap-2">
-        {envRows.length === 0 && (
-          <div className="text-text-muted border-border bg-surface-raised rounded-md border px-3 py-2 text-xs">
-            No environment variables set
-          </div>
-        )}
-        {envRows.map((row, idx) => (
-          <div key={row.id} className="flex items-center gap-2">
-            <input
-              value={row.key}
-              disabled={saving}
-              onChange={(e) => updateEnvRow(idx, { key: e.target.value })}
-              placeholder="KEY"
-              className={`${inputClass} w-48 font-mono`}
-            />
-            <input
-              value={row.value}
-              disabled={saving}
-              onChange={(e) => updateEnvRow(idx, { value: e.target.value })}
-              placeholder="value"
-              className={`${inputClass} flex-1 font-mono`}
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              disabled={saving}
-              onClick={() => removeEnvRow(idx)}
-              aria-label={`Remove ${row.key || 'variable'}`}
-            >
-              <Trash2 className="text-text-muted size-3" />
-            </Button>
-          </div>
-        ))}
-      </div>
-      <Button
-        type="button"
-        variant="secondary"
-        size="sm"
-        className="mt-2"
-        disabled={saving}
-        onClick={addEnvRow}
-      >
-        <Plus className="size-3" />
-        Add variable
-      </Button>
+      <EnvFlagsPanel env={env} onChange={setEnv} disabled={saving} />
 
       <SettingsSectionHeader title="Permissions" />
       <div className="flex flex-col gap-4">

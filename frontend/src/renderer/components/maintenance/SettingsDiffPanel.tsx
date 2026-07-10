@@ -207,6 +207,7 @@ export const SettingsDiffPanel = (): JSX.Element => {
             right={rightText}
             leftLabel={leftName}
             rightLabel={rightName}
+            redactSecrets
           />
         )}
       </div>
