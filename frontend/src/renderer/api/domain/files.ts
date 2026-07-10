@@ -1,4 +1,6 @@
 import {
+  DedupePlugin,
+  DetectPluginDuplicates,
   ReadAgentConfigs,
   ReadClaudeMdFiles,
   ReadDirectoryClaudeMd,
@@ -8,6 +10,7 @@ import {
   ReadGlobalSkills,
   ReadHooks,
   ReadMentionedFile,
+  SetPluginEnabled,
   ToggleHook,
   UpdateGlobalSettings,
   ValidateMentions,
@@ -17,6 +20,7 @@ import {
 import type { ClaudeMdFileInfo, ElectronAPI } from '@shared/types';
 import type {
   AgentConfig,
+  DuplicateGroup,
   GlobalAgent,
   GlobalPlugin,
   GlobalSettingsPatch,
@@ -39,6 +43,9 @@ type FilesSlice = Pick<
   | 'updateGlobalSettings'
   | 'readHooks'
   | 'toggleHook'
+  | 'setPluginEnabled'
+  | 'dedupePlugin'
+  | 'detectPluginDuplicates'
 >;
 
 export const filesApi: FilesSlice = {
@@ -104,4 +111,13 @@ export const filesApi: FilesSlice = {
     enable: boolean
   ): Promise<void> =>
     ToggleHook(event, matcherIndex, fingerprint, enable) as unknown as Promise<void>,
+
+  setPluginEnabled: (key: string, enable: boolean): Promise<void> =>
+    SetPluginEnabled(key, enable) as unknown as Promise<void>,
+
+  dedupePlugin: (name: string, keepKey: string): Promise<void> =>
+    DedupePlugin(name, keepKey) as unknown as Promise<void>,
+
+  detectPluginDuplicates: (): Promise<DuplicateGroup[]> =>
+    DetectPluginDuplicates() as unknown as Promise<DuplicateGroup[]>,
 };

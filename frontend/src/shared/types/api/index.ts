@@ -74,6 +74,11 @@ export interface HookView {
   disabled: HookEntry[];
 }
 
+export interface DuplicateGroup {
+  name: string;
+  entries: GlobalPlugin[];
+}
+
 export interface ElectronAPI {
   getAppVersion: () => Promise<string>;
   getProjects: () => Promise<Project[]>;
@@ -187,6 +192,9 @@ export interface ElectronAPI {
     fingerprint: string,
     enable: boolean
   ) => Promise<void>;
+  setPluginEnabled: (key: string, enable: boolean) => Promise<void>;
+  dedupePlugin: (name: string, keepKey: string) => Promise<void>;
+  detectPluginDuplicates: () => Promise<DuplicateGroup[]>;
 
   // Notifications API
   notifications: NotificationsAPI;

@@ -10,10 +10,11 @@ import (
 	"claude-devtools/internal/files"
 )
 
-// FilesService exposes 13 commands: ValidatePath, ValidateMentions,
+// FilesService exposes 16 commands: ValidatePath, ValidateMentions,
 // ReadClaudeMdFiles, ReadDirectoryClaudeMd, ReadMentionedFile,
 // ReadAgentConfigs, ReadGlobalAgents, ReadGlobalSkills, ReadGlobalPlugins,
-// ReadGlobalSettings, UpdateGlobalSettings, ReadHooks, ToggleHook.
+// ReadGlobalSettings, UpdateGlobalSettings, ReadHooks, ToggleHook,
+// SetPluginEnabled, DedupePlugin, DetectPluginDuplicates.
 type FilesService struct{}
 
 func (s *FilesService) Ready() (bool, error) { return true, nil }
@@ -111,4 +112,27 @@ func (s *FilesService) ToggleHook(event string, matcherIndex int, fingerprint st
 		return err
 	}
 	return files.ToggleHook(appDataDir, event, matcherIndex, fingerprint, enable)
+}
+
+// SetPluginEnabled adds or removes key in settings.json's "enabledPlugins"
+// map. Never touches installed_plugins.json or any plugin cache.
+func (s *FilesService) SetPluginEnabled(key string, enable bool) error {
+	return files.SetPluginEnabled(key, enable)
+}
+
+// DedupePlugin removes every "enabledPlugins" key whose plugin-name part
+// equals name, except keepKey.
+func (s *FilesService) DedupePlugin(name, keepKey string) error {
+	return files.DedupePlugin(name, keepKey)
+}
+
+// DetectPluginDuplicates reads the current installed plugins and returns
+// the groups enabled under 2+ distinct marketplaces at once, so the
+// frontend gets duplicates without a second read.
+func (s *FilesService) DetectPluginDuplicates() ([]files.DuplicateGroup, error) {
+	plugins, err := files.ReadGlobalPlugins()
+	if err != nil {
+		return nil, err
+	}
+	return files.DetectPluginDuplicates(plugins), nil
 }

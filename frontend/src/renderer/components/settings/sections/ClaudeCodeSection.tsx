@@ -8,6 +8,7 @@ import { SettingsSectionHeader } from '../components';
 
 import { EnvFlagsPanel } from './claudeCode/EnvFlagsPanel';
 import { HooksPanel } from './claudeCode/HooksPanel';
+import { PluginsPanel } from './claudeCode/PluginsPanel';
 
 import type { GlobalSettingsPatch } from '@shared/types/api';
 
@@ -195,6 +196,9 @@ export const ClaudeCodeSection = (): JSX.Element | null => {
 
       <SettingsSectionHeader title="Hooks" />
       <HooksPanel />
+
+      <SettingsSectionHeader title="Plugins" />
+      <PluginsPanel />
 
       <div className="mt-6 flex items-center gap-3">
         <Button
