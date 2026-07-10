@@ -26,6 +26,7 @@ export interface SettingsHandlers {
   handleClearSnooze: () => Promise<void>;
   handleAddIgnoredRepository: (item: RepositoryDropdownItem) => Promise<void>;
   handleRemoveIgnoredRepository: (repositoryId: string) => Promise<void>;
+  handleSetNotificationPolicy: (retentionDays: number, maxCount: number) => Promise<void>;
 
   // Trigger handlers
   handleAddTrigger: (trigger: Omit<NotificationTrigger, 'isBuiltin'>) => Promise<void>;

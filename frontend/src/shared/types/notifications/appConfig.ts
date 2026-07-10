@@ -19,6 +19,11 @@ export interface AppConfig {
     includeSubagentErrors: boolean;
 
     triggers: NotificationTrigger[];
+
+    // Week 13 auto-prune bounds for the app's own notification store. 0 = unbounded.
+    retentionDays: number;
+
+    maxCount: number;
   };
 
   general: {

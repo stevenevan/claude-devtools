@@ -51,6 +51,7 @@ interface NotificationsSectionProps {
     updates: Partial<NotificationTrigger>
   ) => Promise<void>;
   readonly onRemoveTrigger: (triggerId: string) => Promise<void>;
+  readonly onSetNotificationPolicy: (retentionDays: number, maxCount: number) => Promise<void>;
 }
 
 export const NotificationsSection = ({
@@ -67,6 +68,7 @@ export const NotificationsSection = ({
   onAddTrigger,
   onUpdateTrigger,
   onRemoveTrigger,
+  onSetNotificationPolicy,
 }: NotificationsSectionProps): JSX.Element => {
   return (
     <div>
@@ -148,6 +150,46 @@ export const NotificationsSection = ({
             </Select>
           )}
         </div>
+      </SettingRow>
+
+      <SettingsSectionHeader title="Notification Storage" />
+      <SettingRow
+        label="Keep notifications for (days)"
+        description="Older notifications are auto-pruned. 0 = unbounded."
+      >
+        <input
+          type="number"
+          min={0}
+          max={3650}
+          defaultValue={safeConfig.notifications.retentionDays}
+          disabled={saving}
+          onBlur={(e) => {
+            const days = Number(e.target.value);
+            if (Number.isFinite(days) && days >= 0 && days !== safeConfig.notifications.retentionDays) {
+              void onSetNotificationPolicy(days, safeConfig.notifications.maxCount);
+            }
+          }}
+          className="border-border bg-card text-foreground w-20 rounded-sm border px-2 py-1 text-right text-xs"
+        />
+      </SettingRow>
+      <SettingRow
+        label="Max notifications"
+        description="Oldest read notifications are pruned first when over the cap. 0 = unbounded."
+      >
+        <input
+          type="number"
+          min={0}
+          max={100000}
+          defaultValue={safeConfig.notifications.maxCount}
+          disabled={saving}
+          onBlur={(e) => {
+            const count = Number(e.target.value);
+            if (Number.isFinite(count) && count >= 0 && count !== safeConfig.notifications.maxCount) {
+              void onSetNotificationPolicy(safeConfig.notifications.retentionDays, count);
+            }
+          }}
+          className="border-border bg-card text-foreground w-20 rounded-sm border px-2 py-1 text-right text-xs"
+        />
       </SettingRow>
 
       <SettingsSectionHeader title="Ignored Repositories" />

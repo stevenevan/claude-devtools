@@ -1,4 +1,5 @@
 import { JSX, useEffect, useMemo, useRef, useState } from 'react';
+import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { getTriggerColorDef } from '@shared/constants/triggerColors';
@@ -47,7 +48,6 @@ export const NotificationsView = (): JSX.Element => {
 
   const parentRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
   // Fetch notifications on mount
@@ -131,14 +131,14 @@ export const NotificationsView = (): JSX.Element => {
 
   // Handle clear all with confirmation (scoped to active filter)
   const handleClearAll = async (): Promise<void> => {
-    if (showClearConfirm) {
-      await clearNotifications(activeFilter ?? undefined);
-      setShowClearConfirm(false);
-    } else {
-      setShowClearConfirm(true);
-      // Auto-hide confirmation after 3 seconds
-      setTimeout(() => setShowClearConfirm(false), 3000);
-    }
+    const confirmed = await confirm({
+      title: activeFilter !== null ? 'Clear filtered notifications' : 'Clear all notifications',
+      message: 'Removed immediately — notifications are not moved to trash.',
+      confirmLabel: 'Clear',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+    await clearNotifications(activeFilter ?? undefined);
   };
 
   // Handle archive (mark as read)
@@ -213,23 +213,14 @@ export const NotificationsView = (): JSX.Element => {
               )}
               <button
                 onClick={handleClearAll}
-                className={cn(
-                  'flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition-colors',
-                  showClearConfirm
-                    ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                    : 'text-muted-foreground hover:opacity-80'
-                )}
+                className="text-muted-foreground flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs transition-colors hover:opacity-80"
                 title={
                   activeFilter !== null ? 'Clear filtered notifications' : 'Clear all notifications'
                 }
               >
                 <Trash2 className="size-4" />
                 <span className="hidden sm:inline">
-                  {showClearConfirm
-                    ? 'Click to confirm'
-                    : activeFilter !== null
-                      ? 'Clear filtered'
-                      : 'Clear all'}
+                  {activeFilter !== null ? 'Clear filtered' : 'Clear all'}
                 </span>
               </button>
             </div>

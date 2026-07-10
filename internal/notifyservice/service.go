@@ -16,14 +16,34 @@ import (
 
 // NotificationService matches triggers and emits notification:* events.
 type NotificationService struct {
-	ctx   context.Context
-	state *notifications.NotificationState
+	ctx    context.Context
+	state  *notifications.NotificationState
+	config *config.ConfigState
 }
 
 func (s *NotificationService) ServiceStartup(ctx context.Context, _ application.ServiceOptions) error {
 	s.ctx = ctx
 	s.state = notifications.NewNotificationState()
+	s.config = &config.ConfigState{}
+	// Apply the persisted W13 auto-prune policy over the constructor defaults.
+	nc := s.config.GetConfig().Notifications
+	s.state.Lock()
+	s.state.SetPolicy(nc.RetentionDays, nc.MaxCount)
+	s.state.Unlock()
 	return nil
+}
+
+// SetNotificationPolicy persists the W13 auto-prune bounds and applies them to
+// the live store immediately. Returns the clamped [retentionDays, maxCount].
+func (s *NotificationService) SetNotificationPolicy(retentionDays, maxCount int) ([]int, error) {
+	rd, mc, err := s.config.SetNotificationPolicy(retentionDays, maxCount)
+	if err != nil {
+		return nil, err
+	}
+	s.state.Lock()
+	s.state.SetPolicy(rd, mc)
+	s.state.Unlock()
+	return []int{rd, mc}, nil
 }
 
 func (s *NotificationService) ServiceShutdown() error { return nil }

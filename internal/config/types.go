@@ -79,6 +79,10 @@ type NotificationConfig struct {
 	SnoozeMinutes         uint32                `json:"snoozeMinutes"`
 	IncludeSubagentErrors bool                  `json:"includeSubagentErrors"`
 	Triggers              []NotificationTrigger `json:"triggers"`
+	// RetentionDays / MaxCount bound the app's own notification store (W13
+	// auto-prune). 0 = unbounded for that dimension.
+	RetentionDays int `json:"retentionDays"`
+	MaxCount      int `json:"maxCount"`
 }
 
 func defaultNotificationConfig() NotificationConfig {
@@ -91,6 +95,8 @@ func defaultNotificationConfig() NotificationConfig {
 		SnoozeMinutes:         30,
 		IncludeSubagentErrors: true,
 		Triggers:              DefaultTriggers(),
+		RetentionDays:         30,
+		MaxCount:              200,
 	}
 }
 

@@ -50,6 +50,7 @@ import {
   NotificationsMarkAllRead,
   NotificationsMarkRead,
   NotificationsTestTrigger,
+  SetNotificationPolicy,
   WebhookTestSend,
 } from '../../../../bindings/claude-devtools/internal/notifyservice/notificationservice';
 import { SessionScrollToLine } from '../../../../bindings/claude-devtools/internal/sessionservice/sessionservice';
@@ -203,6 +204,8 @@ const notificationsApiImpl: NotificationsAPI = {
     });
     return off;
   },
+  setNotificationPolicy: (retentionDays, maxCount) =>
+    SetNotificationPolicy(retentionDays, maxCount) as unknown as Promise<[number, number]>,
 };
 
 const sessionApiImpl: SessionAPI = {

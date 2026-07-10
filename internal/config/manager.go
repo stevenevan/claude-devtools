@@ -412,6 +412,14 @@ func mergeConfigWithDefaults(raw map[string]json.RawMessage) AppConfig {
 			if n.IgnoredRepositories == nil {
 				n.IgnoredRepositories = []string{}
 			}
+			// A store predating W13 lacks these; 0 (Go zero) would mean unbounded
+			// growth, so fall back to the defaults rather than "no limit".
+			if n.RetentionDays == 0 {
+				n.RetentionDays = defaults.Notifications.RetentionDays
+			}
+			if n.MaxCount == 0 {
+				n.MaxCount = defaults.Notifications.MaxCount
+			}
 			cfg.Notifications = n
 		}
 	}
@@ -523,6 +531,23 @@ func clampCutoffDays(days int) int {
 		return cutoffDaysMax
 	}
 	return days
+}
+
+// SetNotificationPolicy persists the W13 auto-prune bounds (clamped to sane
+// values) and returns the applied (retentionDays, maxCount).
+func (cs *ConfigState) SetNotificationPolicy(retentionDays, maxCount int) (int, int, error) {
+	if retentionDays < 1 {
+		retentionDays = 1
+	}
+	if maxCount < 1 {
+		maxCount = 1
+	}
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	cs.config.Notifications.RetentionDays = retentionDays
+	cs.config.Notifications.MaxCount = maxCount
+	return retentionDays, maxCount, cs.saveConfig()
 }
 
 // GetMaintenanceCutoff returns the persisted cutoff (days) for category id, or

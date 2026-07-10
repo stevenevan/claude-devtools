@@ -28,6 +28,7 @@ export function useNotificationHandlers({
   | 'handleClearSnooze'
   | 'handleAddIgnoredRepository'
   | 'handleRemoveIgnoredRepository'
+  | 'handleSetNotificationPolicy'
 > {
   // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleNotificationToggle = useCallback(
@@ -106,11 +107,33 @@ export function useNotificationHandlers({
     [setSaving, setConfig, setOptimisticConfig, setError]
   );
 
+  // ponytail: useCallback required — returned from hook; callers include in dep arrays
+  const handleSetNotificationPolicy = useCallback(
+    async (retentionDays: number, maxCount: number) => {
+      try {
+        setSaving(true);
+        await api.notifications.setNotificationPolicy(retentionDays, maxCount);
+        // SetNotificationPolicy only returns the clamped [retentionDays, maxCount],
+        // not the full config — re-fetch to keep config/optimisticConfig authoritative.
+        const updatedConfig = await api.config.get();
+        setConfig(updatedConfig);
+        setOptimisticConfig(updatedConfig);
+        setStoreState({ appConfig: updatedConfig });
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to update notification policy');
+      } finally {
+        setSaving(false);
+      }
+    },
+    [setSaving, setConfig, setOptimisticConfig, setError]
+  );
+
   return {
     handleNotificationToggle,
     handleSnooze,
     handleClearSnooze,
     handleAddIgnoredRepository,
     handleRemoveIgnoredRepository,
+    handleSetNotificationPolicy,
   };
 }

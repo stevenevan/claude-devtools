@@ -22,4 +22,6 @@ export interface NotificationsAPI {
     callback: (event: unknown, payload: { total: number; unreadCount: number }) => void
   ) => () => void;
   onClicked: (callback: (event: unknown, data: unknown) => void) => () => void;
+  // Week 13 auto-prune bounds. Returns the clamped [retentionDays, maxCount].
+  setNotificationPolicy: (retentionDays: number, maxCount: number) => Promise<[number, number]>;
 }
