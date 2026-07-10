@@ -1,17 +1,19 @@
 // Package filesservice is a thin Wails service wrapper over internal/files.
-// It exposes all 11 file-related commands.
-// Layering: imports only internal/files (which imports only discovery/stdlib).
-// No application import here — no events emitted by file commands.
+// It exposes all 13 file-related commands.
+// Layering: imports internal/files and internal/config (config imports
+// neither files nor filesservice, so no cycle). No application import here
+// — no events emitted by file commands.
 package filesservice
 
 import (
+	"claude-devtools/internal/config"
 	"claude-devtools/internal/files"
 )
 
-// FilesService exposes 11 commands: ValidatePath, ValidateMentions,
+// FilesService exposes 13 commands: ValidatePath, ValidateMentions,
 // ReadClaudeMdFiles, ReadDirectoryClaudeMd, ReadMentionedFile,
 // ReadAgentConfigs, ReadGlobalAgents, ReadGlobalSkills, ReadGlobalPlugins,
-// ReadGlobalSettings, UpdateGlobalSettings.
+// ReadGlobalSettings, UpdateGlobalSettings, ReadHooks, ToggleHook.
 type FilesService struct{}
 
 func (s *FilesService) Ready() (bool, error) { return true, nil }
@@ -87,4 +89,26 @@ func (s *FilesService) ReadGlobalSettings() (any, error) {
 // into ~/.claude/settings.json, preserving every other key.
 func (s *FilesService) UpdateGlobalSettings(patch files.SettingsPatch) error {
 	return files.UpdateGlobalSettings(patch)
+}
+
+// ReadHooks builds the enabled/disabled hooks view: enabled entries come
+// from ~/.claude/settings.json, disabled entries from the app-owned
+// hooks-disabled.json under the claude-devtools app data dir.
+func (s *FilesService) ReadHooks() (files.HookView, error) {
+	appDataDir, err := config.AppDataDir()
+	if err != nil {
+		return files.HookView{}, err
+	}
+	return files.ReadHooks(appDataDir)
+}
+
+// ToggleHook enables or disables the hook matcher-group at (event,
+// matcherIndex), verifying fingerprint still matches before moving it
+// between settings.json and hooks-disabled.json.
+func (s *FilesService) ToggleHook(event string, matcherIndex int, fingerprint string, enable bool) error {
+	appDataDir, err := config.AppDataDir()
+	if err != nil {
+		return err
+	}
+	return files.ToggleHook(appDataDir, event, matcherIndex, fingerprint, enable)
 }

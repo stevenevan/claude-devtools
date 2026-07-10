@@ -6,7 +6,9 @@ import {
   ReadGlobalPlugins,
   ReadGlobalSettings,
   ReadGlobalSkills,
+  ReadHooks,
   ReadMentionedFile,
+  ToggleHook,
   UpdateGlobalSettings,
   ValidateMentions,
   ValidatePath,
@@ -19,6 +21,7 @@ import type {
   GlobalPlugin,
   GlobalSettingsPatch,
   GlobalSkill,
+  HookView,
 } from '@shared/types/api';
 
 type FilesSlice = Pick<
@@ -34,6 +37,8 @@ type FilesSlice = Pick<
   | 'readGlobalPlugins'
   | 'readGlobalSettings'
   | 'updateGlobalSettings'
+  | 'readHooks'
+  | 'toggleHook'
 >;
 
 export const filesApi: FilesSlice = {
@@ -89,4 +94,14 @@ export const filesApi: FilesSlice = {
     UpdateGlobalSettings(
       patch as unknown as Parameters<typeof UpdateGlobalSettings>[0]
     ) as unknown as Promise<void>,
+
+  readHooks: (): Promise<HookView> => ReadHooks() as unknown as Promise<HookView>,
+
+  toggleHook: (
+    event: string,
+    matcherIndex: number,
+    fingerprint: string,
+    enable: boolean
+  ): Promise<void> =>
+    ToggleHook(event, matcherIndex, fingerprint, enable) as unknown as Promise<void>,
 };

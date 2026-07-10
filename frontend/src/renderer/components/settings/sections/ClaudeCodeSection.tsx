@@ -7,13 +7,9 @@ import { useShallow } from 'zustand/react/shallow';
 import { SettingsSectionHeader } from '../components';
 
 import { EnvFlagsPanel } from './claudeCode/EnvFlagsPanel';
+import { HooksPanel } from './claudeCode/HooksPanel';
 
 import type { GlobalSettingsPatch } from '@shared/types/api';
-
-interface HookSummary {
-  event: string;
-  commandCount: number;
-}
 
 function toRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
@@ -29,21 +25,6 @@ function toEnvRecord(value: unknown): Record<string, string> {
 
 function toStringList(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
-}
-
-function summarizeHooks(value: unknown): HookSummary[] {
-  return Object.entries(toRecord(value))
-    .map(([event, groups]) => {
-      let commandCount = 0;
-      if (Array.isArray(groups)) {
-        for (const group of groups) {
-          const commands = toRecord(group).hooks;
-          if (Array.isArray(commands)) commandCount += commands.length;
-        }
-      }
-      return { event, commandCount };
-    })
-    .sort((a, b) => a.event.localeCompare(b.event));
 }
 
 const inputClass = 'border-border bg-surface text-text rounded-sm border px-2 py-1 text-xs';
@@ -176,8 +157,6 @@ export const ClaudeCodeSection = (): JSX.Element | null => {
     return null;
   }
 
-  const hookSummary = summarizeHooks(globalSettings.hooks);
-
   const handleSave = async (): Promise<void> => {
     setSaveError(null);
     setSaveSuccess(false);
@@ -215,20 +194,7 @@ export const ClaudeCodeSection = (): JSX.Element | null => {
       </div>
 
       <SettingsSectionHeader title="Hooks" />
-      <div className="border-border bg-surface-raised divide-border-subtle divide-y rounded-md border">
-        {hookSummary.length === 0 && (
-          <div className="text-text-muted px-3 py-2 text-xs">No hooks configured</div>
-        )}
-        {hookSummary.map((h) => (
-          <div key={h.event} className="flex items-center justify-between px-3 py-1.5 text-xs">
-            <span className="text-text font-mono">{h.event}</span>
-            <span className="text-text-muted">
-              {h.commandCount} command{h.commandCount === 1 ? '' : 's'}
-            </span>
-          </div>
-        ))}
-      </div>
-      <p className="text-text-muted mt-1 text-xs">Edit in editor for now.</p>
+      <HooksPanel />
 
       <div className="mt-6 flex items-center gap-3">
         <Button

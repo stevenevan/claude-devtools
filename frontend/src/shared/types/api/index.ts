@@ -61,6 +61,19 @@ export interface GlobalSettingsPatch {
   ask: string[];
 }
 
+export interface HookEntry {
+  event: string;
+  matcher: string;
+  commands: string[];
+  fingerprint: string;
+  index: number;
+}
+
+export interface HookView {
+  enabled: HookEntry[];
+  disabled: HookEntry[];
+}
+
 export interface ElectronAPI {
   getAppVersion: () => Promise<string>;
   getProjects: () => Promise<Project[]>;
@@ -167,6 +180,13 @@ export interface ElectronAPI {
   readGlobalPlugins: () => Promise<GlobalPlugin[]>;
   readGlobalSettings: () => Promise<Record<string, unknown>>;
   updateGlobalSettings: (patch: GlobalSettingsPatch) => Promise<void>;
+  readHooks: () => Promise<HookView>;
+  toggleHook: (
+    event: string,
+    matcherIndex: number,
+    fingerprint: string,
+    enable: boolean
+  ) => Promise<void>;
 
   // Notifications API
   notifications: NotificationsAPI;
