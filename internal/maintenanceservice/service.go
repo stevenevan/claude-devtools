@@ -17,6 +17,7 @@ import (
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 
+	"claude-devtools/internal/cache"
 	"claude-devtools/internal/config"
 	"claude-devtools/internal/files"
 	"claude-devtools/internal/maintenance"
@@ -34,6 +35,9 @@ type MaintenanceService struct {
 	mu        sync.Mutex
 	cancel    context.CancelFunc
 	sshActive func() bool
+	// cache is the shared SessionCache pointer (same instance sessionservice
+	// uses) so trashing a session evicts its parsed entry, not a throwaway copy.
+	cache *cache.SessionCache
 }
 
 // New wires the SSH gate (SEC-server-gate): destructive ops (TrashItems,
@@ -42,8 +46,8 @@ type MaintenanceService struct {
 // passes a closure over the already-registered SshService pointer (mirrors
 // cache.Default()'s shared-pointer injection precedent) — a fresh SshService
 // would nil-panic in GetState().
-func New(sshActive func() bool) *MaintenanceService {
-	return &MaintenanceService{sshActive: sshActive}
+func New(sshActive func() bool, sessionCache *cache.SessionCache) *MaintenanceService {
+	return &MaintenanceService{sshActive: sshActive, cache: sessionCache}
 }
 
 func (s *MaintenanceService) ServiceStartup(ctx context.Context, _ application.ServiceOptions) error {
@@ -123,15 +127,29 @@ func (s *MaintenanceService) ScanCategory(id string) ([]maintenance.Candidate, e
 		cutoff = now.AddDate(0, 0, -days) // AddDate can't overflow like days*24h
 	}
 
-	spec := maintenance.CategorySpec{
-		ID:      id,
-		Root:    effective,
-		AppData: appData,
-		Cutoff:  cutoff,
-		Now:     now,
-		Enabled: readEnabledPlugins(effective),
+	spec := maintenance.CategorySpec{ID: id, Root: effective, AppData: appData, Cutoff: cutoff, Now: now}
+	switch id {
+	case "plugins":
+		spec.Enabled = readEnabledPlugins(effective)
+	case "projects":
+		spec.Pinned = s.pinnedSessionIDs()
+	case "backup-binaries":
+		spec.Active = readActiveBinaries(effective)
 	}
 	return maintenance.ScanCategory(s.ctx, spec)
+}
+
+// pinnedSessionIDs flattens config's per-project pinned sessions to a flat id
+// list for the W5 projects matcher's bulk-exclusion cross-reference.
+func (s *MaintenanceService) pinnedSessionIDs() []string {
+	cfg := s.config.GetConfig()
+	out := []string{}
+	for _, sessions := range cfg.Sessions.PinnedSessions {
+		for _, p := range sessions {
+			out = append(out, p.SessionID)
+		}
+	}
+	return out
 }
 
 // GetMaintenanceCutoff returns the persisted cutoff (days) for a category, or
@@ -225,6 +243,159 @@ func (s *MaintenanceService) ReadPlanFile(name string) (string, error) {
 	return string(data), nil
 }
 
+// RollbackBinary replaces the active status-line/hook binary at activePath with
+// backupPath's contents, preserving the current active in trash. SSH-gated
+// under s.mu (calls the package-level primitive, not s.TrashItems, to avoid
+// mutex re-entrancy). Never edits settings.json.
+func (s *MaintenanceService) RollbackBinary(activePath, backupPath string) (maintenance.TrashReceipt, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.sshActive() {
+		return maintenance.TrashReceipt{}, errSSHActive
+	}
+
+	effective := s.config.GetClaudeRootInfo().EffectivePath
+	if !isActiveBinary(effective, activePath) {
+		return maintenance.TrashReceipt{}, fmt.Errorf("maintenance: %q is not a currently-active binary", activePath)
+	}
+
+	roots, err := s.resolveRoots()
+	if err != nil {
+		return maintenance.TrashReceipt{}, err
+	}
+	appDataDir, err := config.AppDataDir()
+	if err != nil {
+		return maintenance.TrashReceipt{}, err
+	}
+
+	emitEvent("maintenance:mute-watcher", map[string]any{"muted": true})
+	defer emitEvent("maintenance:mute-watcher", map[string]any{"muted": false})
+
+	return maintenance.RollbackBinary(roots, appDataDir, activePath, backupPath)
+}
+
+// readActiveBinaries extracts absolute binary paths referenced by
+// <root>/settings.json — statusLine.command plus every nested hooks command
+// string. Read from spec.Root, NOT files.ReadGlobalSettings (which hardcodes
+// ~/.claude). Best-effort: a missing/unreadable file yields no active paths.
+func readActiveBinaries(root string) []string {
+	data, err := os.ReadFile(filepath.Join(root, "settings.json"))
+	if err != nil {
+		return nil
+	}
+	var settings map[string]any
+	if json.Unmarshal(data, &settings) != nil {
+		return nil
+	}
+	commands := []string{}
+	if sl, ok := settings["statusLine"].(map[string]any); ok {
+		if c, ok := sl["command"].(string); ok {
+			commands = append(commands, c)
+		}
+	}
+	collectCommandStrings(settings["hooks"], &commands)
+
+	seen := map[string]bool{}
+	out := []string{}
+	for _, c := range commands {
+		for _, tok := range strings.Fields(c) {
+			tok = strings.Trim(tok, "\"'")
+			if filepath.IsAbs(tok) && !seen[tok] {
+				seen[tok] = true
+				out = append(out, tok)
+			}
+		}
+	}
+	return out
+}
+
+// collectCommandStrings recursively gathers every "command" string value in a
+// settings hooks subtree (object/array nesting).
+func collectCommandStrings(v any, out *[]string) {
+	switch t := v.(type) {
+	case map[string]any:
+		for k, val := range t {
+			if k == "command" {
+				if s, ok := val.(string); ok {
+					*out = append(*out, s)
+				}
+			}
+			collectCommandStrings(val, out)
+		}
+	case []any:
+		for _, e := range t {
+			collectCommandStrings(e, out)
+		}
+	}
+}
+
+// isActiveBinary reports whether path canonically matches one of the binaries
+// the live settings.json references (UX gate; root-confinement in the primitive
+// is the real boundary).
+func isActiveBinary(root, path string) bool {
+	target := canonPathOrClean(path)
+	for _, a := range readActiveBinaries(root) {
+		if canonPathOrClean(a) == target {
+			return true
+		}
+	}
+	return false
+}
+
+func canonPathOrClean(path string) string {
+	if resolved, err := filepath.EvalSymlinks(path); err == nil {
+		return resolved
+	}
+	return filepath.Clean(path)
+}
+
+// AnalyzeHistory returns the histogram + prunable counts for history.jsonl
+// against the persisted (or default 180-day) cutoff. Read-only: no SSH gate.
+func (s *MaintenanceService) AnalyzeHistory() (maintenance.HistoryStats, error) {
+	root := s.config.GetClaudeRootInfo().EffectivePath
+	cutoff := time.Now().AddDate(0, 0, -s.historyCutoffDays())
+	return maintenance.AnalyzeHistory(root, cutoff)
+}
+
+// PruneHistory age-outs history.jsonl older than cutoffDays, preserving the
+// pruned tail as a restorable, analyzable trash receipt. SSH-gated under s.mu.
+func (s *MaintenanceService) PruneHistory(cutoffDays int) (maintenance.TrashReceipt, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.sshActive() {
+		return maintenance.TrashReceipt{}, errSSHActive
+	}
+
+	if err := s.config.SetMaintenanceCutoff("history", cutoffDays); err != nil {
+		return maintenance.TrashReceipt{}, err
+	}
+	days := s.historyCutoffDays()
+	root := s.config.GetClaudeRootInfo().EffectivePath
+	roots, err := s.resolveRoots()
+	if err != nil {
+		return maintenance.TrashReceipt{}, err
+	}
+	appDataDir, err := config.AppDataDir()
+	if err != nil {
+		return maintenance.TrashReceipt{}, err
+	}
+
+	emitEvent("maintenance:mute-watcher", map[string]any{"muted": true})
+	defer emitEvent("maintenance:mute-watcher", map[string]any{"muted": false})
+
+	cutoff := time.Now().AddDate(0, 0, -days)
+	return maintenance.PruneHistory(roots, appDataDir, filepath.Join(root, "history.jsonl"), cutoff)
+}
+
+// historyCutoffDays returns the persisted history cutoff or the 180-day default
+// (no matcher is registered for history, so CutoffDefault would return 0).
+func (s *MaintenanceService) historyCutoffDays() int {
+	if d, ok := s.config.GetMaintenanceCutoff("history"); ok {
+		return d
+	}
+	return 180
+}
+
 // CancelScan cancels the in-flight scan, if any. No-op otherwise.
 func (s *MaintenanceService) CancelScan() error {
 	s.mu.Lock()
@@ -284,7 +455,44 @@ func (s *MaintenanceService) TrashItems(paths []string) (maintenance.TrashReceip
 	emitEvent("maintenance:mute-watcher", map[string]any{"muted": true})
 	defer emitEvent("maintenance:mute-watcher", map[string]any{"muted": false})
 
-	return maintenance.TrashItems(roots, appDataDir, paths)
+	receipt, trashErr := maintenance.TrashItems(roots, appDataDir, paths)
+	// Evict/emit off what ACTUALLY moved (receipt.Items), not err==nil — a
+	// mid-batch failure still moves some items, which must not leave ghost
+	// cache entries or a stale sidebar.
+	s.evictTrashedProjects(receipt)
+	return receipt, trashErr
+}
+
+// evictTrashedProjects invalidates the SessionCache for every project touched
+// by a trash batch and emits maintenance:trashed so the frontend refreshes the
+// affected session lists once (not per file). ponytail: InvalidateProject keys
+// on the encoded dir, which covers single-cwd projects; a split project's
+// stale detail entry is benign (the session is gone from the list and never
+// re-requested, expiring via TTL/LRU).
+func (s *MaintenanceService) evictTrashedProjects(receipt maintenance.TrashReceipt) {
+	prefix := filepath.Join(s.config.GetClaudeRootInfo().EffectivePath, "projects") + string(filepath.Separator)
+	affected := map[string]bool{}
+	for _, item := range receipt.Items {
+		if !strings.HasPrefix(item.OrigPath, prefix) {
+			continue
+		}
+		rel := strings.TrimPrefix(item.OrigPath, prefix)
+		enc := strings.SplitN(rel, string(filepath.Separator), 2)[0]
+		if enc != "" {
+			affected[enc] = true
+		}
+	}
+	if len(affected) == 0 {
+		return
+	}
+	list := make([]string, 0, len(affected))
+	for enc := range affected {
+		if s.cache != nil {
+			s.cache.InvalidateProject(enc)
+		}
+		list = append(list, enc)
+	}
+	emitEvent("maintenance:trashed", map[string]any{"projects": list})
 }
 
 // ListTrash lists every trash receipt. Read-only: no SSH gate, no mutex.

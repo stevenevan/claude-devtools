@@ -6,10 +6,13 @@ import { formatBytes } from '@renderer/utils/formatters';
 import { HardDrive, Loader2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
+import { BackupsCleanupPanel } from './BackupsCleanupPanel';
 import { FileHistoryCleanupPanel } from './FileHistoryCleanupPanel';
+import { HistoryPanel } from './HistoryPanel';
 import { JunkCleanupPanel } from './JunkCleanupPanel';
 import { PlansCleanupPanel } from './PlansCleanupPanel';
 import { PluginsCleanupPanel } from './PluginsCleanupPanel';
+import { ProjectsCleanupPanel } from './ProjectsCleanupPanel';
 import { RuntimeCleanupPanel } from './RuntimeCleanupPanel';
 import { StorageTable } from './StorageTable';
 import { TranscriptsCleanupPanel } from './TranscriptsCleanupPanel';
@@ -30,6 +33,9 @@ const CLEANUP_TABS: MaintenanceTab[] = [
   { id: 'junk', label: 'Junk', render: () => <JunkCleanupPanel /> },
   { id: 'runtime', label: 'Runtime', render: () => <RuntimeCleanupPanel /> },
   { id: 'plans', label: 'Plans', render: () => <PlansCleanupPanel /> },
+  { id: 'projects', label: 'Projects', render: () => <ProjectsCleanupPanel /> },
+  { id: 'backups', label: 'Backups', render: () => <BackupsCleanupPanel /> },
+  { id: 'history', label: 'History', render: () => <HistoryPanel /> },
 ];
 
 export const MaintenanceView = (): JSX.Element => {
