@@ -38,6 +38,9 @@ interface CategoryCleanupPanelProps {
   deletePolicy?: 'trash' | 'trash+permanent';
   // Maps a Candidate.group key to a display label (e.g. "2026-03" → "March 2026").
   groupLabel?: (group: string) => string;
+  // Candidates this returns true for are skipped by group-header "select all" —
+  // their own row checkbox still works. E.g. excluding pinned sessions from bulk trash.
+  excludeFromBulk?: (candidate: Candidate) => boolean;
 }
 
 export const CategoryCleanupPanel = ({
@@ -47,6 +50,7 @@ export const CategoryCleanupPanel = ({
   columns,
   deletePolicy = 'trash',
   groupLabel,
+  excludeFromBulk,
 }: Readonly<CategoryCleanupPanelProps>): JSX.Element => {
   const {
     connectionMode,
@@ -183,6 +187,7 @@ export const CategoryCleanupPanel = ({
           canAct={canAct}
           selected={selected}
           groupLabel={groupLabel}
+          excludeFromBulk={excludeFromBulk}
           onToggle={toggle}
           onToggleMany={toggleMany}
           onCutoffChange={(days) => void setCutoff(family.id, days)}
@@ -234,6 +239,7 @@ interface FamilySectionProps {
   canAct: boolean;
   selected: Set<string>;
   groupLabel?: (group: string) => string;
+  excludeFromBulk?: (candidate: Candidate) => boolean;
   onToggle: (path: string) => void;
   onToggleMany: (paths: string[], on: boolean) => void;
   onCutoffChange: (days: number) => void;
@@ -259,6 +265,7 @@ const FamilySection = ({
   canAct,
   selected,
   groupLabel,
+  excludeFromBulk,
   onToggle,
   onToggleMany,
   onCutoffChange,
@@ -303,7 +310,10 @@ const FamilySection = ({
       ) : (
         groups.map(([groupKey, groupItems]) => {
           const paths = groupItems.map((c) => c.path);
-          const allOn = paths.every((p) => selected.has(p));
+          const bulkPaths = excludeFromBulk
+            ? groupItems.filter((c) => !excludeFromBulk(c)).map((c) => c.path)
+            : paths;
+          const allOn = bulkPaths.length > 0 && bulkPaths.every((p) => selected.has(p));
           return (
             <div key={groupKey || family.id}>
               {groupKey && (
@@ -311,8 +321,8 @@ const FamilySection = ({
                   <input
                     type="checkbox"
                     checked={allOn}
-                    disabled={!canAct}
-                    onChange={(e) => onToggleMany(paths, e.target.checked)}
+                    disabled={!canAct || bulkPaths.length === 0}
+                    onChange={(e) => onToggleMany(bulkPaths, e.target.checked)}
                   />
                   {groupLabel ? groupLabel(groupKey) : groupKey}
                   <span className="text-muted-foreground/70">({groupItems.length})</span>

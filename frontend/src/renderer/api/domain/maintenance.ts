@@ -1,12 +1,15 @@
 import { Events } from '@wailsio/runtime';
 
 import {
+  AnalyzeHistory,
   CancelScan,
   EmptyTrash,
   GetMaintenanceCutoff,
   ListTrash,
+  PruneHistory,
   ReadPlanFile,
   RestoreTrash,
+  RollbackBinary,
   ScanCategory,
   ScanClaudeDir,
   SetMaintenanceCutoff,
@@ -19,6 +22,7 @@ import type {
   Candidate,
   DirUsage,
   ElectronAPI,
+  HistoryStats,
   MaintenanceScanProgress,
   TrashReceipt,
 } from '@shared/types';
@@ -69,6 +73,28 @@ export const maintenanceApi: MaintenanceSlice = {
     onMuteWatcher: (callback: (muted: boolean) => void): (() => void) => {
       const off = Events.On('maintenance:mute-watcher', (e) => {
         callback((e.data as { muted: boolean }).muted);
+      });
+      return off;
+    },
+
+    rollbackBinary: async (activePath: string, backupPath: string): Promise<TrashReceipt> => {
+      const raw = await RollbackBinary(activePath, backupPath);
+      return reviveDates(raw as unknown as TrashReceipt);
+    },
+
+    analyzeHistory: async (): Promise<HistoryStats> => {
+      const raw = await AnalyzeHistory();
+      return reviveDates(raw as unknown as HistoryStats);
+    },
+
+    pruneHistory: async (cutoffDays: number): Promise<TrashReceipt> => {
+      const raw = await PruneHistory(cutoffDays);
+      return reviveDates(raw as unknown as TrashReceipt);
+    },
+
+    onTrashed: (callback: (projects: string[]) => void): (() => void) => {
+      const off = Events.On('maintenance:trashed', (e) => {
+        callback((e.data as { projects: string[] }).projects);
       });
       return off;
     },

@@ -55,4 +55,9 @@ type CategorySpec struct {
 	// Enabled holds enabledPlugins keys for the W3 cross-reference (read from
 	// spec.Root, not the hardcoded ~/.claude of ReadGlobalPlugins).
 	Enabled []string `json:"-"`
+	// Pinned holds pinned session ids (W5) — pinned sessions are flagged and
+	// excluded from bulk selection. Active holds absolute paths of binaries the
+	// live settings.json references (W7) — active binaries are never candidates.
+	Pinned []string `json:"-"`
+	Active []string `json:"-"`
 }

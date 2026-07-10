@@ -2,7 +2,13 @@ import { api } from '@renderer/api';
 import { createLogger } from '@shared/utils/logger';
 
 import type { AppState } from '../types';
-import type { Candidate, DirUsage, MaintenanceScanProgress, TrashReceipt } from '@shared/types';
+import type {
+  Candidate,
+  DirUsage,
+  HistoryStats,
+  MaintenanceScanProgress,
+  TrashReceipt,
+} from '@shared/types';
 import type { StateCreator } from 'zustand';
 
 const logger = createLogger('Store:maintenance');
@@ -24,6 +30,9 @@ export interface MaintenanceSlice {
   categoryError: string | null;
   cutoffDays: Record<string, number>;
 
+  // history.jsonl retention state (Week 10).
+  historyStats: HistoryStats | null;
+
   scanStorage: () => Promise<void>;
   cancelScan: () => Promise<void>;
   setMaintenanceProgress: (progress: MaintenanceScanProgress) => void;
@@ -34,6 +43,9 @@ export interface MaintenanceSlice {
   trashItems: (paths: string[]) => Promise<TrashReceipt | null>;
   restoreTrash: (id: string) => Promise<void>;
   emptyTrash: (ids: string[]) => Promise<void>;
+  rollbackBinary: (activePath: string, backupPath: string) => Promise<TrashReceipt | null>;
+  analyzeHistory: () => Promise<void>;
+  pruneHistory: (cutoffDays: number) => Promise<TrashReceipt | null>;
 }
 
 export const createMaintenanceSlice: StateCreator<AppState, [], [], MaintenanceSlice> = (
@@ -52,6 +64,8 @@ export const createMaintenanceSlice: StateCreator<AppState, [], [], MaintenanceS
   categoryScanning: false,
   categoryError: null,
   cutoffDays: {},
+
+  historyStats: null,
 
   scanStorage: async () => {
     if (get().connectionMode !== 'local') {
@@ -188,6 +202,59 @@ export const createMaintenanceSlice: StateCreator<AppState, [], [], MaintenanceS
     } catch (err) {
       logger.error('Failed to empty trash:', err);
       set({ trashLoading: false, trashError: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  rollbackBinary: async (activePath, backupPath) => {
+    if (get().connectionMode !== 'local') {
+      set({ trashError: LOCAL_ONLY_ERROR });
+      return null;
+    }
+
+    set({ trashLoading: true, trashError: null });
+    try {
+      const receipt = await api.maintenance.rollbackBinary(activePath, backupPath);
+      await get().scanCategory('backup-binaries');
+      set({ trashLoading: false });
+      return receipt;
+    } catch (err) {
+      logger.error('Failed to rollback binary:', err);
+      set({ trashLoading: false, trashError: err instanceof Error ? err.message : String(err) });
+      return null;
+    }
+  },
+
+  analyzeHistory: async () => {
+    if (get().connectionMode !== 'local') {
+      set({ trashError: LOCAL_ONLY_ERROR });
+      return;
+    }
+
+    set({ trashLoading: true, trashError: null });
+    try {
+      const historyStats = await api.maintenance.analyzeHistory();
+      set({ historyStats, trashLoading: false });
+    } catch (err) {
+      logger.error('Failed to analyze history:', err);
+      set({ trashLoading: false, trashError: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  pruneHistory: async (cutoffDays) => {
+    if (get().connectionMode !== 'local') {
+      set({ trashError: LOCAL_ONLY_ERROR });
+      return null;
+    }
+
+    set({ trashLoading: true, trashError: null });
+    try {
+      const receipt = await api.maintenance.pruneHistory(cutoffDays);
+      await get().analyzeHistory();
+      return receipt;
+    } catch (err) {
+      logger.error('Failed to prune history:', err);
+      set({ trashLoading: false, trashError: err instanceof Error ? err.message : String(err) });
+      return null;
     }
   },
 });

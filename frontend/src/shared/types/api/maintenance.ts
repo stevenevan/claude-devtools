@@ -40,6 +40,25 @@ export interface TrashReceipt {
   items: TrashedItem[];
 }
 
+// HistoryMonth is one bucket of the history.jsonl histogram (Week 10).
+export interface HistoryMonth {
+  month: string;
+  lines: number;
+  bytes: number;
+}
+
+// HistoryStats summarizes history.jsonl for the Week 10 retention panel.
+export interface HistoryStats {
+  totalLines: number;
+  bytes: number;
+  malformed: number;
+  oldestMs: number;
+  newestMs: number;
+  months: HistoryMonth[];
+  prunableLines: number;
+  prunableBytes: number;
+}
+
 export interface MaintenanceAPI {
   scanClaudeDir: () => Promise<DirUsage[]>;
   cancelScan: () => Promise<void>;
@@ -53,4 +72,8 @@ export interface MaintenanceAPI {
   restoreTrash: (id: string) => Promise<void>;
   emptyTrash: (ids: string[]) => Promise<void>;
   onMuteWatcher: (callback: (muted: boolean) => void) => () => void;
+  rollbackBinary: (activePath: string, backupPath: string) => Promise<TrashReceipt>;
+  analyzeHistory: () => Promise<HistoryStats>;
+  pruneHistory: (cutoffDays: number) => Promise<TrashReceipt>;
+  onTrashed: (callback: (projects: string[]) => void) => () => void;
 }

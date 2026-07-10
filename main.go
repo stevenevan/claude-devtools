@@ -51,7 +51,7 @@ func main() {
 			application.NewService(maintenanceservice.New(func() bool {
 				state, _ := sshSvc.GetState()
 				return state != "disconnected"
-			})),
+			}, sessionCache)),
 			// watcher service registered here in W3
 		},
 		Assets: application.AssetOptions{
