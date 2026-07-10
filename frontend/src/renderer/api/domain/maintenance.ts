@@ -3,15 +3,19 @@ import { Events } from '@wailsio/runtime';
 import {
   CancelScan,
   EmptyTrash,
+  GetMaintenanceCutoff,
   ListTrash,
   RestoreTrash,
+  ScanCategory,
   ScanClaudeDir,
+  SetMaintenanceCutoff,
   TrashItems,
 } from '../../../../bindings/claude-devtools/internal/maintenanceservice/maintenanceservice';
 
 import { reviveDates } from '../reviveDates';
 
 import type {
+  Candidate,
   DirUsage,
   ElectronAPI,
   MaintenanceScanProgress,
@@ -28,6 +32,15 @@ export const maintenanceApi: MaintenanceSlice = {
     },
 
     cancelScan: (): Promise<void> => CancelScan(),
+
+    scanCategory: async (id: string): Promise<Candidate[]> => {
+      const raw = await ScanCategory(id);
+      return reviveDates(raw as unknown as Candidate[]);
+    },
+
+    getCutoff: (id: string): Promise<number> => GetMaintenanceCutoff(id),
+
+    setCutoff: (id: string, days: number): Promise<void> => SetMaintenanceCutoff(id, days),
 
     onScanProgress: (callback: (progress: MaintenanceScanProgress) => void): (() => void) => {
       const off = Events.On('maintenance:scan-progress', (e) => {

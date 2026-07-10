@@ -7,7 +7,9 @@ package maintenanceservice
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -87,6 +89,110 @@ func (s *MaintenanceService) ScanClaudeDir() ([]maintenance.DirUsage, error) {
 	}
 
 	return maintenance.ScanClaudeDir(scanCtx, roots, throttledProgress())
+}
+
+// errUnsafeRoot refuses a category scan when the effective root is the
+// filesystem root, the home dir, or an ancestor of home — with such a root the
+// whole-tree matchers (junk sweep, empty-dir) would surface machine-wide
+// candidates and the trash confinement ("within root") degrades to "anything".
+var errUnsafeRoot = fmt.Errorf("maintenance: effective claude root is too broad for cleanup scans")
+
+// ScanCategory runs the registered matcher for a leaf category id (e.g.
+// "plugins", "transcripts", "runtime-tasks") and returns its cleanup
+// candidates. Read-only: no SSH gate and no scan mutex (the walk is bounded to
+// one category subtree). The age cutoff is the persisted per-category override
+// or the matcher's built-in default; Now anchors the "modified today" guard.
+func (s *MaintenanceService) ScanCategory(id string) ([]maintenance.Candidate, error) {
+	effective := s.config.GetClaudeRootInfo().EffectivePath
+	if err := refuseSystemRoot(effective); err != nil {
+		return nil, err
+	}
+	appData, err := config.AppDataDir()
+	if err != nil {
+		return nil, err
+	}
+
+	days := maintenance.CutoffDefault(id)
+	if override, ok := s.config.GetMaintenanceCutoff(id); ok {
+		days = override
+	}
+	now := time.Now()
+	var cutoff time.Time
+	if days > 0 {
+		cutoff = now.AddDate(0, 0, -days) // AddDate can't overflow like days*24h
+	}
+
+	spec := maintenance.CategorySpec{
+		ID:      id,
+		Root:    effective,
+		AppData: appData,
+		Cutoff:  cutoff,
+		Now:     now,
+		Enabled: readEnabledPlugins(effective),
+	}
+	return maintenance.ScanCategory(s.ctx, spec)
+}
+
+// GetMaintenanceCutoff returns the persisted cutoff (days) for a category, or
+// the matcher's built-in default when unset.
+func (s *MaintenanceService) GetMaintenanceCutoff(id string) (int, error) {
+	if days, ok := s.config.GetMaintenanceCutoff(id); ok {
+		return days, nil
+	}
+	return maintenance.CutoffDefault(id), nil
+}
+
+// SetMaintenanceCutoff persists a clamped per-category cutoff (days) for the
+// week-31 retention engine; this cycle it drives manual scans only.
+func (s *MaintenanceService) SetMaintenanceCutoff(id string, days int) error {
+	return s.config.SetMaintenanceCutoff(id, days)
+}
+
+// refuseSystemRoot rejects "/" , the home dir, and any ancestor of home.
+func refuseSystemRoot(root string) error {
+	clean := filepath.Clean(root)
+	if clean == filepath.Dir(clean) { // filesystem root ("/", "C:\")
+		return errUnsafeRoot
+	}
+	home, err := os.UserHomeDir()
+	if err != nil || home == "" {
+		return nil
+	}
+	home = filepath.Clean(home)
+	if clean == home {
+		return errUnsafeRoot
+	}
+	if rel, err := filepath.Rel(clean, home); err == nil &&
+		rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return errUnsafeRoot // clean is an ancestor of home
+	}
+	return nil
+}
+
+// readEnabledPlugins collects the enabledPlugins keys marked true in
+// <root>/settings.json. Reads from the effective root (NOT the hardcoded
+// ~/.claude of files.ReadGlobalPlugins) so a custom root cross-references
+// correctly. Best-effort: a missing/unreadable file yields no enabled keys.
+func readEnabledPlugins(root string) []string {
+	data, err := os.ReadFile(filepath.Join(root, "settings.json"))
+	if err != nil {
+		return nil
+	}
+	var settings map[string]any
+	if json.Unmarshal(data, &settings) != nil {
+		return nil
+	}
+	ep, ok := settings["enabledPlugins"].(map[string]any)
+	if !ok {
+		return nil
+	}
+	out := []string{}
+	for k, v := range ep {
+		if b, ok := v.(bool); ok && b {
+			out = append(out, k)
+		}
+	}
+	return out
 }
 
 // CancelScan cancels the in-flight scan, if any. No-op otherwise.

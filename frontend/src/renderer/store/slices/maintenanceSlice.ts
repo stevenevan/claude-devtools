@@ -2,7 +2,7 @@ import { api } from '@renderer/api';
 import { createLogger } from '@shared/utils/logger';
 
 import type { AppState } from '../types';
-import type { DirUsage, MaintenanceScanProgress, TrashReceipt } from '@shared/types';
+import type { Candidate, DirUsage, MaintenanceScanProgress, TrashReceipt } from '@shared/types';
 import type { StateCreator } from 'zustand';
 
 const logger = createLogger('Store:maintenance');
@@ -18,9 +18,18 @@ export interface MaintenanceSlice {
   trashLoading: boolean;
   trashError: string | null;
 
+  // Per-category cleanup state (Week 3+), keyed by leaf category id.
+  categoryCandidates: Record<string, Candidate[]>;
+  categoryScanning: boolean;
+  categoryError: string | null;
+  cutoffDays: Record<string, number>;
+
   scanStorage: () => Promise<void>;
   cancelScan: () => Promise<void>;
   setMaintenanceProgress: (progress: MaintenanceScanProgress) => void;
+  scanCategory: (id: string) => Promise<void>;
+  loadCutoff: (id: string) => Promise<void>;
+  setCutoff: (id: string, days: number) => Promise<void>;
   loadTrash: () => Promise<void>;
   trashItems: (paths: string[]) => Promise<TrashReceipt | null>;
   restoreTrash: (id: string) => Promise<void>;
@@ -38,6 +47,11 @@ export const createMaintenanceSlice: StateCreator<AppState, [], [], MaintenanceS
   receipts: [],
   trashLoading: false,
   trashError: null,
+
+  categoryCandidates: {},
+  categoryScanning: false,
+  categoryError: null,
+  cutoffDays: {},
 
   scanStorage: async () => {
     if (get().connectionMode !== 'local') {
@@ -65,6 +79,47 @@ export const createMaintenanceSlice: StateCreator<AppState, [], [], MaintenanceS
 
   setMaintenanceProgress: (progress) => {
     set({ progress });
+  },
+
+  scanCategory: async (id) => {
+    if (get().connectionMode !== 'local') {
+      set({ categoryError: LOCAL_ONLY_ERROR });
+      return;
+    }
+    set({ categoryScanning: true, categoryError: null });
+    try {
+      const candidates = await api.maintenance.scanCategory(id);
+      set((s) => ({
+        categoryCandidates: { ...s.categoryCandidates, [id]: candidates },
+        categoryScanning: false,
+      }));
+    } catch (err) {
+      logger.error(`Failed to scan category ${id}:`, err);
+      set({
+        categoryScanning: false,
+        categoryError: err instanceof Error ? err.message : String(err),
+      });
+    }
+  },
+
+  loadCutoff: async (id) => {
+    try {
+      const days = await api.maintenance.getCutoff(id);
+      set((s) => ({ cutoffDays: { ...s.cutoffDays, [id]: days } }));
+    } catch (err) {
+      logger.error(`Failed to load cutoff ${id}:`, err);
+    }
+  },
+
+  setCutoff: async (id, days) => {
+    try {
+      await api.maintenance.setCutoff(id, days);
+      set((s) => ({ cutoffDays: { ...s.cutoffDays, [id]: days } }));
+      await get().scanCategory(id);
+    } catch (err) {
+      logger.error(`Failed to set cutoff ${id}:`, err);
+      set({ categoryError: err instanceof Error ? err.message : String(err) });
+    }
   },
 
   loadTrash: async () => {

@@ -492,7 +492,62 @@ func mergeConfigWithDefaults(raw map[string]json.RawMessage) AppConfig {
 		_ = json.Unmarshal(v, &cfg.OnboardingCompleted)
 	}
 
+	if v, ok := raw["maintenanceCutoffs"]; ok {
+		var cutoffs map[string]int
+		if json.Unmarshal(v, &cutoffs) == nil && cutoffs != nil {
+			// Clamp on load: a hand-edited config must not smuggle a negative or
+			// absurd cutoff past the setter's validation (Security C1).
+			for id, days := range cutoffs {
+				cutoffs[id] = clampCutoffDays(days)
+			}
+			cfg.MaintenanceCutoffs = cutoffs
+		}
+	}
+
 	return cfg
+}
+
+// cutoffDaysMin/Max bound a maintenance age cutoff. A cutoff below 1 (or a
+// future/overflowing one) would flip the age gate into "everything is a
+// candidate"; 36500 days (~100y) is a generous ceiling (Security C1).
+const (
+	cutoffDaysMin = 1
+	cutoffDaysMax = 36500
+)
+
+func clampCutoffDays(days int) int {
+	if days < cutoffDaysMin {
+		return cutoffDaysMin
+	}
+	if days > cutoffDaysMax {
+		return cutoffDaysMax
+	}
+	return days
+}
+
+// GetMaintenanceCutoff returns the persisted cutoff (days) for category id, or
+// (0, false) when unset — the caller supplies the category's built-in default.
+func (cs *ConfigState) GetMaintenanceCutoff(id string) (int, bool) {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	days, ok := cs.config.MaintenanceCutoffs[id]
+	if !ok {
+		return 0, false
+	}
+	return clampCutoffDays(days), true
+}
+
+// SetMaintenanceCutoff persists a clamped cutoff (days) for category id.
+func (cs *ConfigState) SetMaintenanceCutoff(id string, days int) error {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	if cs.config.MaintenanceCutoffs == nil {
+		cs.config.MaintenanceCutoffs = map[string]int{}
+	}
+	cs.config.MaintenanceCutoffs[id] = clampCutoffDays(days)
+	return cs.saveConfig()
 }
 
 // normalizeClaudeRootPath mirrors types/merge.rs normalize_claude_root_path.

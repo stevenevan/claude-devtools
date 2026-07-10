@@ -326,6 +326,10 @@ type AppConfig struct {
 	NotificationRules   []NotificationRule `json:"notificationRules"`
 	WebhookEndpoints    []WebhookEndpoint  `json:"webhookEndpoints"`
 	OnboardingCompleted bool               `json:"onboardingCompleted"`
+	// MaintenanceCutoffs holds per-category age cutoffs (days) for the storage
+	// cleanup panels, keyed by leaf category id (e.g. "transcripts",
+	// "runtime-tasks"). Absent key = the category's built-in default.
+	MaintenanceCutoffs map[string]int `json:"maintenanceCutoffs"`
 }
 
 // DefaultAppConfig returns an AppConfig equivalent to Rust's AppConfig::default().
@@ -344,5 +348,6 @@ func DefaultAppConfig() AppConfig {
 		NotificationRules:   []NotificationRule{},
 		WebhookEndpoints:    []WebhookEndpoint{},
 		OnboardingCompleted: false,
+		MaintenanceCutoffs:  map[string]int{},
 	}
 }

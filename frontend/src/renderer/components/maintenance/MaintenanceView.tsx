@@ -1,12 +1,26 @@
-import { JSX } from 'react';
+import { JSX, ReactNode, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
+import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatBytes } from '@renderer/utils/formatters';
 import { HardDrive, Loader2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
+import { PluginsCleanupPanel } from './PluginsCleanupPanel';
 import { StorageTable } from './StorageTable';
 import { TrashPanel } from './TrashPanel';
+
+// Maintenance tab registry. Each cleanup week appends its panel here; "storage"
+// keeps the raw scan + table and "trash" the restore/empty surface.
+interface MaintenanceTab {
+  id: string;
+  label: string;
+  render: () => ReactNode;
+}
+
+const CLEANUP_TABS: MaintenanceTab[] = [
+  { id: 'plugins', label: 'Plugins', render: () => <PluginsCleanupPanel /> },
+];
 
 export const MaintenanceView = (): JSX.Element => {
   const { dirs, scanning, error, progress, connectionMode, scanStorage, cancelScan } = useStore(
@@ -21,7 +35,14 @@ export const MaintenanceView = (): JSX.Element => {
     }))
   );
 
+  const [activeTab, setActiveTab] = useState('storage');
   const isLocal = connectionMode === 'local';
+  const tabs: MaintenanceTab[] = [
+    { id: 'storage', label: 'Storage', render: () => <StorageTable dirs={dirs} /> },
+    ...CLEANUP_TABS,
+    { id: 'trash', label: 'Trash', render: () => <TrashPanel /> },
+  ];
+  const active = tabs.find((t) => t.id === activeTab) ?? tabs[0];
 
   return (
     <div className="bg-background flex flex-1 flex-col overflow-hidden">
@@ -30,32 +51,38 @@ export const MaintenanceView = (): JSX.Element => {
           <div className="flex items-center gap-2">
             <HardDrive className="text-muted-foreground size-4" />
             <span className="text-foreground text-sm font-medium">Maintenance</span>
-            {dirs.length > 0 && (
-              <span className="text-muted-foreground text-xs">
-                {dirs.length} {dirs.length === 1 ? 'entry' : 'entries'}
-              </span>
-            )}
           </div>
 
-          <div className="flex items-center gap-2">
+          {activeTab === 'storage' && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="default"
+                size="sm"
+                disabled={!isLocal || scanning}
+                onClick={() => void scanStorage()}
+              >
+                {scanning && <Loader2 className="size-3.5 animate-spin" />}
+                Scan
+              </Button>
+              <Button variant="outline" size="sm" disabled={!scanning} onClick={() => void cancelScan()}>
+                Cancel
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1 px-2 pb-2">
+          {tabs.map((tab) => (
             <Button
-              variant="default"
+              key={tab.id}
+              variant={tab.id === activeTab ? 'secondary' : 'ghost'}
               size="sm"
-              disabled={!isLocal || scanning}
-              onClick={() => void scanStorage()}
+              className={cn('text-xs', tab.id === activeTab && 'font-medium')}
+              onClick={() => setActiveTab(tab.id)}
             >
-              {scanning && <Loader2 className="size-3.5 animate-spin" />}
-              Scan
+              {tab.label}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!scanning}
-              onClick={() => void cancelScan()}
-            >
-              Cancel
-            </Button>
-          </div>
+          ))}
         </div>
       </div>
 
@@ -65,13 +92,13 @@ export const MaintenanceView = (): JSX.Element => {
         </div>
       )}
 
-      {error && (
+      {error && activeTab === 'storage' && (
         <div className="border-border/50 bg-destructive/10 text-destructive shrink-0 border-b px-4 py-2 text-xs">
           {error}
         </div>
       )}
 
-      {scanning && (
+      {scanning && activeTab === 'storage' && (
         <div className="shrink-0 px-4 py-2">
           <div className="bg-muted h-1 w-full overflow-hidden rounded-full">
             <div className="bg-primary h-full w-1/3 animate-pulse rounded-full" />
@@ -84,11 +111,7 @@ export const MaintenanceView = (): JSX.Element => {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto">
-        <StorageTable dirs={dirs} />
-        <div className="border-border/50 border-t" />
-        <TrashPanel />
-      </div>
+      <div className="flex-1 overflow-y-auto">{active.render()}</div>
     </div>
   );
 };
