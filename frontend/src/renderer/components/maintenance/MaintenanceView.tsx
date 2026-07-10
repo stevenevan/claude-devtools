@@ -7,9 +7,12 @@ import { HardDrive, Loader2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { BackupsCleanupPanel } from './BackupsCleanupPanel';
+import { CachesCleanupPanel } from './CachesCleanupPanel';
 import { FileHistoryCleanupPanel } from './FileHistoryCleanupPanel';
+import { HealthPanel } from './HealthPanel';
 import { HistoryPanel } from './HistoryPanel';
 import { JunkCleanupPanel } from './JunkCleanupPanel';
+import { LogsCleanupPanel } from './LogsCleanupPanel';
 import { PlansCleanupPanel } from './PlansCleanupPanel';
 import { PluginsCleanupPanel } from './PluginsCleanupPanel';
 import { ProjectsCleanupPanel } from './ProjectsCleanupPanel';
@@ -35,7 +38,10 @@ const CLEANUP_TABS: MaintenanceTab[] = [
   { id: 'plans', label: 'Plans', render: () => <PlansCleanupPanel /> },
   { id: 'projects', label: 'Projects', render: () => <ProjectsCleanupPanel /> },
   { id: 'backups', label: 'Backups', render: () => <BackupsCleanupPanel /> },
+  { id: 'logs', label: 'Logs', render: () => <LogsCleanupPanel /> },
+  { id: 'caches', label: 'Caches', render: () => <CachesCleanupPanel /> },
   { id: 'history', label: 'History', render: () => <HistoryPanel /> },
+  { id: 'health', label: 'Health', render: () => <HealthPanel /> },
 ];
 
 export const MaintenanceView = (): JSX.Element => {

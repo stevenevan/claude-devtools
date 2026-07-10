@@ -396,6 +396,36 @@ func (s *MaintenanceService) historyCutoffDays() int {
 	return 180
 }
 
+// ClearFiles irreversibly plain-deletes (or truncates) the given paths — the
+// sanctioned path for regenerable logs/caches where a trash copy would wrongly
+// extend retention. SSH-gated under s.mu; mutes the watcher for the batch.
+func (s *MaintenanceService) ClearFiles(paths []string, truncate bool) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.sshActive() {
+		return errSSHActive
+	}
+	roots, err := s.resolveRoots()
+	if err != nil {
+		return err
+	}
+	appDataDir, err := config.AppDataDir()
+	if err != nil {
+		return err
+	}
+
+	emitEvent("maintenance:mute-watcher", map[string]any{"muted": true})
+	defer emitEvent("maintenance:mute-watcher", map[string]any{"muted": false})
+
+	return maintenance.ClearFiles(roots, appDataDir, paths, truncate)
+}
+
+// GetMaintenanceHealth returns the read-only health snapshot (.last-cleanup,
+// .last-update-result.json, daemon.log liveness, mode flags). No SSH gate.
+func (s *MaintenanceService) GetMaintenanceHealth() (maintenance.HealthStatus, error) {
+	return maintenance.MaintenanceHealth(s.config.GetClaudeRootInfo().EffectivePath)
+}
+
 // CancelScan cancels the in-flight scan, if any. No-op otherwise.
 func (s *MaintenanceService) CancelScan() error {
 	s.mu.Lock()
