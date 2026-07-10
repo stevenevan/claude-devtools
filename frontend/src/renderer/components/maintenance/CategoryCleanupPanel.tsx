@@ -28,6 +28,9 @@ export interface CategoryFamily {
   label: string;
   description?: string;
   supportsCutoff?: boolean;
+  // Plain-delete policy only: clear this family's files by truncating in
+  // place (e.g. a log a live daemon still holds open) instead of unlinking.
+  truncate?: boolean;
 }
 
 interface CategoryCleanupPanelProps {
@@ -35,7 +38,7 @@ interface CategoryCleanupPanelProps {
   description: string;
   families: CategoryFamily[];
   columns: CategoryColumn[];
-  deletePolicy?: 'trash' | 'trash+permanent';
+  deletePolicy?: 'trash' | 'trash+permanent' | 'plain';
   // Maps a Candidate.group key to a display label (e.g. "2026-03" → "March 2026").
   groupLabel?: (group: string) => string;
   // Candidates this returns true for are skipped by group-header "select all" —
@@ -65,6 +68,7 @@ export const CategoryCleanupPanel = ({
     setCutoff,
     trashItems,
     emptyTrash,
+    clearFiles,
   } = useStore(
     useShallow((s) => ({
       connectionMode: s.connectionMode,
@@ -79,6 +83,7 @@ export const CategoryCleanupPanel = ({
       setCutoff: s.setCutoff,
       trashItems: s.trashItems,
       emptyTrash: s.emptyTrash,
+      clearFiles: s.clearFiles,
     }))
   );
 
@@ -152,6 +157,16 @@ export const CategoryCleanupPanel = ({
     finishAction();
   };
 
+  const handleClear = async (): Promise<void> => {
+    for (const family of families) {
+      const familyPaths = new Set((categoryCandidates[family.id] ?? []).map((c) => c.path));
+      const paths = [...selected].filter((p) => familyPaths.has(p));
+      if (paths.length === 0) continue;
+      await clearFiles(paths, family.truncate ?? false);
+    }
+    finishAction();
+  };
+
   const finishAction = (): void => {
     setConfirming(false);
     setSelected(new Set());
@@ -220,10 +235,12 @@ export const CategoryCleanupPanel = ({
           fileCount={selectedFiles}
           busy={trashLoading}
           error={trashError}
-          onMoveToTrash={() => void handleMoveToTrash()}
+          onMoveToTrash={deletePolicy === 'plain' ? undefined : () => void handleMoveToTrash()}
           onDeletePermanently={
             deletePolicy === 'trash+permanent' ? () => void handleDeletePermanently() : undefined
           }
+          onClear={deletePolicy === 'plain' ? () => void handleClear() : undefined}
+          plain={deletePolicy === 'plain'}
         />
       )}
     </div>

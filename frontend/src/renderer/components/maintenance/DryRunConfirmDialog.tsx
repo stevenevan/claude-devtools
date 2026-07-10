@@ -23,6 +23,11 @@ interface DryRunConfirmDialogProps {
   onMoveToTrash?: () => void;
   // Always shown when provided; the only action offered for already-trashed items.
   onDeletePermanently?: () => void;
+  // Plain-delete policy: irreversible, no trash copy. Mutually exclusive with
+  // onMoveToTrash/onDeletePermanently — callers pass only one action.
+  onClear?: () => void;
+  // Swaps the trash-copy reassurance copy for the plain-delete warning.
+  plain?: boolean;
 }
 
 // Reusable dry-run confirm dialog: every consumer week that surfaces its own
@@ -38,6 +43,8 @@ export const DryRunConfirmDialog = ({
   error = null,
   onMoveToTrash,
   onDeletePermanently,
+  onClear,
+  plain = false,
 }: Readonly<DryRunConfirmDialogProps>): JSX.Element => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -63,6 +70,11 @@ export const DryRunConfirmDialog = ({
             Trash.
           </p>
         )}
+        {plain && (
+          <p className="text-xs text-muted-foreground">
+            Deleted immediately — not moved to trash.
+          </p>
+        )}
 
         {error && <p className="text-xs text-destructive">{error}</p>}
 
@@ -80,6 +92,12 @@ export const DryRunConfirmDialog = ({
             <Button variant="default" size="sm" disabled={busy} onClick={onMoveToTrash}>
               {busy && <Loader2 className="size-3.5 animate-spin" />}
               Move to trash
+            </Button>
+          )}
+          {onClear && (
+            <Button variant="destructive" size="sm" disabled={busy} onClick={onClear}>
+              {busy && <Loader2 className="size-3.5 animate-spin" />}
+              Delete immediately
             </Button>
           )}
         </DialogFooter>

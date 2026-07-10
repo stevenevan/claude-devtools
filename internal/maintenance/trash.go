@@ -123,13 +123,23 @@ func TrashItems(roots []string, appDataDir string, paths []string) (TrashReceipt
 	return receipt, nil
 }
 
-// planTrashItems validates every input path before TrashItems moves any of
-// them: confinement (#1), symlink-safe parent resolution (#2), and the
-// refuse/dedupe/no-nest rules (M1, MUST-2).
-func planTrashItems(canonRoots []string, canonAppData string, paths []string) ([]trashItemPlan, error) {
+// validatedLeaf is one confinement-checked input path: the canonical leaf and
+// whether it is a symlink. Shared by TrashItems (which adds a relStore) and the
+// plain-delete ClearFiles primitive — a confinement fix here protects both.
+type validatedLeaf struct {
+	origPath  string
+	isSymlink bool
+}
+
+// validateLeaves runs the security-critical path validation every destructive
+// consumer needs BEFORE mutating anything: absolute check, symlink-safe parent
+// resolution (#2 — never Confine the leaf, only its parent), Lstat, the
+// root/appdata/trash self-nuke refusal (M1), and input dedupe. It does NOT
+// touch the filesystem's contents.
+func validateLeaves(canonRoots []string, canonAppData string, paths []string) ([]validatedLeaf, error) {
 	trashDir := filepath.Join(canonAppData, "trash")
 	seen := make(map[string]bool, len(paths))
-	plans := make([]trashItemPlan, 0, len(paths))
+	out := make([]validatedLeaf, 0, len(paths))
 
 	for _, raw := range paths {
 		cleaned := filepath.Clean(raw)
@@ -138,8 +148,8 @@ func planTrashItems(canonRoots []string, canonAppData string, paths []string) ([
 		}
 
 		// #2 SEC-symlink: never Confine() the leaf itself (it would resolve
-		// through a symlink to its target). Confine only the parent, then
-		// Lstat the leaf and move the link entry, never its target.
+		// through a symlink to its target). Confine only the parent, then Lstat
+		// the leaf — consumers act on the link entry, never its target.
 		parentCanon, err := confineParentToRoot(filepath.Dir(cleaned), canonRoots)
 		if err != nil {
 			return nil, fmt.Errorf("maintenance: %q: %w", raw, err)
@@ -155,11 +165,11 @@ func planTrashItems(canonRoots []string, canonAppData string, paths []string) ([
 
 		// M1: refuse root / appdata / trash-tree self-nuke.
 		if leafPath == canonAppData || isSameOrWithin(leafPath, trashDir) {
-			return nil, fmt.Errorf("maintenance: %q: refusing to trash the app-data/trash tree", raw)
+			return nil, fmt.Errorf("maintenance: %q: refusing to touch the app-data/trash tree", raw)
 		}
 		for _, r := range canonRoots {
 			if leafPath == r {
-				return nil, fmt.Errorf("maintenance: %q: refusing to trash a claude-root directory", raw)
+				return nil, fmt.Errorf("maintenance: %q: refusing to touch a claude-root directory", raw)
 			}
 		}
 
@@ -168,14 +178,28 @@ func planTrashItems(canonRoots []string, canonAppData string, paths []string) ([
 		}
 		seen[leafPath] = true
 
-		rootIndex, relToRoot, err := relativeToOneOf(leafPath, canonRoots)
-		if err != nil {
-			return nil, fmt.Errorf("maintenance: %q: %w", raw, err)
-		}
+		out = append(out, validatedLeaf{origPath: leafPath, isSymlink: lst.Mode()&os.ModeSymlink != 0})
+	}
+	return out, nil
+}
 
+// planTrashItems validates every input (validateLeaves) then adds the
+// receipt-store layout (relStore) and the no-nest rule (MUST-2).
+func planTrashItems(canonRoots []string, canonAppData string, paths []string) ([]trashItemPlan, error) {
+	leaves, err := validateLeaves(canonRoots, canonAppData, paths)
+	if err != nil {
+		return nil, err
+	}
+
+	plans := make([]trashItemPlan, 0, len(leaves))
+	for _, leaf := range leaves {
+		rootIndex, relToRoot, err := relativeToOneOf(leaf.origPath, canonRoots)
+		if err != nil {
+			return nil, fmt.Errorf("maintenance: %q: %w", leaf.origPath, err)
+		}
 		plans = append(plans, trashItemPlan{
-			origPath:  leafPath,
-			isSymlink: lst.Mode()&os.ModeSymlink != 0,
+			origPath:  leaf.origPath,
+			isSymlink: leaf.isSymlink,
 			// MUST-3: root discriminator prefix — same-basename items from
 			// different roots must never collide under one receipt.
 			relStore: filepath.Join(fmt.Sprintf("%d", rootIndex), relToRoot),

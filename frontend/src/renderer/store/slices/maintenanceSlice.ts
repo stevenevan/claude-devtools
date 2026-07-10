@@ -5,6 +5,7 @@ import type { AppState } from '../types';
 import type {
   Candidate,
   DirUsage,
+  HealthStatus,
   HistoryStats,
   MaintenanceScanProgress,
   TrashReceipt,
@@ -33,6 +34,9 @@ export interface MaintenanceSlice {
   // history.jsonl retention state (Week 10).
   historyStats: HistoryStats | null;
 
+  // Read-only health snapshot (Week 14).
+  health: HealthStatus | null;
+
   scanStorage: () => Promise<void>;
   cancelScan: () => Promise<void>;
   setMaintenanceProgress: (progress: MaintenanceScanProgress) => void;
@@ -46,6 +50,8 @@ export interface MaintenanceSlice {
   rollbackBinary: (activePath: string, backupPath: string) => Promise<TrashReceipt | null>;
   analyzeHistory: () => Promise<void>;
   pruneHistory: (cutoffDays: number) => Promise<TrashReceipt | null>;
+  clearFiles: (paths: string[], truncate: boolean, rescanIds?: string[]) => Promise<void>;
+  loadHealth: () => Promise<void>;
 }
 
 export const createMaintenanceSlice: StateCreator<AppState, [], [], MaintenanceSlice> = (
@@ -66,6 +72,8 @@ export const createMaintenanceSlice: StateCreator<AppState, [], [], MaintenanceS
   cutoffDays: {},
 
   historyStats: null,
+
+  health: null,
 
   scanStorage: async () => {
     if (get().connectionMode !== 'local') {
@@ -255,6 +263,34 @@ export const createMaintenanceSlice: StateCreator<AppState, [], [], MaintenanceS
       logger.error('Failed to prune history:', err);
       set({ trashLoading: false, trashError: err instanceof Error ? err.message : String(err) });
       return null;
+    }
+  },
+
+  clearFiles: async (paths, truncate, rescanIds) => {
+    if (get().connectionMode !== 'local') {
+      set({ trashError: LOCAL_ONLY_ERROR });
+      return;
+    }
+
+    set({ trashLoading: true, trashError: null });
+    try {
+      await api.maintenance.clearFiles(paths, truncate);
+      for (const id of rescanIds ?? []) {
+        await get().scanCategory(id);
+      }
+      set({ trashLoading: false });
+    } catch (err) {
+      logger.error('Failed to clear files:', err);
+      set({ trashLoading: false, trashError: err instanceof Error ? err.message : String(err) });
+    }
+  },
+
+  loadHealth: async () => {
+    try {
+      const health = await api.maintenance.getMaintenanceHealth();
+      set({ health });
+    } catch (err) {
+      logger.error('Failed to load maintenance health:', err);
     }
   },
 });

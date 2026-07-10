@@ -3,8 +3,10 @@ import { Events } from '@wailsio/runtime';
 import {
   AnalyzeHistory,
   CancelScan,
+  ClearFiles,
   EmptyTrash,
   GetMaintenanceCutoff,
+  GetMaintenanceHealth,
   ListTrash,
   PruneHistory,
   ReadPlanFile,
@@ -22,6 +24,7 @@ import type {
   Candidate,
   DirUsage,
   ElectronAPI,
+  HealthStatus,
   HistoryStats,
   MaintenanceScanProgress,
   TrashReceipt,
@@ -97,6 +100,13 @@ export const maintenanceApi: MaintenanceSlice = {
         callback((e.data as { projects: string[] }).projects);
       });
       return off;
+    },
+
+    clearFiles: (paths: string[], truncate: boolean): Promise<void> => ClearFiles(paths, truncate),
+
+    getMaintenanceHealth: async (): Promise<HealthStatus> => {
+      const raw = await GetMaintenanceHealth();
+      return raw as unknown as HealthStatus;
     },
   },
 };

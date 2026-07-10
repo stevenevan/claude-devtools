@@ -59,6 +59,29 @@ export interface HistoryStats {
   prunableBytes: number;
 }
 
+// HealthFlag is one known mode-flag dotfile (e.g. .caveman-active) for the
+// Week 14 read-only health panel.
+export interface HealthFlag {
+  name: string;
+  present: boolean;
+  content: string;
+}
+
+// HealthStatus is the read-only health snapshot for the Week 14 panel. Times
+// are file mtimes in ms — a reliable signal regardless of file content format.
+export interface HealthStatus {
+  lastCleanupMs: number;
+  lastCleanupRaw: string;
+  lastUpdateRaw: string;
+  lastUpdateStatus: string;
+  lastUpdateVersion: string;
+  lastUpdateParseErr: boolean;
+  daemonPresent: boolean;
+  daemonLastWriteMs: number;
+  daemonTail: string[];
+  flags: HealthFlag[];
+}
+
 export interface MaintenanceAPI {
   scanClaudeDir: () => Promise<DirUsage[]>;
   cancelScan: () => Promise<void>;
@@ -76,4 +99,6 @@ export interface MaintenanceAPI {
   analyzeHistory: () => Promise<HistoryStats>;
   pruneHistory: (cutoffDays: number) => Promise<TrashReceipt>;
   onTrashed: (callback: (projects: string[]) => void) => () => void;
+  clearFiles: (paths: string[], truncate: boolean) => Promise<void>;
+  getMaintenanceHealth: () => Promise<HealthStatus>;
 }
