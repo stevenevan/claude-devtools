@@ -40,7 +40,11 @@ type Runner struct {
 	// direct-file watch would break across the temp+rename writes the CLI/app
 	// use, so we watch the parent dir and filter by basename. Empty = disabled.
 	configDir string
-	emitFn    func(event string, payload any)
+	// claudeJSONDir is watched non-recursively for ~/.claude.json changes (W20).
+	// Same temp+rename reasoning as configDir: watch the parent (home) dir and
+	// filter by basename ".claude.json". Empty = disabled.
+	claudeJSONDir string
+	emitFn        func(event string, payload any)
 
 	mu      sync.Mutex
 	pending map[string]*pendingItem
@@ -55,13 +59,14 @@ type Runner struct {
 // New creates a Runner. emitFn is always invoked outside all locks.
 // The caller should pass real (symlink-resolved) paths so that event paths from
 // FSEvents match the prefix checks in processEvent.
-func New(projectsDir, todosDir, configDir string, emitFn func(event string, payload any)) *Runner {
+func New(projectsDir, todosDir, configDir, claudeJSONDir string, emitFn func(event string, payload any)) *Runner {
 	return &Runner{
-		projectsDir: projectsDir,
-		todosDir:    todosDir,
-		configDir:   configDir,
-		emitFn:      emitFn,
-		pending:     make(map[string]*pendingItem),
+		projectsDir:   projectsDir,
+		todosDir:      todosDir,
+		configDir:     configDir,
+		claudeJSONDir: claudeJSONDir,
+		emitFn:        emitFn,
+		pending:       make(map[string]*pendingItem),
 	}
 }
 
@@ -82,6 +87,7 @@ func (r *Runner) Start() error {
 	needProjectsRetry := !r.watchProjects()
 	needTodosRetry := !r.watchTodos()
 	needConfigRetry := !r.watchConfig()
+	needClaudeJSONRetry := !r.watchClaudeJSON()
 
 	r.wg.Add(1)
 	go func() {
@@ -89,11 +95,11 @@ func (r *Runner) Start() error {
 		r.drain()
 	}()
 
-	if needProjectsRetry || needTodosRetry || needConfigRetry {
+	if needProjectsRetry || needTodosRetry || needConfigRetry || needClaudeJSONRetry {
 		r.wg.Add(1)
 		go func() {
 			defer r.wg.Done()
-			r.retryWatch(needProjectsRetry, needTodosRetry, needConfigRetry)
+			r.retryWatch(needProjectsRetry, needTodosRetry, needConfigRetry, needClaudeJSONRetry)
 		}()
 	}
 
@@ -174,6 +180,26 @@ func (r *Runner) watchConfig() bool {
 	return true
 }
 
+// watchClaudeJSON registers a non-recursive watch on claudeJSONDir (the home
+// dir) so ~/.claude.json writes (including the CLI's temp+rename) surface as
+// config-file-change. Disabled when claudeJSONDir is empty. Returns true when
+// established (or intentionally disabled).
+func (r *Runner) watchClaudeJSON() bool {
+	if r.claudeJSONDir == "" {
+		return true
+	}
+	if _, err := os.Stat(r.claudeJSONDir); err != nil {
+		slog.Warn("watcher: claude.json dir missing, will retry", "path", r.claudeJSONDir)
+		return false
+	}
+	if err := notify.Watch(r.claudeJSONDir, r.ch, notify.All); err != nil {
+		slog.Warn("watcher: cannot watch claude.json dir", "err", err)
+		return false
+	}
+	slog.Info("watcher: watching claude.json dir", "path", r.claudeJSONDir)
+	return true
+}
+
 // drain reads events from the notify channel until stopCh is closed.
 // recover() at the goroutine boundary: a panic cannot crash the application.
 func (r *Runner) drain() {
@@ -197,7 +223,7 @@ func (r *Runner) drain() {
 
 // retryWatch polls every 2 s for directories that were missing at Start time.
 // Matches Rust retry_watch. recover() guards against panics.
-func (r *Runner) retryWatch(needProjects, needTodos, needConfig bool) {
+func (r *Runner) retryWatch(needProjects, needTodos, needConfig, needClaudeJSON bool) {
 	defer func() { recover() }() //nolint:errcheck // panic guard only
 	ticker := time.NewTicker(retryInterval)
 	defer ticker.Stop()
@@ -223,7 +249,10 @@ func (r *Runner) retryWatch(needProjects, needTodos, needConfig bool) {
 		if needConfig && r.watchConfig() {
 			needConfig = false
 		}
-		if !needProjects && !needTodos && !needConfig {
+		if needClaudeJSON && r.watchClaudeJSON() {
+			needClaudeJSON = false
+		}
+		if !needProjects && !needTodos && !needConfig && !needClaudeJSON {
 			return
 		}
 	}
@@ -247,6 +276,7 @@ func (r *Runner) schedule(ei notify.EventInfo) {
 	pDir := r.projectsDir
 	tDir := r.todosDir
 	cDir := r.configDir
+	jDir := r.claudeJSONDir
 
 	r.mu.Lock()
 	if existing, exists := r.pending[path]; exists {
@@ -270,14 +300,14 @@ func (r *Runner) schedule(ei notify.EventInfo) {
 		delete(r.pending, path)
 		r.mu.Unlock()
 		// Emit outside all locks.
-		r.processEvent(path, actualKind, pDir, tDir, cDir)
+		r.processEvent(path, actualKind, pDir, tDir, cDir, jDir)
 	})
 	r.mu.Unlock()
 }
 
 // processEvent classifies a debounced event and invokes emitFn.
 // Called outside all locks.
-func (r *Runner) processEvent(path, kind, projectsDir, todosDir, configDir string) {
+func (r *Runner) processEvent(path, kind, projectsDir, todosDir, configDir, claudeJSONDir string) {
 	if isUnder(projectsDir, path) {
 		if evt := ParseProjectFile(projectsDir, path, kind); evt != nil {
 			r.emitFn("file-change", evt)
@@ -287,6 +317,8 @@ func (r *Runner) processEvent(path, kind, projectsDir, todosDir, configDir strin
 			r.emitFn("todo-change", evt)
 		}
 	} else if configDir != "" && filepath.Dir(path) == configDir && filepath.Base(path) == "settings.json" {
+		r.emitFn("config-file-change", map[string]any{"path": path, "kind": kind})
+	} else if claudeJSONDir != "" && filepath.Dir(path) == claudeJSONDir && filepath.Base(path) == ".claude.json" {
 		r.emitFn("config-file-change", map[string]any{"path": path, "kind": kind})
 	}
 }

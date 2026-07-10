@@ -2,7 +2,11 @@ import {
   DedupePlugin,
   DetectPluginDuplicates,
   EnumerateSettingsSources,
+  ListClaudeJSONBackups,
   ReadAgentConfigs,
+  ReadClaudeJSON,
+  ReadClaudeJSONBackup,
+  ReadClaudeJSONMasked,
   ReadClaudeMdFiles,
   ReadDirectoryClaudeMd,
   ReadGlobalAgents,
@@ -11,6 +15,7 @@ import {
   ReadGlobalSkills,
   ReadHooks,
   ReadMentionedFile,
+  RevealClaudeJSONValue,
   SetPluginEnabled,
   ToggleHook,
   UpdateGlobalSettings,
@@ -18,9 +23,13 @@ import {
   ValidatePath,
 } from '../../../../bindings/claude-devtools/internal/filesservice/filesservice';
 
+import { reviveDates } from '../reviveDates';
+
 import type { ClaudeMdFileInfo, ElectronAPI } from '@shared/types';
 import type {
   AgentConfig,
+  ClaudeJSONBackup,
+  ClaudeJSONCensus,
   DuplicateGroup,
   GlobalAgent,
   GlobalPlugin,
@@ -49,6 +58,11 @@ type FilesSlice = Pick<
   | 'dedupePlugin'
   | 'detectPluginDuplicates'
   | 'enumerateSettingsSources'
+  | 'readClaudeJSON'
+  | 'revealClaudeJSONValue'
+  | 'readClaudeJSONMasked'
+  | 'listClaudeJSONBackups'
+  | 'readClaudeJSONBackup'
 >;
 
 export const filesApi: FilesSlice = {
@@ -126,4 +140,18 @@ export const filesApi: FilesSlice = {
 
   enumerateSettingsSources: (projectRoot: string): Promise<SourcesView> =>
     EnumerateSettingsSources(projectRoot) as unknown as Promise<SourcesView>,
+
+  readClaudeJSON: (): Promise<ClaudeJSONCensus> =>
+    ReadClaudeJSON() as unknown as Promise<ClaudeJSONCensus>,
+
+  revealClaudeJSONValue: (keyPath: string): Promise<string> => RevealClaudeJSONValue(keyPath),
+
+  readClaudeJSONMasked: (): Promise<string> => ReadClaudeJSONMasked(),
+
+  listClaudeJSONBackups: async (): Promise<ClaudeJSONBackup[]> => {
+    const raw = await ListClaudeJSONBackups();
+    return reviveDates(raw as unknown as ClaudeJSONBackup[]);
+  },
+
+  readClaudeJSONBackup: (name: string): Promise<string> => ReadClaudeJSONBackup(name),
 };

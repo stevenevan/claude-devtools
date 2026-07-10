@@ -258,7 +258,7 @@ func TestIntegration_DebouncedFileChange(t *testing.T) {
 		payload any
 	}
 	events := make(chan received, 10)
-	r := watcher.New(projectsDir, todosDir, "", func(event string, payload any) {
+	r := watcher.New(projectsDir, todosDir, "", "", func(event string, payload any) {
 		select {
 		case events <- received{event, payload}:
 		default:
@@ -334,7 +334,7 @@ func TestIntegration_ConfigFileChange(t *testing.T) {
 	}
 
 	events := make(chan string, 10)
-	r := watcher.New(projectsDir, todosDir, configDir, func(event string, _ any) {
+	r := watcher.New(projectsDir, todosDir, configDir, "", func(event string, _ any) {
 		select {
 		case events <- event:
 		default:
@@ -353,6 +353,60 @@ func TestIntegration_ConfigFileChange(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := os.Rename(tmpPath, settingsPath); err != nil {
+		t.Fatal(err)
+	}
+
+	deadline := time.After(3 * time.Second)
+	for {
+		select {
+		case ev := <-events:
+			if ev == "config-file-change" {
+				return // success
+			}
+		case <-deadline:
+			t.Fatal("no config-file-change event within 3 s")
+		}
+	}
+}
+
+// TestIntegration_ClaudeJSONChange verifies a ~/.claude.json write via
+// temp+rename in a fixture home dir surfaces one config-file-change from the
+// home-dir watch (W20). Mirrors the settings.json config-change test.
+func TestIntegration_ClaudeJSONChange(t *testing.T) {
+	tmpDir := t.TempDir()
+	realTmp, err := filepath.EvalSymlinks(tmpDir)
+	if err != nil {
+		realTmp = tmpDir
+	}
+	homeDir := realTmp
+	projectsDir := filepath.Join(realTmp, ".claude", "projects")
+	todosDir := filepath.Join(realTmp, ".claude", "todos")
+	for _, d := range []string{projectsDir, todosDir} {
+		if err := os.MkdirAll(d, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	events := make(chan string, 10)
+	r := watcher.New(projectsDir, todosDir, "", homeDir, func(event string, _ any) {
+		select {
+		case events <- event:
+		default:
+		}
+	})
+	if err := r.Start(); err != nil {
+		t.Skipf("watcher.Start failed: %v", err)
+	}
+	defer r.Stop()
+	time.Sleep(200 * time.Millisecond)
+
+	// Atomic write: ~/.claude.json.tmp then rename over ~/.claude.json.
+	claudeJSONPath := filepath.Join(homeDir, ".claude.json")
+	tmpPath := claudeJSONPath + ".tmp"
+	if err := os.WriteFile(tmpPath, []byte(`{"numStartups":1}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Rename(tmpPath, claudeJSONPath); err != nil {
 		t.Fatal(err)
 	}
 

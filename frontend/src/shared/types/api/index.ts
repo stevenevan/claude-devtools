@@ -28,6 +28,7 @@ import type {
 import type { WaterfallData } from '../visualization';
 import type { AgentConfig, GlobalAgent, GlobalPlugin, GlobalSkill } from './agents';
 import type { BackendCacheStats, BackendTimingSummary } from './backend';
+import type { ClaudeJSONBackup, ClaudeJSONCensus } from './claudeJson';
 import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
 import type { MaintenanceAPI } from './maintenance';
@@ -42,6 +43,7 @@ import type { WebhookAPI } from './webhook';
 
 export type * from './agents';
 export type * from './backend';
+export type * from './claudeJson';
 export type * from './config';
 export type * from './context';
 export type * from './maintenance';
@@ -214,6 +216,14 @@ export interface ElectronAPI {
   dedupePlugin: (name: string, keepKey: string) => Promise<void>;
   detectPluginDuplicates: () => Promise<DuplicateGroup[]>;
   enumerateSettingsSources: (projectRoot: string) => Promise<SourcesView>;
+
+  // ~/.claude.json inspector (Week 20, read-only). Census carries kinds/sizes
+  // only; per-value display and backups are server-side masked.
+  readClaudeJSON: () => Promise<ClaudeJSONCensus>;
+  revealClaudeJSONValue: (keyPath: string) => Promise<string>;
+  readClaudeJSONMasked: () => Promise<string>;
+  listClaudeJSONBackups: () => Promise<ClaudeJSONBackup[]>;
+  readClaudeJSONBackup: (name: string) => Promise<string>;
 
   // Notifications API
   notifications: NotificationsAPI;

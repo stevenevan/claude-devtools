@@ -77,14 +77,22 @@ func (s *SystemService) StartWatching() error {
 	}
 	projectsDir := filepath.Join(claudeDir, "projects")
 	todosDir := filepath.Join(claudeDir, "todos")
+	// ~/.claude.json lives in the home dir (its parent), not under claudeDir, so
+	// it needs its own non-recursive watch root. Best-effort: an unresolvable
+	// home just disables that one watch.
+	claudeJSONDir := ""
+	if home, err := os.UserHomeDir(); err == nil {
+		claudeJSONDir = home
+	}
 
 	s.watcherMu.Lock()
 	if s.runner != nil {
 		s.watcherMu.Unlock()
 		return nil // already watching
 	}
-	// configDir = claudeDir so settings.json writes surface as config-file-change.
-	r := watcher.New(projectsDir, todosDir, claudeDir, func(event string, payload any) {
+	// configDir = claudeDir so settings.json writes surface as config-file-change;
+	// claudeJSONDir = home so ~/.claude.json writes do too (W20).
+	r := watcher.New(projectsDir, todosDir, claudeDir, claudeJSONDir, func(event string, payload any) {
 		emitEvent(event, payload)
 	})
 	s.runner = r

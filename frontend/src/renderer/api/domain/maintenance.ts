@@ -123,9 +123,9 @@ export const maintenanceApi: MaintenanceSlice = {
 
     restoreSettingsGeneration: (name: string): Promise<void> => RestoreSettingsGeneration(name),
 
-    onConfigFileChange: (callback: () => void): (() => void) => {
-      const off = Events.On('config-file-change', () => {
-        callback();
+    onConfigFileChange: (callback: (path?: string) => void): (() => void) => {
+      const off = Events.On('config-file-change', (e) => {
+        callback((e.data as { path?: string } | undefined)?.path);
       });
       return off;
     },

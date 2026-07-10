@@ -8,6 +8,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { BackupsCleanupPanel } from './BackupsCleanupPanel';
 import { CachesCleanupPanel } from './CachesCleanupPanel';
+import { ClaudeJsonPanel } from './ClaudeJsonPanel';
 import { FileHistoryCleanupPanel } from './FileHistoryCleanupPanel';
 import { HealthPanel } from './HealthPanel';
 import { HistoryPanel } from './HistoryPanel';
@@ -48,6 +49,7 @@ const CLEANUP_TABS: MaintenanceTab[] = [
   { id: 'settings-diff', label: 'Settings Diff', render: () => <SettingsDiffPanel /> },
   { id: 'project-settings', label: 'Project Settings', render: () => <ProjectSettingsPanel /> },
   { id: 'instructions', label: 'Instructions', render: () => <InstructionsPanel /> },
+  { id: 'claude-json', label: 'claude.json', render: () => <ClaudeJsonPanel /> },
 ];
 
 export const MaintenanceView = (): JSX.Element => {

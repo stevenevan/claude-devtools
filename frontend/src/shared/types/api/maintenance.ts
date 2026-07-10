@@ -116,7 +116,9 @@ export interface MaintenanceAPI {
   listSettingsGenerations: () => Promise<string[]>;
   readSettingsGeneration: (name: string) => Promise<string>;
   restoreSettingsGeneration: (name: string) => Promise<void>;
-  onConfigFileChange: (callback: () => void) => () => void;
+  // callback receives the changed file's path when available, so consumers can
+  // filter (e.g. the ~/.claude.json inspector only cares about that file).
+  onConfigFileChange: (callback: (path?: string) => void) => () => void;
 
   // Instruction-file editors (Week 25): global CLAUDE.md/RTK.md/rules/
   // commands/tools allowlist. List/read are read-only; write/delete are

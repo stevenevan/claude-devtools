@@ -10,12 +10,13 @@ import (
 	"claude-devtools/internal/files"
 )
 
-// FilesService exposes 17 commands: ValidatePath, ValidateMentions,
+// FilesService exposes 22 commands: ValidatePath, ValidateMentions,
 // ReadClaudeMdFiles, ReadDirectoryClaudeMd, ReadMentionedFile,
 // ReadAgentConfigs, ReadGlobalAgents, ReadGlobalSkills, ReadGlobalPlugins,
 // ReadGlobalSettings, UpdateGlobalSettings, ReadHooks, ToggleHook,
 // SetPluginEnabled, DedupePlugin, DetectPluginDuplicates,
-// EnumerateSettingsSources.
+// EnumerateSettingsSources, ReadClaudeJSON, RevealClaudeJSONValue,
+// ReadClaudeJSONMasked, ListClaudeJSONBackups, ReadClaudeJSONBackup.
 type FilesService struct{}
 
 func (s *FilesService) Ready() (bool, error) { return true, nil }
@@ -144,4 +145,35 @@ func (s *FilesService) DetectPluginDuplicates() ([]files.DuplicateGroup, error) 
 // Read-only; raw values are unmasked — masking happens client-side.
 func (s *FilesService) EnumerateSettingsSources(projectRoot string) (files.SourcesView, error) {
 	return files.EnumerateSettingsSources(projectRoot)
+}
+
+// ReadClaudeJSON returns the read-only census of ~/.claude.json (top-level key
+// kinds/sizes, grouped flags, project-entry stale triage). Carries no raw
+// values — per-value display goes through RevealClaudeJSONValue.
+func (s *FilesService) ReadClaudeJSON() (files.ClaudeJSONCensus, error) {
+	return files.ReadClaudeJSON()
+}
+
+// RevealClaudeJSONValue returns the masked JSON of a single top-level key's
+// value; credential-shaped keys/values come back masked.
+func (s *FilesService) RevealClaudeJSONValue(keyPath string) (string, error) {
+	return files.RevealClaudeJSONValue(keyPath)
+}
+
+// ReadClaudeJSONMasked returns the full live ~/.claude.json server-side-masked
+// so the inspector can diff live-vs-backup masked-vs-masked.
+func (s *FilesService) ReadClaudeJSONMasked() (string, error) {
+	return files.ReadClaudeJSONMasked()
+}
+
+// ListClaudeJSONBackups enumerates the CLI's own ~/.claude/backups rolling
+// backups newest-first.
+func (s *FilesService) ListClaudeJSONBackups() ([]files.ClaudeJSONBackup, error) {
+	return files.ListClaudeJSONBackups()
+}
+
+// ReadClaudeJSONBackup returns a named backup's server-side-masked JSON so the
+// diff stays masked-vs-masked; name is validated + confined to the backups dir.
+func (s *FilesService) ReadClaudeJSONBackup(name string) (string, error) {
+	return files.ReadClaudeJSONBackup(name)
 }
