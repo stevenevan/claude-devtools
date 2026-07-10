@@ -6,7 +6,10 @@ import { formatBytes } from '@renderer/utils/formatters';
 import { HardDrive, Loader2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
+import { FileHistoryCleanupPanel } from './FileHistoryCleanupPanel';
+import { JunkCleanupPanel } from './JunkCleanupPanel';
 import { PluginsCleanupPanel } from './PluginsCleanupPanel';
+import { RuntimeCleanupPanel } from './RuntimeCleanupPanel';
 import { StorageTable } from './StorageTable';
 import { TranscriptsCleanupPanel } from './TranscriptsCleanupPanel';
 import { TrashPanel } from './TrashPanel';
@@ -22,6 +25,9 @@ interface MaintenanceTab {
 const CLEANUP_TABS: MaintenanceTab[] = [
   { id: 'plugins', label: 'Plugins', render: () => <PluginsCleanupPanel /> },
   { id: 'transcripts', label: 'Transcripts', render: () => <TranscriptsCleanupPanel /> },
+  { id: 'file-history', label: 'File History', render: () => <FileHistoryCleanupPanel /> },
+  { id: 'junk', label: 'Junk', render: () => <JunkCleanupPanel /> },
+  { id: 'runtime', label: 'Runtime', render: () => <RuntimeCleanupPanel /> },
 ];
 
 export const MaintenanceView = (): JSX.Element => {
