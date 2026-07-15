@@ -1,9 +1,12 @@
 import { JSX, useEffect, useRef, useState } from 'react';
-import { api } from '@renderer/api';
+import { api, isDesktopMode } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
+import { useStore } from '@renderer/store';
 import { formatBytes } from '@renderer/utils/formatters';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 
+import { ClaudeJsonPurgeSection } from './ClaudeJsonPurgeSection';
 import { JsonDiffView } from './JsonDiffView';
 
 import type {
@@ -43,6 +46,10 @@ export const ClaudeJsonPanel = (): JSX.Element => {
   const loadedBackups = useRef<Set<string>>(new Set());
   const [diffLeft, setDiffLeft] = useState('live');
   const [diffRight, setDiffRight] = useState('');
+  const [selected, setSelected] = useState<string[]>([]);
+
+  const connectionMode = useStore(useShallow((s) => s.connectionMode));
+  const canAct = isDesktopMode() && connectionMode === 'local';
 
   const load = async (): Promise<void> => {
     setLoading(true);
@@ -61,12 +68,17 @@ export const ClaudeJsonPanel = (): JSX.Element => {
       loadedBackups.current = new Set();
       setDiffLeft('live');
       setDiffRight(nextBackups[0]?.name ?? '');
+      setSelected([]);
       setStale(false);
     } catch (err) {
       setError(errText(err));
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleSelect = (path: string): void => {
+    setSelected((prev) => (prev.includes(path) ? prev.filter((p) => p !== path) : [...prev, path]));
   };
 
   useEffect(() => {
@@ -153,7 +165,18 @@ export const ClaudeJsonPanel = (): JSX.Element => {
             entries
           </p>
 
-          <ProjectSection projects={census.projects} />
+          <ProjectSection
+            projects={census.projects}
+            canAct={canAct}
+            selected={selected}
+            onToggleSelect={toggleSelect}
+          />
+          <ClaudeJsonPurgeSection
+            projects={census.projects}
+            selected={selected}
+            canAct={canAct}
+            onAfterWrite={() => void load()}
+          />
           <KeySection
             title="Top-level keys"
             keys={census.topLevel}
@@ -184,9 +207,17 @@ export const ClaudeJsonPanel = (): JSX.Element => {
 
 interface ProjectSectionProps {
   projects: ClaudeJSONProject[];
+  canAct: boolean;
+  selected: string[];
+  onToggleSelect: (path: string) => void;
 }
 
-const ProjectSection = ({ projects }: Readonly<ProjectSectionProps>): JSX.Element => (
+const ProjectSection = ({
+  projects,
+  canAct,
+  selected,
+  onToggleSelect,
+}: Readonly<ProjectSectionProps>): JSX.Element => (
   <div className="border-border/50 border-b px-4 py-3">
     <p className="text-foreground mb-2 text-xs font-medium">Project entries</p>
     {projects.length === 0 ? (
@@ -198,9 +229,23 @@ const ProjectSection = ({ projects }: Readonly<ProjectSectionProps>): JSX.Elemen
             key={project.path}
             className="border-border/50 flex items-center justify-between gap-2 rounded-md border px-2 py-1.5"
           >
-            <p className="text-foreground min-w-0 truncate font-mono text-xs" title={project.path}>
-              {project.path}
-            </p>
+            <div className="flex min-w-0 items-center gap-2">
+              {canAct && project.triage === 'stale' && (
+                <input
+                  type="checkbox"
+                  checked={selected.includes(project.path)}
+                  onChange={() => onToggleSelect(project.path)}
+                  aria-label={`Select ${project.path} for purge`}
+                  className="accent-destructive size-3.5 shrink-0"
+                />
+              )}
+              <p
+                className="text-foreground min-w-0 truncate font-mono text-xs"
+                title={project.path}
+              >
+                {project.path}
+              </p>
+            </div>
             <div className="flex shrink-0 items-center gap-2">
               <span className="text-muted-foreground text-[10px]">
                 {project.keyCount} keys · {formatBytes(project.bytes)}

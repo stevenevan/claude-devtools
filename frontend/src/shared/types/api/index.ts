@@ -28,7 +28,7 @@ import type {
 import type { WaterfallData } from '../visualization';
 import type { AgentConfig, GlobalAgent, GlobalPlugin, GlobalSkill } from './agents';
 import type { BackendCacheStats, BackendTimingSummary } from './backend';
-import type { ClaudeJSONBackup, ClaudeJSONCensus } from './claudeJson';
+import type { ClaudeJSONBackup, ClaudeJSONCensus, PurgeResult } from './claudeJson';
 import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
 import type { MaintenanceAPI } from './maintenance';
@@ -228,6 +228,13 @@ export interface ElectronAPI {
   readClaudeJSONMasked: () => Promise<string>;
   listClaudeJSONBackups: () => Promise<ClaudeJSONBackup[]>;
   readClaudeJSONBackup: (name: string) => Promise<string>;
+
+  // ~/.claude.json guarded purge-write (Week 21). Removes provably-stale
+  // project entries under the program's tightest guardrails; app-side backups
+  // are enumerable and restorable (full-file, auth included).
+  purgeClaudeJSONProjects: (keys: string[]) => Promise<PurgeResult>;
+  listClaudeJSONAppBackups: () => Promise<ClaudeJSONBackup[]>;
+  restoreClaudeJSONAppBackup: (name: string) => Promise<void>;
 
   // MCP status dashboard (Week 22, read-only). Aggregates ~/.claude.json
   // (top-level + per-project mcpServers), .mcp.json, and the auth-needed

@@ -31,3 +31,13 @@ export interface ClaudeJSONBackup {
   bytes: number;
   modTime: Date;
 }
+
+// PurgeResult (Week 21) reports a guarded purge of provably-stale project
+// entries from ~/.claude.json: which keys were removed, the size before/after,
+// and the app-side pre-write backup created before the write.
+export interface PurgeResult {
+  removedKeys: string[];
+  bytesBefore: number;
+  bytesAfter: number;
+  backupName: string;
+}

@@ -212,3 +212,24 @@ func (s *FilesService) RemovePermissionRule(scope files.PermissionScope, list, r
 func (s *FilesService) MovePermissionRule(from, to files.PermissionScope, fromList, toList, rule string) error {
 	return files.MovePermissionRule(from, to, fromList, toList, rule)
 }
+
+// PurgeClaudeJSONProjects removes provably-stale project entries from
+// ~/.claude.json under the program's tightest guardrails: server-side
+// re-triage, value-preserving surgical delete, a credential deny-list, an
+// app-side pre-write backup, compare-and-swap before rename, and post-write
+// re-verify. Never mutates or downgrades auth material.
+func (s *FilesService) PurgeClaudeJSONProjects(keys []string) (files.PurgeResult, error) {
+	return files.PurgeClaudeJSONProjects(keys)
+}
+
+// ListClaudeJSONAppBackups enumerates the app's own pre-purge ~/.claude.json
+// backups (<AppDataDir>/claude-json-backups) newest-first.
+func (s *FilesService) ListClaudeJSONAppBackups() ([]files.ClaudeJSONBackup, error) {
+	return files.ListClaudeJSONAppBackups()
+}
+
+// RestoreClaudeJSONAppBackup replaces the live ~/.claude.json with a named
+// app-side backup in full (auth included), backing up the current file first.
+func (s *FilesService) RestoreClaudeJSONAppBackup(name string) error {
+	return files.RestoreClaudeJSONAppBackup(name)
+}

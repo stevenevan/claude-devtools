@@ -5,8 +5,10 @@ import {
   EnumerateSettingsSources,
   GetMCPStatus,
   GetPermissionRules,
+  ListClaudeJSONAppBackups,
   ListClaudeJSONBackups,
   MovePermissionRule,
+  PurgeClaudeJSONProjects,
   ReadAgentConfigs,
   ReadClaudeJSON,
   ReadClaudeJSONBackup,
@@ -20,6 +22,7 @@ import {
   ReadHooks,
   ReadMentionedFile,
   RemovePermissionRule,
+  RestoreClaudeJSONAppBackup,
   RevealClaudeJSONValue,
   SetPluginEnabled,
   ToggleHook,
@@ -44,6 +47,7 @@ import type {
   MCPStatusView,
   PermissionRulesView,
   PermissionScope,
+  PurgeResult,
   SourcesView,
 } from '@shared/types/api';
 
@@ -71,6 +75,9 @@ type FilesSlice = Pick<
   | 'readClaudeJSONMasked'
   | 'listClaudeJSONBackups'
   | 'readClaudeJSONBackup'
+  | 'purgeClaudeJSONProjects'
+  | 'listClaudeJSONAppBackups'
+  | 'restoreClaudeJSONAppBackup'
   | 'getMCPStatus'
   | 'getPermissionRules'
   | 'addPermissionRule'
@@ -167,6 +174,17 @@ export const filesApi: FilesSlice = {
   },
 
   readClaudeJSONBackup: (name: string): Promise<string> => ReadClaudeJSONBackup(name),
+
+  purgeClaudeJSONProjects: (keys: string[]): Promise<PurgeResult> =>
+    PurgeClaudeJSONProjects(keys) as unknown as Promise<PurgeResult>,
+
+  listClaudeJSONAppBackups: async (): Promise<ClaudeJSONBackup[]> => {
+    const raw = await ListClaudeJSONAppBackups();
+    return reviveDates(raw as unknown as ClaudeJSONBackup[]);
+  },
+
+  restoreClaudeJSONAppBackup: (name: string): Promise<void> =>
+    RestoreClaudeJSONAppBackup(name) as unknown as Promise<void>,
 
   getMCPStatus: (): Promise<MCPStatusView> =>
     GetMCPStatus() as unknown as Promise<MCPStatusView>,
