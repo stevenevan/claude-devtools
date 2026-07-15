@@ -17,7 +17,6 @@ import {
   ReadDirectoryClaudeMd,
   ReadGlobalPlugins,
   ReadGlobalSettings,
-  ReadGlobalSkills,
   ReadHooks,
   ReadMentionedFile,
   RemovePermissionRule,
@@ -40,7 +39,6 @@ import type {
   DuplicateGroup,
   GlobalPlugin,
   GlobalSettingsPatch,
-  GlobalSkill,
   HookView,
   MCPStatusView,
   PermissionRulesView,
@@ -57,7 +55,6 @@ type FilesSlice = Pick<
   | 'readDirectoryClaudeMd'
   | 'readMentionedFile'
   | 'readAgentConfigs'
-  | 'readGlobalSkills'
   | 'readGlobalPlugins'
   | 'readGlobalSettings'
   | 'updateGlobalSettings'
@@ -118,9 +115,6 @@ export const filesApi: FilesSlice = {
 
   readAgentConfigs: (projectRoot: string): Promise<Record<string, AgentConfig>> =>
     ReadAgentConfigs(projectRoot) as unknown as Promise<Record<string, AgentConfig>>,
-
-  readGlobalSkills: (): Promise<GlobalSkill[]> =>
-    ReadGlobalSkills() as unknown as Promise<GlobalSkill[]>,
 
   readGlobalPlugins: (): Promise<GlobalPlugin[]> =>
     ReadGlobalPlugins() as unknown as Promise<GlobalPlugin[]>,

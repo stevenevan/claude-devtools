@@ -7,6 +7,7 @@ import {
   CreateAgent,
   DeleteAgent,
   DeleteInstructionFile,
+  DeleteSkill,
   EmptyTrash,
   GetMaintenanceCutoff,
   GetMaintenanceHealth,
@@ -19,14 +20,18 @@ import {
   ReadInstructionFile,
   ReadPlanFile,
   ReadSettingsGeneration,
+  ReadSkillDoc,
+  RemoveSkillLink,
   RestoreSettingsGeneration,
   RestoreTrash,
   RollbackBinary,
   ScanCategory,
   ScanClaudeDir,
   SetMaintenanceCutoff,
+  SkillsInventory,
   TrashItems,
   WriteInstructionFile,
+  WriteSkillDoc,
 } from '../../../../bindings/claude-devtools/internal/maintenanceservice/maintenanceservice';
 
 import { reviveDates } from '../reviveDates';
@@ -41,6 +46,7 @@ import type {
   HistoryStats,
   InstructionFile,
   MaintenanceScanProgress,
+  SkillInventoryEntry,
   TrashReceipt,
 } from '@shared/types';
 
@@ -164,6 +170,24 @@ export const maintenanceApi: MaintenanceSlice = {
 
     deleteAgent: async (fileBase: string): Promise<TrashReceipt> => {
       const raw = await DeleteAgent(fileBase);
+      return reviveDates(raw as unknown as TrashReceipt);
+    },
+
+    skillsInventory: (): Promise<SkillInventoryEntry[]> =>
+      SkillsInventory() as unknown as Promise<SkillInventoryEntry[]>,
+
+    readSkillDoc: (skillName: string): Promise<string> => ReadSkillDoc(skillName),
+
+    writeSkillDoc: (skillName: string, content: string): Promise<void> =>
+      WriteSkillDoc(skillName, content),
+
+    removeSkillLink: async (skillName: string): Promise<TrashReceipt> => {
+      const raw = await RemoveSkillLink(skillName);
+      return reviveDates(raw as unknown as TrashReceipt);
+    },
+
+    deleteSkill: async (skillName: string): Promise<TrashReceipt> => {
+      const raw = await DeleteSkill(skillName);
       return reviveDates(raw as unknown as TrashReceipt);
     },
   },

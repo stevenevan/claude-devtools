@@ -23,8 +23,8 @@ const AnalyticsDashboard = lazy(() =>
 const AgentsManager = lazy(() =>
   import('../dashboard/AgentsManager').then((m) => ({ default: m.AgentsManager }))
 );
-const SkillsGrid = lazy(() =>
-  import('../dashboard/SkillsGrid').then((m) => ({ default: m.SkillsGrid }))
+const SkillsManager = lazy(() =>
+  import('../dashboard/SkillsManager').then((m) => ({ default: m.SkillsManager }))
 );
 const PluginsGrid = lazy(() =>
   import('../dashboard/PluginsGrid').then((m) => ({ default: m.PluginsGrid }))
@@ -93,11 +93,7 @@ export const PaneContent = ({ pane }: PaneContentProps): JSX.Element => {
               {activeActivity === 'projects' && <DashboardView />}
               {activeActivity === 'analytics' && <AnalyticsDashboard />}
               {activeActivity === 'agents' && <AgentsManager />}
-              {activeActivity === 'skills' && (
-                <GlobalContentView title="Skills">
-                  <SkillsGrid searchQuery="" />
-                </GlobalContentView>
-              )}
+              {activeActivity === 'skills' && <SkillsManager />}
               {activeActivity === 'plugins' && (
                 <GlobalContentView title="Plugins">
                   <PluginsGrid searchQuery="" />

@@ -26,7 +26,7 @@ import type {
   ToolTimeHeatmapResponse,
 } from '../domain';
 import type { WaterfallData } from '../visualization';
-import type { AgentConfig, GlobalPlugin, GlobalSkill } from './agents';
+import type { AgentConfig, GlobalPlugin } from './agents';
 import type { BackendCacheStats, BackendTimingSummary } from './backend';
 import type { ClaudeJSONBackup, ClaudeJSONCensus, PurgeResult } from './claudeJson';
 import type { ConfigAPI } from './config';
@@ -204,7 +204,6 @@ export interface ElectronAPI {
   readAgentConfigs: (projectRoot: string) => Promise<Record<string, AgentConfig>>;
 
   // Global ~/.claude/ config reading
-  readGlobalSkills: () => Promise<GlobalSkill[]>;
   readGlobalPlugins: () => Promise<GlobalPlugin[]>;
   readGlobalSettings: () => Promise<Record<string, unknown>>;
   updateGlobalSettings: (patch: GlobalSettingsPatch) => Promise<void>;

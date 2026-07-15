@@ -1,6 +1,6 @@
 // Maintenance API (storage scan Week 1, safe-delete trash engine Week 2)
 
-import type { AgentPatch, GlobalAgent } from './agents';
+import type { AgentPatch, GlobalAgent, SkillInventoryEntry } from './agents';
 
 export interface DirUsage {
   path: string;
@@ -138,4 +138,15 @@ export interface MaintenanceAPI {
   patchAgentFrontmatter: (fileBase: string, patch: AgentPatch) => Promise<void>;
   createAgent: (name: string, description: string) => Promise<void>;
   deleteAgent: (fileBase: string) => Promise<TrashReceipt>;
+
+  // Skills manager (Week 27): root-threaded inventory + SKILL.md read/write +
+  // remove-symlink vs delete-skill. Inventory/read are read-only; write/remove/
+  // delete are SSH-gated + serialized on the backend. removeSkillLink trashes
+  // the link only (never its target); deleteSkill trashes a real dir — both
+  // return a TrashReceipt. Skills have no enable/disable — presence == enabled.
+  skillsInventory: () => Promise<SkillInventoryEntry[]>;
+  readSkillDoc: (skillName: string) => Promise<string>;
+  writeSkillDoc: (skillName: string, content: string) => Promise<void>;
+  removeSkillLink: (skillName: string) => Promise<TrashReceipt>;
+  deleteSkill: (skillName: string) => Promise<TrashReceipt>;
 }

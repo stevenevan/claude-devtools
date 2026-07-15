@@ -36,6 +36,21 @@ export interface GlobalSkill {
   symlinkPath: string;
 }
 
+// SkillInventoryEntry is one row of the Week 27 skills inventory. isSymlink is
+// set from an Lstat of the link entry (never followed); the rest describe the
+// resolved directory. bytes is 0 for a symlink (its children contribute 0), so
+// removing a link reclaims nothing.
+export interface SkillInventoryEntry {
+  name: string;
+  description: string;
+  isSymlink: boolean;
+  resolvedPath: string;
+  symlinkTarget: string;
+  bytes: number;
+  hasReferences: boolean;
+  hasSkillMd: boolean;
+}
+
 export interface GlobalPlugin {
   id: string;
   name: string;
