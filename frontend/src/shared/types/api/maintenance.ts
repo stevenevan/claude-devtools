@@ -1,5 +1,7 @@
 // Maintenance API (storage scan Week 1, safe-delete trash engine Week 2)
 
+import type { AgentPatch, GlobalAgent } from './agents';
+
 export interface DirUsage {
   path: string;
   bytes: number;
@@ -127,4 +129,13 @@ export interface MaintenanceAPI {
   readInstructionFile: (relPath: string) => Promise<string>;
   writeInstructionFile: (relPath: string, content: string) => Promise<void>;
   deleteInstructionFile: (relPath: string) => Promise<TrashReceipt>;
+
+  // Agents manager (Week 26): root-threaded list + typed frontmatter/body
+  // patch + create/delete of ~/.claude/agents/*.md. List is read-only;
+  // patch/create/delete are SSH-gated + serialized on the backend. deleteAgent
+  // trashes the file (restorable), returning a TrashReceipt.
+  listManagedAgents: () => Promise<GlobalAgent[]>;
+  patchAgentFrontmatter: (fileBase: string, patch: AgentPatch) => Promise<void>;
+  createAgent: (name: string, description: string) => Promise<void>;
+  deleteAgent: (fileBase: string) => Promise<TrashReceipt>;
 }

@@ -15,7 +15,6 @@ import {
   ReadClaudeJSONMasked,
   ReadClaudeMdFiles,
   ReadDirectoryClaudeMd,
-  ReadGlobalAgents,
   ReadGlobalPlugins,
   ReadGlobalSettings,
   ReadGlobalSkills,
@@ -39,7 +38,6 @@ import type {
   ClaudeJSONBackup,
   ClaudeJSONCensus,
   DuplicateGroup,
-  GlobalAgent,
   GlobalPlugin,
   GlobalSettingsPatch,
   GlobalSkill,
@@ -59,7 +57,6 @@ type FilesSlice = Pick<
   | 'readDirectoryClaudeMd'
   | 'readMentionedFile'
   | 'readAgentConfigs'
-  | 'readGlobalAgents'
   | 'readGlobalSkills'
   | 'readGlobalPlugins'
   | 'readGlobalSettings'
@@ -121,9 +118,6 @@ export const filesApi: FilesSlice = {
 
   readAgentConfigs: (projectRoot: string): Promise<Record<string, AgentConfig>> =>
     ReadAgentConfigs(projectRoot) as unknown as Promise<Record<string, AgentConfig>>,
-
-  readGlobalAgents: (): Promise<GlobalAgent[]> =>
-    ReadGlobalAgents() as unknown as Promise<GlobalAgent[]>,
 
   readGlobalSkills: (): Promise<GlobalSkill[]> =>
     ReadGlobalSkills() as unknown as Promise<GlobalSkill[]>,

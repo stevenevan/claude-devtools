@@ -4,13 +4,17 @@ import {
   AnalyzeHistory,
   CancelScan,
   ClearFiles,
+  CreateAgent,
+  DeleteAgent,
   DeleteInstructionFile,
   EmptyTrash,
   GetMaintenanceCutoff,
   GetMaintenanceHealth,
   ListInstructionFiles,
+  ListManagedAgents,
   ListSettingsGenerations,
   ListTrash,
+  PatchAgentFrontmatter,
   PruneHistory,
   ReadInstructionFile,
   ReadPlanFile,
@@ -28,9 +32,11 @@ import {
 import { reviveDates } from '../reviveDates';
 
 import type {
+  AgentPatch,
   Candidate,
   DirUsage,
   ElectronAPI,
+  GlobalAgent,
   HealthStatus,
   HistoryStats,
   InstructionFile,
@@ -142,6 +148,22 @@ export const maintenanceApi: MaintenanceSlice = {
 
     deleteInstructionFile: async (relPath: string): Promise<TrashReceipt> => {
       const raw = await DeleteInstructionFile(relPath);
+      return reviveDates(raw as unknown as TrashReceipt);
+    },
+
+    listManagedAgents: (): Promise<GlobalAgent[]> =>
+      ListManagedAgents() as unknown as Promise<GlobalAgent[]>,
+
+    patchAgentFrontmatter: (fileBase: string, patch: AgentPatch): Promise<void> =>
+      PatchAgentFrontmatter(
+        fileBase,
+        patch as unknown as Parameters<typeof PatchAgentFrontmatter>[1]
+      ) as unknown as Promise<void>,
+
+    createAgent: (name: string, description: string): Promise<void> => CreateAgent(name, description),
+
+    deleteAgent: async (fileBase: string): Promise<TrashReceipt> => {
+      const raw = await DeleteAgent(fileBase);
       return reviveDates(raw as unknown as TrashReceipt);
     },
   },

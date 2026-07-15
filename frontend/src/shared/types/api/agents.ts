@@ -16,6 +16,18 @@ export interface GlobalAgent {
   content: string;
 }
 
+// AgentPatch is a sparse frontmatter+body patch (Week 26). Every field is
+// optional: an omitted key leaves that frontmatter key untouched; a present
+// string patches (or, for body, replaces the system-prompt body). Only changed
+// fields are sent.
+export interface AgentPatch {
+  name?: string;
+  description?: string;
+  tools?: string;
+  model?: string;
+  body?: string;
+}
+
 export interface GlobalSkill {
   name: string;
   description: string;

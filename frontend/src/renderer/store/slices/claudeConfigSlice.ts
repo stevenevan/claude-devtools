@@ -4,17 +4,12 @@ import { api } from '@renderer/api';
 import { createLogger } from '@shared/utils/logger';
 
 import type { AppState } from '../types';
-import type { GlobalAgent, GlobalPlugin, GlobalSettingsPatch, GlobalSkill } from '@shared/types/api';
+import type { GlobalPlugin, GlobalSettingsPatch, GlobalSkill } from '@shared/types/api';
 import type { StateCreator } from 'zustand';
 
 const logger = createLogger('Store:ClaudeConfig');
 
 export interface ClaudeConfigSlice {
-  globalAgents: GlobalAgent[];
-  globalAgentsLoading: boolean;
-  globalAgentsError: string | null;
-  fetchGlobalAgents: () => Promise<void>;
-
   globalSkills: GlobalSkill[];
   globalSkillsLoading: boolean;
   globalSkillsError: string | null;
@@ -36,23 +31,6 @@ export const createClaudeConfigSlice: StateCreator<AppState, [], [], ClaudeConfi
   set,
   get
 ) => ({
-  // Agents
-  globalAgents: [],
-  globalAgentsLoading: false,
-  globalAgentsError: null,
-  fetchGlobalAgents: async () => {
-    if (get().globalAgentsLoading) return;
-    set({ globalAgentsLoading: true, globalAgentsError: null });
-    try {
-      const agents = await api.readGlobalAgents();
-      set({ globalAgents: agents, globalAgentsLoading: false });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      logger.error('Failed to fetch global agents:', message);
-      set({ globalAgentsError: message, globalAgentsLoading: false });
-    }
-  },
-
   // Skills
   globalSkills: [],
   globalSkillsLoading: false,

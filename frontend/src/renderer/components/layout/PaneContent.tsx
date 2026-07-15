@@ -20,8 +20,8 @@ const DashboardView = lazy(() =>
 const AnalyticsDashboard = lazy(() =>
   import('../dashboard/AnalyticsDashboard').then((m) => ({ default: m.AnalyticsDashboard }))
 );
-const AgentsGrid = lazy(() =>
-  import('../dashboard/AgentsGrid').then((m) => ({ default: m.AgentsGrid }))
+const AgentsManager = lazy(() =>
+  import('../dashboard/AgentsManager').then((m) => ({ default: m.AgentsManager }))
 );
 const SkillsGrid = lazy(() =>
   import('../dashboard/SkillsGrid').then((m) => ({ default: m.SkillsGrid }))
@@ -92,11 +92,7 @@ export const PaneContent = ({ pane }: PaneContentProps): JSX.Element => {
             <Suspense fallback={<LazyFallback />}>
               {activeActivity === 'projects' && <DashboardView />}
               {activeActivity === 'analytics' && <AnalyticsDashboard />}
-              {activeActivity === 'agents' && (
-                <GlobalContentView title="Agents">
-                  <AgentsGrid searchQuery="" />
-                </GlobalContentView>
-              )}
+              {activeActivity === 'agents' && <AgentsManager />}
               {activeActivity === 'skills' && (
                 <GlobalContentView title="Skills">
                   <SkillsGrid searchQuery="" />
