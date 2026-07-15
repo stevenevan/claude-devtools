@@ -9,6 +9,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { BackupsCleanupPanel } from './BackupsCleanupPanel';
 import { CachesCleanupPanel } from './CachesCleanupPanel';
 import { ClaudeJsonPanel } from './ClaudeJsonPanel';
+import { ConfigBackupPanel } from './ConfigBackupPanel';
 import { FileHistoryCleanupPanel } from './FileHistoryCleanupPanel';
 import { HealthPanel } from './HealthPanel';
 import { HistoryPanel } from './HistoryPanel';
@@ -56,6 +57,7 @@ const CLEANUP_TABS: MaintenanceTab[] = [
   { id: 'mcp-status', label: 'MCP', render: () => <MCPStatusPanel /> },
   { id: 'permissions', label: 'Permissions', render: () => <PermissionsPanel /> },
   { id: 'memory', label: 'Memory', render: () => <MemoryPanel /> },
+  { id: 'config-backup', label: 'Config Backup', render: () => <ConfigBackupPanel /> },
 ];
 
 export const MaintenanceView = (): JSX.Element => {

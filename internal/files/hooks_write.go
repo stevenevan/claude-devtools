@@ -321,6 +321,39 @@ func appendDisabledGroup(appDataDir, event string, group any) error {
 	})
 }
 
+// AddDisabledHookGroups appends imported hook matcher-groups straight into
+// hooks-disabled.json (event -> []group), leaving them DISABLED — the CLI
+// never reads that file. Config import routes untrusted hooks here because,
+// unlike ToggleHook/disableHook (which require the group to already be LIVE in
+// settings.json before moving it), this inserts a group that was never in
+// settings.json and must never be — writing an untrusted hook into settings.json
+// even transiently would arm it on the next `claude` run. Append is per-event
+// and fingerprint-deduped so a repeated import doesn't pile up identical groups.
+// A single R-M-W through mutateDisabledHooks; never touches settings.json.
+func AddDisabledHookGroups(appDataDir string, groups map[string][]any) error {
+	if len(groups) == 0 {
+		return nil
+	}
+	return mutateDisabledHooks(appDataDir, func(m map[string]any) {
+		for event, incoming := range groups {
+			existing, _ := m[event].([]any)
+			seen := make(map[string]bool, len(existing))
+			for _, g := range existing {
+				seen[Fingerprint(g)] = true
+			}
+			for _, g := range incoming {
+				fp := Fingerprint(g)
+				if seen[fp] {
+					continue
+				}
+				seen[fp] = true
+				existing = append(existing, g)
+			}
+			m[event] = existing
+		}
+	})
+}
+
 // removeDisabledGroup removes the hooks-disabled.json[event] group whose
 // content fingerprint matches, wherever it sits. Fingerprint-located (not
 // index) for the same TOCTOU robustness as popHookGroupByFingerprint. A

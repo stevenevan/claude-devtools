@@ -47,6 +47,7 @@ export type * from './agents';
 export type * from './backend';
 export type * from './claudeJson';
 export type * from './config';
+export type * from './configBackup';
 export type * from './context';
 export type * from './maintenance';
 export type * from './mcp';

@@ -1,6 +1,7 @@
 // Maintenance API (storage scan Week 1, safe-delete trash engine Week 2)
 
 import type { AgentPatch, GlobalAgent, SkillInventoryEntry } from './agents';
+import type { ImportPreview, Manifest } from './configBackup';
 import type { MemoryDir, MemoryIndexFix, MemoryReport } from './memory';
 
 export interface DirUsage {
@@ -163,4 +164,21 @@ export interface MaintenanceAPI {
   writeMemoryFile: (dirID: string, fileName: string, content: string) => Promise<void>;
   applyMemoryIndexFix: (dirID: string, fix: MemoryIndexFix) => Promise<void>;
   deleteMemoryFile: (dirID: string, fileName: string) => Promise<TrashReceipt>;
+
+  // Config backup / export-import (Week 24). Capture/list/restore/delete a
+  // whole-profile config backup; export packs an archive behind a native
+  // SaveFile dialog (secrets stripped unless includeSecrets); import validates a
+  // user-picked archive behind a native OpenFile dialog and applies ONLY the
+  // explicitly confirmed categories (imported hooks always land disabled).
+  // Mutations are SSH-gated + serialized on the backend; the frontend
+  // dual-gates. captureConfig/listConfigBackups return Manifests whose createdMs
+  // is epoch-ms (never a Date); validateImportDialog returns archivePath === ""
+  // when the user cancels the native dialog.
+  captureConfig: (label: string) => Promise<Manifest>;
+  listConfigBackups: () => Promise<Manifest[]>;
+  restoreConfig: (id: string, relPaths: string[]) => Promise<void>;
+  deleteConfigBackup: (id: string) => Promise<void>;
+  exportBackup: (id: string, includeSecrets: boolean) => Promise<void>;
+  validateImportDialog: () => Promise<ImportPreview>;
+  applyImport: (archivePath: string, confirmedCategories: string[]) => Promise<void>;
 }

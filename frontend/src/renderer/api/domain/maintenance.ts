@@ -2,18 +2,23 @@ import { Events } from '@wailsio/runtime';
 
 import {
   AnalyzeHistory,
+  ApplyImport,
   ApplyMemoryIndexFix,
   CancelScan,
+  CaptureConfig,
   ClearFiles,
   CreateAgent,
   DeleteAgent,
+  DeleteConfigBackup,
   DeleteInstructionFile,
   DeleteMemoryFile,
   DeleteSkill,
   EmptyTrash,
+  ExportBackup,
   GetMaintenanceCutoff,
   GetMaintenanceHealth,
   ListInstructionFiles,
+  ListConfigBackups,
   ListManagedAgents,
   ListMemoryDirs,
   ListSettingsGenerations,
@@ -27,6 +32,7 @@ import {
   ReadSettingsGeneration,
   ReadSkillDoc,
   RemoveSkillLink,
+  RestoreConfig,
   RestoreSettingsGeneration,
   RestoreTrash,
   RollbackBinary,
@@ -35,6 +41,7 @@ import {
   SetMaintenanceCutoff,
   SkillsInventory,
   TrashItems,
+  ValidateImportDialog,
   WriteInstructionFile,
   WriteMemoryFile,
   WriteSkillDoc,
@@ -50,8 +57,10 @@ import type {
   GlobalAgent,
   HealthStatus,
   HistoryStats,
+  ImportPreview,
   InstructionFile,
   MaintenanceScanProgress,
+  Manifest,
   MemoryDir,
   MemoryIndexFix,
   MemoryReport,
@@ -222,5 +231,25 @@ export const maintenanceApi: MaintenanceSlice = {
       const raw = await DeleteMemoryFile(dirID, fileName);
       return reviveDates(raw as unknown as TrashReceipt);
     },
+
+    // createdMs is a plain number, not an ISO date — never reviveDates these.
+    captureConfig: (label: string): Promise<Manifest> =>
+      CaptureConfig(label) as unknown as Promise<Manifest>,
+
+    listConfigBackups: (): Promise<Manifest[]> =>
+      ListConfigBackups() as unknown as Promise<Manifest[]>,
+
+    restoreConfig: (id: string, relPaths: string[]): Promise<void> => RestoreConfig(id, relPaths),
+
+    deleteConfigBackup: (id: string): Promise<void> => DeleteConfigBackup(id),
+
+    exportBackup: (id: string, includeSecrets: boolean): Promise<void> =>
+      ExportBackup(id, includeSecrets),
+
+    validateImportDialog: (): Promise<ImportPreview> =>
+      ValidateImportDialog() as unknown as Promise<ImportPreview>,
+
+    applyImport: (archivePath: string, confirmedCategories: string[]): Promise<void> =>
+      ApplyImport(archivePath, confirmedCategories),
   },
 };
