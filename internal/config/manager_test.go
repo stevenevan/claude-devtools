@@ -438,6 +438,38 @@ func TestExportImportAnnotationsBundle(t *testing.T) {
 }
 
 // TestNormalizeClaudeRootPath verifies the path normalization helper.
+func TestDismissedSuggestionsRoundTrip(t *testing.T) {
+	cs := tempConfig(t)
+
+	if got := cs.GetDismissedSuggestions(); len(got) != 0 {
+		t.Fatalf("expected empty dismissed set, got %v", got)
+	}
+
+	if err := cs.DismissSuggestion("Bash(git status:*)"); err != nil {
+		t.Fatal(err)
+	}
+	// Idempotent: a repeat dismiss adds no duplicate.
+	if err := cs.DismissSuggestion("Bash(git status:*)"); err != nil {
+		t.Fatal(err)
+	}
+	if err := cs.DismissSuggestion("Bash(make build)"); err != nil {
+		t.Fatal(err)
+	}
+
+	// Reload from disk with a fresh state to prove persistence.
+	reloaded := &ConfigState{configPath: cs.configPath}
+	got := reloaded.GetDismissedSuggestions()
+	if len(got) != 2 {
+		t.Fatalf("expected 2 dismissed rules after reload, got %v", got)
+	}
+	want := map[string]bool{"Bash(git status:*)": true, "Bash(make build)": true}
+	for _, r := range got {
+		if !want[r] {
+			t.Errorf("unexpected dismissed rule %q", r)
+		}
+	}
+}
+
 func TestNormalizeClaudeRootPath(t *testing.T) {
 	cases := []struct {
 		input    *string

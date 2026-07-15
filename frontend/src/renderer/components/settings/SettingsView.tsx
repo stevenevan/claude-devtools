@@ -135,6 +135,7 @@ export const SettingsView = (): JSX.Element | null => {
               onAddTrigger={handlers.handleAddTrigger}
               onUpdateTrigger={handlers.handleUpdateTrigger}
               onRemoveTrigger={handlers.handleRemoveTrigger}
+              onSetNotificationPolicy={handlers.handleSetNotificationPolicy}
             />
           </SettingsTabContent>
 

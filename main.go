@@ -34,6 +34,11 @@ func main() {
 	// in GetState() since ServiceStartup never ran on it.
 	sshSvc := &sshservice.SshService{}
 
+	// Same shared-pointer reasoning: the scheduler's pending-cleanup alerts route
+	// through the registered NotificationService (its state is set in
+	// ServiceStartup, which runs before any scheduled fire).
+	notifySvc := &notifyservice.NotificationService{}
+
 	app := application.New(application.Options{
 		Name:        "claude-devtools",
 		Description: "Visualizes Claude Code session execution",
@@ -42,7 +47,7 @@ func main() {
 			application.NewService(searchservice.New(sessionCache)),
 			application.NewService(analyticsservice.New()),
 			application.NewService(&configservice.ConfigService{}),
-			application.NewService(&notifyservice.NotificationService{}),
+			application.NewService(notifySvc),
 			application.NewService(sshSvc),
 			application.NewService(&filesservice.FilesService{}),
 			application.NewService(snapshotservice.New()),
@@ -51,7 +56,7 @@ func main() {
 			application.NewService(maintenanceservice.New(func() bool {
 				state, _ := sshSvc.GetState()
 				return state != "disconnected"
-			})),
+			}, sessionCache, notifySvc.RaisePendingCleanup)),
 			// watcher service registered here in W3
 		},
 		Assets: application.AssetOptions{

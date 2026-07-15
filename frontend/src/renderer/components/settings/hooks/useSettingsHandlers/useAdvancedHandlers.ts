@@ -64,6 +64,8 @@ export function useAdvancedHandlers({
           snoozeMinutes: 30,
           includeSubagentErrors: true,
           triggers: defaultTriggers,
+          retentionDays: 30,
+          maxCount: 200,
         },
         general: {
           launchAtLogin: false,

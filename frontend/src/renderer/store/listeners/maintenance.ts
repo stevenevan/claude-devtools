@@ -30,4 +30,17 @@ export function attachMaintenanceListeners(ctx: ListenerContext): void {
       ctx.cleanupFns.push(cleanup);
     }
   }
+
+  if (api.maintenance?.onTrashed) {
+    const cleanup = api.maintenance.onTrashed((projects) => {
+      const selectedProjectId = useStore.getState().selectedProjectId;
+      const baseId = ctx.getBaseProjectId(selectedProjectId);
+      if (selectedProjectId && baseId && projects.includes(baseId)) {
+        ctx.scheduleProjectRefresh(selectedProjectId);
+      }
+    });
+    if (typeof cleanup === 'function') {
+      ctx.cleanupFns.push(cleanup);
+    }
+  }
 }

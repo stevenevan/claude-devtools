@@ -26,31 +26,42 @@ import type {
   ToolTimeHeatmapResponse,
 } from '../domain';
 import type { WaterfallData } from '../visualization';
-import type { AgentConfig, GlobalAgent, GlobalPlugin, GlobalSkill } from './agents';
+import type { AgentConfig, GlobalPlugin } from './agents';
 import type { BackendCacheStats, BackendTimingSummary } from './backend';
+import type { ClaudeJSONBackup, ClaudeJSONCensus, PurgeResult } from './claudeJson';
 import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
 import type { MaintenanceAPI } from './maintenance';
+import type { MCPStatusView } from './mcp';
+import type { PermissionRulesView, PermissionScope } from './permissions';
 import type { NotificationsAPI } from './notificationsApi';
 import type { PluginsAPI } from './plugins';
 import type { ParsedNLQuery } from './search';
 import type { ClaudeMdFileInfo, SessionAPI } from './session';
 import type { SnapshotsAPI } from './snapshots';
 import type { SshAPI } from './ssh';
+import type { Suggestion } from './suggestions';
 import type { HttpServerAPI, UpdaterAPI } from './system';
 import type { WebhookAPI } from './webhook';
 
 export type * from './agents';
 export type * from './backend';
+export type * from './claudeJson';
 export type * from './config';
+export type * from './configBackup';
 export type * from './context';
 export type * from './maintenance';
+export type * from './mcp';
+export type * from './memory';
+export type * from './permissions';
+export type * from './retention';
 export type * from './notificationsApi';
 export type * from './plugins';
 export type * from './search';
 export type * from './session';
 export type * from './snapshots';
 export type * from './ssh';
+export type * from './suggestions';
 export type * from './system';
 export type * from './webhook';
 
@@ -59,6 +70,42 @@ export interface GlobalSettingsPatch {
   allow: string[];
   deny: string[];
   ask: string[];
+}
+
+export interface HookEntry {
+  event: string;
+  matcher: string;
+  commands: string[];
+  fingerprint: string;
+  index: number;
+}
+
+export interface HookView {
+  enabled: HookEntry[];
+  disabled: HookEntry[];
+}
+
+export interface DuplicateGroup {
+  name: string;
+  entries: GlobalPlugin[];
+}
+
+// Source is one settings.json/settings.local.json location on disk. `raw` is
+// the file's exact text, unmasked — masking happens client-side at render.
+export interface Source {
+  path: string;
+  kind: string;
+  exists: boolean;
+  isAnomaly: boolean;
+  raw: string;
+}
+
+// SourcesView is the full settings-source enumeration for a project: every
+// source plus a merged, provenance-tracked effective view.
+export interface SourcesView {
+  sources: Source[];
+  merged: Record<string, unknown>;
+  provenance: Record<string, string>;
 }
 
 export interface ElectronAPI {
@@ -162,11 +209,58 @@ export interface ElectronAPI {
   readAgentConfigs: (projectRoot: string) => Promise<Record<string, AgentConfig>>;
 
   // Global ~/.claude/ config reading
-  readGlobalAgents: () => Promise<GlobalAgent[]>;
-  readGlobalSkills: () => Promise<GlobalSkill[]>;
   readGlobalPlugins: () => Promise<GlobalPlugin[]>;
   readGlobalSettings: () => Promise<Record<string, unknown>>;
   updateGlobalSettings: (patch: GlobalSettingsPatch) => Promise<void>;
+  readHooks: () => Promise<HookView>;
+  toggleHook: (
+    event: string,
+    matcherIndex: number,
+    fingerprint: string,
+    enable: boolean
+  ) => Promise<void>;
+  setPluginEnabled: (key: string, enable: boolean) => Promise<void>;
+  dedupePlugin: (name: string, keepKey: string) => Promise<void>;
+  detectPluginDuplicates: () => Promise<DuplicateGroup[]>;
+  enumerateSettingsSources: (projectRoot: string) => Promise<SourcesView>;
+
+  // ~/.claude.json inspector (Week 20, read-only). Census carries kinds/sizes
+  // only; per-value display and backups are server-side masked.
+  readClaudeJSON: () => Promise<ClaudeJSONCensus>;
+  revealClaudeJSONValue: (keyPath: string) => Promise<string>;
+  readClaudeJSONMasked: () => Promise<string>;
+  listClaudeJSONBackups: () => Promise<ClaudeJSONBackup[]>;
+  readClaudeJSONBackup: (name: string) => Promise<string>;
+
+  // ~/.claude.json guarded purge-write (Week 21). Removes provably-stale
+  // project entries under the program's tightest guardrails; app-side backups
+  // are enumerable and restorable (full-file, auth included).
+  purgeClaudeJSONProjects: (keys: string[]) => Promise<PurgeResult>;
+  listClaudeJSONAppBackups: () => Promise<ClaudeJSONBackup[]>;
+  restoreClaudeJSONAppBackup: (name: string) => Promise<void>;
+
+  // MCP status dashboard (Week 22, read-only). Aggregates ~/.claude.json
+  // (top-level + per-project mcpServers), .mcp.json, and the auth-needed
+  // connector cache; every commandOrUrl is server-side masked.
+  getMCPStatus: () => Promise<MCPStatusView>;
+
+  // Permissions consolidation editor (Week 19). Merges permission rules
+  // across global + project + project-local settings; only global and
+  // project-local rows are writable.
+  getPermissionRules: (projectRoot: string) => Promise<PermissionRulesView>;
+  addPermissionRule: (scope: PermissionScope, list: string, rule: string) => Promise<void>;
+  removePermissionRule: (scope: PermissionScope, list: string, rule: string) => Promise<void>;
+  movePermissionRule: (
+    from: PermissionScope,
+    to: PermissionScope,
+    fromList: string,
+    toList: string,
+    rule: string
+  ) => Promise<void>;
+
+  // Permission analyzer (Week 30). Mines the user's own structured tool_use
+  // records under `root` and returns narrowest-match allow-rule suggestions.
+  analyzePermissionSuggestions: (root: string) => Promise<Suggestion[]>;
 
   // Notifications API
   notifications: NotificationsAPI;

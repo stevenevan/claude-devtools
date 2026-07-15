@@ -12,9 +12,13 @@ import (
 	"sync"
 )
 
+const throttleMS = 5000.0
+
+// W13 auto-prune defaults (overridden from config at startup via SetPolicy).
 const (
-	maxNotifications = 100
-	throttleMS       = 5000.0
+	defaultRetentionDays = 30
+	defaultMaxCount      = 200
+	msPerDay             = 86_400_000.0
 )
 
 // NotificationState mirrors manager.rs NotificationState.
@@ -26,6 +30,8 @@ type NotificationState struct {
 	notificationPath string
 	throttleMap      map[string]float64
 	initialized      bool
+	retentionDays    int // W13 auto-prune bounds (from config)
+	maxCount         int
 }
 
 // NewNotificationState constructs and initialises the state by loading from disk.
@@ -50,9 +56,19 @@ func newNotificationStateAt(path string) *NotificationState {
 	s := &NotificationState{
 		notificationPath: path,
 		throttleMap:      make(map[string]float64),
+		retentionDays:    defaultRetentionDays,
+		maxCount:         defaultMaxCount,
 	}
 	s.initialize()
 	return s
+}
+
+// SetPolicy updates the auto-prune bounds and re-prunes immediately. Caller
+// must hold the lock (like the other mutating methods).
+func (s *NotificationState) SetPolicy(retentionDays, maxCount int) {
+	s.retentionDays = retentionDays
+	s.maxCount = maxCount
+	s.pruneNotifications()
 }
 
 func (s *NotificationState) initialize() {
@@ -104,16 +120,59 @@ func (s *NotificationState) saveNotifications() {
 	}
 }
 
+// pruneNotifications enforces the W13 age + count policy. Age drop removes
+// entries older than retentionDays; count cap removes the oldest READ entries
+// first so unread notifications outlive read ones under count pressure. Runs on
+// load and on append. Caller holds the lock.
 func (s *NotificationState) pruneNotifications() {
-	if len(s.notifications) <= maxNotifications {
-		return
+	changed := false
+
+	if s.retentionDays > 0 {
+		cutoff := NowMS() - float64(s.retentionDays)*msPerDay
+		kept := make([]StoredNotification, 0, len(s.notifications))
+		for _, n := range s.notifications {
+			if n.CreatedAt >= cutoff {
+				kept = append(kept, n)
+			} else {
+				changed = true
+			}
+		}
+		s.notifications = kept
 	}
-	// Sort newest first by createdAt then truncate.
-	sort.Slice(s.notifications, func(i, j int) bool {
-		return s.notifications[i].CreatedAt > s.notifications[j].CreatedAt
-	})
-	s.notifications = s.notifications[:maxNotifications]
-	s.saveNotifications()
+
+	if s.maxCount > 0 && len(s.notifications) > s.maxCount {
+		overflow := len(s.notifications) - s.maxCount
+		// Oldest-first, so the first overflow removable entries are the oldest.
+		sort.Slice(s.notifications, func(i, j int) bool {
+			return s.notifications[i].CreatedAt < s.notifications[j].CreatedAt
+		})
+		remove := make(map[int]bool, overflow)
+		for i := 0; i < len(s.notifications) && len(remove) < overflow; i++ {
+			if s.notifications[i].IsRead {
+				remove[i] = true // drop oldest READ first
+			}
+		}
+		for i := 0; i < len(s.notifications) && len(remove) < overflow; i++ {
+			if !remove[i] {
+				remove[i] = true // then oldest unread if still over cap
+			}
+		}
+		kept := make([]StoredNotification, 0, s.maxCount)
+		for i, n := range s.notifications {
+			if !remove[i] {
+				kept = append(kept, n)
+			}
+		}
+		s.notifications = kept
+		changed = true
+	}
+
+	if changed {
+		sort.Slice(s.notifications, func(i, j int) bool {
+			return s.notifications[i].CreatedAt > s.notifications[j].CreatedAt
+		})
+		s.saveNotifications()
+	}
 }
 
 // ─── Throttling ───────────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 // Package systemservice ports commands/system.rs, commands/window.rs, and plugins.rs.
 // Exposes: GetAppVersion, StartWatching, StopWatching, LogRendererEvent,
-//          GetAllTodos, WindowBusBroadcast, WindowBusReady, PluginsDiscover.
+//
+//	GetAllTodos, WindowBusBroadcast, WindowBusReady, PluginsDiscover.
 //
 // application.Get() is only called here (and notifyservice) — never in pure logic packages.
 package systemservice
@@ -76,13 +77,22 @@ func (s *SystemService) StartWatching() error {
 	}
 	projectsDir := filepath.Join(claudeDir, "projects")
 	todosDir := filepath.Join(claudeDir, "todos")
+	// ~/.claude.json lives in the home dir (its parent), not under claudeDir, so
+	// it needs its own non-recursive watch root. Best-effort: an unresolvable
+	// home just disables that one watch.
+	claudeJSONDir := ""
+	if home, err := os.UserHomeDir(); err == nil {
+		claudeJSONDir = home
+	}
 
 	s.watcherMu.Lock()
 	if s.runner != nil {
 		s.watcherMu.Unlock()
 		return nil // already watching
 	}
-	r := watcher.New(projectsDir, todosDir, func(event string, payload any) {
+	// configDir = claudeDir so settings.json writes surface as config-file-change;
+	// claudeJSONDir = home so ~/.claude.json writes do too (W20).
+	r := watcher.New(projectsDir, todosDir, claudeDir, claudeJSONDir, func(event string, payload any) {
 		emitEvent(event, payload)
 	})
 	s.runner = r
@@ -354,4 +364,3 @@ func isValidProjectID(id string) bool {
 	}
 	return len(id) > 0 && id[0] == '-'
 }
-

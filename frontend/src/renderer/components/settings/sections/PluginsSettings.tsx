@@ -56,6 +56,9 @@ export const PluginsSettings = (): JSX.Element => {
             it into a sandboxed Web Worker. Allowed APIs: registerPanel, registerCommand,
             registerContextMenuItem, subscribeStoreSlice (max 5 concurrent, 64KB payload).
           </p>
+          <p className="text-text-muted mt-1 text-xs">
+            Looking for Claude Code plugins? Manage them in Settings → Claude Code.
+          </p>
         </div>
         <Button
           variant="outline"

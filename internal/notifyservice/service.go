@@ -5,6 +5,11 @@ package notifyservice
 
 import (
 	"context"
+	"fmt"
+	"path/filepath"
+	"sort"
+	"strings"
+	"time"
 
 	"github.com/gen2brain/beeep"
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -16,14 +21,34 @@ import (
 
 // NotificationService matches triggers and emits notification:* events.
 type NotificationService struct {
-	ctx   context.Context
-	state *notifications.NotificationState
+	ctx    context.Context
+	state  *notifications.NotificationState
+	config *config.ConfigState
 }
 
 func (s *NotificationService) ServiceStartup(ctx context.Context, _ application.ServiceOptions) error {
 	s.ctx = ctx
 	s.state = notifications.NewNotificationState()
+	s.config = &config.ConfigState{}
+	// Apply the persisted W13 auto-prune policy over the constructor defaults.
+	nc := s.config.GetConfig().Notifications
+	s.state.Lock()
+	s.state.SetPolicy(nc.RetentionDays, nc.MaxCount)
+	s.state.Unlock()
 	return nil
+}
+
+// SetNotificationPolicy persists the W13 auto-prune bounds and applies them to
+// the live store immediately. Returns the clamped [retentionDays, maxCount].
+func (s *NotificationService) SetNotificationPolicy(retentionDays, maxCount int) ([]int, error) {
+	rd, mc, err := s.config.SetNotificationPolicy(retentionDays, maxCount)
+	if err != nil {
+		return nil, err
+	}
+	s.state.Lock()
+	s.state.SetPolicy(rd, mc)
+	s.state.Unlock()
+	return []int{rd, mc}, nil
 }
 
 func (s *NotificationService) ServiceShutdown() error { return nil }
@@ -185,6 +210,62 @@ func (s *NotificationService) DetectAndNotify(
 				showNativeNotification(stored)
 			}
 		}
+	}
+	return nil
+}
+
+// ─── W32 low-priority alerts (config drift + pending cleanup) ─────────────────
+
+// RaiseConfigDrift raises a low-priority "config changed externally" alert for
+// file (settings.json / ~/.claude.json). AddError dedups ONLY by exact non-nil
+// ToolUseID (Metis 6), so a synthetic key "config-drift:<file>:<hourBucket>"
+// suppresses the CLI's constant rewrites within the same hour — a repeat call
+// with the same (file, hourBucket) adds no second notification.
+func (s *NotificationService) RaiseConfigDrift(file string, hourBucket int64, keyCount int) error {
+	msg := fmt.Sprintf("%s changed externally: %d keys", filepath.Base(file), keyCount)
+	toolUseID := fmt.Sprintf("config-drift:%s:%d", file, hourBucket)
+	return s.raiseSyntheticAlert("config-drift", msg, file, toolUseID)
+}
+
+// RaisePendingCleanup raises a low-priority "scheduled cleanup needs approval"
+// alert listing the categories the unattended scheduler skipped because they are
+// not auto-approved. The synthetic ToolUseID is keyed by the sorted category set
+// plus an hour bucket so repeated same-hour passes dedup while a later pass can
+// re-surface.
+func (s *NotificationService) RaisePendingCleanup(categories []string, totalBytes int64) error {
+	sorted := append([]string(nil), categories...)
+	sort.Strings(sorted)
+	hourBucket := time.Now().UnixMilli() / 3_600_000
+	toolUseID := fmt.Sprintf("cleanup-pending:%s:%d", strings.Join(sorted, ","), hourBucket)
+	msg := fmt.Sprintf("Scheduled cleanup needs approval: %d categories (%d bytes pending)", len(sorted), totalBytes)
+	return s.raiseSyntheticAlert("cleanup-pending", msg, "", toolUseID)
+}
+
+// raiseSyntheticAlert builds a DetectedError with a synthetic dedup key and
+// routes it through the same AddError + emit path DetectAndNotify uses, so the
+// synthetic-ToolUseID dedup is live (not dead code). No native toast — these are
+// low-priority in-app alerts.
+func (s *NotificationService) raiseSyntheticAlert(source, message, filePath, toolUseID string) error {
+	key := toolUseID
+	e := notifications.CreateDetectedError(notifications.CreateDetectedErrorParams{
+		Source:      source,
+		Message:     message,
+		FilePath:    filePath,
+		TimestampMS: notifications.NowMS(),
+		ToolUseID:   &key,
+	})
+
+	s.state.Lock()
+	stored := s.state.AddError(e)
+	var payload notifications.NotificationUpdatedPayload
+	if stored != nil {
+		payload = s.state.UpdatedPayload()
+	}
+	s.state.Unlock()
+
+	if stored != nil {
+		emitEvent("notification:new", stored)
+		emitEvent("notification:updated", payload)
 	}
 	return nil
 }

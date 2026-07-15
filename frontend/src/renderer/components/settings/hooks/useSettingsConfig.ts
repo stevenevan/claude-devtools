@@ -34,6 +34,8 @@ export interface SafeConfig {
     snoozeMinutes: number;
     includeSubagentErrors: boolean;
     triggers: AppConfig['notifications']['triggers'];
+    retentionDays: number;
+    maxCount: number;
   };
   display: {
     codeBlockTheme: string;
@@ -155,6 +157,8 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
         snoozeMinutes: displayConfig?.notifications?.snoozeMinutes ?? 30,
         includeSubagentErrors: displayConfig?.notifications?.includeSubagentErrors ?? true,
         triggers: displayConfig?.notifications?.triggers ?? [],
+        retentionDays: displayConfig?.notifications?.retentionDays ?? 30,
+        maxCount: displayConfig?.notifications?.maxCount ?? 200,
       },
       display: {
         codeBlockTheme: displayConfig?.display?.codeBlockTheme ?? 'default',

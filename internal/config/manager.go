@@ -186,6 +186,8 @@ func (cs *ConfigState) UpdateConfig(section string, data json.RawMessage) (AppCo
 		applyWebhookEndpoints(&cs.config, validated)
 	case "onboarding":
 		applyOnboarding(&cs.config, obj)
+	case "retention":
+		applyRetention(&cs.config, obj)
 	}
 
 	if err := cs.saveConfig(); err != nil {
@@ -381,6 +383,44 @@ func applyOnboarding(cfg *AppConfig, obj map[string]json.RawMessage) {
 	}
 }
 
+// applyRetention merges a validated retention section. trashExpiryDays arrives
+// already clamped from validateRetention; re-clamp defensively so a direct
+// merge path can never store a 0/negative window (Security F5).
+func applyRetention(cfg *AppConfig, obj map[string]json.RawMessage) {
+	if v, ok := obj["categories"]; ok {
+		var cats map[string]RetentionCategory
+		if json.Unmarshal(v, &cats) == nil {
+			if cats == nil {
+				cats = map[string]RetentionCategory{}
+			}
+			cfg.Retention.Categories = cats
+		}
+	}
+	if v, ok := obj["trashExpiryDays"]; ok {
+		var d int
+		if json.Unmarshal(v, &d) == nil {
+			cfg.Retention.TrashExpiryDays = clampCutoffDays(d)
+		}
+	}
+	if v, ok := obj["scheduleInterval"]; ok {
+		var s string
+		if json.Unmarshal(v, &s) == nil {
+			cfg.Retention.ScheduleInterval = normalizeScheduleInterval(s)
+		}
+	}
+}
+
+// normalizeScheduleInterval maps any unrecognized/empty value to "off" so the
+// scheduler never fires on a hand-edited or legacy config (W32).
+func normalizeScheduleInterval(s string) string {
+	switch s {
+	case "weekly", "monthly":
+		return s
+	default:
+		return "off"
+	}
+}
+
 // ─── merge with defaults (mirrors types/merge.rs) ────────────────────────────
 
 // mergeConfigWithDefaults mirrors merge_config_with_defaults.
@@ -411,6 +451,14 @@ func mergeConfigWithDefaults(raw map[string]json.RawMessage) AppConfig {
 			}
 			if n.IgnoredRepositories == nil {
 				n.IgnoredRepositories = []string{}
+			}
+			// A store predating W13 lacks these; 0 (Go zero) would mean unbounded
+			// growth, so fall back to the defaults rather than "no limit".
+			if n.RetentionDays == 0 {
+				n.RetentionDays = defaults.Notifications.RetentionDays
+			}
+			if n.MaxCount == 0 {
+				n.MaxCount = defaults.Notifications.MaxCount
 			}
 			cfg.Notifications = n
 		}
@@ -492,7 +540,197 @@ func mergeConfigWithDefaults(raw map[string]json.RawMessage) AppConfig {
 		_ = json.Unmarshal(v, &cfg.OnboardingCompleted)
 	}
 
+	if v, ok := raw["maintenanceCutoffs"]; ok {
+		var cutoffs map[string]int
+		if json.Unmarshal(v, &cutoffs) == nil && cutoffs != nil {
+			// Clamp on load: a hand-edited config must not smuggle a negative or
+			// absurd cutoff past the setter's validation (Security C1).
+			for id, days := range cutoffs {
+				cutoffs[id] = clampCutoffDays(days)
+			}
+			cfg.MaintenanceCutoffs = cutoffs
+		}
+	}
+
+	if v, ok := raw["dismissedSuggestions"]; ok {
+		var dismissed []string
+		if json.Unmarshal(v, &dismissed) == nil && dismissed != nil {
+			cfg.DismissedSuggestions = dismissed
+		}
+	}
+
+	if v, ok := raw["retention"]; ok {
+		var p RetentionPolicy
+		if json.Unmarshal(v, &p) == nil {
+			cfg.Retention = mergeRetentionWithDefaults(p, defaults.Retention)
+		}
+	}
+
+	if v, ok := raw["lastCleanupMs"]; ok {
+		_ = json.Unmarshal(v, &cfg.LastCleanupMs)
+	}
+
 	return cfg
+}
+
+// mergeRetentionWithDefaults fills any category a stored policy is missing (a
+// store predating W31 or a partial hand-edit gets the full seeded set) and
+// normalizes the expiry window: a missing/zero window falls back to the default
+// (30), while a hand-edited negative is clamped up to the [1,36500] floor
+// rather than silently emptying same-pass trash (Security F5).
+func mergeRetentionWithDefaults(p, defaults RetentionPolicy) RetentionPolicy {
+	if p.Categories == nil {
+		p.Categories = map[string]RetentionCategory{}
+	}
+	for id, def := range defaults.Categories {
+		if _, ok := p.Categories[id]; !ok {
+			p.Categories[id] = def
+		}
+	}
+	if p.TrashExpiryDays == 0 {
+		p.TrashExpiryDays = defaults.TrashExpiryDays
+	} else {
+		p.TrashExpiryDays = clampCutoffDays(p.TrashExpiryDays)
+	}
+	p.ScheduleInterval = normalizeScheduleInterval(p.ScheduleInterval)
+	return p
+}
+
+// cutoffDaysMin/Max bound a maintenance age cutoff. A cutoff below 1 (or a
+// future/overflowing one) would flip the age gate into "everything is a
+// candidate"; 36500 days (~100y) is a generous ceiling (Security C1).
+const (
+	cutoffDaysMin = 1
+	cutoffDaysMax = 36500
+)
+
+func clampCutoffDays(days int) int {
+	if days < cutoffDaysMin {
+		return cutoffDaysMin
+	}
+	if days > cutoffDaysMax {
+		return cutoffDaysMax
+	}
+	return days
+}
+
+// SetNotificationPolicy persists the W13 auto-prune bounds (clamped to sane
+// values) and returns the applied (retentionDays, maxCount).
+func (cs *ConfigState) SetNotificationPolicy(retentionDays, maxCount int) (int, int, error) {
+	if retentionDays < 1 {
+		retentionDays = 1
+	}
+	if maxCount < 1 {
+		maxCount = 1
+	}
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	cs.config.Notifications.RetentionDays = retentionDays
+	cs.config.Notifications.MaxCount = maxCount
+	return retentionDays, maxCount, cs.saveConfig()
+}
+
+// GetMaintenanceCutoff returns the persisted cutoff (days) for category id, or
+// (0, false) when unset — the caller supplies the category's built-in default.
+func (cs *ConfigState) GetMaintenanceCutoff(id string) (int, bool) {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	days, ok := cs.config.MaintenanceCutoffs[id]
+	if !ok {
+		return 0, false
+	}
+	return clampCutoffDays(days), true
+}
+
+// SetMaintenanceCutoff persists a clamped cutoff (days) for category id.
+func (cs *ConfigState) SetMaintenanceCutoff(id string, days int) error {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	if cs.config.MaintenanceCutoffs == nil {
+		cs.config.MaintenanceCutoffs = map[string]int{}
+	}
+	cs.config.MaintenanceCutoffs[id] = clampCutoffDays(days)
+	return cs.saveConfig()
+}
+
+// GetRetentionPolicy returns a deep copy of the W31 retention policy.
+func (cs *ConfigState) GetRetentionPolicy() RetentionPolicy {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	return cloneRetentionPolicy(cs.config.Retention)
+}
+
+// SetRetentionPolicy persists the policy, clamping the trash-expiry window to
+// [1,36500] (Security F5 — a 0/negative window would EmptyTrash same-pass
+// receipts) and never storing a nil categories map.
+func (cs *ConfigState) SetRetentionPolicy(p RetentionPolicy) error {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	stored := cloneRetentionPolicy(p)
+	stored.TrashExpiryDays = clampCutoffDays(stored.TrashExpiryDays)
+	stored.ScheduleInterval = normalizeScheduleInterval(stored.ScheduleInterval)
+	cs.config.Retention = stored
+	return cs.saveConfig()
+}
+
+// GetLastCleanupMs returns the app's own last policy-clean timestamp (ms since
+// epoch); 0 = never run. The CLI-owned .last-cleanup file is never consulted.
+func (cs *ConfigState) GetLastCleanupMs() float64 {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	return cs.config.LastCleanupMs
+}
+
+// SetLastCleanupMs records the app's own last policy-clean run. The app NEVER
+// writes the CLI-owned .last-cleanup file — it keeps its own timestamp here.
+func (cs *ConfigState) SetLastCleanupMs(ms float64) error {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	cs.config.LastCleanupMs = ms
+	return cs.saveConfig()
+}
+
+// cloneRetentionPolicy deep-copies a policy so a returned value never aliases
+// (or a stored value never captures) the caller's categories map.
+func cloneRetentionPolicy(p RetentionPolicy) RetentionPolicy {
+	cats := make(map[string]RetentionCategory, len(p.Categories))
+	for id, c := range p.Categories {
+		cats[id] = c
+	}
+	return RetentionPolicy{Categories: cats, TrashExpiryDays: p.TrashExpiryDays, ScheduleInterval: p.ScheduleInterval}
+}
+
+// GetDismissedSuggestions returns a copy of the persisted set of dismissed
+// permission-rule suggestions (W30).
+func (cs *ConfigState) GetDismissedSuggestions() []string {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	out := make([]string, len(cs.config.DismissedSuggestions))
+	copy(out, cs.config.DismissedSuggestions)
+	return out
+}
+
+// DismissSuggestion appends rule to the dismissed set if absent, then persists.
+// A rule already dismissed is a no-op (no duplicate, no rewrite).
+func (cs *ConfigState) DismissSuggestion(rule string) error {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	for _, r := range cs.config.DismissedSuggestions {
+		if r == rule {
+			return nil
+		}
+	}
+	cs.config.DismissedSuggestions = append(cs.config.DismissedSuggestions, rule)
+	return cs.saveConfig()
 }
 
 // normalizeClaudeRootPath mirrors types/merge.rs normalize_claude_root_path.

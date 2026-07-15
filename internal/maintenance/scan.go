@@ -6,7 +6,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"time"
 )
@@ -149,31 +148,4 @@ func visitFile(d fs.DirEntry, usage *DirUsage, bytesSoFar *int64) error {
 	usage.Files++
 	*bytesSoFar += info.Size()
 	return nil
-}
-
-const maxCategoryResults = 50
-
-// ScanCategory runs a bounded scan for a single category matcher spec.
-// Ships one trivial spec — top-level dirs by size, rooted at spec.ID; the
-// real matcher framework lands in week 2+.
-func ScanCategory(ctx context.Context, spec CategorySpec) ([]Candidate, error) {
-	usages, err := ScanClaudeDir(ctx, []string{spec.ID}, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	sort.Slice(usages, func(i, j int) bool { return usages[i].Bytes > usages[j].Bytes })
-	if len(usages) > maxCategoryResults {
-		usages = usages[:maxCategoryResults]
-	}
-
-	candidates := make([]Candidate, 0, len(usages))
-	for _, u := range usages {
-		candidates = append(candidates, Candidate{
-			Path:   u.Path,
-			Bytes:  u.Bytes,
-			Reason: "top-level directory by size",
-		})
-	}
-	return candidates, nil
 }
