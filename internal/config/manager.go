@@ -512,6 +512,13 @@ func mergeConfigWithDefaults(raw map[string]json.RawMessage) AppConfig {
 		}
 	}
 
+	if v, ok := raw["dismissedSuggestions"]; ok {
+		var dismissed []string
+		if json.Unmarshal(v, &dismissed) == nil && dismissed != nil {
+			cfg.DismissedSuggestions = dismissed
+		}
+	}
+
 	return cfg
 }
 
@@ -572,6 +579,32 @@ func (cs *ConfigState) SetMaintenanceCutoff(id string, days int) error {
 		cs.config.MaintenanceCutoffs = map[string]int{}
 	}
 	cs.config.MaintenanceCutoffs[id] = clampCutoffDays(days)
+	return cs.saveConfig()
+}
+
+// GetDismissedSuggestions returns a copy of the persisted set of dismissed
+// permission-rule suggestions (W30).
+func (cs *ConfigState) GetDismissedSuggestions() []string {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	out := make([]string, len(cs.config.DismissedSuggestions))
+	copy(out, cs.config.DismissedSuggestions)
+	return out
+}
+
+// DismissSuggestion appends rule to the dismissed set if absent, then persists.
+// A rule already dismissed is a no-op (no duplicate, no rewrite).
+func (cs *ConfigState) DismissSuggestion(rule string) error {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	for _, r := range cs.config.DismissedSuggestions {
+		if r == rule {
+			return nil
+		}
+	}
+	cs.config.DismissedSuggestions = append(cs.config.DismissedSuggestions, rule)
 	return cs.saveConfig()
 }
 

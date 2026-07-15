@@ -5,7 +5,7 @@ import { useStore } from '@renderer/store';
 import { Loader2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
-import type { PermissionRuleRow, PermissionScope } from '@shared/types/api';
+import type { PermissionRuleRow, PermissionScope, Suggestion } from '@shared/types/api';
 
 type ListKey = 'allow' | 'deny' | 'ask';
 type ScopeKind = 'global' | 'project-local';
@@ -236,7 +236,11 @@ export const PermissionsPanel = (): JSX.Element => {
         )}
       </div>
 
-      <SuggestionsDrawer />
+      <SuggestionsDrawer
+        canAct={canAct}
+        projectPath={projectPath}
+        onReload={() => load(projectPath)}
+      />
     </div>
   );
 };
@@ -411,19 +415,177 @@ const MovePicker = (props: Readonly<MovePickerProps>): JSX.Element => (
   </div>
 );
 
-// Reserved, display-only drawer. The usage analyzer that populates rule
-// suggestions ships in a later sprint; nothing here is interactive yet.
-const SuggestionsDrawer = (): JSX.Element => {
+interface SuggestionsDrawerProps {
+  canAct: boolean;
+  projectPath: string;
+  onReload: () => Promise<void>;
+}
+
+// Suggestions are mined from the user's own tool_use records (Week 30). Each
+// row proposes an allow rule; Add routes through the existing single-rule write
+// path, Dismiss persists across restarts. No bulk/auto-apply.
+const SuggestionsDrawer = (props: Readonly<SuggestionsDrawerProps>): JSX.Element => {
+  const { canAct, projectPath, onReload } = props;
   const [open, setOpen] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [expandedRule, setExpandedRule] = useState<string | null>(null);
+  const [actingRule, setActingRule] = useState<string | null>(null);
+
+  const fetchSuggestions = async (): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { effectivePath } = await api.config.getClaudeRootInfo();
+      const [all, dismissed] = await Promise.all([
+        api.analyzePermissionSuggestions(effectivePath),
+        api.config.getDismissedSuggestions(),
+      ]);
+      const dismissedSet = new Set(dismissed);
+      setSuggestions(all.filter((s) => !dismissedSet.has(s.rule)));
+      setLoaded(true);
+    } catch (err) {
+      setError(errText(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggle = (): void => {
+    const next = !open;
+    setOpen(next);
+    if (next && !loaded && !loading) void fetchSuggestions();
+  };
+
+  const handleAdd = async (s: Suggestion): Promise<void> => {
+    setActingRule(s.rule);
+    setError(null);
+    try {
+      await api.addPermissionRule(scopeFor('global', projectPath), 'allow', s.rule);
+      setSuggestions((prev) => prev.filter((x) => x.rule !== s.rule));
+      await onReload();
+    } catch (err) {
+      setError(errText(err));
+    } finally {
+      setActingRule(null);
+    }
+  };
+
+  const handleDismiss = async (s: Suggestion): Promise<void> => {
+    setActingRule(s.rule);
+    setError(null);
+    try {
+      await api.config.dismissSuggestion(s.rule);
+      setSuggestions((prev) => prev.filter((x) => x.rule !== s.rule));
+    } catch (err) {
+      setError(errText(err));
+    } finally {
+      setActingRule(null);
+    }
+  };
+
   return (
     <div className="px-4 py-3">
-      <Button variant="ghost" size="sm" onClick={() => setOpen((v) => !v)}>
+      <Button variant="ghost" size="sm" onClick={toggle}>
         {open ? '▾' : '▸'} Suggestions
       </Button>
       {open && (
-        <p className="text-muted-foreground mt-2 text-xs">
-          Rule suggestions are populated by the usage analyzer — coming in a later sprint.
-        </p>
+        <div className="mt-2 flex flex-col gap-2">
+          <p className="text-muted-foreground text-xs">
+            Suggestions are derived from your own tool usage — they are not vetted for safety.
+            Review each before adding.
+          </p>
+          {error && <p className="text-destructive text-xs">{error}</p>}
+          {loading ? (
+            <p className="text-muted-foreground text-xs">Loading…</p>
+          ) : suggestions.length === 0 ? (
+            <p className="text-muted-foreground text-xs">
+              No suggestions — derived from your own usage.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              {suggestions.map((s) => (
+                <SuggestionRow
+                  key={s.rule}
+                  suggestion={s}
+                  canAct={canAct}
+                  acting={actingRule === s.rule}
+                  disabled={actingRule !== null}
+                  expanded={expandedRule === s.rule}
+                  onToggleSamples={() =>
+                    setExpandedRule((cur) => (cur === s.rule ? null : s.rule))
+                  }
+                  onAdd={() => void handleAdd(s)}
+                  onDismiss={() => void handleDismiss(s)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface SuggestionRowProps {
+  suggestion: Suggestion;
+  canAct: boolean;
+  acting: boolean;
+  disabled: boolean;
+  expanded: boolean;
+  onToggleSamples: () => void;
+  onAdd: () => void;
+  onDismiss: () => void;
+}
+
+const SuggestionRow = (props: Readonly<SuggestionRowProps>): JSX.Element => {
+  const { suggestion, canAct, acting, disabled, expanded } = props;
+  const hasSamples = suggestion.samples.length > 0;
+  return (
+    <div className="border-border/50 rounded-md border px-2.5 py-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-foreground truncate font-mono text-xs" title={suggestion.rule}>
+            {suggestion.rule}
+          </span>
+          <span className="text-muted-foreground text-[10px]">
+            seen {suggestion.evidenceCount}× across {suggestion.sessionCount} sessions
+          </span>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {hasSamples && (
+            <Button variant="ghost" size="sm" onClick={props.onToggleSamples}>
+              {expanded ? '▾' : '▸'} Samples ({suggestion.samples.length})
+            </Button>
+          )}
+          <Button
+            variant="default"
+            size="sm"
+            disabled={!canAct || disabled}
+            onClick={props.onAdd}
+          >
+            {acting && <Loader2 className="size-3.5 animate-spin" />}
+            Add to allow
+          </Button>
+          <Button variant="ghost" size="sm" disabled={disabled} onClick={props.onDismiss}>
+            Dismiss
+          </Button>
+        </div>
+      </div>
+      {expanded && hasSamples && (
+        <div className="border-border/50 mt-2 flex flex-col gap-1 border-t pt-2">
+          {suggestion.samples.map((sample, index) => (
+            <span
+              key={`${sample}:${index}`}
+              className="text-muted-foreground truncate font-mono text-[11px]"
+              title={sample}
+            >
+              {sample}
+            </span>
+          ))}
+        </div>
       )}
     </div>
   );

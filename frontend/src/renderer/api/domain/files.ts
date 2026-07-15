@@ -1,5 +1,6 @@
 import {
   AddPermissionRule,
+  AnalyzePermissionSuggestions,
   DedupePlugin,
   DetectPluginDuplicates,
   EnumerateSettingsSources,
@@ -45,6 +46,7 @@ import type {
   PermissionScope,
   PurgeResult,
   SourcesView,
+  Suggestion,
 } from '@shared/types/api';
 
 type FilesSlice = Pick<
@@ -77,6 +79,7 @@ type FilesSlice = Pick<
   | 'addPermissionRule'
   | 'removePermissionRule'
   | 'movePermissionRule'
+  | 'analyzePermissionSuggestions'
 >;
 
 export const filesApi: FilesSlice = {
@@ -208,4 +211,7 @@ export const filesApi: FilesSlice = {
       toList,
       rule
     ) as unknown as Promise<void>,
+
+  analyzePermissionSuggestions: (root: string): Promise<Suggestion[]> =>
+    AnalyzePermissionSuggestions(root) as unknown as Promise<Suggestion[]>,
 };

@@ -108,6 +108,11 @@ export interface ConfigAPI {
   exportAnnotations: (sessionIds: string[]) => Promise<string>;
 
   importAnnotations: (json: string) => Promise<AnnotationImportReport>;
+
+  // Permission-suggestion dismissals (Week 30). Persisted across restarts.
+  getDismissedSuggestions: () => Promise<string[]>;
+
+  dismissSuggestion: (rule: string) => Promise<void>;
 }
 
 export interface AnnotationImportReport {
@@ -132,6 +137,8 @@ export interface AnnotationEntry {
 export interface ClaudeRootInfo {
 
   defaultPath: string;
+
+  effectivePath: string;
 
   resolvedPath: string;
 

@@ -391,3 +391,16 @@ func (s *ConfigService) ConfigImportAnnotations(jsonStr string) (config.ImportRe
 	}
 	return s.state.ImportAnnotationsBundle(bundle), nil
 }
+
+// ─── permission suggestion dismissals (W30) ──────────────────────────────────
+
+// GetDismissedSuggestions returns the persisted set of dismissed permission-rule
+// suggestions.
+func (s *ConfigService) GetDismissedSuggestions() ([]string, error) {
+	return s.state.GetDismissedSuggestions(), nil
+}
+
+// DismissSuggestion persists rule into the dismissed-suggestions set (idempotent).
+func (s *ConfigService) DismissSuggestion(rule string) error {
+	return s.state.DismissSuggestion(rule)
+}

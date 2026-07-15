@@ -8,6 +8,7 @@ package filesservice
 import (
 	"claude-devtools/internal/config"
 	"claude-devtools/internal/files"
+	"claude-devtools/internal/insights/permissions_analyzer"
 )
 
 // FilesService exposes 22 commands: ValidatePath, ValidateMentions,
@@ -198,6 +199,14 @@ func (s *FilesService) GetPermissionRules(projectRoot string) (files.PermissionR
 // preserving every other key.
 func (s *FilesService) AddPermissionRule(scope files.PermissionScope, list, rule string) error {
 	return files.AddPermissionRule(scope, list, rule)
+}
+
+// AnalyzePermissionSuggestions mines the user's OWN structured tool_use history
+// under root and returns narrowest-match permission-allow suggestions. Read-only
+// and stateless: rules derive ONLY from tool_use records, never conversation
+// text; root is passed by the caller (like GetPermissionRules's projectRoot).
+func (s *FilesService) AnalyzePermissionSuggestions(root string) ([]permissions_analyzer.Suggestion, error) {
+	return permissions_analyzer.AnalyzeUsage(root)
 }
 
 // RemovePermissionRule drops every occurrence of rule from a writable scope's

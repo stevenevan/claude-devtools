@@ -336,24 +336,28 @@ type AppConfig struct {
 	// cleanup panels, keyed by leaf category id (e.g. "transcripts",
 	// "runtime-tasks"). Absent key = the category's built-in default.
 	MaintenanceCutoffs map[string]int `json:"maintenanceCutoffs"`
+	// DismissedSuggestions holds permission-rule suggestion strings (W30) the
+	// user has dismissed. A dismissed rule stays hidden across restarts.
+	DismissedSuggestions []string `json:"dismissedSuggestions"`
 }
 
 // DefaultAppConfig returns an AppConfig equivalent to Rust's AppConfig::default().
 func DefaultAppConfig() AppConfig {
 	return AppConfig{
-		Notifications:       defaultNotificationConfig(),
-		General:             defaultGeneralConfig(),
-		Display:             defaultDisplayConfig(),
-		Sessions:            defaultSessionsConfig(),
-		SSH:                 defaultSshPersistConfig(),
-		HTTPServer:          defaultHttpServerConfig(),
-		Dashboard:           defaultDashboardConfig(),
-		Shortcuts:           defaultShortcutsConfig(),
-		Themes:              defaultThemesConfig(),
-		Plugins:             defaultPluginsConfig(),
-		NotificationRules:   []NotificationRule{},
-		WebhookEndpoints:    []WebhookEndpoint{},
-		OnboardingCompleted: false,
-		MaintenanceCutoffs:  map[string]int{},
+		Notifications:        defaultNotificationConfig(),
+		General:              defaultGeneralConfig(),
+		Display:              defaultDisplayConfig(),
+		Sessions:             defaultSessionsConfig(),
+		SSH:                  defaultSshPersistConfig(),
+		HTTPServer:           defaultHttpServerConfig(),
+		Dashboard:            defaultDashboardConfig(),
+		Shortcuts:            defaultShortcutsConfig(),
+		Themes:               defaultThemesConfig(),
+		Plugins:              defaultPluginsConfig(),
+		NotificationRules:    []NotificationRule{},
+		WebhookEndpoints:     []WebhookEndpoint{},
+		OnboardingCompleted:  false,
+		MaintenanceCutoffs:   map[string]int{},
+		DismissedSuggestions: []string{},
 	}
 }

@@ -40,6 +40,7 @@ import type { ParsedNLQuery } from './search';
 import type { ClaudeMdFileInfo, SessionAPI } from './session';
 import type { SnapshotsAPI } from './snapshots';
 import type { SshAPI } from './ssh';
+import type { Suggestion } from './suggestions';
 import type { HttpServerAPI, UpdaterAPI } from './system';
 import type { WebhookAPI } from './webhook';
 
@@ -59,6 +60,7 @@ export type * from './search';
 export type * from './session';
 export type * from './snapshots';
 export type * from './ssh';
+export type * from './suggestions';
 export type * from './system';
 export type * from './webhook';
 
@@ -254,6 +256,10 @@ export interface ElectronAPI {
     toList: string,
     rule: string
   ) => Promise<void>;
+
+  // Permission analyzer (Week 30). Mines the user's own structured tool_use
+  // records under `root` and returns narrowest-match allow-rule suggestions.
+  analyzePermissionSuggestions: (root: string) => Promise<Suggestion[]>;
 
   // Notifications API
   notifications: NotificationsAPI;

@@ -41,6 +41,8 @@ import {
   ConfigUpdate,
   ConfigUpdateAnnotation,
   ConfigUpdateTrigger,
+  DismissSuggestion,
+  GetDismissedSuggestions,
 } from '../../../../bindings/claude-devtools/internal/configservice/configservice';
 import {
   NotificationsClear,
@@ -152,6 +154,8 @@ const configApiImpl: ConfigAPI = {
   exportAnnotations: (sessionIds) => ConfigExportAnnotations(sessionIds),
   importAnnotations: (json) =>
     ConfigImportAnnotations(json) as unknown as Promise<AnnotationImportReport>,
+  getDismissedSuggestions: () => GetDismissedSuggestions() as unknown as Promise<string[]>,
+  dismissSuggestion: (rule) => DismissSuggestion(rule),
 
   selectFolders: async (): Promise<string[]> => {
     const result = await Dialogs.OpenFile({
