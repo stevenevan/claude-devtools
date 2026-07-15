@@ -2,22 +2,27 @@ import { Events } from '@wailsio/runtime';
 
 import {
   AnalyzeHistory,
+  ApplyMemoryIndexFix,
   CancelScan,
   ClearFiles,
   CreateAgent,
   DeleteAgent,
   DeleteInstructionFile,
+  DeleteMemoryFile,
   DeleteSkill,
   EmptyTrash,
   GetMaintenanceCutoff,
   GetMaintenanceHealth,
   ListInstructionFiles,
   ListManagedAgents,
+  ListMemoryDirs,
   ListSettingsGenerations,
   ListTrash,
+  MemoryIntegrity,
   PatchAgentFrontmatter,
   PruneHistory,
   ReadInstructionFile,
+  ReadMemoryFile,
   ReadPlanFile,
   ReadSettingsGeneration,
   ReadSkillDoc,
@@ -31,6 +36,7 @@ import {
   SkillsInventory,
   TrashItems,
   WriteInstructionFile,
+  WriteMemoryFile,
   WriteSkillDoc,
 } from '../../../../bindings/claude-devtools/internal/maintenanceservice/maintenanceservice';
 
@@ -46,6 +52,9 @@ import type {
   HistoryStats,
   InstructionFile,
   MaintenanceScanProgress,
+  MemoryDir,
+  MemoryIndexFix,
+  MemoryReport,
   SkillInventoryEntry,
   TrashReceipt,
 } from '@shared/types';
@@ -188,6 +197,29 @@ export const maintenanceApi: MaintenanceSlice = {
 
     deleteSkill: async (skillName: string): Promise<TrashReceipt> => {
       const raw = await DeleteSkill(skillName);
+      return reviveDates(raw as unknown as TrashReceipt);
+    },
+
+    listMemoryDirs: (): Promise<MemoryDir[]> =>
+      ListMemoryDirs() as unknown as Promise<MemoryDir[]>,
+
+    memoryIntegrity: (dirID: string): Promise<MemoryReport> =>
+      MemoryIntegrity(dirID) as unknown as Promise<MemoryReport>,
+
+    readMemoryFile: (dirID: string, fileName: string): Promise<string> =>
+      ReadMemoryFile(dirID, fileName),
+
+    writeMemoryFile: (dirID: string, fileName: string, content: string): Promise<void> =>
+      WriteMemoryFile(dirID, fileName, content),
+
+    applyMemoryIndexFix: (dirID: string, fix: MemoryIndexFix): Promise<void> =>
+      ApplyMemoryIndexFix(
+        dirID,
+        fix as unknown as Parameters<typeof ApplyMemoryIndexFix>[1]
+      ) as unknown as Promise<void>,
+
+    deleteMemoryFile: async (dirID: string, fileName: string): Promise<TrashReceipt> => {
+      const raw = await DeleteMemoryFile(dirID, fileName);
       return reviveDates(raw as unknown as TrashReceipt);
     },
   },

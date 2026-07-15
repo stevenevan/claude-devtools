@@ -1,6 +1,7 @@
 // Maintenance API (storage scan Week 1, safe-delete trash engine Week 2)
 
 import type { AgentPatch, GlobalAgent, SkillInventoryEntry } from './agents';
+import type { MemoryDir, MemoryIndexFix, MemoryReport } from './memory';
 
 export interface DirUsage {
   path: string;
@@ -149,4 +150,17 @@ export interface MaintenanceAPI {
   writeSkillDoc: (skillName: string, content: string) => Promise<void>;
   removeSkillLink: (skillName: string) => Promise<TrashReceipt>;
   deleteSkill: (skillName: string) => Promise<TrashReceipt>;
+
+  // Memory manager (Week 28): kind-prefixed dir enumeration + per-dir integrity
+  // scan + fact-file read/write + index-fix apply + delete. listMemoryDirs and
+  // memoryIntegrity are read-only; write/applyFix/delete are SSH-gated +
+  // serialized on the backend, which refuses writes under the consolidation
+  // lock and re-derives an index fix before applying it. deleteMemoryFile
+  // trashes a fact file (restorable), returning a TrashReceipt.
+  listMemoryDirs: () => Promise<MemoryDir[]>;
+  memoryIntegrity: (dirID: string) => Promise<MemoryReport>;
+  readMemoryFile: (dirID: string, fileName: string) => Promise<string>;
+  writeMemoryFile: (dirID: string, fileName: string, content: string) => Promise<void>;
+  applyMemoryIndexFix: (dirID: string, fix: MemoryIndexFix) => Promise<void>;
+  deleteMemoryFile: (dirID: string, fileName: string) => Promise<TrashReceipt>;
 }

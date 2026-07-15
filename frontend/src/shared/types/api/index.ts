@@ -50,6 +50,7 @@ export type * from './config';
 export type * from './context';
 export type * from './maintenance';
 export type * from './mcp';
+export type * from './memory';
 export type * from './permissions';
 export type * from './notificationsApi';
 export type * from './plugins';

@@ -16,6 +16,7 @@ import { InstructionsPanel } from './InstructionsPanel';
 import { JunkCleanupPanel } from './JunkCleanupPanel';
 import { LogsCleanupPanel } from './LogsCleanupPanel';
 import { MCPStatusPanel } from './MCPStatusPanel';
+import { MemoryPanel } from './MemoryPanel';
 import { PermissionsPanel } from './PermissionsPanel';
 import { PlansCleanupPanel } from './PlansCleanupPanel';
 import { PluginsCleanupPanel } from './PluginsCleanupPanel';
@@ -54,6 +55,7 @@ const CLEANUP_TABS: MaintenanceTab[] = [
   { id: 'claude-json', label: 'claude.json', render: () => <ClaudeJsonPanel /> },
   { id: 'mcp-status', label: 'MCP', render: () => <MCPStatusPanel /> },
   { id: 'permissions', label: 'Permissions', render: () => <PermissionsPanel /> },
+  { id: 'memory', label: 'Memory', render: () => <MemoryPanel /> },
 ];
 
 export const MaintenanceView = (): JSX.Element => {
