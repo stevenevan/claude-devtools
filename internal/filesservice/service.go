@@ -185,3 +185,30 @@ func (s *FilesService) ReadClaudeJSONBackup(name string) (string, error) {
 func (s *FilesService) GetMCPStatus() (files.MCPStatusView, error) {
 	return files.GetMCPStatus()
 }
+
+// GetPermissionRules returns the merged permission-rule table for a project
+// (global settings.json + project settings.json + project settings.local.json),
+// each row carrying its source provenance and a Writable flag.
+func (s *FilesService) GetPermissionRules(projectRoot string) (files.PermissionRulesView, error) {
+	return files.GetPermissionRules(projectRoot)
+}
+
+// AddPermissionRule appends one opaque rule to a writable scope's
+// permissions[list] (global settings.json or project settings.local.json),
+// preserving every other key.
+func (s *FilesService) AddPermissionRule(scope files.PermissionScope, list, rule string) error {
+	return files.AddPermissionRule(scope, list, rule)
+}
+
+// RemovePermissionRule drops every occurrence of rule from a writable scope's
+// permissions[list], preserving every other key.
+func (s *FilesService) RemovePermissionRule(scope files.PermissionScope, list, rule string) error {
+	return files.RemovePermissionRule(scope, list, rule)
+}
+
+// MovePermissionRule adds rule to the target scope+list first, then removes it
+// from the source scope+list — a crash between leaves a harmless duplicate,
+// never a lost rule.
+func (s *FilesService) MovePermissionRule(from, to files.PermissionScope, fromList, toList, rule string) error {
+	return files.MovePermissionRule(from, to, fromList, toList, rule)
+}

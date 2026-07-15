@@ -1,9 +1,12 @@
 import {
+  AddPermissionRule,
   DedupePlugin,
   DetectPluginDuplicates,
   EnumerateSettingsSources,
   GetMCPStatus,
+  GetPermissionRules,
   ListClaudeJSONBackups,
+  MovePermissionRule,
   ReadAgentConfigs,
   ReadClaudeJSON,
   ReadClaudeJSONBackup,
@@ -16,6 +19,7 @@ import {
   ReadGlobalSkills,
   ReadHooks,
   ReadMentionedFile,
+  RemovePermissionRule,
   RevealClaudeJSONValue,
   SetPluginEnabled,
   ToggleHook,
@@ -38,6 +42,8 @@ import type {
   GlobalSkill,
   HookView,
   MCPStatusView,
+  PermissionRulesView,
+  PermissionScope,
   SourcesView,
 } from '@shared/types/api';
 
@@ -66,6 +72,10 @@ type FilesSlice = Pick<
   | 'listClaudeJSONBackups'
   | 'readClaudeJSONBackup'
   | 'getMCPStatus'
+  | 'getPermissionRules'
+  | 'addPermissionRule'
+  | 'removePermissionRule'
+  | 'movePermissionRule'
 >;
 
 export const filesApi: FilesSlice = {
@@ -160,4 +170,36 @@ export const filesApi: FilesSlice = {
 
   getMCPStatus: (): Promise<MCPStatusView> =>
     GetMCPStatus() as unknown as Promise<MCPStatusView>,
+
+  getPermissionRules: (projectRoot: string): Promise<PermissionRulesView> =>
+    GetPermissionRules(projectRoot) as unknown as Promise<PermissionRulesView>,
+
+  addPermissionRule: (scope: PermissionScope, list: string, rule: string): Promise<void> =>
+    AddPermissionRule(
+      scope as unknown as Parameters<typeof AddPermissionRule>[0],
+      list,
+      rule
+    ) as unknown as Promise<void>,
+
+  removePermissionRule: (scope: PermissionScope, list: string, rule: string): Promise<void> =>
+    RemovePermissionRule(
+      scope as unknown as Parameters<typeof RemovePermissionRule>[0],
+      list,
+      rule
+    ) as unknown as Promise<void>,
+
+  movePermissionRule: (
+    from: PermissionScope,
+    to: PermissionScope,
+    fromList: string,
+    toList: string,
+    rule: string
+  ): Promise<void> =>
+    MovePermissionRule(
+      from as unknown as Parameters<typeof MovePermissionRule>[0],
+      to as unknown as Parameters<typeof MovePermissionRule>[1],
+      fromList,
+      toList,
+      rule
+    ) as unknown as Promise<void>,
 };

@@ -33,6 +33,7 @@ import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
 import type { MaintenanceAPI } from './maintenance';
 import type { MCPStatusView } from './mcp';
+import type { PermissionRulesView, PermissionScope } from './permissions';
 import type { NotificationsAPI } from './notificationsApi';
 import type { PluginsAPI } from './plugins';
 import type { ParsedNLQuery } from './search';
@@ -49,6 +50,7 @@ export type * from './config';
 export type * from './context';
 export type * from './maintenance';
 export type * from './mcp';
+export type * from './permissions';
 export type * from './notificationsApi';
 export type * from './plugins';
 export type * from './search';
@@ -231,6 +233,20 @@ export interface ElectronAPI {
   // (top-level + per-project mcpServers), .mcp.json, and the auth-needed
   // connector cache; every commandOrUrl is server-side masked.
   getMCPStatus: () => Promise<MCPStatusView>;
+
+  // Permissions consolidation editor (Week 19). Merges permission rules
+  // across global + project + project-local settings; only global and
+  // project-local rows are writable.
+  getPermissionRules: (projectRoot: string) => Promise<PermissionRulesView>;
+  addPermissionRule: (scope: PermissionScope, list: string, rule: string) => Promise<void>;
+  removePermissionRule: (scope: PermissionScope, list: string, rule: string) => Promise<void>;
+  movePermissionRule: (
+    from: PermissionScope,
+    to: PermissionScope,
+    fromList: string,
+    toList: string,
+    rule: string
+  ) => Promise<void>;
 
   // Notifications API
   notifications: NotificationsAPI;
