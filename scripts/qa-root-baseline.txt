@@ -1,0 +1,47 @@
+internal/analytics/aggregate.go: home, err := os.UserHomeDir()
+internal/analytics/duration.go: home, err := os.UserHomeDir()
+internal/analytics/model_comparison.go: home, err := os.UserHomeDir()
+internal/analytics/productivity.go: home, err := os.UserHomeDir()
+internal/analyticsservice/service.go: canonicalRoot = filepath.Join(home, ".claude", "projects")
+internal/analyticsservice/service.go: home, err := os.UserHomeDir()
+internal/config/appdata.go: // re-derive it via os.UserHomeDir().
+internal/config/appdata.go: home, err := os.UserHomeDir()
+internal/config/manager.go: defaultPath := filepath.Join(home, ".claude")
+internal/config/manager.go: home, _ := os.UserHomeDir()
+internal/config/manager.go: home, err := os.UserHomeDir()
+internal/config/manager.go: return filepath.Join(home, ".claude", "claude-devtools-config.json")
+internal/discovery/path_decoder.go: home, err := os.UserHomeDir()
+internal/discovery/path_decoder.go: return filepath.Join(home, ".claude"), nil
+internal/files/claudejson.go: home, err := os.UserHomeDir()
+internal/files/pathutil.go: agentsDir := filepath.Join(projectRoot, ".claude", "agents")
+internal/files/pathutil.go: global := filepath.Join(home, ".claude", "CLAUDE.md")
+internal/files/pathutil.go: home, err := os.UserHomeDir()
+internal/files/pathutil.go: if home, err := os.UserHomeDir(); err == nil {
+internal/files/pathutil.go: return filepath.Join(home, ".claude"), nil
+internal/files/pathutil.go: rulesDir := filepath.Join(projectRoot, ".claude", "rules")
+internal/files/permissions_write.go: claudeSubdir := filepath.Join(canonRoot, ".claude")
+internal/files/settings_sources.go: nestedDir := filepath.Join(cd, ".claude")
+internal/files/settings_sources.go: project := readSource(filepath.Join(projectRoot, ".claude", "settings.json"), KindProject, false)
+internal/files/settings_sources.go: projectLocal := readSource(filepath.Join(projectRoot, ".claude", "settings.local.json"), KindProjectLocal, false)
+internal/insights/error_hotspots/shared.go: home, err := os.UserHomeDir()
+internal/insights/tool_analytics/aggregator.go: home, err := os.UserHomeDir()
+internal/maintenance/types.go: // logic: no application.Get(), no os.UserHomeDir() — roots are resolved by
+internal/maintenance/types.go: // no application.Get(), no os.UserHomeDir(), matching this package's contract.
+internal/maintenanceservice/service.go: home, err := os.UserHomeDir()
+internal/notifications/manager.go: home, err := os.UserHomeDir()
+internal/notifications/manager.go: path := filepath.Join(home, ".claude", "claude-devtools-notifications.json")
+internal/notifications/trigger_tester.go: dir := filepath.Join(home, ".claude")
+internal/notifications/trigger_tester.go: home, err := os.UserHomeDir()
+internal/pipeline/pipeline.go: home, err := os.UserHomeDir()
+internal/pipeline/pipeline.go: path := filepath.Join(home, ".claude", "projects", base, sessionID+".jsonl")
+internal/ssh/agent_discovery.go: home, err := os.UserHomeDir()
+internal/ssh/config_parser.go: home, err := os.UserHomeDir()
+internal/ssh/connection_manager.go: home, _ := os.UserHomeDir()
+internal/ssh/connection_manager.go: home, err := os.UserHomeDir()
+internal/ssh/known_hosts.go: home, err := os.UserHomeDir()
+internal/ssh/known_hosts.go: return filepath.Join(home, ".claude", "ssh", "known_hosts"), nil
+internal/systemservice/service.go: claudeDir := filepath.Join(home, ".claude")
+internal/systemservice/service.go: home, err := os.UserHomeDir()
+internal/systemservice/service.go: if home, err := os.UserHomeDir(); err == nil {
+internal/watcher/parsers.go: home, err := os.UserHomeDir()
+internal/watcher/parsers.go: return filepath.Join(home, ".claude"), true

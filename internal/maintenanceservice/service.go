@@ -38,6 +38,16 @@ type MaintenanceService struct {
 	// cache is the shared SessionCache pointer (same instance sessionservice
 	// uses) so trashing a session evicts its parsed entry, not a throwaway copy.
 	cache *cache.SessionCache
+	// raisePending is injected (a closure over NotificationService) so the
+	// unattended scheduler can surface a pending-cleanup notification for
+	// enabled-but-not-auto-approved categories without importing notifyservice
+	// (no cycle). Nil = no notification (tests / no-op).
+	raisePending func(categories []string, totalBytes int64) error
+	// schedStopCh + schedWg own the W32 scheduler goroutine's lifecycle (LOW-8):
+	// the pre-existing shutdown only cancels s.cancel, so these are added to stop
+	// + join the ticker cleanly on ServiceShutdown.
+	schedStopCh chan struct{}
+	schedWg     sync.WaitGroup
 }
 
 // New wires the SSH gate (SEC-server-gate): destructive ops (TrashItems,
@@ -45,20 +55,28 @@ type MaintenanceService struct {
 // safe-delete engine must only ever touch the local machine. The caller
 // passes a closure over the already-registered SshService pointer (mirrors
 // cache.Default()'s shared-pointer injection precedent) — a fresh SshService
-// would nil-panic in GetState().
-func New(sshActive func() bool, sessionCache *cache.SessionCache) *MaintenanceService {
-	return &MaintenanceService{sshActive: sshActive, cache: sessionCache}
+// would nil-panic in GetState(). raisePending is a closure over the
+// NotificationService pointer for the scheduler's pending-cleanup alerts.
+func New(sshActive func() bool, sessionCache *cache.SessionCache, raisePending func(categories []string, totalBytes int64) error) *MaintenanceService {
+	return &MaintenanceService{sshActive: sshActive, cache: sessionCache, raisePending: raisePending}
 }
 
 func (s *MaintenanceService) ServiceStartup(ctx context.Context, _ application.ServiceOptions) error {
 	s.ctx = ctx
 	s.config = &config.ConfigState{}
+	s.startScheduler()
 	return nil
 }
 
-// ServiceShutdown cancels any in-flight scan so app-close doesn't leak the
-// walk goroutine or emit into a torn-down channel.
+// ServiceShutdown stops the scheduler goroutine and cancels any in-flight scan
+// so app-close doesn't leak a goroutine or emit into a torn-down channel. Order:
+// signal the scheduler to stop launching runs, cancel any in-flight run so it
+// unwinds between categories, then join the goroutine.
 func (s *MaintenanceService) ServiceShutdown() error {
+	if s.schedStopCh != nil {
+		close(s.schedStopCh)
+		s.schedStopCh = nil
+	}
 	s.mu.Lock()
 	cancel := s.cancel
 	s.cancel = nil
@@ -66,6 +84,7 @@ func (s *MaintenanceService) ServiceShutdown() error {
 	if cancel != nil {
 		cancel()
 	}
+	s.schedWg.Wait()
 	return nil
 }
 
@@ -421,9 +440,17 @@ func (s *MaintenanceService) ClearFiles(paths []string, truncate bool) error {
 }
 
 // GetMaintenanceHealth returns the read-only health snapshot (.last-cleanup,
-// .last-update-result.json, daemon.log liveness, mode flags). No SSH gate.
+// .last-update-result.json, daemon.log liveness, mode flags). No SSH gate. The
+// W32 scheduler status + app-own last-auto-cleanup are layered on from config
+// (the pure reader has no config access).
 func (s *MaintenanceService) GetMaintenanceHealth() (maintenance.HealthStatus, error) {
-	return maintenance.MaintenanceHealth(s.config.GetClaudeRootInfo().EffectivePath)
+	h, err := maintenance.MaintenanceHealth(s.config.GetClaudeRootInfo().EffectivePath)
+	if err != nil {
+		return h, err
+	}
+	h.SchedulerInterval = s.config.GetRetentionPolicy().ScheduleInterval
+	h.LastAutoCleanupMs = s.config.GetLastCleanupMs()
+	return h, nil
 }
 
 // ListSettingsGenerations / ReadSettingsGeneration are read-only (no gate).

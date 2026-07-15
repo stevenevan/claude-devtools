@@ -38,6 +38,12 @@ type HealthStatus struct {
 	DaemonLastWriteMs  float64    `json:"daemonLastWriteMs"`
 	DaemonTail         []string   `json:"daemonTail"`
 	Flags              []FlagFile `json:"flags"`
+	// SchedulerInterval + LastAutoCleanupMs are the W32 in-app scheduler status,
+	// populated by the service layer from config (this pure reader leaves them
+	// zero-valued). SchedulerInterval is "off"|"weekly"|"monthly";
+	// LastAutoCleanupMs is the app's OWN last policy-clean run (0 = never).
+	SchedulerInterval string  `json:"schedulerInterval"`
+	LastAutoCleanupMs float64 `json:"lastAutoCleanupMs"`
 }
 
 // MaintenanceHealth reads the four health surfaces read-only (no side effects).

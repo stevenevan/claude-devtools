@@ -85,6 +85,17 @@ export interface HealthStatus {
   daemonLastWriteMs: number;
   daemonTail: string[];
   flags: HealthFlag[];
+  // Week 32 in-app scheduler status. schedulerInterval is "off"|"weekly"|
+  // "monthly"; lastAutoCleanupMs is the app's own last policy-clean run (0 = never).
+  schedulerInterval: string;
+  lastAutoCleanupMs: number;
+}
+
+// ScheduleStatus is the read-only Week 32 scheduler snapshot: the configured
+// interval ("off"|"weekly"|"monthly") plus the app's own last-run ms (0 = never).
+export interface ScheduleStatus {
+  interval: string;
+  lastRunMs: number;
 }
 
 // InstructionFile is one entry in listInstructionFiles' result: an
@@ -115,6 +126,9 @@ export interface MaintenanceAPI {
   onTrashed: (callback: (projects: string[]) => void) => () => void;
   clearFiles: (paths: string[], truncate: boolean) => Promise<void>;
   getMaintenanceHealth: () => Promise<HealthStatus>;
+
+  // Week 32 in-app scheduler status (interval + last-run ms). Read-only.
+  getScheduleStatus: () => Promise<ScheduleStatus>;
 
   // Settings generations diff/restore (Week 15). List/read are read-only (no
   // gate); restore is the destructive, SSH-gated write.

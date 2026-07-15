@@ -607,7 +607,9 @@ func validateWebhookEndpoints(data json.RawMessage) (json.RawMessage, error) {
 
 // ─── retention (W31) ──────────────────────────────────────────────────────────
 
-var allowedRetentionKeys = map[string]bool{"categories": true, "trashExpiryDays": true}
+var allowedRetentionKeys = map[string]bool{"categories": true, "trashExpiryDays": true, "scheduleInterval": true}
+
+var validScheduleIntervals = map[string]bool{"off": true, "weekly": true, "monthly": true}
 
 func validateRetention(data json.RawMessage) (json.RawMessage, error) {
 	obj, err := parseObj(data, "retention")
@@ -636,6 +638,12 @@ func validateRetention(data json.RawMessage) (json.RawMessage, error) {
 			// EmptyTrash same-pass receipts irreversibly in an unattended run.
 			b, _ := json.Marshal(clampCutoffDays(int(f)))
 			result[k] = b
+		case "scheduleInterval":
+			s, ok := asString(v)
+			if !ok || !validScheduleIntervals[s] {
+				return nil, fmt.Errorf("retention.scheduleInterval must be one of: off, weekly, monthly")
+			}
+			result[k] = v
 		}
 	}
 	return buildObj(result), nil

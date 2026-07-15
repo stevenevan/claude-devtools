@@ -3,11 +3,17 @@ import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { Button } from '@renderer/components/ui/button';
 import { useStore } from '@renderer/store';
+import {
+  getDriftAlertClaudeJson,
+  getDriftAlertSettings,
+  setDriftAlertClaudeJson,
+  setDriftAlertSettings,
+} from '@renderer/utils/driftAlertPrefs';
 import { formatBytes } from '@renderer/utils/formatters';
-import { ChevronRight, Eye, Loader2, RefreshCw, RotateCcw, Trash2, X } from 'lucide-react';
+import { CalendarClock, ChevronRight, Eye, Loader2, RefreshCw, RotateCcw, Trash2, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
-import type { CategoryReport, CombinedReport, RetentionPolicy } from '@shared/types';
+import type { CategoryReport, CombinedReport, RetentionPolicy, ScheduleInterval } from '@shared/types';
 
 // Readable labels for the 15 trash-governed matcher ids + "history". The
 // plain-delete ids (logs, logs-daemon, caches) are deliberately absent — they
@@ -59,13 +65,15 @@ export const RetentionPolicyPanel = (): JSX.Element => {
   const [report, setReport] = useState<CombinedReport | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [running, setRunning] = useState(false);
+  const [driftSettings, setDriftSettings] = useState(getDriftAlertSettings);
+  const [driftClaudeJson, setDriftClaudeJson] = useState(getDriftAlertClaudeJson);
 
   const load = async (): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
       const cfg = await api.config.get();
-      const policy = cfg.retention ?? { categories: {}, trashExpiryDays: 30 };
+      const policy = cfg.retention ?? { categories: {}, trashExpiryDays: 30, scheduleInterval: 'off' };
       const ids = Object.keys(policy.categories);
       const entries = await Promise.all(
         ids.map(async (id) => [id, await api.maintenance.getCutoff(id)] as const)
@@ -113,6 +121,32 @@ export const RetentionPolicyPanel = (): JSX.Element => {
   const handleTrashExpiry = (days: number): void => {
     if (!retention) return;
     void persistPolicy({ ...retention, trashExpiryDays: days });
+  };
+
+  const handleScheduleInterval = (scheduleInterval: ScheduleInterval): void => {
+    if (!retention) return;
+    void persistPolicy({ ...retention, scheduleInterval });
+  };
+
+  const handleAutoApprove = (id: string, autoApproved: boolean): void => {
+    if (!retention) return;
+    void persistPolicy({
+      ...retention,
+      categories: {
+        ...retention.categories,
+        [id]: { ...retention.categories[id], autoApproved },
+      },
+    });
+  };
+
+  const handleDriftSettings = (on: boolean): void => {
+    setDriftAlertSettings(on);
+    setDriftSettings(on);
+  };
+
+  const handleDriftClaudeJson = (on: boolean): void => {
+    setDriftAlertClaudeJson(on);
+    setDriftClaudeJson(on);
   };
 
   const handleCutoff = (id: string, days: number): void => {
@@ -251,6 +285,56 @@ export const RetentionPolicyPanel = (): JSX.Element => {
         </div>
       </div>
 
+      {retention && (
+        <div className="border-border/50 border-t px-4 py-3">
+          <div className="text-muted-foreground mb-2 flex items-center gap-1.5 text-xs font-medium">
+            <CalendarClock className="size-3.5" />
+            Schedule
+          </div>
+          <label className="text-muted-foreground flex items-center gap-2 text-xs">
+            Run this policy automatically
+            <select
+              value={retention.scheduleInterval ?? 'off'}
+              disabled={!canAct || busy}
+              onChange={(e) => handleScheduleInterval(e.target.value as ScheduleInterval)}
+              className="border-border/50 bg-card/50 text-foreground rounded-sm border px-1.5 py-0.5 text-xs"
+            >
+              <option value="off">Off</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </label>
+          <p className="text-muted-foreground mt-2 text-xs">
+            Scheduled cleanup runs only while this app is open; a missed schedule runs on next
+            launch.
+          </p>
+          <p className="text-muted-foreground mt-1 text-xs">
+            Only auto-approved categories run unattended; the rest raise a notification for one-click
+            confirm.
+          </p>
+
+          <p className="text-muted-foreground mt-3 mb-1 text-xs font-medium">Config-drift alerts</p>
+          <label className="text-muted-foreground flex items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              checked={driftSettings}
+              disabled={!canAct}
+              onChange={(e) => handleDriftSettings(e.target.checked)}
+            />
+            Alert when settings.json changes outside this app
+          </label>
+          <label className="text-muted-foreground mt-1 flex items-center gap-2 text-xs">
+            <input
+              type="checkbox"
+              checked={driftClaudeJson}
+              disabled={!canAct}
+              onChange={(e) => handleDriftClaudeJson(e.target.checked)}
+            />
+            Alert when ~/.claude.json changes outside this app
+          </label>
+        </div>
+      )}
+
       {loading ? (
         <p className="text-muted-foreground px-4 py-3 text-xs">Loading policy…</p>
       ) : (
@@ -260,12 +344,14 @@ export const RetentionPolicyPanel = (): JSX.Element => {
               key={id}
               id={id}
               enabled={retention?.categories[id]?.enabled ?? false}
+              autoApproved={retention?.categories[id]?.autoApproved ?? false}
               cutoff={cutoffs[id]}
               count={counts[id]}
               scanning={scanning.has(id)}
               canAct={canAct}
               busy={busy}
               onToggle={(enabled) => handleToggle(id, enabled)}
+              onAutoApprove={(autoApproved) => handleAutoApprove(id, autoApproved)}
               onCutoff={(days) => handleCutoff(id, days)}
               onScan={() => void handleScanCount(id)}
             />
@@ -309,12 +395,14 @@ export const RetentionPolicyPanel = (): JSX.Element => {
 interface CategoryRowProps {
   id: string;
   enabled: boolean;
+  autoApproved: boolean;
   cutoff?: number;
   count?: number;
   scanning: boolean;
   canAct: boolean;
   busy: boolean;
   onToggle: (enabled: boolean) => void;
+  onAutoApprove: (autoApproved: boolean) => void;
   onCutoff: (days: number) => void;
   onScan: () => void;
 }
@@ -322,12 +410,14 @@ interface CategoryRowProps {
 const CategoryRow = ({
   id,
   enabled,
+  autoApproved,
   cutoff,
   count,
   scanning,
   canAct,
   busy,
   onToggle,
+  onAutoApprove,
   onCutoff,
   onScan,
 }: Readonly<CategoryRowProps>): JSX.Element => (
@@ -343,6 +433,19 @@ const CategoryRow = ({
     </label>
 
     <div className="flex shrink-0 items-center gap-3">
+      <label
+        className="text-muted-foreground flex items-center gap-1 text-xs"
+        title="Run this category unattended on the schedule (only when enabled)."
+      >
+        <input
+          type="checkbox"
+          checked={autoApproved}
+          disabled={!canAct || busy || !enabled}
+          onChange={(e) => onAutoApprove(e.target.checked)}
+        />
+        Auto-approve
+      </label>
+
       <label className="text-muted-foreground flex items-center gap-1 text-xs">
         Older than
         <input

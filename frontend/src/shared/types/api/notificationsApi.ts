@@ -24,4 +24,9 @@ export interface NotificationsAPI {
   onClicked: (callback: (event: unknown, data: unknown) => void) => () => void;
   // Week 13 auto-prune bounds. Returns the clamped [retentionDays, maxCount].
   setNotificationPolicy: (retentionDays: number, maxCount: number) => Promise<[number, number]>;
+  // Week 32 config-drift alert. The backend builds the DetectedError + synthetic
+  // ToolUseID dedup ("config-drift:<file>:<hourBucket>"); the frontend listener
+  // only mute-correlates + debounces before calling this. keyCount is 0 (the
+  // frontend has no diff — the deep-linked diff view shows detail).
+  raiseConfigDrift: (file: string, hourBucket: number, keyCount: number) => Promise<void>;
 }

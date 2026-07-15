@@ -1,6 +1,6 @@
 import { JSX, useEffect } from 'react';
 import { useStore } from '@renderer/store';
-import { AlertTriangle, Flag, HeartPulse, RotateCcw, Server } from 'lucide-react';
+import { AlertTriangle, CalendarClock, Flag, HeartPulse, RotateCcw, Server, Sparkles } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -16,6 +16,12 @@ function formatAge(ms: number): string {
   if (hours >= 1) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
   const minutes = Math.max(1, Math.floor(diff / MINUTE_MS));
   return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+}
+
+function formatSchedulerInterval(interval: string): string {
+  if (interval === 'weekly') return 'Weekly';
+  if (interval === 'monthly') return 'Monthly';
+  return 'Off';
 }
 
 // Read-only Week 14 panel: last cleanup, last self-update outcome, daemon
@@ -100,6 +106,26 @@ export const HealthPanel = (): JSX.Element => {
             {health.daemonPresent
               ? `Last wrote ${formatAge(health.daemonLastWriteMs)} (guess, from file mtime)`
               : 'Not running, or absent'}
+          </p>
+        </div>
+
+        <div className="border-border/50 rounded-md border p-3">
+          <div className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium">
+            <CalendarClock className="size-3.5" />
+            Scheduler
+          </div>
+          <p className="text-foreground mt-1 text-sm">
+            {formatSchedulerInterval(health.schedulerInterval)}
+          </p>
+        </div>
+
+        <div className="border-border/50 rounded-md border p-3">
+          <div className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium">
+            <Sparkles className="size-3.5" />
+            Last auto-cleanup
+          </div>
+          <p className="text-foreground mt-1 text-sm">
+            {health.lastAutoCleanupMs === 0 ? 'Never' : `Ran ${formatAge(health.lastAutoCleanupMs)}`}
           </p>
         </div>
 

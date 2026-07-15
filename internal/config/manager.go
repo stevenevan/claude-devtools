@@ -402,6 +402,23 @@ func applyRetention(cfg *AppConfig, obj map[string]json.RawMessage) {
 			cfg.Retention.TrashExpiryDays = clampCutoffDays(d)
 		}
 	}
+	if v, ok := obj["scheduleInterval"]; ok {
+		var s string
+		if json.Unmarshal(v, &s) == nil {
+			cfg.Retention.ScheduleInterval = normalizeScheduleInterval(s)
+		}
+	}
+}
+
+// normalizeScheduleInterval maps any unrecognized/empty value to "off" so the
+// scheduler never fires on a hand-edited or legacy config (W32).
+func normalizeScheduleInterval(s string) string {
+	switch s {
+	case "weekly", "monthly":
+		return s
+	default:
+		return "off"
+	}
 }
 
 // ─── merge with defaults (mirrors types/merge.rs) ────────────────────────────
@@ -575,6 +592,7 @@ func mergeRetentionWithDefaults(p, defaults RetentionPolicy) RetentionPolicy {
 	} else {
 		p.TrashExpiryDays = clampCutoffDays(p.TrashExpiryDays)
 	}
+	p.ScheduleInterval = normalizeScheduleInterval(p.ScheduleInterval)
 	return p
 }
 
@@ -655,6 +673,7 @@ func (cs *ConfigState) SetRetentionPolicy(p RetentionPolicy) error {
 	cs.ensureLoaded()
 	stored := cloneRetentionPolicy(p)
 	stored.TrashExpiryDays = clampCutoffDays(stored.TrashExpiryDays)
+	stored.ScheduleInterval = normalizeScheduleInterval(stored.ScheduleInterval)
 	cs.config.Retention = stored
 	return cs.saveConfig()
 }
@@ -685,7 +704,7 @@ func cloneRetentionPolicy(p RetentionPolicy) RetentionPolicy {
 	for id, c := range p.Categories {
 		cats[id] = c
 	}
-	return RetentionPolicy{Categories: cats, TrashExpiryDays: p.TrashExpiryDays}
+	return RetentionPolicy{Categories: cats, TrashExpiryDays: p.TrashExpiryDays, ScheduleInterval: p.ScheduleInterval}
 }
 
 // GetDismissedSuggestions returns a copy of the persisted set of dismissed

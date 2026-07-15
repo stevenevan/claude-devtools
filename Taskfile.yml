@@ -57,3 +57,11 @@ tasks:
     summary: Builds and runs the Docker image
     cmds:
       - task: common:run:docker
+
+  qa:
+    summary: Program-QA gate — gofmt, go vet, go test, and the grep-gate (the CI surface; no .github/ exists)
+    cmds:
+      - sh -c 'out=$(gofmt -l .); if [ -n "$out" ]; then echo "gofmt needs formatting:"; echo "$out"; exit 1; fi'
+      - go vet ./...
+      - go test ./...
+      - bash scripts/qa-grep-gate.sh

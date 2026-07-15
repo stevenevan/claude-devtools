@@ -52,6 +52,7 @@ import {
   NotificationsMarkAllRead,
   NotificationsMarkRead,
   NotificationsTestTrigger,
+  RaiseConfigDrift,
   SetNotificationPolicy,
   WebhookTestSend,
 } from '../../../../bindings/claude-devtools/internal/notifyservice/notificationservice';
@@ -210,6 +211,8 @@ const notificationsApiImpl: NotificationsAPI = {
   },
   setNotificationPolicy: (retentionDays, maxCount) =>
     SetNotificationPolicy(retentionDays, maxCount) as unknown as Promise<[number, number]>,
+  raiseConfigDrift: (file, hourBucket, keyCount) =>
+    RaiseConfigDrift(file, hourBucket, keyCount),
 };
 
 const sessionApiImpl: SessionAPI = {

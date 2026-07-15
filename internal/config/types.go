@@ -346,6 +346,11 @@ type RetentionCategory struct {
 type RetentionPolicy struct {
 	Categories      map[string]RetentionCategory `json:"categories"`
 	TrashExpiryDays int                          `json:"trashExpiryDays"`
+	// ScheduleInterval drives the W32 in-app scheduler: "off" (default),
+	// "weekly" (7d), or "monthly" (30d). The last-run anchor is LastCleanupMs.
+	// Only AutoApproved categories run unattended; the rest raise a pending
+	// notification.
+	ScheduleInterval string `json:"scheduleInterval"`
 }
 
 func defaultRetentionPolicy() RetentionPolicy {
@@ -353,7 +358,7 @@ func defaultRetentionPolicy() RetentionPolicy {
 	for _, id := range trashGovernedPolicyIDs {
 		cats[id] = RetentionCategory{Enabled: true, AutoApproved: false}
 	}
-	return RetentionPolicy{Categories: cats, TrashExpiryDays: 30}
+	return RetentionPolicy{Categories: cats, TrashExpiryDays: 30, ScheduleInterval: "off"}
 }
 
 // ── AppConfig (top-level) ─────────────────────────────────────────────────────

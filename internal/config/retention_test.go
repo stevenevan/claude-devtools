@@ -174,6 +174,31 @@ func TestValidateRetentionClampsExpiry(t *testing.T) {
 	}
 }
 
+// TestValidateScheduleInterval asserts the W32 scheduler interval is validated
+// (only off/weekly/monthly) and normalized to "off" on load for a legacy/empty
+// value, so an unattended run never fires on a hand-edited config.
+func TestValidateScheduleInterval(t *testing.T) {
+	for _, ok := range []string{"off", "weekly", "monthly"} {
+		if _, _, err := ValidateConfigUpdate("retention", json.RawMessage(`{"scheduleInterval":"`+ok+`"}`)); err != nil {
+			t.Errorf("interval %q must be accepted: %v", ok, err)
+		}
+	}
+	for _, bad := range []string{"daily", "hourly", "", "WEEKLY"} {
+		if _, _, err := ValidateConfigUpdate("retention", json.RawMessage(`{"scheduleInterval":"`+bad+`"}`)); err == nil {
+			t.Errorf("invalid interval %q must be rejected", bad)
+		}
+	}
+
+	// A legacy store with no scheduleInterval loads as "off".
+	if got := defaultRetentionPolicy().ScheduleInterval; got != "off" {
+		t.Errorf("default scheduleInterval must be off, got %q", got)
+	}
+	merged := mergeRetentionWithDefaults(RetentionPolicy{}, defaultRetentionPolicy())
+	if merged.ScheduleInterval != "off" {
+		t.Errorf("empty stored interval must normalize to off, got %q", merged.ScheduleInterval)
+	}
+}
+
 // TestUpdateConfigRetentionSection asserts the section switch persists a
 // retention update and clamps its window end-to-end.
 func TestUpdateConfigRetentionSection(t *testing.T) {

@@ -134,11 +134,15 @@ export interface RetentionCategory {
   autoApproved: boolean;
 }
 
+export type ScheduleInterval = 'off' | 'weekly' | 'monthly';
+
 // RetentionPolicy composes the per-category cleanups into one Clean-now policy
-// plus a trash auto-expiry window (days). Keyed by leaf category id.
+// plus a trash auto-expiry window (days). Keyed by leaf category id. Week 32
+// adds the in-app scheduler interval (off default).
 export interface RetentionPolicy {
   categories: Record<string, RetentionCategory>;
   trashExpiryDays: number;
+  scheduleInterval?: ScheduleInterval;
 }
 
 export interface WebhookEndpoint {

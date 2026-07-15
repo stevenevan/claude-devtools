@@ -31,6 +31,16 @@ func (s *MaintenanceService) PreviewPolicyClean() (maintenance.CombinedReport, e
 // SSH-check + move, releasing between categories so CancelPolicyClean /
 // ctx-cancel can interject (Architect MEDIUM-4).
 func (s *MaintenanceService) RunPolicyClean() (maintenance.CombinedReport, error) {
+	return s.runPolicyCleanWith(s.config.GetRetentionPolicy())
+}
+
+// runPolicyCleanWith is the SSH-gated executor shared by the manual Clean-now
+// (full policy) and the unattended scheduler (auto-approved-only policy copy).
+// It is the SOLE destructive path: it claims s.cancel (reject-if-busy), refuses
+// under sshActive(), mutes the watcher, drives the policy, and records the
+// last-run timestamp. The scheduler MUST route through here so its unattended
+// run is gated identically (Security F8) — never raw maintenance.RunPolicy.
+func (s *MaintenanceService) runPolicyCleanWith(policy config.RetentionPolicy) (maintenance.CombinedReport, error) {
 	s.mu.Lock()
 	if s.cancel != nil {
 		s.mu.Unlock()
@@ -55,7 +65,7 @@ func (s *MaintenanceService) RunPolicyClean() (maintenance.CombinedReport, error
 	emitEvent("maintenance:mute-watcher", map[string]any{"muted": true})
 	defer emitEvent("maintenance:mute-watcher", map[string]any{"muted": false})
 
-	report, err := s.runPolicy(runCtx, false)
+	report, err := s.runPolicyWith(runCtx, false, policy)
 	if err == nil {
 		_ = s.config.SetLastCleanupMs(nowMillis())
 	}
@@ -73,6 +83,13 @@ func (s *MaintenanceService) CancelPolicyClean() error {
 // SSH-gated + s.mu-serialized trash/empty/prune units so package maintenance
 // never imports the service layer (no cycle).
 func (s *MaintenanceService) runPolicy(ctx context.Context, dryRun bool) (maintenance.CombinedReport, error) {
+	return s.runPolicyWith(ctx, dryRun, s.config.GetRetentionPolicy())
+}
+
+// runPolicyWith drives maintenance.RunPolicy for an explicit policy (the
+// scheduler passes an auto-approved-only or pending-only copy). runPolicy is the
+// thin wrapper that reads the full persisted policy.
+func (s *MaintenanceService) runPolicyWith(ctx context.Context, dryRun bool, policy config.RetentionPolicy) (maintenance.CombinedReport, error) {
 	effective := s.config.GetClaudeRootInfo().EffectivePath
 	if err := refuseSystemRoot(effective); err != nil {
 		return maintenance.CombinedReport{}, err
@@ -89,7 +106,7 @@ func (s *MaintenanceService) runPolicy(ctx context.Context, dryRun bool) (mainte
 	opts := maintenance.RunPolicyOptions{
 		Root:           effective,
 		AppDataDir:     appData,
-		Policy:         s.config.GetRetentionPolicy(),
+		Policy:         policy,
 		Now:            time.Now(),
 		DryRun:         dryRun,
 		CutoffFor:      s.policyCutoffDays,

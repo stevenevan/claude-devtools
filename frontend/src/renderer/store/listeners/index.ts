@@ -1,5 +1,6 @@
 import { useStore } from '../useStore';
 
+import { attachConfigDriftListeners } from './configDrift';
 import { attachConnectionListeners } from './connection';
 import { attachFileChangeListeners } from './fileChange';
 import { attachMaintenanceListeners } from './maintenance';
@@ -34,6 +35,7 @@ export function initializeNotificationListeners(): () => void {
   attachUpdaterListeners(ctx);
   attachConnectionListeners(ctx);
   attachMaintenanceListeners(ctx);
+  attachConfigDriftListeners(ctx);
 
   return () => {
     for (const timer of ctx.pendingSessionRefreshTimers.values()) {

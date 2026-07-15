@@ -18,6 +18,7 @@ import {
   ExportBackup,
   GetMaintenanceCutoff,
   GetMaintenanceHealth,
+  GetScheduleStatus,
   ListInstructionFiles,
   ListConfigBackups,
   ListManagedAgents,
@@ -68,6 +69,7 @@ import type {
   MemoryDir,
   MemoryIndexFix,
   MemoryReport,
+  ScheduleStatus,
   SkillInventoryEntry,
   TrashReceipt,
 } from '@shared/types';
@@ -149,6 +151,11 @@ export const maintenanceApi: MaintenanceSlice = {
     getMaintenanceHealth: async (): Promise<HealthStatus> => {
       const raw = await GetMaintenanceHealth();
       return raw as unknown as HealthStatus;
+    },
+
+    getScheduleStatus: async (): Promise<ScheduleStatus> => {
+      const raw = await GetScheduleStatus();
+      return raw as unknown as ScheduleStatus;
     },
 
     listSettingsGenerations: (): Promise<string[]> => ListSettingsGenerations(),
