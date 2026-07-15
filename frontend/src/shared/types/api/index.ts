@@ -32,6 +32,7 @@ import type { ClaudeJSONBackup, ClaudeJSONCensus } from './claudeJson';
 import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
 import type { MaintenanceAPI } from './maintenance';
+import type { MCPStatusView } from './mcp';
 import type { NotificationsAPI } from './notificationsApi';
 import type { PluginsAPI } from './plugins';
 import type { ParsedNLQuery } from './search';
@@ -47,6 +48,7 @@ export type * from './claudeJson';
 export type * from './config';
 export type * from './context';
 export type * from './maintenance';
+export type * from './mcp';
 export type * from './notificationsApi';
 export type * from './plugins';
 export type * from './search';
@@ -224,6 +226,11 @@ export interface ElectronAPI {
   readClaudeJSONMasked: () => Promise<string>;
   listClaudeJSONBackups: () => Promise<ClaudeJSONBackup[]>;
   readClaudeJSONBackup: (name: string) => Promise<string>;
+
+  // MCP status dashboard (Week 22, read-only). Aggregates ~/.claude.json
+  // (top-level + per-project mcpServers), .mcp.json, and the auth-needed
+  // connector cache; every commandOrUrl is server-side masked.
+  getMCPStatus: () => Promise<MCPStatusView>;
 
   // Notifications API
   notifications: NotificationsAPI;

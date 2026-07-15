@@ -2,6 +2,7 @@ import {
   DedupePlugin,
   DetectPluginDuplicates,
   EnumerateSettingsSources,
+  GetMCPStatus,
   ListClaudeJSONBackups,
   ReadAgentConfigs,
   ReadClaudeJSON,
@@ -36,6 +37,7 @@ import type {
   GlobalSettingsPatch,
   GlobalSkill,
   HookView,
+  MCPStatusView,
   SourcesView,
 } from '@shared/types/api';
 
@@ -63,6 +65,7 @@ type FilesSlice = Pick<
   | 'readClaudeJSONMasked'
   | 'listClaudeJSONBackups'
   | 'readClaudeJSONBackup'
+  | 'getMCPStatus'
 >;
 
 export const filesApi: FilesSlice = {
@@ -154,4 +157,7 @@ export const filesApi: FilesSlice = {
   },
 
   readClaudeJSONBackup: (name: string): Promise<string> => ReadClaudeJSONBackup(name),
+
+  getMCPStatus: (): Promise<MCPStatusView> =>
+    GetMCPStatus() as unknown as Promise<MCPStatusView>,
 };

@@ -177,3 +177,11 @@ func (s *FilesService) ListClaudeJSONBackups() ([]files.ClaudeJSONBackup, error)
 func (s *FilesService) ReadClaudeJSONBackup(name string) (string, error) {
 	return files.ReadClaudeJSONBackup(name)
 }
+
+// GetMCPStatus aggregates MCP server state from ~/.claude.json (top-level +
+// per-project mcpServers), each project's .mcp.json, and the auth-needed
+// connector cache into a read-only status view. All command/url/args values
+// are server-side masked. Read-only — writes nothing.
+func (s *FilesService) GetMCPStatus() (files.MCPStatusView, error) {
+	return files.GetMCPStatus()
+}
