@@ -4,6 +4,7 @@ import {
   AnalyzeHistory,
   ApplyImport,
   ApplyMemoryIndexFix,
+  CancelPolicyClean,
   CancelScan,
   CaptureConfig,
   ClearFiles,
@@ -25,6 +26,7 @@ import {
   ListTrash,
   MemoryIntegrity,
   PatchAgentFrontmatter,
+  PreviewPolicyClean,
   PruneHistory,
   ReadInstructionFile,
   ReadMemoryFile,
@@ -36,6 +38,7 @@ import {
   RestoreSettingsGeneration,
   RestoreTrash,
   RollbackBinary,
+  RunPolicyClean,
   ScanCategory,
   ScanClaudeDir,
   SetMaintenanceCutoff,
@@ -52,6 +55,7 @@ import { reviveDates } from '../reviveDates';
 import type {
   AgentPatch,
   Candidate,
+  CombinedReport,
   DirUsage,
   ElectronAPI,
   GlobalAgent,
@@ -251,5 +255,14 @@ export const maintenanceApi: MaintenanceSlice = {
 
     applyImport: (archivePath: string, confirmedCategories: string[]): Promise<void> =>
       ApplyImport(archivePath, confirmedCategories),
+
+    // CombinedReport has no Date fields — plain cast, never reviveDates.
+    previewPolicyClean: (): Promise<CombinedReport> =>
+      PreviewPolicyClean() as unknown as Promise<CombinedReport>,
+
+    runPolicyClean: (): Promise<CombinedReport> =>
+      RunPolicyClean() as unknown as Promise<CombinedReport>,
+
+    cancelPolicyClean: (): Promise<void> => CancelPolicyClean(),
   },
 };

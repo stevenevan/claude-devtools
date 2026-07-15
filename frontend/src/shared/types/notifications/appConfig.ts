@@ -116,6 +116,29 @@ export interface AppConfig {
   webhookEndpoints?: WebhookEndpoint[];
 
   onboardingCompleted?: boolean;
+
+  // Week 31 composed cleanup policy (per-category enable/auto-approve +
+  // trash-expiry window). Age cutoffs stay in the single MaintenanceCutoffs
+  // store, never copied here.
+  retention?: RetentionPolicy;
+
+  // The app's OWN record (ms since epoch) of its last policy Clean-now run;
+  // 0 = never. The CLI-owned .last-cleanup file is never written.
+  lastCleanupMs?: number;
+}
+
+// RetentionCategory is one category's toggle in the retention policy. The age
+// cutoff is NOT here — it lives in the single getCutoff/setCutoff store.
+export interface RetentionCategory {
+  enabled: boolean;
+  autoApproved: boolean;
+}
+
+// RetentionPolicy composes the per-category cleanups into one Clean-now policy
+// plus a trash auto-expiry window (days). Keyed by leaf category id.
+export interface RetentionPolicy {
+  categories: Record<string, RetentionCategory>;
+  trashExpiryDays: number;
 }
 
 export interface WebhookEndpoint {

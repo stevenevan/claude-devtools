@@ -23,6 +23,7 @@ import { PlansCleanupPanel } from './PlansCleanupPanel';
 import { PluginsCleanupPanel } from './PluginsCleanupPanel';
 import { ProjectsCleanupPanel } from './ProjectsCleanupPanel';
 import { ProjectSettingsPanel } from './ProjectSettingsPanel';
+import { RetentionPolicyPanel } from './RetentionPolicyPanel';
 import { RuntimeCleanupPanel } from './RuntimeCleanupPanel';
 import { SettingsDiffPanel } from './SettingsDiffPanel';
 import { StorageTable } from './StorageTable';
@@ -58,6 +59,7 @@ const CLEANUP_TABS: MaintenanceTab[] = [
   { id: 'permissions', label: 'Permissions', render: () => <PermissionsPanel /> },
   { id: 'memory', label: 'Memory', render: () => <MemoryPanel /> },
   { id: 'config-backup', label: 'Config Backup', render: () => <ConfigBackupPanel /> },
+  { id: 'retention', label: 'Retention', render: () => <RetentionPolicyPanel /> },
 ];
 
 export const MaintenanceView = (): JSX.Element => {

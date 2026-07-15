@@ -186,6 +186,8 @@ func (cs *ConfigState) UpdateConfig(section string, data json.RawMessage) (AppCo
 		applyWebhookEndpoints(&cs.config, validated)
 	case "onboarding":
 		applyOnboarding(&cs.config, obj)
+	case "retention":
+		applyRetention(&cs.config, obj)
 	}
 
 	if err := cs.saveConfig(); err != nil {
@@ -381,6 +383,27 @@ func applyOnboarding(cfg *AppConfig, obj map[string]json.RawMessage) {
 	}
 }
 
+// applyRetention merges a validated retention section. trashExpiryDays arrives
+// already clamped from validateRetention; re-clamp defensively so a direct
+// merge path can never store a 0/negative window (Security F5).
+func applyRetention(cfg *AppConfig, obj map[string]json.RawMessage) {
+	if v, ok := obj["categories"]; ok {
+		var cats map[string]RetentionCategory
+		if json.Unmarshal(v, &cats) == nil {
+			if cats == nil {
+				cats = map[string]RetentionCategory{}
+			}
+			cfg.Retention.Categories = cats
+		}
+	}
+	if v, ok := obj["trashExpiryDays"]; ok {
+		var d int
+		if json.Unmarshal(v, &d) == nil {
+			cfg.Retention.TrashExpiryDays = clampCutoffDays(d)
+		}
+	}
+}
+
 // ─── merge with defaults (mirrors types/merge.rs) ────────────────────────────
 
 // mergeConfigWithDefaults mirrors merge_config_with_defaults.
@@ -519,7 +542,40 @@ func mergeConfigWithDefaults(raw map[string]json.RawMessage) AppConfig {
 		}
 	}
 
+	if v, ok := raw["retention"]; ok {
+		var p RetentionPolicy
+		if json.Unmarshal(v, &p) == nil {
+			cfg.Retention = mergeRetentionWithDefaults(p, defaults.Retention)
+		}
+	}
+
+	if v, ok := raw["lastCleanupMs"]; ok {
+		_ = json.Unmarshal(v, &cfg.LastCleanupMs)
+	}
+
 	return cfg
+}
+
+// mergeRetentionWithDefaults fills any category a stored policy is missing (a
+// store predating W31 or a partial hand-edit gets the full seeded set) and
+// normalizes the expiry window: a missing/zero window falls back to the default
+// (30), while a hand-edited negative is clamped up to the [1,36500] floor
+// rather than silently emptying same-pass trash (Security F5).
+func mergeRetentionWithDefaults(p, defaults RetentionPolicy) RetentionPolicy {
+	if p.Categories == nil {
+		p.Categories = map[string]RetentionCategory{}
+	}
+	for id, def := range defaults.Categories {
+		if _, ok := p.Categories[id]; !ok {
+			p.Categories[id] = def
+		}
+	}
+	if p.TrashExpiryDays == 0 {
+		p.TrashExpiryDays = defaults.TrashExpiryDays
+	} else {
+		p.TrashExpiryDays = clampCutoffDays(p.TrashExpiryDays)
+	}
+	return p
 }
 
 // cutoffDaysMin/Max bound a maintenance age cutoff. A cutoff below 1 (or a
@@ -580,6 +636,56 @@ func (cs *ConfigState) SetMaintenanceCutoff(id string, days int) error {
 	}
 	cs.config.MaintenanceCutoffs[id] = clampCutoffDays(days)
 	return cs.saveConfig()
+}
+
+// GetRetentionPolicy returns a deep copy of the W31 retention policy.
+func (cs *ConfigState) GetRetentionPolicy() RetentionPolicy {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	return cloneRetentionPolicy(cs.config.Retention)
+}
+
+// SetRetentionPolicy persists the policy, clamping the trash-expiry window to
+// [1,36500] (Security F5 — a 0/negative window would EmptyTrash same-pass
+// receipts) and never storing a nil categories map.
+func (cs *ConfigState) SetRetentionPolicy(p RetentionPolicy) error {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	stored := cloneRetentionPolicy(p)
+	stored.TrashExpiryDays = clampCutoffDays(stored.TrashExpiryDays)
+	cs.config.Retention = stored
+	return cs.saveConfig()
+}
+
+// GetLastCleanupMs returns the app's own last policy-clean timestamp (ms since
+// epoch); 0 = never run. The CLI-owned .last-cleanup file is never consulted.
+func (cs *ConfigState) GetLastCleanupMs() float64 {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	return cs.config.LastCleanupMs
+}
+
+// SetLastCleanupMs records the app's own last policy-clean run. The app NEVER
+// writes the CLI-owned .last-cleanup file — it keeps its own timestamp here.
+func (cs *ConfigState) SetLastCleanupMs(ms float64) error {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.ensureLoaded()
+	cs.config.LastCleanupMs = ms
+	return cs.saveConfig()
+}
+
+// cloneRetentionPolicy deep-copies a policy so a returned value never aliases
+// (or a stored value never captures) the caller's categories map.
+func cloneRetentionPolicy(p RetentionPolicy) RetentionPolicy {
+	cats := make(map[string]RetentionCategory, len(p.Categories))
+	for id, c := range p.Categories {
+		cats[id] = c
+	}
+	return RetentionPolicy{Categories: cats, TrashExpiryDays: p.TrashExpiryDays}
 }
 
 // GetDismissedSuggestions returns a copy of the persisted set of dismissed

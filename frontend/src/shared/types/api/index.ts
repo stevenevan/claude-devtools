@@ -54,6 +54,7 @@ export type * from './maintenance';
 export type * from './mcp';
 export type * from './memory';
 export type * from './permissions';
+export type * from './retention';
 export type * from './notificationsApi';
 export type * from './plugins';
 export type * from './search';

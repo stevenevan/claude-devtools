@@ -51,9 +51,12 @@ func ValidateConfigUpdate(section string, data json.RawMessage) (string, json.Ra
 	case "onboarding":
 		v, err := validateOnboarding(data)
 		return section, v, err
+	case "retention":
+		v, err := validateRetention(data)
+		return section, v, err
 	default:
 		return "", nil, fmt.Errorf(
-			"Section must be one of: notifications, general, display, httpServer, ssh, dashboard, shortcuts, themes, plugins, notificationRules, webhookEndpoints, onboarding",
+			"Section must be one of: notifications, general, display, httpServer, ssh, dashboard, shortcuts, themes, plugins, notificationRules, webhookEndpoints, onboarding, retention",
 		)
 	}
 }
@@ -600,6 +603,42 @@ func validateWebhookEndpoints(data json.RawMessage) (json.RawMessage, error) {
 		return nil, fmt.Errorf("webhookEndpoints update must be an array")
 	}
 	return data, nil
+}
+
+// ─── retention (W31) ──────────────────────────────────────────────────────────
+
+var allowedRetentionKeys = map[string]bool{"categories": true, "trashExpiryDays": true}
+
+func validateRetention(data json.RawMessage) (json.RawMessage, error) {
+	obj, err := parseObj(data, "retention")
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[string]json.RawMessage, len(obj))
+	for k, v := range obj {
+		if !allowedRetentionKeys[k] {
+			return nil, fmt.Errorf("retention.%s is not a valid setting", k)
+		}
+		switch k {
+		case "categories":
+			var cats map[string]RetentionCategory
+			if json.Unmarshal(v, &cats) != nil {
+				return nil, fmt.Errorf("retention.categories must be a map of {enabled, autoApproved}")
+			}
+			result[k] = v
+		case "trashExpiryDays":
+			if !isFiniteNumber(v) {
+				return nil, fmt.Errorf("retention.trashExpiryDays must be a number")
+			}
+			var f float64
+			_ = json.Unmarshal(v, &f)
+			// Clamp to [1,36500] (Security F5): a 0/negative expiry would
+			// EmptyTrash same-pass receipts irreversibly in an unattended run.
+			b, _ := json.Marshal(clampCutoffDays(int(f)))
+			result[k] = b
+		}
+	}
+	return buildObj(result), nil
 }
 
 // ─── onboarding ───────────────────────────────────────────────────────────────

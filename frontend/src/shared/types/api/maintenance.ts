@@ -3,6 +3,7 @@
 import type { AgentPatch, GlobalAgent, SkillInventoryEntry } from './agents';
 import type { ImportPreview, Manifest } from './configBackup';
 import type { MemoryDir, MemoryIndexFix, MemoryReport } from './memory';
+import type { CombinedReport } from './retention';
 
 export interface DirUsage {
   path: string;
@@ -181,4 +182,12 @@ export interface MaintenanceAPI {
   exportBackup: (id: string, includeSecrets: boolean) => Promise<void>;
   validateImportDialog: () => Promise<ImportPreview>;
   applyImport: (archivePath: string, confirmedCategories: string[]) => Promise<void>;
+
+  // Retention policy Clean-now (Week 31). previewPolicyClean is the read-only
+  // combined dry-run (no gate); runPolicyClean is SSH-gated and throws if a run
+  // is already in progress; cancelPolicyClean interrupts a run between
+  // categories. Cutoffs read through the single getCutoff/setCutoff store.
+  previewPolicyClean: () => Promise<CombinedReport>;
+  runPolicyClean: () => Promise<CombinedReport>;
+  cancelPolicyClean: () => Promise<void>;
 }

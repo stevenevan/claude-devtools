@@ -314,6 +314,48 @@ type WebhookEndpoint struct {
 	Template string `json:"template"`
 }
 
+// ── Retention (W31) ───────────────────────────────────────────────────────────
+
+// trashGovernedPolicyIDs are the 15 registerMatcher category ids whose cleanup
+// routes through the reversible trash engine, PLUS "history" (a special-cased
+// non-matcher path). The 3 plain-delete ids {logs, logs-daemon, caches} are
+// intentionally excluded — trashing a regenerable log/cache would wrongly
+// extend its retention (see internal/maintenance/plaindelete.go), so the policy
+// never governs them (Architect HIGH-1). Enumerated here because the maintenance
+// package exposes no accessor to list registered ids.
+var trashGovernedPolicyIDs = []string{
+	"backup-binaries", "file-history", "junk-dsstore", "junk-tmp",
+	"junk-emptydirs", "plans", "plugins", "projects", "runtime-tasks",
+	"runtime-tasks-empty", "runtime-jobs", "runtime-sessions",
+	"runtime-session-env", "runtime-shell-snapshots", "transcripts",
+	"history",
+}
+
+// RetentionCategory is one category's toggle in the W31 retention policy. The
+// age cutoff is NOT stored here — it lives in the single MaintenanceCutoffs
+// store (read via GetMaintenanceCutoff/CutoffDefault) so preview and execution
+// always agree (Architect HIGH-2).
+type RetentionCategory struct {
+	Enabled      bool `json:"enabled"`
+	AutoApproved bool `json:"autoApproved"`
+}
+
+// RetentionPolicy composes the per-category cleanups into one Clean-now policy
+// plus a trash auto-expiry window (days). Categories is keyed by leaf category
+// id (the 15 trash-governed matchers + "history").
+type RetentionPolicy struct {
+	Categories      map[string]RetentionCategory `json:"categories"`
+	TrashExpiryDays int                          `json:"trashExpiryDays"`
+}
+
+func defaultRetentionPolicy() RetentionPolicy {
+	cats := make(map[string]RetentionCategory, len(trashGovernedPolicyIDs))
+	for _, id := range trashGovernedPolicyIDs {
+		cats[id] = RetentionCategory{Enabled: true, AutoApproved: false}
+	}
+	return RetentionPolicy{Categories: cats, TrashExpiryDays: 30}
+}
+
 // ── AppConfig (top-level) ─────────────────────────────────────────────────────
 
 // AppConfig mirrors src-tauri/src/config/types/app.rs AppConfig.
@@ -339,6 +381,12 @@ type AppConfig struct {
 	// DismissedSuggestions holds permission-rule suggestion strings (W30) the
 	// user has dismissed. A dismissed rule stays hidden across restarts.
 	DismissedSuggestions []string `json:"dismissedSuggestions"`
+	// Retention is the W31 composed cleanup policy (per-category enable +
+	// auto-approve + trash-expiry window). Cutoffs stay in MaintenanceCutoffs.
+	Retention RetentionPolicy `json:"retention"`
+	// LastCleanupMs is the app's OWN record of its last policy Clean-now run
+	// (ms since epoch). The CLI-owned .last-cleanup file is never written.
+	LastCleanupMs float64 `json:"lastCleanupMs"`
 }
 
 // DefaultAppConfig returns an AppConfig equivalent to Rust's AppConfig::default().
@@ -359,5 +407,7 @@ func DefaultAppConfig() AppConfig {
 		OnboardingCompleted:  false,
 		MaintenanceCutoffs:   map[string]int{},
 		DismissedSuggestions: []string{},
+		Retention:            defaultRetentionPolicy(),
+		LastCleanupMs:        0,
 	}
 }
