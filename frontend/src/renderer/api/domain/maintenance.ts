@@ -158,7 +158,7 @@ export const maintenanceApi: MaintenanceSlice = {
       return raw as unknown as ScheduleStatus;
     },
 
-    listSettingsGenerations: (): Promise<string[]> => ListSettingsGenerations(),
+    listSettingsGenerations: async (): Promise<string[]> => (await ListSettingsGenerations()) ?? [],
 
     readSettingsGeneration: (name: string): Promise<string> => ReadSettingsGeneration(name),
 
