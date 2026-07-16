@@ -1,18 +1,25 @@
+import { createTauriClient } from './tauriClient';
 import { createWailsClient } from './wailsClient';
 
 import type { WailsAPI } from '@shared/types/api';
 
 let client: WailsAPI | null = null;
 
+// Dual-mode switch (invariant #4): the whole backend choice is this one flag.
+// Defaults to Wails when VITE_BACKEND is unset. The flag dies at the W15 flip.
+function createClient(): WailsAPI {
+  return import.meta.env.VITE_BACKEND === 'tauri' ? createTauriClient() : createWailsClient();
+}
+
 export async function initializeApi(): Promise<void> {
   if (!client) {
-    client = createWailsClient();
+    client = createClient();
   }
 }
 
 function getImpl(): WailsAPI {
   if (!client) {
-    client = createWailsClient();
+    client = createClient();
   }
   return client;
 }
