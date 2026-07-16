@@ -58,7 +58,7 @@ import type {
   Candidate,
   CombinedReport,
   DirUsage,
-  ElectronAPI,
+  WailsAPI,
   GlobalAgent,
   HealthStatus,
   HistoryStats,
@@ -74,7 +74,7 @@ import type {
   TrashReceipt,
 } from '@shared/types';
 
-type MaintenanceSlice = Pick<ElectronAPI, 'maintenance'>;
+type MaintenanceSlice = Pick<WailsAPI, 'maintenance'>;
 
 export const maintenanceApi: MaintenanceSlice = {
   maintenance: {

@@ -2,7 +2,7 @@
   <img src="resources/icons/png/1024x1024.png" alt="claude-devtools" width="120" />
 </p>
 
-<h1 align="center">claude-devtools (Tauri)</h1>
+<h1 align="center">claude-devtools</h1>
 
 <p align="center">
   <strong><code>Terminal tells you nothing. This shows you everything.</code></strong>
@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <sub>Based on <a href="https://github.com/matt1398/claude-devtools">matt1398/claude-devtools</a> (Electron). This fork replaces the Electron + Node.js sidecar architecture with <strong>Tauri 2.x + Rust</strong> for a faster, lighter native experience.</sub>
+  <sub>Based on <a href="https://github.com/matt1398/claude-devtools">matt1398/claude-devtools</a> (Electron). This fork replaces the Electron + Node.js sidecar architecture with <strong>Wails v3 + Go</strong> for a faster, lighter native experience.</sub>
 </p>
 
 ---
@@ -20,9 +20,9 @@
 
 The [original claude-devtools](https://github.com/matt1398/claude-devtools) uses Electron with a Node.js/TypeScript backend (sidecar HTTP server). This fork:
 
-- **Replaced Electron with Tauri 2.x** — smaller binary, lower memory usage, native OS integration
-- **Ported the entire backend to Rust** — file watching (`notify` crate), JSONL parsing (`serde_json`), project scanning, chunk building, config management, notification triggers, and SSH support (`russh`) — all run natively without a Node.js runtime
-- **Removed the sidecar** — the frontend communicates directly with Rust via Tauri `invoke()` commands and events, no intermediate HTTP server
+- **Replaced Electron with Wails v3** — smaller binary, lower memory usage, native OS integration
+- **Ported the entire backend to Go** — file watching (`rjeczalik/notify`), JSONL parsing (`encoding/json`), project scanning, chunk building, config management, notification triggers, and SSH support (`golang.org/x/crypto/ssh`, `pkg/sftp`) — all run natively without a Node.js runtime
+- **Removed the sidecar** — the frontend communicates directly with the Go backend via Wails v3 bindings, no intermediate HTTP server
 - **Switched to bun** as the JavaScript package manager and task runner
 - **Switched to oxlint/oxfmt** for linting and formatting
 
@@ -68,7 +68,7 @@ Subagent sessions rendered as expandable inline cards with their own metrics. Te
 
 ### SSH Remote Sessions
 
-Connect to remote machines over SSH and inspect Claude Code sessions there. Parses `~/.ssh/config`, supports agent forwarding, private keys, and password auth via `russh`.
+Connect to remote machines over SSH and inspect Claude Code sessions there. Parses `~/.ssh/config`, supports agent forwarding, private keys, and password auth via `golang.org/x/crypto/ssh`.
 
 ### Multi-Pane Layout
 
@@ -95,8 +95,8 @@ Open multiple sessions side-by-side. Drag-and-drop tabs between panes, split vie
 
 | Layer | Technology |
 |-------|-----------|
-| Desktop framework | Tauri 2.x |
-| Backend | Rust (serde, notify, russh, tokio) |
+| Desktop framework | Wails v3 |
+| Backend | Go (rjeczalik/notify, golang.org/x/crypto/ssh, pkg/sftp, golang-lru) |
 | Frontend | React 18, TypeScript 5, Tailwind CSS 4, Zustand 5 |
 | Package manager | bun |
 | Linting/Formatting | oxlint, oxfmt |
@@ -108,9 +108,9 @@ Open multiple sessions side-by-side. Drag-and-drop tabs between panes, split vie
 
 ### Prerequisites
 
-- [Rust](https://rustup.rs/) (stable)
+- [Go](https://go.dev/dl/) (stable)
 - [bun](https://bun.sh/)
-- Tauri 2.x system dependencies ([see Tauri docs](https://v2.tauri.app/start/prerequisites/))
+- Wails v3 system dependencies ([see Wails docs](https://v3alpha.wails.io/getting-started/installation/))
 
 ### Setup
 
@@ -128,7 +128,7 @@ The app auto-discovers your Claude Code projects from `~/.claude/`.
 | Command | Description |
 |---------|-------------|
 | `bun run dev` | Development with hot reload |
-| `bun run build` | Production build (Tauri) |
+| `bun run build` | Production build (Wails) |
 | `bun run typecheck` | TypeScript type checking |
 | `bun run lint:fix` | Lint and auto-fix |
 | `bun run format` | Format code |
@@ -145,7 +145,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
 ## Security
 
-Tauri commands validate all inputs with strict path containment checks. File reads are constrained to the project root and `~/.claude`. See [SECURITY.md](SECURITY.md) for details.
+The Go backend validates all inputs with strict path containment checks. File reads are constrained to the project root and `~/.claude`. See [SECURITY.md](SECURITY.md) for details.
 
 ## Acknowledgments
 

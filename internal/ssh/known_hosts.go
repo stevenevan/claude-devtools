@@ -1,4 +1,4 @@
-// Package ssh — known_hosts.go ports src-tauri/src/ssh/known_hosts.rs.
+// Package ssh — known_hosts.go.
 //
 // Stores host fingerprints in ~/.claude/ssh/known_hosts (mode 0600 on Unix).
 // On first contact: TOFU — the key is recorded. On subsequent connections the

@@ -1,4 +1,4 @@
-// Package snapshots ports src-tauri/src/snapshots.rs: gzip-compressed serialized
+// Package snapshots: gzip-compressed serialized
 // SessionDetail stored in ~/.claude-devtools/snapshots/ as <id>.json.gz, with
 // metadata alongside as <id>.meta.json for listing without decompressing.
 //

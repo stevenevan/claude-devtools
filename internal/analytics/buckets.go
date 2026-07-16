@@ -1,4 +1,4 @@
-// Bucket granularity helpers — mirrors src-tauri/src/analytics/buckets.rs.
+// Bucket granularity helpers.
 package analytics
 
 import (

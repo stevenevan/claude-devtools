@@ -103,7 +103,7 @@ const WorktreeItem = ({
 };
 
 export const SidebarHeader = (): JSX.Element => {
-  const isMacElectron = isDesktopMode() && window.navigator.userAgent.toLowerCase().includes('mac');
+  const isMacDesktop = isDesktopMode() && window.navigator.userAgent.toLowerCase().includes('mac');
 
   const {
     repositoryGroups,
@@ -170,11 +170,10 @@ export const SidebarHeader = (): JSX.Element => {
       <div
         className={cn(
           'relative flex items-center gap-1 pr-2 select-none',
-          isMacElectron ? 'h-12' : 'h-10',
-          isMacElectron ? 'pl-[var(--macos-traffic-light-padding-left,72px)]' : 'pl-2'
+          isMacDesktop ? 'h-12' : 'h-10',
+          isMacDesktop ? 'pl-[var(--macos-traffic-light-padding-left,72px)]' : 'pl-2'
         )}
-        data-tauri-drag-region
-        style={isMacElectron ? ({ WebkitAppRegion: 'drag' } as CSSProperties) : undefined}
+        style={isMacDesktop ? ({ WebkitAppRegion: 'drag' } as CSSProperties) : undefined}
       >
         {hasProject ? (
           <>
@@ -194,7 +193,7 @@ export const SidebarHeader = (): JSX.Element => {
           <span
             className={cn(
               'text-muted-foreground min-w-0 truncate text-sm font-bold tracking-tight',
-              !isMacElectron && 'pl-2'
+              !isMacDesktop && 'pl-2'
             )}
           >
             Projects

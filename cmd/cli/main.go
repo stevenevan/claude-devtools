@@ -1,5 +1,5 @@
 // Command claude-devtools-cli is a read-only CLI for inspecting Claude session
-// data. Ports src-tauri/src/bin/cli.rs.
+// data.
 //
 // Subcommands:
 //

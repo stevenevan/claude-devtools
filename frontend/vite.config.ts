@@ -1,6 +1,6 @@
-// Vite config for the Wails frontend. Mirrors the Tauri renderer config
-// (root = src/renderer, @renderer/@shared aliases, Tailwind 4 + React Compiler),
-// but builds to frontend/dist for `//go:embed all:frontend/dist`.
+// Vite config for the Wails frontend: root = src/renderer, @renderer/@shared
+// aliases, Tailwind 4 + React Compiler, builds to frontend/dist for
+// `//go:embed all:frontend/dist`.
 
 import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'

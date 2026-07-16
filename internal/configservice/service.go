@@ -1,4 +1,4 @@
-// Package configservice wires all 40 config_* Tauri commands as Wails v3 service methods.
+// Package configservice wires all 40 config_* commands as Wails v3 service methods.
 // ConfigService owns a ConfigState lazily initialised on first use (zero-value safe).
 // No constructor required — main.go registers &ConfigService{} unchanged.
 package configservice

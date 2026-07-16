@@ -1,4 +1,4 @@
-// tool_maps.go ports src-tauri/src/notifications/trigger_checker/tool_maps.rs.
+// tool_maps.go.
 // Builds tool_use and tool_result index maps from a parsed message slice.
 package notifications
 

@@ -1,4 +1,4 @@
-// Package ssh — retry.go ports src-tauri/src/ssh/retry.rs.
+// Package ssh — retry.go.
 // Exponential back-off with transient-error detection. PURE — no I/O.
 package ssh
 

@@ -11,12 +11,12 @@ import type { HttpServerStatus } from '@shared/types/api';
 
 interface ServerSubsectionProps {
   readonly saving: boolean;
-  readonly isElectron: boolean;
+  readonly isDesktop: boolean;
 }
 
 export const ServerSubsection = ({
   saving,
-  isElectron,
+  isDesktop,
 }: ServerSubsectionProps): JSX.Element => {
   const [serverStatus, setServerStatus] = useState<HttpServerStatus>({
     running: false,
@@ -26,10 +26,10 @@ export const ServerSubsection = ({
   const { copy, copied } = useClipboard({ timeout: 2000 });
 
   useEffect(() => {
-    if (isElectron) {
+    if (isDesktop) {
       void api.httpServer.getStatus().then(setServerStatus);
     }
-  }, [isElectron]);
+  }, [isDesktop]);
 
   const handleServerToggle = async (enabled: boolean): Promise<void> => {
     setServerLoading(true);
@@ -45,7 +45,7 @@ export const ServerSubsection = ({
 
   const serverUrl = `http://localhost:${serverStatus.port}`;
 
-  if (isElectron) {
+  if (isDesktop) {
     return (
       <>
         <SettingsSectionHeader title="Browser Access" />

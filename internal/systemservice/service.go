@@ -143,7 +143,7 @@ func (s *SystemService) LogRendererEvent(level, msg string, ctx *json.RawMessage
 
 // AggregatedSessionTodos mirrors sessions.rs::AggregatedSessionTodos.
 // Duplication with sessionservice.AggregatedSessionTodos is intentional:
-// both the SessionService and SystemService expose this command in the Tauri
+// both the SessionService and SystemService expose this command in the
 // registry. They share identical logic; a shared type would require a new
 // package. Since the type is trivial, inline it here per the Rust pattern.
 type AggregatedSessionTodos struct {
@@ -320,7 +320,7 @@ func discoverPlugins(dir string) []PluginEntry {
 }
 
 // ---------------------------------------------------------------------------
-// OpenPath (Tauri opener plugin openPath equivalent)
+// OpenPath (opens a path with the OS file manager / default app)
 // ---------------------------------------------------------------------------
 
 // openPathCmd builds the OS-appropriate command to open target in the

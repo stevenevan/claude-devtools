@@ -1,4 +1,4 @@
-// Package notifications ports src-tauri/src/notifications/ to Go.
+// Package notifications.
 // Types, rule DSL, and factory helpers live here.
 // JSON tags match serde rename_all="camelCase" exactly.
 // Option<T> + skip_serializing_if → *T + omitempty.

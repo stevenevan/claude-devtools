@@ -1,4 +1,4 @@
-// Fast JSONL scan — mirrors src-tauri/src/analytics/session_scan.rs.
+// Fast JSONL scan.
 // Extracts only analytics-relevant fields without full message parsing.
 package analytics
 

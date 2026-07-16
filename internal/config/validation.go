@@ -1,4 +1,4 @@
-// Package config — validation ports src-tauri/src/config/validation/ to Go.
+// Package config — validation.
 // Entry point: ValidateConfigUpdate(section, data) → (section, data, error).
 package config
 

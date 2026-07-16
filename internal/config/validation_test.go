@@ -1,4 +1,3 @@
-// Ports all Rust #[test] from src-tauri/src/config/validation/tests.rs.
 package config
 
 import (

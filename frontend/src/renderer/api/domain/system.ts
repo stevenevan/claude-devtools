@@ -22,7 +22,7 @@ import {
 
 import type {
   ContextInfo,
-  ElectronAPI,
+  WailsAPI,
   FileChangeEvent,
   HttpServerAPI,
   HttpServerStatus,
@@ -34,7 +34,7 @@ import type {
 } from '@shared/types';
 
 type SystemSlice = Pick<
-  ElectronAPI,
+  WailsAPI,
   | 'getAppVersion'
   | 'getZoomFactor'
   | 'onZoomFactorChanged'

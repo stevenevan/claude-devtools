@@ -1,4 +1,4 @@
-// Package tool_linking ports src-tauri/src/analysis/tool_linking.rs to Go.
+// Package tool_linking.
 // Backs the link_tool_calls command.
 package tool_linking
 

@@ -65,7 +65,7 @@ import type {
   ClaudeRootFolderSelection,
   ClaudeRootInfo,
   ConfigAPI,
-  ElectronAPI,
+  WailsAPI,
   FilterPresetEntry,
   NotificationsAPI,
   NotificationTrigger,
@@ -79,7 +79,7 @@ import type {
 import type { AnnotationImportReport } from '@shared/types/api';
 
 type ConfigSlice = Pick<
-  ElectronAPI,
+  WailsAPI,
   'config' | 'notifications' | 'session' | 'plugins' | 'webhook'
 >;
 

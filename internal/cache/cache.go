@@ -1,4 +1,4 @@
-// Package cache ports src-tauri/src/cache.rs: an LRU cache with TTL + a coarse
+// Package cache: an LRU cache with TTL + a coarse
 // byte-budget ceiling for parsed session data, plus per-session incremental
 // parse state. The cache owns its mutex internally; callers never lock it
 // (arch C1). Layering: imports only domain + parsing, never pipeline/analysis/

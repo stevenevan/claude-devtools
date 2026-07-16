@@ -176,7 +176,6 @@ export const TabBar = ({ paneId }: TabBarProps): JSX.Element => {
   return (
     <div
       className={cn('flex items-center justify-between border-b border-border bg-background pr-2')}
-      data-tauri-drag-region={isDesktopMode() && isLeftmostPane ? true : undefined}
       style={
         {
           height: `${HEADER_ROW1_HEIGHT}px`,
@@ -260,10 +259,9 @@ export const TabBar = ({ paneId }: TabBarProps): JSX.Element => {
 
       {/* Drag spacer — fills empty space between tab list and action buttons.
           Gives users a reliable window-drag target regardless of how many tabs are open.
-          Only applied on the leftmost pane in Electron to match the TabBar drag region logic. */}
+          Only applied on the leftmost pane on desktop to match the TabBar drag region logic. */}
       <div
         className="flex-1 self-stretch"
-        data-tauri-drag-region={isDesktopMode() && isLeftmostPane ? true : undefined}
         style={
           {
             WebkitAppRegion: isDesktopMode() && isLeftmostPane ? 'drag' : undefined,

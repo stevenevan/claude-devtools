@@ -1,4 +1,3 @@
-// Ports all Rust #[test] from src-tauri/src/config/manager/tests.rs.
 // Also adds the atomic-persistence test required by the task spec.
 package config
 

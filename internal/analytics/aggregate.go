@@ -1,4 +1,4 @@
-// Main analytics aggregation — mirrors src-tauri/src/analytics/aggregate.rs.
+// Main analytics aggregation.
 // Walks project sessions, buckets by time, computes totals.
 package analytics
 

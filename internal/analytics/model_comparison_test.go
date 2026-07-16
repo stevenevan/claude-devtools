@@ -1,4 +1,3 @@
-// Tests ported from src-tauri/src/analytics/model_comparison.rs #[cfg(test)] mod tests.
 package analytics
 
 import "testing"

@@ -1,4 +1,4 @@
-// Package tool_analytics ports src-tauri/src/analysis/tool_analytics/ to Go.
+// Package tool_analytics.
 // Backs the get_tool_analytics and get_tool_time_heatmap commands.
 package tool_analytics
 

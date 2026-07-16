@@ -1,4 +1,4 @@
-// trigger_matcher.go ports src-tauri/src/notifications/trigger_matcher.rs.
+// trigger_matcher.go.
 // Regex pattern matching with a process-level LRU cache (500 entries).
 // Also contains the rule DSL evaluator (evaluate_node, evaluate_rules).
 package notifications

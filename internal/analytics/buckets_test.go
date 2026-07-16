@@ -1,4 +1,3 @@
-// Tests ported from src-tauri/src/analytics/buckets.rs #[cfg(test)] mod tests.
 package analytics
 
 import (

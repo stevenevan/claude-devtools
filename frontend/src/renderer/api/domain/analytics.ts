@@ -25,7 +25,7 @@ import type {
   BackendCacheStats,
   BackendTimingSummary,
   CostForecast,
-  ElectronAPI,
+  WailsAPI,
   ErrorClustersResponse,
   ErrorHotspotsResponse,
   FileGraphResponse,
@@ -38,7 +38,7 @@ import type {
 } from '@shared/types';
 
 type AnalyticsSlice = Pick<
-  ElectronAPI,
+  WailsAPI,
   | 'getAnalytics'
   | 'getCostForecast'
   | 'getProductivityMetrics'

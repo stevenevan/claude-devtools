@@ -1,4 +1,4 @@
-// Package ssh — config_parser.go ports src-tauri/src/ssh/config_parser.rs.
+// Package ssh — config_parser.go.
 // Reads ~/.ssh/config, expands Include directives, and resolves host aliases.
 // PURE: no I/O beyond reading files; fully unit-testable.
 package ssh

@@ -23,7 +23,6 @@
   },
   "ignorePatterns": [
     "dist/**",
-    "dist-electron/**",
     "build/**",
     "node_modules/**",
     "*.config.js",

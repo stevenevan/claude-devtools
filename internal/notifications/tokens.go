@@ -1,4 +1,4 @@
-// tokens.go ports src-tauri/src/notifications/trigger_checker/tokens.rs.
+// tokens.go.
 package notifications
 
 import (

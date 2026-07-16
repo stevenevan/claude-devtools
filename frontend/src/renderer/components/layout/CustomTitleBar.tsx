@@ -42,7 +42,6 @@ export const CustomTitleBar = (): JSX.Element | null => {
   return (
     <div
       className="bg-sidebar border-border flex shrink-0 items-stretch border-b select-none"
-      data-tauri-drag-region
       style={
         {
           height: `${TITLE_BAR_HEIGHT}px`,

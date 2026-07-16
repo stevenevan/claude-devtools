@@ -1,7 +1,6 @@
 package discovery
 
 // Subproject registry — tracks composite project IDs for multi-cwd projects.
-// Mirrors src-tauri/src/discovery/subproject_registry.rs.
 //
 // When sessions in the same encoded directory have different `cwd` values they
 // are split into separate projects with composite IDs: `{encodedPath}::{hash}`.

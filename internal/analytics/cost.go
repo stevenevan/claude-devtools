@@ -1,4 +1,4 @@
-// Package analytics ports src-tauri/src/analytics/ to Go.
+// Package analytics.
 // This file: cost.rs — model pricing and cost estimation.
 package analytics
 

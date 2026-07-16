@@ -1,4 +1,3 @@
-// Ports all Rust #[test] from src-tauri/src/config/triggers.rs.
 package config
 
 import (

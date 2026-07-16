@@ -41,7 +41,6 @@
   ],
   "ignorePatterns": [
     "dist/",
-    "dist-electron/",
     "build/",
     "out/",
     "node_modules/",

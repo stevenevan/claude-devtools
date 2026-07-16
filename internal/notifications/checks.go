@@ -1,4 +1,4 @@
-// checks.go ports src-tauri/src/notifications/trigger_checker/checks.rs.
+// checks.go.
 // The three trigger check functions: tool_result, tool_use, and token_threshold.
 package notifications
 

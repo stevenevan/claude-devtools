@@ -1,4 +1,4 @@
-// trigger_tester.go ports src-tauri/src/notifications/trigger_tester.rs.
+// trigger_tester.go.
 // Tests a trigger against all historical sessions with safety limits.
 package notifications
 

@@ -13,7 +13,7 @@ func init() {
 }
 
 // scanLogs lists devtools log files under <root>/logs (plain-delete). The
-// current Go build writes no file logs — these are stale Tauri/Rust leftovers.
+// current Go build writes no file logs — these are stale leftovers from the old app.
 func scanLogs(ctx context.Context, spec CategorySpec) ([]Candidate, error) {
 	dir := filepath.Join(spec.Root, "logs")
 	entries, ok, err := openDirNoSymlink(dir)

@@ -1,4 +1,4 @@
-// error_detector.go ports src-tauri/src/notifications/error_detector.rs.
+// error_detector.go.
 // Orchestrates trigger matching across a session's parsed messages.
 package notifications
 

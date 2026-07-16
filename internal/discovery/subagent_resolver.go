@@ -2,7 +2,6 @@ package discovery
 
 // Subagent resolver — parse subagent JSONL files, link to Task calls,
 // detect parallelism, and propagate team metadata.
-// Mirrors src-tauri/src/discovery/subagent_resolver.rs.
 
 import (
 	"encoding/json"

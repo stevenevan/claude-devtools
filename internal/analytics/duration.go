@@ -1,4 +1,4 @@
-// Per-session duration analytics — mirrors src-tauri/src/analytics/duration.rs.
+// Per-session duration analytics.
 package analytics
 
 import (

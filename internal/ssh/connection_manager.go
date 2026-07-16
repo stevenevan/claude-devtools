@@ -1,4 +1,4 @@
-// Package ssh — connection_manager.go ports src-tauri/src/ssh/connection_manager.rs.
+// Package ssh — connection_manager.go.
 //
 // Concurrency contract (arch H4):
 //   - s.mu guards ONLY the in-memory conn pointer swap.

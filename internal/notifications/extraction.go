@@ -1,4 +1,4 @@
-// extraction.go ports src-tauri/src/notifications/trigger_checker/extraction.rs.
+// extraction.go.
 // Extracts tool results from a ParsedMessage and provides tool summary labels.
 package notifications
 

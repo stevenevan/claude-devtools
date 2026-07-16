@@ -1,7 +1,6 @@
 package parsing
 
-// session_parser.go ports src-tauri/src/parsing/session_parser/mod.rs and
-// src-tauri/src/parsing/session_parser/incremental.rs to Go.
+// session_parser.go.
 //
 // Exported functions added here (do NOT touch ParseJSONLFile or CalculateMetrics):
 //

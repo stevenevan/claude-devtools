@@ -1,4 +1,4 @@
-// webhook.go ports src-tauri/src/notifications/webhook.rs.
+// webhook.go.
 // Template expansion, SSRF allowlist, retry-with-backoff, HTTP dispatch.
 // Uses stdlib net/http for the actual POST — no reqwest equivalent needed.
 package notifications

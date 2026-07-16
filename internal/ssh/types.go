@@ -1,4 +1,4 @@
-// Package ssh ports src-tauri/src/ssh/types.rs to Go.
+// Package ssh.
 // All fields carry explicit json tags matching serde rename_all="camelCase".
 // Option<T> with skip_serializing_if="Option::is_none" → *T + omitempty.
 // Option<T> without skip → *T (no omitempty).

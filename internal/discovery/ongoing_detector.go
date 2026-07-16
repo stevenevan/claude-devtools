@@ -1,6 +1,6 @@
 package discovery
 
-// Ongoing session detection — mirrors src-tauri/src/discovery/ongoing_detector.rs.
+// Ongoing session detection.
 //
 // A session is "ongoing" when the file was modified within the last 120 s AND
 // the last JSONL entry indicates an incomplete turn.

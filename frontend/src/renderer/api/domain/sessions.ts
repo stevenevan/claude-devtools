@@ -30,7 +30,7 @@ import { reviveDates } from '../reviveDates';
 import type {
   ContentSearchResult,
   ConversationGroup,
-  ElectronAPI,
+  WailsAPI,
   FilteredSearchResponse,
   PaginatedSessionsResult,
   Project,
@@ -49,7 +49,7 @@ import type {
 } from '@shared/types';
 
 type SessionsSlice = Pick<
-  ElectronAPI,
+  WailsAPI,
   | 'getProjects'
   | 'getSessions'
   | 'getSessionsPaginated'

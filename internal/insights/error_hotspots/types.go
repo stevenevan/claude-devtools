@@ -1,4 +1,4 @@
-// Package error_hotspots ports src-tauri/src/analysis/error_hotspots/ to Go.
+// Package error_hotspots.
 // Backs the get_error_hotspots and get_error_clusters commands.
 package error_hotspots
 

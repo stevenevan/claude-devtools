@@ -1,7 +1,6 @@
 package discovery
 
 // Subagent locator — find subagent JSONL files for a session.
-// Mirrors src-tauri/src/discovery/subagent_locator.rs.
 //
 // Supports two layouts:
 //

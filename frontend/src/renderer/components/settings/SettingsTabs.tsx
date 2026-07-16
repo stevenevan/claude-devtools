@@ -34,14 +34,14 @@ interface TabConfig {
   id: SettingsSection;
   label: string;
   icon: ComponentType<{ className?: string }>;
-  electronOnly?: boolean;
+  desktopOnly?: boolean;
 }
 
 const tabs: TabConfig[] = [
   { id: 'general', label: 'General', icon: Settings },
-  { id: 'connection', label: 'Connection', icon: Server, electronOnly: true },
-  { id: 'workspace', label: 'Workspaces', icon: HardDrive, electronOnly: true },
-  { id: 'claudeCode', label: 'Claude Code', icon: Terminal, electronOnly: true },
+  { id: 'connection', label: 'Connection', icon: Server, desktopOnly: true },
+  { id: 'workspace', label: 'Workspaces', icon: HardDrive, desktopOnly: true },
+  { id: 'claudeCode', label: 'Claude Code', icon: Terminal, desktopOnly: true },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard },
   { id: 'themes', label: 'Themes', icon: Palette },
@@ -56,10 +56,10 @@ export const SettingsTabs = ({
   onSectionChange,
   children,
 }: Readonly<SettingsTabsProps>): JSX.Element => {
-  const isElectron = isDesktopMode();
+  const isDesktop = isDesktopMode();
   const visibleTabs = useMemo(
-    () => tabs.filter((tab) => !tab.electronOnly || isElectron),
-    [isElectron]
+    () => tabs.filter((tab) => !tab.desktopOnly || isDesktop),
+    [isDesktop]
   );
 
   return (

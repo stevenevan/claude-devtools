@@ -1,4 +1,4 @@
-// Package ssh — agent_discovery.go ports src-tauri/src/ssh/agent_discovery.rs.
+// Package ssh — agent_discovery.go.
 // Discovers the SSH agent socket using env var, launchctl (macOS), or well-known paths.
 package ssh
 

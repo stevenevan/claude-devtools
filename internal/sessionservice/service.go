@@ -1,8 +1,6 @@
 package sessionservice
 
-// service.go wires all Tauri session commands as methods on SessionService.
-// Ported from src-tauri/src/commands/sessions.rs and
-//             src-tauri/src/commands/agents_search/waterfall.rs.
+// service.go wires all session commands as methods on SessionService.
 //
 // Layering: may import parsing/analysis/discovery/cache/domain. Never imports
 // other *service packages (arch H1).

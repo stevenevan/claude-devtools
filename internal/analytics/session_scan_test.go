@@ -1,4 +1,3 @@
-// Tests ported from src-tauri/src/analytics/session_scan.rs #[cfg(test)] mod tests.
 package analytics
 
 import (

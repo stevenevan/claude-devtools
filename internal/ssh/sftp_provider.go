@@ -1,4 +1,4 @@
-// Package ssh — sftp_provider.go ports src-tauri/src/ssh/sftp_provider.rs.
+// Package ssh — sftp_provider.go.
 // RemoteFileTail tracks the byte offset for a remote JSONL file and surfaces
 // complete lines from incremental chunks. TailRegistry manages per-path tails.
 // PURE: no network I/O; fully unit-testable.

@@ -1,4 +1,4 @@
-// Cost forecasting — mirrors src-tauri/src/analytics/forecasting.rs.
+// Cost forecasting.
 // Linear regression over trailing N session-day cost totals.
 package analytics
 

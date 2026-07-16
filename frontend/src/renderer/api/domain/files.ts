@@ -32,7 +32,7 @@ import {
 
 import { reviveDates } from '../reviveDates';
 
-import type { ClaudeMdFileInfo, ElectronAPI } from '@shared/types';
+import type { ClaudeMdFileInfo, WailsAPI } from '@shared/types';
 import type {
   AgentConfig,
   ClaudeJSONBackup,
@@ -50,7 +50,7 @@ import type {
 } from '@shared/types/api';
 
 type FilesSlice = Pick<
-  ElectronAPI,
+  WailsAPI,
   | 'validatePath'
   | 'validateMentions'
   | 'readClaudeMdFiles'

@@ -63,7 +63,7 @@ Path encoding: `/Users/name/project` → `-Users-name-project`
   → Go: chunk_factory → EnhancedChunk[] (User|AI|System|Compact|Event)
   → Go: tool_execution_builder, semantic_step_extractor, context_accumulator
   → SessionDetail { chunks, metrics, processes }
-  → Frontend v3 bindings via tauriClient.ts (reviveDates for ISO→Date conversion)
+  → Frontend v3 bindings via wailsClient.ts (reviveDates for ISO→Date conversion)
   → Zustand store (sessionDetailSlice, conversationSlice)
   → aiGroupEnhancer → groupTransformer → displayItemBuilder
   → React components (ChatHistory, AIChatGroup, LinkedToolItem, etc.)

@@ -1,4 +1,4 @@
-// Package domain holds the shared DTOs ported from src-tauri/src/types/.
+// Package domain holds the shared DTOs.
 // It is a pure leaf: it imports only the stdlib (encoding/json), never any
 // other internal package, so the parsing/analysis packages can depend on it
 // without forming an import cycle.

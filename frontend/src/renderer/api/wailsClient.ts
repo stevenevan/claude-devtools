@@ -5,9 +5,9 @@ import { maintenanceApi } from './domain/maintenance';
 import { sessionsApi } from './domain/sessions';
 import { systemApi } from './domain/system';
 
-import type { ElectronAPI } from '@shared/types/api';
+import type { WailsAPI } from '@shared/types/api';
 
-export function createTauriClient(): ElectronAPI {
+export function createWailsClient(): WailsAPI {
   return {
     ...sessionsApi,
     ...analyticsApi,

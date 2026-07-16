@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom/client';
 import { initializeApi } from './api';
 import { App } from './App';
 
-// Resolve sidecar port before rendering (async in Tauri, no-op otherwise)
+// Initialize the API client before rendering
 void initializeApi().then(() => {
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <StrictMode>

@@ -1,4 +1,3 @@
-// Tests ported from src-tauri/src/analytics/duration.rs #[cfg(test)] mod tests.
 package analytics
 
 import (

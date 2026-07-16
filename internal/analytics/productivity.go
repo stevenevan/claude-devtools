@@ -1,4 +1,4 @@
-// Productivity metrics — mirrors src-tauri/src/analytics/productivity.rs.
+// Productivity metrics.
 package analytics
 
 import (

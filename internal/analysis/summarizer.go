@@ -1,6 +1,6 @@
 package analysis
 
-// summarizer.go ports src-tauri/src/analysis/summarizer.rs.
+// summarizer.go.
 //
 // Produces a 3-bullet TL;DR with no LLM involvement:
 //   1. First real user prompt, truncated to 120 chars at word boundary.

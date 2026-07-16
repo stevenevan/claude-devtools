@@ -1,4 +1,4 @@
-// Analytics response DTOs — mirrors src-tauri/src/analytics/types.rs.
+// Analytics response DTOs.
 // JSON tags reproduce serde rename_all="camelCase" exactly.
 package analytics
 

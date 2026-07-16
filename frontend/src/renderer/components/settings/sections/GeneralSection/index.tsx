@@ -36,11 +36,11 @@ export const GeneralSection = ({
   onDisplayToggle,
   onCodeBlockThemeChange,
 }: GeneralSectionProps): JSX.Element => {
-  const isElectron = isDesktopMode();
+  const isDesktop = isDesktopMode();
 
   return (
     <div>
-      {isElectron && (
+      {isDesktop && (
         <>
           <SettingsSectionHeader title="Startup" />
           <SettingRow label="Launch at login" description="Automatically start the app when you log in">
@@ -84,7 +84,7 @@ export const GeneralSection = ({
           disabled={saving}
         />
       </SettingRow>
-      {isElectron && !window.navigator.userAgent.includes('Macintosh') && (
+      {isDesktop && !window.navigator.userAgent.includes('Macintosh') && (
         <SettingRow
           label="Use native title bar"
           description="Use the default system window frame instead of the custom title bar"
@@ -148,9 +148,9 @@ export const GeneralSection = ({
         />
       </SettingRow>
 
-      {isElectron && <ClaudeRootSubsection />}
+      {isDesktop && <ClaudeRootSubsection />}
 
-      <ServerSubsection saving={saving} isElectron={isElectron} />
+      <ServerSubsection saving={saving} isDesktop={isDesktop} />
     </div>
   );
 };

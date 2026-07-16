@@ -1,4 +1,4 @@
-// Package config — triggers ports src-tauri/src/config/triggers.rs.
+// Package config — triggers.
 // Contains: DefaultTriggers, MergeTriggers, ValidateTrigger, ValidateRegexPattern, InferMode.
 package config
 

@@ -1,4 +1,4 @@
-// Package discovery ports src-tauri/src/discovery/ to Go.
+// Package discovery.
 // This file: path_decoder.rs — encode/decode project directory names.
 //
 // Encoding: /Users/name/project → -Users-name-project (lossy — dashes are ambiguous).

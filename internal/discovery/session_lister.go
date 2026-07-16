@@ -1,6 +1,6 @@
 package discovery
 
-// Paginated session listing — mirrors src-tauri/src/discovery/session_lister.rs.
+// Paginated session listing.
 
 import (
 	"bufio"

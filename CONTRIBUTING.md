@@ -1,8 +1,8 @@
 # Contributing
 
-Thanks for contributing to claude-devtools (Tauri fork).
+Thanks for contributing to claude-devtools.
 
-This project is a fork of [matt1398/claude-devtools](https://github.com/matt1398/claude-devtools), rebuilt with Tauri 2.x and a Rust backend.
+This project is a fork of [matt1398/claude-devtools](https://github.com/matt1398/claude-devtools), rebuilt with Wails v3 and a Go backend.
 
 ## Project Philosophy & Scope
 
@@ -22,9 +22,9 @@ Our priorities:
 If you're considering a non-trivial contribution, **open an Issue first**.
 
 ## Prerequisites
-- [Rust](https://rustup.rs/) (stable toolchain)
+- [Go](https://go.dev/dl/) (stable toolchain)
 - [bun](https://bun.sh/)
-- Tauri 2.x system dependencies ([see Tauri docs](https://v2.tauri.app/start/prerequisites/))
+- Wails v3 system dependencies ([see Wails docs](https://v3alpha.wails.io/getting-started/installation/))
 
 ## Setup
 ```bash

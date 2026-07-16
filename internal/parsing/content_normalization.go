@@ -1,4 +1,4 @@
-// Package parsing ports src-tauri/src/parsing/ (the W3 gate path): JSONL bytes
+// Package parsing (the W3 gate path): JSONL bytes
 // → []domain.ParsedMessage, byte-faithful to the Rust pipeline.
 package parsing
 

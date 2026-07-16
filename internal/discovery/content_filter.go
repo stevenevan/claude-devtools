@@ -1,7 +1,6 @@
 package discovery
 
 // Session content filter — detect noise-only sessions to skip in the UI.
-// Mirrors src-tauri/src/discovery/content_filter.rs.
 
 import (
 	"bufio"

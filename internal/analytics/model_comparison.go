@@ -1,4 +1,4 @@
-// Per-model aggregated metrics — mirrors src-tauri/src/analytics/model_comparison.rs.
+// Per-model aggregated metrics.
 package analytics
 
 import (

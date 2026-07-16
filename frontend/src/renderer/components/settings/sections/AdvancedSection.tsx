@@ -26,7 +26,7 @@ export const AdvancedSection = ({
   onImportConfig,
   onOpenInEditor,
 }: AdvancedSectionProps): JSX.Element => {
-  const isElectron = isDesktopMode();
+  const isDesktop = isDesktopMode();
   const [version, setVersion] = useState<string>('');
   const updateStatus = useStore((s) => s.updateStatus);
   const availableVersion = useStore((s) => s.availableVersion);
@@ -105,7 +105,7 @@ export const AdvancedSection = ({
           <Upload className="size-4" />
           Import Config
         </Button>
-        {isElectron && (
+        {isDesktop && (
           <Button variant="outline" className="w-full" onClick={onOpenInEditor}>
             <Code2 className="size-4" />
             Open in Editor
@@ -122,7 +122,7 @@ export const AdvancedSection = ({
         <div>
           <div className="flex items-center gap-3">
             <p className="text-foreground text-sm font-medium">claude-devtools</p>
-            {isElectron && (
+            {isDesktop && (
               <Button
                 variant="outline"
                 size="sm"
@@ -139,7 +139,7 @@ export const AdvancedSection = ({
                 {getUpdateButtonContent()}
               </Button>
             )}
-            {!isElectron && (
+            {!isDesktop && (
               <span className="border-border text-muted-foreground rounded-md border px-2.5 py-1 text-xs font-medium">
                 Standalone
               </span>

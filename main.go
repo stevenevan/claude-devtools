@@ -68,7 +68,7 @@ func main() {
 	})
 
 	// Transparent title bar: traffic lights visible, content under the bar
-	// (reproduces Tauri's titleBarStyle:"Overlay" + hiddenTitle:true).
+	// (transparent overlay title bar with hidden title text).
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:     "claude-devtools",
 		Width:     1400,

@@ -1,4 +1,4 @@
-// manager.go ports src-tauri/src/notifications/manager.rs.
+// manager.go.
 // NotificationState owns the persisted notification store.
 // Persistence is atomic: write to .tmp then os.Rename.
 package notifications

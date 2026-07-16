@@ -1,7 +1,6 @@
 package discovery
 
 // Project scanning — discover projects from ~/.claude/projects/.
-// Mirrors src-tauri/src/discovery/project_scanner.rs.
 
 import (
 	"bufio"

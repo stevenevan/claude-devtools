@@ -8,7 +8,7 @@ claude-devtools makes **zero** outbound network calls to third-party servers. Th
 |---|---|---|
 | SSH connections | Settings > SSH | Yes |
 
-The app is a native Tauri desktop application — there is no HTTP server, no auto-updater phoning home, and no standalone/Docker mode.
+The app is a native Wails v3 desktop application — there is no HTTP server, no auto-updater phoning home, and no standalone/Docker mode.
 
 ## Data Handling
 
@@ -17,9 +17,9 @@ The app is a native Tauri desktop application — there is no HTTP server, no au
 - Configuration is stored at `~/.claude/claude-devtools-config.json` on the local filesystem.
 - No data is sent to Anthropic, GitHub, or any other third party.
 
-## Tauri Command Validation
+## Backend Command Validation
 
-- All Tauri commands validate inputs with strict path containment checks
+- All backend commands validate inputs with strict path containment checks
 - File reads are constrained to the project root and `~/.claude/`
 - Path traversal attacks are blocked
 - Sensitive credential paths are rejected

@@ -1,4 +1,4 @@
-// Package config ports src-tauri/src/config/types/ to Go.
+// Package config.
 // Every struct uses explicit json tags to match serde rename_all="camelCase" exactly.
 // Option<T> with skip_serializing_if="Option::is_none" → *T + omitempty.
 // Option<T> without skip_serializing_if                → *T (no omitempty).
@@ -9,7 +9,7 @@ import "encoding/json"
 
 // ── General ──────────────────────────────────────────────────────────────────
 
-// GeneralConfig mirrors src-tauri/src/config/types/general.rs GeneralConfig.
+// GeneralConfig.
 type GeneralConfig struct {
 	LaunchAtLogin      bool    `json:"launchAtLogin"`
 	Theme              string  `json:"theme"`
@@ -30,7 +30,7 @@ func defaultGeneralConfig() GeneralConfig {
 	}
 }
 
-// DisplayConfig mirrors src-tauri/src/config/types/general.rs DisplayConfig.
+// DisplayConfig.
 // code_block_theme defaults to "default"; show_line_numbers defaults to true.
 type DisplayConfig struct {
 	CodeBlockTheme  string `json:"codeBlockTheme"`
@@ -48,7 +48,7 @@ func defaultDisplayConfig() DisplayConfig {
 
 // ── Notifications ─────────────────────────────────────────────────────────────
 
-// NotificationTrigger mirrors src-tauri/src/config/types/notifications.rs.
+// NotificationTrigger.
 // All optional fields use omitempty to match skip_serializing_if="Option::is_none".
 type NotificationTrigger struct {
 	ID             string    `json:"id"`
@@ -68,7 +68,7 @@ type NotificationTrigger struct {
 	Color          *string   `json:"color,omitempty"`
 }
 
-// NotificationConfig mirrors src-tauri/src/config/types/notifications.rs.
+// NotificationConfig.
 // snoozed_until has no skip_serializing_if → *float64 without omitempty.
 type NotificationConfig struct {
 	Enabled               bool                  `json:"enabled"`
@@ -102,19 +102,19 @@ func defaultNotificationConfig() NotificationConfig {
 
 // ── Sessions ──────────────────────────────────────────────────────────────────
 
-// PinnedSession mirrors src-tauri/src/config/types/sessions.rs.
+// PinnedSession.
 type PinnedSession struct {
 	SessionID string  `json:"sessionId"`
 	PinnedAt  float64 `json:"pinnedAt"`
 }
 
-// HiddenSession mirrors src-tauri/src/config/types/sessions.rs.
+// HiddenSession.
 type HiddenSession struct {
 	SessionID string  `json:"sessionId"`
 	HiddenAt  float64 `json:"hiddenAt"`
 }
 
-// BookmarkEntry mirrors src-tauri/src/config/types/sessions.rs.
+// BookmarkEntry.
 // note is Option with skip_serializing_if → omitempty.
 type BookmarkEntry struct {
 	ID        string  `json:"id"`
@@ -125,7 +125,7 @@ type BookmarkEntry struct {
 	CreatedAt float64 `json:"createdAt"`
 }
 
-// AnnotationEntry mirrors src-tauri/src/config/types/sessions.rs.
+// AnnotationEntry.
 type AnnotationEntry struct {
 	ID        string  `json:"id"`
 	SessionID string  `json:"sessionId"`
@@ -137,7 +137,7 @@ type AnnotationEntry struct {
 	UpdatedAt float64 `json:"updatedAt"`
 }
 
-// FilterPreset mirrors src-tauri/src/config/types/sessions.rs.
+// FilterPreset.
 // filter is stored as raw JSON (serde_json::Value) → json.RawMessage.
 type FilterPreset struct {
 	ID        string          `json:"id"`
@@ -146,7 +146,7 @@ type FilterPreset struct {
 	CreatedAt float64         `json:"createdAt"`
 }
 
-// AnnotationExportBundle mirrors src-tauri/src/config/types/sessions.rs.
+// AnnotationExportBundle.
 type AnnotationExportBundle struct {
 	Version     uint32            `json:"version"`
 	ExportedAt  float64           `json:"exportedAt"`
@@ -154,7 +154,7 @@ type AnnotationExportBundle struct {
 	Bookmarks   []BookmarkEntry   `json:"bookmarks"`
 }
 
-// ImportReport mirrors src-tauri/src/config/types/sessions.rs.
+// ImportReport.
 type ImportReport struct {
 	AnnotationsAdded   uint32 `json:"annotationsAdded"`
 	AnnotationsUpdated uint32 `json:"annotationsUpdated"`
@@ -163,7 +163,7 @@ type ImportReport struct {
 	BookmarksSkipped   uint32 `json:"bookmarksSkipped"`
 }
 
-// SessionsConfig mirrors src-tauri/src/config/types/sessions.rs.
+// SessionsConfig.
 // default_filter_preset_id is Option + skip_serializing_if → omitempty.
 type SessionsConfig struct {
 	PinnedSessions        map[string][]PinnedSession `json:"pinnedSessions"`
@@ -190,7 +190,7 @@ func defaultSessionsConfig() SessionsConfig {
 
 // ── SSH ───────────────────────────────────────────────────────────────────────
 
-// SshLastConnection mirrors src-tauri/src/config/types/ssh.rs.
+// SshLastConnection.
 type SshLastConnection struct {
 	Host           string  `json:"host"`
 	Port           uint16  `json:"port"`
@@ -199,7 +199,7 @@ type SshLastConnection struct {
 	PrivateKeyPath *string `json:"privateKeyPath,omitempty"`
 }
 
-// SshConnectionProfile mirrors src-tauri/src/config/types/ssh.rs.
+// SshConnectionProfile.
 type SshConnectionProfile struct {
 	ID             string  `json:"id"`
 	Name           string  `json:"name"`
@@ -210,7 +210,7 @@ type SshConnectionProfile struct {
 	PrivateKeyPath *string `json:"privateKeyPath,omitempty"`
 }
 
-// SshPersistConfig mirrors src-tauri/src/config/types/ssh.rs.
+// SshPersistConfig.
 // last_connection is Option<T> without skip_serializing_if → *T no omitempty.
 type SshPersistConfig struct {
 	LastConnection      *SshLastConnection     `json:"lastConnection"`
@@ -230,7 +230,7 @@ func defaultSshPersistConfig() SshPersistConfig {
 
 // ── HTTP ──────────────────────────────────────────────────────────────────────
 
-// HttpServerConfig mirrors src-tauri/src/config/types/http.rs.
+// HttpServerConfig.
 type HttpServerConfig struct {
 	Enabled bool   `json:"enabled"`
 	Port    uint16 `json:"port"`
@@ -240,7 +240,7 @@ func defaultHttpServerConfig() HttpServerConfig {
 	return HttpServerConfig{Enabled: false, Port: 3456}
 }
 
-// ClaudeRootInfo mirrors src-tauri/src/config/types/http.rs.
+// ClaudeRootInfo.
 // configured_path is Option<T> without skip → *string no omitempty.
 type ClaudeRootInfo struct {
 	DefaultPath    string  `json:"defaultPath"`
@@ -250,7 +250,7 @@ type ClaudeRootInfo struct {
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
-// DashboardConfig mirrors src-tauri/src/config/types/dashboard.rs.
+// DashboardConfig.
 type DashboardConfig struct {
 	WidgetOrder   []string `json:"widgetOrder"`
 	HiddenWidgets []string `json:"hiddenWidgets"`
@@ -262,7 +262,7 @@ func defaultDashboardConfig() DashboardConfig {
 
 // ── App (themes, shortcuts, plugins) ─────────────────────────────────────────
 
-// CustomTheme mirrors src-tauri/src/config/types/app.rs.
+// CustomTheme.
 type CustomTheme struct {
 	ID        string            `json:"id"`
 	Name      string            `json:"name"`
@@ -270,7 +270,7 @@ type CustomTheme struct {
 	Overrides map[string]string `json:"overrides"`
 }
 
-// ThemesConfig mirrors src-tauri/src/config/types/app.rs.
+// ThemesConfig.
 // active_id is Option + skip_serializing_if → omitempty.
 type ThemesConfig struct {
 	ActiveID *string       `json:"activeId,omitempty"`
@@ -281,7 +281,7 @@ func defaultThemesConfig() ThemesConfig {
 	return ThemesConfig{Custom: []CustomTheme{}}
 }
 
-// ShortcutsConfig mirrors src-tauri/src/config/types/app.rs.
+// ShortcutsConfig.
 type ShortcutsConfig struct {
 	Overrides map[string]string `json:"overrides"`
 }
@@ -290,7 +290,7 @@ func defaultShortcutsConfig() ShortcutsConfig {
 	return ShortcutsConfig{Overrides: map[string]string{}}
 }
 
-// PluginsConfig mirrors src-tauri/src/config/types/app.rs.
+// PluginsConfig.
 type PluginsConfig struct {
 	Enabled []string `json:"enabled"`
 }
@@ -306,7 +306,7 @@ func defaultPluginsConfig() PluginsConfig {
 // Rust uses serde tag="kind" + rename_all="camelCase" throughout.
 type NotificationRule = json.RawMessage
 
-// WebhookEndpoint mirrors src-tauri/src/notifications/webhook.rs.
+// WebhookEndpoint.
 type WebhookEndpoint struct {
 	ID       string `json:"id"`
 	Label    string `json:"label"`
@@ -363,7 +363,7 @@ func defaultRetentionPolicy() RetentionPolicy {
 
 // ── AppConfig (top-level) ─────────────────────────────────────────────────────
 
-// AppConfig mirrors src-tauri/src/config/types/app.rs AppConfig.
+// AppConfig.
 // onboarding_completed defaults false.
 type AppConfig struct {
 	Notifications       NotificationConfig `json:"notifications"`

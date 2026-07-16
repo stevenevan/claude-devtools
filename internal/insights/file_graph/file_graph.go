@@ -1,4 +1,4 @@
-// Package file_graph ports src-tauri/src/analysis/file_graph.rs to Go.
+// Package file_graph.
 // Backs the get_file_graph command.
 package file_graph
 

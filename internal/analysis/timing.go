@@ -1,4 +1,4 @@
-// Package analysis ports src-tauri/src/analysis/ (the W4 gate path): messages →
+// Package analysis (the W4 gate path): messages →
 // chunks → SessionDetail, byte-faithful to the Rust pipeline.
 package analysis
 

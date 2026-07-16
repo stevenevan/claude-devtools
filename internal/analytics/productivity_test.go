@@ -1,4 +1,3 @@
-// Tests ported from src-tauri/src/analytics/productivity.rs #[cfg(test)] mod tests.
 package analytics
 
 import "testing"

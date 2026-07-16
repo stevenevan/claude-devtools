@@ -1,4 +1,4 @@
-// Package config — manager ports src-tauri/src/config/manager/ to Go.
+// Package config — manager.
 // ConfigState owns AppConfig behind a sync.Mutex with lazy disk loading.
 // Persistence uses atomic write: temp file → os.Rename (never truncate-in-place).
 package config
