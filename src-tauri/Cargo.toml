@@ -1,0 +1,11 @@
+[package]
+name = "claude-devtools"
+version = "0.4.8"
+description = "Visualizes Claude Code session execution"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }

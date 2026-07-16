@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Cycle-A capability: core event IPC for the frontend event bridge",
+  "windows": ["main"],
+  "permissions": ["core:event:default"]
+}

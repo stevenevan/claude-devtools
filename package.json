@@ -22,5 +22,8 @@
     "bindings": "wails3 generate bindings -ts",
     "test": "go test ./...",
     "test:frontend": "cd frontend && bun run build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
   }
 }
