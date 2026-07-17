@@ -180,19 +180,9 @@ impl SessionCache {
         self.incremental.remove(key);
     }
 
-}
-
-#[cfg(test)]
-impl SessionCache {
-    pub fn invalidate(&mut self, key: &str) {
-        if let Some(entry) = self.inner.pop(key) {
-            self.total_byte_estimate = self
-                .total_byte_estimate
-                .saturating_sub(entry.byte_estimate);
-        }
-        self.incremental.remove(key);
-    }
-
+    // Mirrors Go `SessionCache.InvalidateProject`: evicts every cached session
+    // whose key is under the encoded project dir. The W13 maintenance trash path
+    // is the first production caller (`evict_trashed_projects`).
     pub fn invalidate_project(&mut self, project_id: &str) {
         let prefix = format!("{project_id}/");
         let keys_to_remove: Vec<String> = self
@@ -209,6 +199,18 @@ impl SessionCache {
             }
             self.incremental.remove(key.as_str());
         }
+    }
+}
+
+#[cfg(test)]
+impl SessionCache {
+    pub fn invalidate(&mut self, key: &str) {
+        if let Some(entry) = self.inner.pop(key) {
+            self.total_byte_estimate = self
+                .total_byte_estimate
+                .saturating_sub(entry.byte_estimate);
+        }
+        self.incremental.remove(key);
     }
 }
 

@@ -2,3 +2,4 @@
 //! modules, kept out of `main.rs` so it stays under the file-size cap.
 pub mod config;
 pub mod files;
+pub mod maintenance;

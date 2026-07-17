@@ -2,7 +2,7 @@ import { analyticsCommands } from './tauri/domain/analytics';
 import { configApi, notificationEvents } from './tauri/domain/config';
 import { filesCommands } from './tauri/domain/files';
 import { insightsCommands } from './tauri/domain/insights';
-import { maintenanceEvents } from './tauri/domain/maintenance';
+import { maintenanceCommands, maintenanceEvents } from './tauri/domain/maintenance';
 import { sessionCommands } from './tauri/domain/session';
 import { snapshotsCommands } from './tauri/domain/snapshots';
 import { sshCommands } from './tauri/domain/ssh';
@@ -45,7 +45,7 @@ export function createTauriClient(): WailsAPI {
     ...filesCommands, // flat FilesService methods (validatePath, getMCPStatus, …) — W12
     ssh: makeSlice({ ...sshEvents, ...sshCommands }, 'ssh'), // W11 data + W02 onStatus
     context: makeSlice({ ...contextEvents }, 'context'),
-    maintenance: makeSlice({ ...maintenanceEvents }, 'maintenance'),
+    maintenance: makeSlice({ ...maintenanceEvents, ...maintenanceCommands }, 'maintenance'),
     notifications: makeSlice({ ...notificationEvents }, 'notifications'),
     config: makeSlice({ ...configApi }, 'config'),
     session: makeSlice({}, 'session'),

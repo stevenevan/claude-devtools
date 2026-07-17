@@ -13,6 +13,7 @@ pub mod config;
 pub mod discovery;
 pub mod files;
 pub mod insights;
+pub mod maintenance;
 pub mod nl_query;
 pub mod parsing;
 pub mod pipeline;

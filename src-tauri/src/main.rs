@@ -12,7 +12,9 @@ use claude_devtools_lib::analytics::{
     ModelComparisonResponse, ProductivityMetrics, SessionDurationResponse,
 };
 use claude_devtools_lib::cache::SessionCache;
-use claude_devtools_lib::commands::{config as config_cmds, files as files_cmds};
+use claude_devtools_lib::commands::{
+    config as config_cmds, files as files_cmds, maintenance as maintenance_cmds,
+};
 use claude_devtools_lib::config::root;
 use claude_devtools_lib::config::state::ConfigState;
 use claude_devtools_lib::insights::error_hotspots::{
@@ -52,6 +54,9 @@ type SharedLastConn = Arc<Mutex<Option<LastConnection>>>;
 // Config store (W12): the persisted ~/.claude/claude-devtools-config.json,
 // lazily loaded. Mirrors Go's ConfigService-owned ConfigState singleton.
 type SharedConfig = Arc<ConfigState>;
+// Maintenance service state (W13): owns the ssh-gate + watcher-mute + scan/policy
+// concurrency + the in-app scheduler. Mirrors Go's MaintenanceService singleton.
+type SharedMaintenance = Arc<maintenance_cmds::MaintenanceState>;
 
 // Builds a ConnectionStatus emission (connecting/retrying/connected/error).
 fn ssh_status(
@@ -424,6 +429,15 @@ fn main() {
     let ssh: SharedSsh = Arc::new(SshState::new());
     let last_conn: SharedLastConn = Arc::new(Mutex::new(None));
     let config: SharedConfig = Arc::new(ConfigState::new());
+    // W13: shares the config/cache/ssh Arcs with the other services (clone before
+    // .manage moves them). The raise_pending closure is a W13 NO-OP seam — W14
+    // replaces it with the real NotificationService pending-cleanup raise.
+    let maintenance: SharedMaintenance = Arc::new(maintenance_cmds::MaintenanceState::new(
+        config.clone(),
+        cache.clone(),
+        ssh.clone(),
+        Box::new(|_categories: &[String], _total_bytes: i64| Ok(())),
+    ));
 
     tauri::Builder::default()
         .plugin(tauri_plugin_autostart::Builder::new().build())
@@ -433,12 +447,17 @@ fn main() {
         .manage(ssh)
         .manage(last_conn)
         .manage(config)
+        .manage(maintenance)
         .setup(|app| {
             // Sync OS autostart to the persisted setting on launch (Go ServiceStartup).
             use tauri::Manager;
             let cfg = app.state::<SharedConfig>();
             let enable = cfg.get_config().general.launch_at_login;
             config_cmds::sync_autostart(app.handle(), enable);
+            // W13: launch the maintenance scheduler thread (Go ServiceStartup →
+            // startScheduler). Catch-up runs async on its first wake.
+            let maint = app.state::<SharedMaintenance>().inner().clone();
+            maintenance_cmds::spawn_scheduler(app.handle().clone(), maint);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -547,6 +566,54 @@ fn main() {
             files_cmds::purge_claude_json_projects,
             files_cmds::list_claude_json_app_backups,
             files_cmds::restore_claude_json_app_backup,
+            // ── W13 maintenance: service.go ──
+            maintenance_cmds::scan_claude_dir,
+            maintenance_cmds::scan_category,
+            maintenance_cmds::get_maintenance_cutoff,
+            maintenance_cmds::set_maintenance_cutoff,
+            maintenance_cmds::read_plan_file,
+            maintenance_cmds::rollback_binary,
+            maintenance_cmds::analyze_history,
+            maintenance_cmds::prune_history,
+            maintenance_cmds::clear_files,
+            maintenance_cmds::get_maintenance_health,
+            maintenance_cmds::list_settings_generations,
+            maintenance_cmds::read_settings_generation,
+            maintenance_cmds::restore_settings_generation,
+            maintenance_cmds::cancel_scan,
+            maintenance_cmds::trash_items,
+            maintenance_cmds::list_trash,
+            maintenance_cmds::restore_trash,
+            maintenance_cmds::empty_trash,
+            // ── W13 maintenance: cleanup.go ──
+            maintenance_cmds::preview_policy_clean,
+            maintenance_cmds::run_policy_clean,
+            maintenance_cmds::cancel_policy_clean,
+            // ── W13 maintenance: scheduler.go ──
+            maintenance_cmds::get_schedule_status,
+            // ── W13 maintenance: agents.go ──
+            maintenance_cmds::list_managed_agents,
+            maintenance_cmds::patch_agent_frontmatter,
+            maintenance_cmds::create_agent,
+            maintenance_cmds::delete_agent,
+            // ── W13 maintenance: instructions.go ──
+            maintenance_cmds::list_instruction_files,
+            maintenance_cmds::read_instruction_file,
+            maintenance_cmds::write_instruction_file,
+            maintenance_cmds::delete_instruction_file,
+            // ── W13 maintenance: memory.go ──
+            maintenance_cmds::list_memory_dirs,
+            maintenance_cmds::memory_integrity,
+            maintenance_cmds::read_memory_file,
+            maintenance_cmds::write_memory_file,
+            maintenance_cmds::apply_memory_index_fix,
+            maintenance_cmds::delete_memory_file,
+            // ── W13 maintenance: skills.go ──
+            maintenance_cmds::skills_inventory,
+            maintenance_cmds::read_skill_doc,
+            maintenance_cmds::write_skill_doc,
+            maintenance_cmds::remove_skill_link,
+            maintenance_cmds::delete_skill,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
