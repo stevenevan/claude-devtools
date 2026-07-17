@@ -4,8 +4,17 @@ version = "0.4.8"
 description = "Visualizes Claude Code session execution"
 edition = "2021"
 
+# Shared backend lib used by the Tauri app (src/main.rs) and, from W7, the
+# read-only CLI twin (src/bin/cli.rs). Ported week-by-week from internal/*.
+[lib]
+name = "claude_devtools_lib"
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
 tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+dirs = "6"
+regex = "1"
