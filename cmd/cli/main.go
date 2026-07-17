@@ -26,9 +26,12 @@ import (
 	"time"
 	"unicode"
 
+	"claude-devtools/internal/analysis"
 	"claude-devtools/internal/discovery"
+	"claude-devtools/internal/domain"
 	"claude-devtools/internal/parsing"
 	"claude-devtools/internal/pipeline"
+	"claude-devtools/internal/ptr"
 )
 
 const (
@@ -211,6 +214,46 @@ func cmdDumpMessages(projectID, sessionID string) error {
 		return err
 	}
 	payload, err := json.Marshal(messages)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(payload))
+	return nil
+}
+
+// cmdDumpDetail emits the full SessionDetail WITH processes, mirroring
+// sessionservice.buildSessionDetail (discovery.ResolveSubagents). It is the W6
+// processes-parity golden generator — the CLI show-session oracle passes empty
+// processes, so subagent resolution needs this separate path. Read-only; reuses
+// the sessionPath guard chain.
+func cmdDumpDetail(projectID, sessionID string) error {
+	path, err := sessionPath(projectID, sessionID)
+	if err != nil {
+		return err
+	}
+	parsed, err := parsing.ParseSessionFile(path)
+	if err != nil {
+		return err
+	}
+	pd, err := projectsDir()
+	if err != nil {
+		return err
+	}
+	subagents := discovery.ResolveSubagents(pd, projectID, sessionID, parsed.TaskCalls, parsed.Messages)
+	session := domain.Session{
+		ID:            sessionID,
+		ProjectID:     projectID,
+		ProjectPath:   discovery.DecodePath(discovery.ExtractBaseDir(projectID)),
+		CreatedAt:     0.0,
+		HasSubagents:  len(subagents) > 0,
+		MessageCount:  uint32(len(parsed.Messages)),
+		IsOngoing:     discovery.DetectOngoing(path),
+		MetadataLevel: ptr.To("deep"),
+		CustomTitle:   parsed.CustomTitle,
+		AgentName:     parsed.AgentName,
+	}
+	detail := analysis.BuildSessionDetail(session, parsed.Messages, subagents)
+	payload, err := json.Marshal(detail)
 	if err != nil {
 		return err
 	}
@@ -412,6 +455,11 @@ func run(args []string) error {
 			return fmt.Errorf("dump-messages requires <project_id> <session_id>")
 		}
 		return cmdDumpMessages(arg(1), arg(2))
+	case "dump-detail":
+		if arg(1) == "" || arg(2) == "" {
+			return fmt.Errorf("dump-detail requires <project_id> <session_id>")
+		}
+		return cmdDumpDetail(arg(1), arg(2))
 	case "tail":
 		if arg(1) == "" || arg(2) == "" {
 			return fmt.Errorf("tail requires <project_id> <session_id>")

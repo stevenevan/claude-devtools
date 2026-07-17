@@ -6,6 +6,7 @@
 //! parsing; W5 analysis; W6 discovery + cache; W7 search + pipeline + CLI twin.
 
 pub mod analysis;
+pub mod cache;
 pub mod config;
 pub mod discovery;
 pub mod parsing;

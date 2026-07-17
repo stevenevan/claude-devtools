@@ -5,7 +5,7 @@
 /// The submodules `streaming` and `incremental` host the byte-level work;
 /// this file owns the `process_messages` orchestrator and the
 /// `parse_session_file` entry point used by the Tauri command layer.
-// incremental byte-offset re-parse is W6 (cache); not recovered yet.
+pub mod incremental;
 pub mod streaming;
 
 use std::path::Path;
@@ -16,6 +16,7 @@ use crate::types::messages::{ParsedMessage, ToolCall};
 use super::content_type::is_parsed_real_user_message;
 use super::metrics::calculate_metrics;
 
+pub use incremental::parse_jsonl_incremental;
 pub use streaming::{
     LineParseResult, MAX_JSONL_LINE_BYTES, SessionFileMetadata, parse_jsonl_file, parse_jsonl_line,
 };
