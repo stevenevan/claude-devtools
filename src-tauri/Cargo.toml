@@ -52,3 +52,5 @@ notify = { version = "7", features = ["macos_fsevent"] }
 tokio = { version = "1", features = ["process", "io-util", "time", "rt-multi-thread", "sync", "net", "macros"] }
 russh = "0.60.3"
 russh-sftp = "2"
+# Config service (W12): OS launch-at-login sync (Go go-autostart/v2 equivalent).
+tauri-plugin-autostart = "2"

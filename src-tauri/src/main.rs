@@ -12,7 +12,9 @@ use claude_devtools_lib::analytics::{
     ModelComparisonResponse, ProductivityMetrics, SessionDurationResponse,
 };
 use claude_devtools_lib::cache::SessionCache;
+use claude_devtools_lib::commands::{config as config_cmds, files as files_cmds};
 use claude_devtools_lib::config::root;
+use claude_devtools_lib::config::state::ConfigState;
 use claude_devtools_lib::insights::error_hotspots::{
     compute_error_clusters, compute_error_hotspots, ErrorClustersResponse, ErrorHotspotsResponse,
 };
@@ -47,6 +49,9 @@ type SharedWatcher = Arc<Mutex<Option<Runner>>>;
 // so W11 holds it in-memory (same API + within-session behavior).
 type SharedSsh = Arc<SshState>;
 type SharedLastConn = Arc<Mutex<Option<LastConnection>>>;
+// Config store (W12): the persisted ~/.claude/claude-devtools-config.json,
+// lazily loaded. Mirrors Go's ConfigService-owned ConfigState singleton.
+type SharedConfig = Arc<ConfigState>;
 
 // Builds a ConnectionStatus emission (connecting/retrying/connected/error).
 fn ssh_status(
@@ -418,13 +423,24 @@ fn main() {
     let watcher: SharedWatcher = Arc::new(Mutex::new(None));
     let ssh: SharedSsh = Arc::new(SshState::new());
     let last_conn: SharedLastConn = Arc::new(Mutex::new(None));
+    let config: SharedConfig = Arc::new(ConfigState::new());
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_autostart::Builder::new().build())
         .manage(cache)
         .manage(timing)
         .manage(watcher)
         .manage(ssh)
         .manage(last_conn)
+        .manage(config)
+        .setup(|app| {
+            // Sync OS autostart to the persisted setting on launch (Go ServiceStartup).
+            use tauri::Manager;
+            let cfg = app.state::<SharedConfig>();
+            let enable = cfg.get_config().general.launch_at_login;
+            config_cmds::sync_autostart(app.handle(), enable);
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             get_session_detail,
             get_analytics,
@@ -458,6 +474,79 @@ fn main() {
             get_app_version,
             open_path,
             get_all_todos,
+            // ── W12 config commands ──
+            config_cmds::config_get,
+            config_cmds::config_update,
+            config_cmds::config_add_ignore_regex,
+            config_cmds::config_remove_ignore_regex,
+            config_cmds::config_add_ignore_repository,
+            config_cmds::config_remove_ignore_repository,
+            config_cmds::config_snooze,
+            config_cmds::config_clear_snooze,
+            config_cmds::config_add_trigger,
+            config_cmds::config_update_trigger,
+            config_cmds::config_remove_trigger,
+            config_cmds::config_get_triggers,
+            config_cmds::config_pin_session,
+            config_cmds::config_unpin_session,
+            config_cmds::config_hide_session,
+            config_cmds::config_unhide_session,
+            config_cmds::config_hide_sessions,
+            config_cmds::config_unhide_sessions,
+            config_cmds::config_get_claude_root_info,
+            config_cmds::config_open_in_editor,
+            config_cmds::config_add_bookmark,
+            config_cmds::config_remove_bookmark,
+            config_cmds::config_get_bookmarks,
+            config_cmds::config_add_annotation,
+            config_cmds::config_update_annotation,
+            config_cmds::config_remove_annotation,
+            config_cmds::config_get_annotations,
+            config_cmds::config_set_session_tags,
+            config_cmds::config_get_session_tags,
+            config_cmds::config_create_group,
+            config_cmds::config_delete_group,
+            config_cmds::config_add_to_group,
+            config_cmds::config_remove_from_group,
+            config_cmds::config_get_groups,
+            config_cmds::config_add_filter_preset,
+            config_cmds::config_remove_filter_preset,
+            config_cmds::config_rename_filter_preset,
+            config_cmds::config_set_default_filter_preset,
+            config_cmds::config_export_annotations,
+            config_cmds::config_import_annotations,
+            config_cmds::get_dismissed_suggestions,
+            config_cmds::dismiss_suggestion,
+            // ── W12 files commands ──
+            files_cmds::validate_path,
+            files_cmds::validate_mentions,
+            files_cmds::read_claude_md_files,
+            files_cmds::read_directory_claude_md,
+            files_cmds::read_mentioned_file,
+            files_cmds::read_agent_configs,
+            files_cmds::read_global_plugins,
+            files_cmds::read_global_settings,
+            files_cmds::update_global_settings,
+            files_cmds::read_hooks,
+            files_cmds::toggle_hook,
+            files_cmds::set_plugin_enabled,
+            files_cmds::dedupe_plugin,
+            files_cmds::detect_plugin_duplicates,
+            files_cmds::enumerate_settings_sources,
+            files_cmds::read_claude_json,
+            files_cmds::reveal_claude_json_value,
+            files_cmds::read_claude_json_masked,
+            files_cmds::list_claude_json_backups,
+            files_cmds::read_claude_json_backup,
+            files_cmds::get_mcp_status,
+            files_cmds::get_permission_rules,
+            files_cmds::add_permission_rule,
+            files_cmds::remove_permission_rule,
+            files_cmds::move_permission_rule,
+            files_cmds::analyze_permission_suggestions,
+            files_cmds::purge_claude_json_projects,
+            files_cmds::list_claude_json_app_backups,
+            files_cmds::restore_claude_json_app_backup,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

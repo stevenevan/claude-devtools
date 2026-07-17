@@ -8,8 +8,10 @@
 pub mod analysis;
 pub mod analytics;
 pub mod cache;
+pub mod commands;
 pub mod config;
 pub mod discovery;
+pub mod files;
 pub mod insights;
 pub mod nl_query;
 pub mod parsing;

@@ -1,5 +1,6 @@
 import { analyticsCommands } from './tauri/domain/analytics';
-import { notificationEvents } from './tauri/domain/config';
+import { configApi, notificationEvents } from './tauri/domain/config';
+import { filesCommands } from './tauri/domain/files';
 import { insightsCommands } from './tauri/domain/insights';
 import { maintenanceEvents } from './tauri/domain/maintenance';
 import { sessionCommands } from './tauri/domain/session';
@@ -41,11 +42,12 @@ export function createTauriClient(): WailsAPI {
     ...timingCommands, // flat backend-observability methods (getBackendTimings, …) — W8
     ...insightsCommands, // flat insights data methods (getToolAnalytics, …) — W9
     ...systemCommands, // flat system data methods (getAppVersion, openPath, …) — W11
+    ...filesCommands, // flat FilesService methods (validatePath, getMCPStatus, …) — W12
     ssh: makeSlice({ ...sshEvents, ...sshCommands }, 'ssh'), // W11 data + W02 onStatus
     context: makeSlice({ ...contextEvents }, 'context'),
     maintenance: makeSlice({ ...maintenanceEvents }, 'maintenance'),
     notifications: makeSlice({ ...notificationEvents }, 'notifications'),
-    config: makeSlice({}, 'config'),
+    config: makeSlice({ ...configApi }, 'config'),
     session: makeSlice({}, 'session'),
     snapshots: makeSlice({ ...snapshotsCommands }, 'snapshots'),
     plugins: makeSlice({}, 'plugins'),

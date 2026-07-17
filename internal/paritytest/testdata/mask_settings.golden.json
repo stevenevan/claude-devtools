@@ -1,0 +1,22 @@
+[
+  {
+    "input": "{\"env\":{\"API_KEY\":\"sk-live-abc123\",\"EDITOR\":\"vim\"}}",
+    "masked": "{\n  \"env\": {\n    \"API_KEY\": \"••••\",\n    \"EDITOR\": \"vim\"\n  }\n}"
+  },
+  {
+    "input": "{\"permissions\":{\"allow\":[\"Bash(grep \u003cx\u003e \u0026\u0026 echo \u003ef)\"]},\"env\":{\"TOKEN\":\"ghp_secretvalue\"}}",
+    "masked": "{\n  \"env\": {\n    \"TOKEN\": \"••••\"\n  },\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(grep \\u003cx\\u003e \\u0026\\u0026 echo \\u003ef)\"\n    ]\n  }\n}"
+  },
+  {
+    "input": "{\"env\":{\"AWS_ACCESS_KEY\":\"AKIAIOSFODNN7EXAMPLE\",\"REGION\":\"us-east-1\"}}",
+    "masked": "{\n  \"env\": {\n    \"AWS_ACCESS_KEY\": \"••••\",\n    \"REGION\": \"us-east-1\"\n  }\n}"
+  },
+  {
+    "input": "{\"nested\":{\"deep\":{\"PASSWORD\":\"hunter2\",\"note\":\"plain \u0026 safe\"}}}",
+    "masked": "{\n  \"nested\": {\n    \"deep\": {\n      \"PASSWORD\": \"••••\",\n      \"note\": \"plain \\u0026 safe\"\n    }\n  }\n}"
+  },
+  {
+    "input": "{\"value\":\"eyJhbGciOiJ.payload\",\"plain\":\"no secret here\"}",
+    "masked": "{\n  \"plain\": \"no secret here\",\n  \"value\": \"••••\"\n}"
+  }
+]
