@@ -1,5 +1,6 @@
 import { notificationEvents } from './tauri/domain/config';
 import { maintenanceEvents } from './tauri/domain/maintenance';
+import { sessionCommands } from './tauri/domain/session';
 import { contextEvents, sshEvents, systemEvents } from './tauri/domain/system';
 
 import type { WailsAPI } from '@shared/types/api';
@@ -30,6 +31,7 @@ function makeSlice<T extends object>(real: Record<string, unknown>, name: string
 export function createTauriClient(): WailsAPI {
   const real: Record<string, unknown> = {
     ...systemEvents,
+    ...sessionCommands, // flat session data methods (getSessionDetail, …) — W7
     ssh: makeSlice({ ...sshEvents }, 'ssh'),
     context: makeSlice({ ...contextEvents }, 'context'),
     maintenance: makeSlice({ ...maintenanceEvents }, 'maintenance'),

@@ -7,6 +7,7 @@
 //! tool_analytics, file_graph, tokenizer, …) — those are Cycle C, not recovered.
 pub mod chunk_builder;
 pub mod chunk_factory;
+pub mod content_search;
 pub mod context_accumulator;
 pub mod process_linker;
 pub mod semantic_step_extractor;

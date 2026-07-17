@@ -3,11 +3,19 @@ name = "claude-devtools"
 version = "0.4.8"
 description = "Visualizes Claude Code session execution"
 edition = "2021"
+# Disambiguate the app binary (src/main.rs) from the CLI twin so cargo run /
+# tauri dev / tauri build know which binary is the app.
+default-run = "claude-devtools"
 
-# Shared backend lib used by the Tauri app (src/main.rs) and, from W7, the
-# read-only CLI twin (src/bin/cli.rs). Ported week-by-week from internal/*.
+# Shared backend lib used by the Tauri app (src/main.rs) and the read-only CLI
+# twin (src/bin/cli.rs). Ported week-by-week from internal/*.
 [lib]
 name = "claude_devtools_lib"
+
+# Read-only CLI twin — the parity oracle's Rust counterpart (mirrors cmd/cli).
+[[bin]]
+name = "claude-devtools-cli"
+path = "src/bin/cli.rs"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -15,7 +23,11 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+# float_roundtrip: parse f64 with full precision so raw-passthrough numbers
+# (e.g. toolUseResult.durationSeconds) round-trip byte-identically to Go's
+# encoding/json (whose default parser is correctly-rounded). Without it,
+# serde_json's best-effort parse differs from Go by up to 1 ULP → parity break.
+serde_json = { version = "1", features = ["float_roundtrip"] }
 dirs = "6"
 regex = "1"
 chrono = { version = "0.4", features = ["serde"] }

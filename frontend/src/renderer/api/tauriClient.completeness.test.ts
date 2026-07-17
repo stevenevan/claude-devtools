@@ -9,6 +9,12 @@ mock.module('@tauri-apps/api/event', () => ({
   emit: async () => {},
 }));
 
+// Data methods route through `invoke`, also absent in the bun runtime — stub it
+// so a wired data method resolves instead of throwing an invoke error.
+mock.module('@tauri-apps/api/core', () => ({
+  invoke: async () => null,
+}));
+
 const NOT_PORTED = /not ported yet/;
 
 // PORTED allowlist — grows each porting week. W3: events only (wired via the
@@ -28,6 +34,8 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['notifications.onNew', (a) => a.notifications.onNew(() => {})],
   ['notifications.onUpdated', (a) => a.notifications.onUpdated(() => {})],
   ['notifications.onClicked', (a) => a.notifications.onClicked(() => {})],
+  // W7: first flat data method wired via the invoke bridge.
+  ['getSessionDetail', (a) => a.getSessionDetail('p', 's')],
 ];
 
 let createTauriClient: () => any;
@@ -50,5 +58,6 @@ test('every PORTED key resolves to a non-thrower (not the notPorted stub)', () =
 
 test('an un-ported data method still throws notPorted (gate detects gaps)', () => {
   const api = createTauriClient();
-  expect(() => api.session.getSessionDetail('p', 's')).toThrow(NOT_PORTED);
+  // getSessionMetrics is a flat WailsAPI method not yet wired — must still throw.
+  expect(() => api.getSessionMetrics('p', 's')).toThrow(NOT_PORTED);
 });

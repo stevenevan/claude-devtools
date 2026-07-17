@@ -9,7 +9,9 @@ pub mod analysis;
 pub mod cache;
 pub mod config;
 pub mod discovery;
+pub mod nl_query;
 pub mod parsing;
+pub mod pipeline;
 pub mod time_util;
 pub mod types;
 
