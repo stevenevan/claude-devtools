@@ -277,6 +277,10 @@ func TestSSRFRejectsPrivateAndMetadata(t *testing.T) {
 		"http://10.0.0.1/x",
 		"https://169.254.169.254/",
 		"https://example.com/hook",
+		// Userinfo bypass: the allowlist would see "hooks.slack.com" while
+		// net/http connects to 127.0.0.1. Must be rejected.
+		"https://hooks.slack.com:443@127.0.0.1/api/webhooks/x",
+		"https://hooks.slack.com@169.254.169.254/",
 	}
 	for _, url := range cases {
 		if err := notifications.CheckSSRF(url); err == nil {

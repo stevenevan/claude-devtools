@@ -1,5 +1,5 @@
 import { analyticsCommands } from './tauri/domain/analytics';
-import { configApi, notificationEvents } from './tauri/domain/config';
+import { configApi, notificationEvents, notificationsApi, webhookApi } from './tauri/domain/config';
 import { filesCommands } from './tauri/domain/files';
 import { insightsCommands } from './tauri/domain/insights';
 import { maintenanceCommands, maintenanceEvents } from './tauri/domain/maintenance';
@@ -46,12 +46,12 @@ export function createTauriClient(): WailsAPI {
     ssh: makeSlice({ ...sshEvents, ...sshCommands }, 'ssh'), // W11 data + W02 onStatus
     context: makeSlice({ ...contextEvents }, 'context'),
     maintenance: makeSlice({ ...maintenanceEvents, ...maintenanceCommands }, 'maintenance'),
-    notifications: makeSlice({ ...notificationEvents }, 'notifications'),
+    notifications: makeSlice({ ...notificationEvents, ...notificationsApi }, 'notifications'),
     config: makeSlice({ ...configApi }, 'config'),
     session: makeSlice({}, 'session'),
     snapshots: makeSlice({ ...snapshotsCommands }, 'snapshots'),
     plugins: makeSlice({}, 'plugins'),
-    webhook: makeSlice({}, 'webhook'),
+    webhook: makeSlice({ ...webhookApi }, 'webhook'),
     windowControls: makeSlice({}, 'windowControls'),
     updater: makeSlice({}, 'updater'),
     httpServer: makeSlice({}, 'httpServer'),

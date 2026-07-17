@@ -1,0 +1,4 @@
+{
+  "settings": "{\n  \"model\": \"claude-opus-4-8\",\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(echo hi \\u0026\\u0026 ls)\"\n    ]\n  }\n}",
+  "hooksDisabled": "{\n  \"PreToolUse\": [\n    {\n      \"hooks\": [\n        {\n          \"command\": \"echo pre \\u003e /tmp/x\",\n          \"type\": \"command\"\n        }\n      ],\n      \"matcher\": \"Bash\"\n    }\n  ]\n}"
+}

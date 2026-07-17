@@ -134,6 +134,12 @@ func parseURL(rawURL string) (*parsedURL, *WebhookError) {
 		hostWithPort = rest
 		path = "/"
 	}
+	// Reject userinfo: "user@host" would let the allowlist see an approved host
+	// while net/http connects to the part after '@' (SSRF bypass). No legitimate
+	// webhook URL carries userinfo.
+	if strings.ContainsRune(hostWithPort, '@') {
+		return nil, urlError("userinfo not allowed in webhook URL")
+	}
 	// Strip port.
 	host := hostWithPort
 	if i := strings.LastIndex(hostWithPort, ":"); i >= 0 {
@@ -231,10 +237,18 @@ type HTTPTransport struct {
 	client *http.Client
 }
 
-// NewHTTPTransport creates a transport with a 10-second timeout.
+// NewHTTPTransport creates a transport with a 10-second timeout. Redirects are
+// NOT followed: CheckSSRF validates only the initial URL, so following a 3xx to
+// an internal address would be a redirect-SSRF hole. A redirect surfaces as its
+// 3xx response (→ AttemptPermanent).
 func NewHTTPTransport() *HTTPTransport {
 	return &HTTPTransport{
-		client: &http.Client{Timeout: 10 * time.Second},
+		client: &http.Client{
+			Timeout: 10 * time.Second,
+			CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		},
 	}
 }
 

@@ -12,11 +12,14 @@ use claude_devtools_lib::analytics::{
     ModelComparisonResponse, ProductivityMetrics, SessionDurationResponse,
 };
 use claude_devtools_lib::cache::SessionCache;
+use claude_devtools_lib::commands::notify::NotifyState;
 use claude_devtools_lib::commands::{
     config as config_cmds, files as files_cmds, maintenance as maintenance_cmds,
+    notify as notify_cmds,
 };
 use claude_devtools_lib::config::root;
 use claude_devtools_lib::config::state::ConfigState;
+use claude_devtools_lib::notifications::manager::NotificationState;
 use claude_devtools_lib::insights::error_hotspots::{
     compute_error_clusters, compute_error_hotspots, ErrorClustersResponse, ErrorHotspotsResponse,
 };
@@ -429,18 +432,38 @@ fn main() {
     let ssh: SharedSsh = Arc::new(SshState::new());
     let last_conn: SharedLastConn = Arc::new(Mutex::new(None));
     let config: SharedConfig = Arc::new(ConfigState::new());
+    // W14: the persisted notification store. Constructed BEFORE MaintenanceState
+    // so the pending-cleanup closure can capture its Arc — the two share nothing
+    // else. (Store path: $HOME/.claude/claude-devtools-notifications.json.)
+    let notification_state: Arc<NotificationState> = Arc::new(NotificationState::new());
+    // W14 replaces the W13 NO-OP raise_pending seam: the scheduler's pending
+    // cleanup report routes through the real NotificationService raise. The
+    // closure adds the dedup'd alert to the store (no live emit — it is built
+    // before the AppHandle exists; the alert surfaces on the next fetch).
+    let raise_notif = notification_state.clone();
     // W13: shares the config/cache/ssh Arcs with the other services (clone before
-    // .manage moves them). The raise_pending closure is a W13 NO-OP seam — W14
-    // replaces it with the real NotificationService pending-cleanup raise.
+    // .manage moves them).
     let maintenance: SharedMaintenance = Arc::new(maintenance_cmds::MaintenanceState::new(
         config.clone(),
         cache.clone(),
         ssh.clone(),
-        Box::new(|_categories: &[String], _total_bytes: i64| Ok(())),
+        Box::new(move |categories: &[String], total_bytes: i64| {
+            notify_cmds::raise_pending_cleanup(&raise_notif, categories, total_bytes);
+            Ok(())
+        }),
     ));
+    // W14: the notification command state shares the store Arc (with the seam)
+    // and the config Arc (for the policy setter).
+    let notify_state = NotifyState {
+        state: notification_state,
+        config: config.clone(),
+    };
 
     tauri::Builder::default()
         .plugin(tauri_plugin_autostart::Builder::new().build())
+        // W14: native save/open dialogs (config export/import) + desktop toasts.
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_notification::init())
         .manage(cache)
         .manage(timing)
         .manage(watcher)
@@ -448,12 +471,19 @@ fn main() {
         .manage(last_conn)
         .manage(config)
         .manage(maintenance)
+        .manage(notify_state)
         .setup(|app| {
             // Sync OS autostart to the persisted setting on launch (Go ServiceStartup).
             use tauri::Manager;
             let cfg = app.state::<SharedConfig>();
             let enable = cfg.get_config().general.launch_at_login;
             config_cmds::sync_autostart(app.handle(), enable);
+            // W14: apply the persisted notification auto-prune policy over the
+            // store's constructor defaults (Go NotificationService.ServiceStartup).
+            let nc = cfg.get_config().notifications;
+            app.state::<NotifyState>()
+                .state
+                .set_policy(nc.retention_days, nc.max_count);
             // W13: launch the maintenance scheduler thread (Go ServiceStartup →
             // startScheduler). Catch-up runs async on its first wake.
             let maint = app.state::<SharedMaintenance>().inner().clone();
@@ -614,6 +644,27 @@ fn main() {
             maintenance_cmds::write_skill_doc,
             maintenance_cmds::remove_skill_link,
             maintenance_cmds::delete_skill,
+            // ── W14 maintenance: configbackup.go ──
+            maintenance_cmds::capture_config,
+            maintenance_cmds::list_config_backups,
+            maintenance_cmds::restore_config,
+            maintenance_cmds::delete_config_backup,
+            maintenance_cmds::export_backup,
+            maintenance_cmds::validate_import_dialog,
+            maintenance_cmds::apply_import,
+            // ── W14 notify: notifyservice.go ──
+            notify_cmds::get_state,
+            notify_cmds::notifications_get,
+            notify_cmds::notifications_mark_read,
+            notify_cmds::notifications_mark_all_read,
+            notify_cmds::notifications_delete,
+            notify_cmds::notifications_clear,
+            notify_cmds::notifications_get_unread_count,
+            notify_cmds::notifications_test_trigger,
+            notify_cmds::webhook_test_send,
+            notify_cmds::set_notification_policy,
+            notify_cmds::detect_and_notify,
+            notify_cmds::raise_config_drift,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -7,6 +7,7 @@
 //! machinery; the command wrappers are thin.
 
 mod cleanup;
+mod configbackup;
 mod managers;
 mod scheduler;
 mod service;
@@ -21,6 +22,7 @@ pub use state::MaintenanceState;
 // `__tauri_command_name_*`) reach `generate_handler!` at the `maintenance_cmds`
 // path — a named `pub use` re-exports the fn but not its sibling macros.
 pub use cleanup::*;
+pub use configbackup::*;
 pub use managers::*;
 pub use scheduler::*;
 pub use service::*;

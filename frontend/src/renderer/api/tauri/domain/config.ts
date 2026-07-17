@@ -4,7 +4,10 @@ import type {
   ClaudeRootInfo,
   ConfigAPI,
   FilterPresetEntry,
+  NotificationsAPI,
   NotificationTrigger,
+  TriggerTestResult,
+  WebhookAPI,
 } from '@shared/types';
 import type { AnnotationImportReport } from '@shared/types/api';
 
@@ -29,10 +32,11 @@ export const notificationEvents = {
 
 // ConfigService-backed methods of the WailsAPI.config slice (W12). Mirrors the
 // Wails configApiImpl (domain/config.ts) method-for-method, routed through the
-// Tauri invoke bridge. The remaining ConfigAPI methods are backed by OTHER
-// services/host APIs not ported here — testTrigger (NotifyService, W14),
-// selectFolders / selectClaudeRootFolder / findWslClaudeRoots (native dialogs /
-// WSL) — so they are omitted and fall through to makeSlice's notPorted stub.
+// Tauri invoke bridge. testTrigger is NotifyService-backed (W14) — the Wails
+// twin routes it through NotificationsTestTrigger, so the Tauri twin calls
+// `notifications_test_trigger`. The remaining ConfigAPI methods are host APIs
+// not ported here — selectFolders / selectClaudeRootFolder / findWslClaudeRoots
+// (native dialogs / WSL) — so they fall through to makeSlice's notPorted stub.
 // No reviveDates: the Wails config adapter revives none of these.
 type ConfigCommands = Pick<
   ConfigAPI,
@@ -48,6 +52,7 @@ type ConfigCommands = Pick<
   | 'updateTrigger'
   | 'removeTrigger'
   | 'getTriggers'
+  | 'testTrigger'
   | 'pinSession'
   | 'unpinSession'
   | 'hideSession'
@@ -96,6 +101,9 @@ export const configApi: ConfigCommands = {
     call<AppConfig>('config_update_trigger', { triggerId, updates }),
   removeTrigger: (triggerId) => call<AppConfig>('config_remove_trigger', { triggerId }),
   getTriggers: () => call<NotificationTrigger[]>('config_get_triggers'),
+  // Wails passes null for the limit arg; match it.
+  testTrigger: (trigger) =>
+    call<TriggerTestResult>('notifications_test_trigger', { trigger, limit: null }),
   pinSession: (projectId, sessionId) => call<void>('config_pin_session', { projectId, sessionId }),
   unpinSession: (projectId, sessionId) =>
     call<void>('config_unpin_session', { projectId, sessionId }),
@@ -157,4 +165,43 @@ export const configApi: ConfigCommands = {
     call<AnnotationImportReport>('config_import_annotations', { jsonStr: json }),
   getDismissedSuggestions: () => call<string[]>('get_dismissed_suggestions'),
   dismissSuggestion: (rule) => call<void>('dismiss_suggestion', { rule }),
+};
+
+// NotifyService-backed store methods of the WailsAPI.notifications slice (W14).
+// Mirrors the Wails notificationsApiImpl (domain/config.ts) method-for-method.
+// The three event methods (onNew/onUpdated/onClicked) live in notificationEvents
+// above. No reviveDates: DetectedError.createdAt/timestamp are plain numbers and
+// the Wails twin revives nothing here. The registered `get_state` command has no
+// counterpart on the NotificationsAPI contract, so it is intentionally unwired.
+type NotificationsCommands = Pick<
+  NotificationsAPI,
+  | 'get'
+  | 'markRead'
+  | 'markAllRead'
+  | 'delete'
+  | 'clear'
+  | 'getUnreadCount'
+  | 'setNotificationPolicy'
+  | 'raiseConfigDrift'
+>;
+
+export const notificationsApi: NotificationsCommands = {
+  get: (options) =>
+    call<Awaited<ReturnType<NotificationsAPI['get']>>>('notifications_get', {
+      options: options ?? null,
+    }),
+  markRead: (id) => call<boolean>('notifications_mark_read', { id }),
+  markAllRead: () => call<boolean>('notifications_mark_all_read'),
+  delete: (id) => call<boolean>('notifications_delete', { id }),
+  clear: () => call<boolean>('notifications_clear'),
+  getUnreadCount: () => call<number>('notifications_get_unread_count'),
+  setNotificationPolicy: (retentionDays, maxCount) =>
+    call<[number, number]>('set_notification_policy', { retentionDays, maxCount }),
+  raiseConfigDrift: (file, hourBucket, keyCount) =>
+    call<void>('raise_config_drift', { file, hourBucket, keyCount }),
+};
+
+// NotifyService-backed webhook slice (W14). Mirrors the Wails webhookApiImpl.
+export const webhookApi: WebhookAPI = {
+  testSend: (endpoint) => call<void>('webhook_test_send', { endpoint }),
 };

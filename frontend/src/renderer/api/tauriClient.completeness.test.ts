@@ -182,6 +182,25 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['maintenance.previewPolicyClean', (a) => a.maintenance.previewPolicyClean()],
   ['maintenance.runPolicyClean', (a) => a.maintenance.runPolicyClean()],
   ['maintenance.cancelPolicyClean', (a) => a.maintenance.cancelPolicyClean()],
+  // W14: notifications + webhook data methods, config.testTrigger, and the 7
+  // maintenance config-backup methods.
+  ['notifications.get', (a) => a.notifications.get()],
+  ['notifications.markRead', (a) => a.notifications.markRead('id')],
+  ['notifications.markAllRead', (a) => a.notifications.markAllRead()],
+  ['notifications.delete', (a) => a.notifications.delete('id')],
+  ['notifications.clear', (a) => a.notifications.clear()],
+  ['notifications.getUnreadCount', (a) => a.notifications.getUnreadCount()],
+  ['notifications.setNotificationPolicy', (a) => a.notifications.setNotificationPolicy(30, 100)],
+  ['notifications.raiseConfigDrift', (a) => a.notifications.raiseConfigDrift('f', 0, 0)],
+  ['config.testTrigger', (a) => a.config.testTrigger({})],
+  ['webhook.testSend', (a) => a.webhook.testSend({})],
+  ['maintenance.captureConfig', (a) => a.maintenance.captureConfig('l')],
+  ['maintenance.listConfigBackups', (a) => a.maintenance.listConfigBackups()],
+  ['maintenance.restoreConfig', (a) => a.maintenance.restoreConfig('id', [])],
+  ['maintenance.deleteConfigBackup', (a) => a.maintenance.deleteConfigBackup('id')],
+  ['maintenance.exportBackup', (a) => a.maintenance.exportBackup('id', false)],
+  ['maintenance.validateImportDialog', (a) => a.maintenance.validateImportDialog()],
+  ['maintenance.applyImport', (a) => a.maintenance.applyImport('p', [])],
 ];
 
 let createTauriClient: () => any;

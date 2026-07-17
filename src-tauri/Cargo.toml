@@ -54,3 +54,10 @@ russh = "0.60.3"
 russh-sftp = "2"
 # Config service (W12): OS launch-at-login sync (Go go-autostart/v2 equivalent).
 tauri-plugin-autostart = "2"
+# Config backup (W14): zip export/import (Go archive/zip equivalent, Deflate).
+zip = "8"
+# Notifications (W14): webhook delivery. max_redirects(0) closes redirect-SSRF.
+ureq = "3"
+# Native save/open dialogs + desktop toasts (W14 configbackup export/import + notify).
+tauri-plugin-dialog = "2"
+tauri-plugin-notification = "2"

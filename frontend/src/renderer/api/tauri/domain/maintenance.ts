@@ -5,8 +5,10 @@ import type {
   GlobalAgent,
   HealthStatus,
   HistoryStats,
+  ImportPreview,
   InstructionFile,
   MaintenanceScanProgress,
+  Manifest,
   MemoryDir,
   MemoryReport,
   ScheduleStatus,
@@ -33,12 +35,13 @@ export const maintenanceEvents = {
     ),
 };
 
-// The 41 MaintenanceService data methods (W13). Mirrors the Wails maintenanceApi
-// (domain/maintenance.ts) method-for-method, routed through the Tauri invoke
-// bridge. reviveDates opts in exactly where the Wails twin does: TrashReceipt,
-// DirUsage/Candidate mtimes, and HistoryStats. Config-backup methods (captureConfig,
-// listConfigBackups, restoreConfig, deleteConfigBackup, exportBackup,
-// validateImportDialog, applyImport) are W14 — deliberately left notPorted.
+// The MaintenanceService data methods (W13 + W14). Mirrors the Wails
+// maintenanceApi (domain/maintenance.ts) method-for-method, routed through the
+// Tauri invoke bridge. reviveDates opts in exactly where the Wails twin does:
+// TrashReceipt, DirUsage/Candidate mtimes, and HistoryStats. The config-backup
+// methods (captureConfig, listConfigBackups, restoreConfig, deleteConfigBackup,
+// exportBackup, validateImportDialog, applyImport) are W14 — never revived
+// (Manifest.createdMs is a plain number, matching the Wails twin).
 type MaintenanceCommands = Pick<
   WailsAPI['maintenance'],
   | 'scanClaudeDir'
@@ -79,6 +82,13 @@ type MaintenanceCommands = Pick<
   | 'writeMemoryFile'
   | 'applyMemoryIndexFix'
   | 'deleteMemoryFile'
+  | 'captureConfig'
+  | 'listConfigBackups'
+  | 'restoreConfig'
+  | 'deleteConfigBackup'
+  | 'exportBackup'
+  | 'validateImportDialog'
+  | 'applyImport'
   | 'previewPolicyClean'
   | 'runPolicyClean'
   | 'cancelPolicyClean'
@@ -170,6 +180,23 @@ export const maintenanceCommands: MaintenanceCommands = {
 
   deleteMemoryFile: (dirId, fileName) =>
     call<TrashReceipt>('delete_memory_file', { dirId, fileName }, { reviveDates: true }),
+
+  // Config backup (W14). createdMs is a plain number, not an ISO date — never
+  // reviveDates these, matching the Wails twin.
+  captureConfig: (label) => call<Manifest>('capture_config', { label }),
+
+  listConfigBackups: () => call<Manifest[]>('list_config_backups'),
+
+  restoreConfig: (id, relPaths) => call<void>('restore_config', { id, relPaths }),
+
+  deleteConfigBackup: (id) => call<void>('delete_config_backup', { id }),
+
+  exportBackup: (id, includeSecrets) => call<void>('export_backup', { id, includeSecrets }),
+
+  validateImportDialog: () => call<ImportPreview>('validate_import_dialog'),
+
+  applyImport: (archivePath, confirmedCategories) =>
+    call<void>('apply_import', { archivePath, confirmedCategories }),
 
   previewPolicyClean: () => call<CombinedReport>('preview_policy_clean'),
 
