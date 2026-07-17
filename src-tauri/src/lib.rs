@@ -5,6 +5,7 @@
 //! Cycle B builds this out: W3 types + config-root + path decode (below); W4
 //! parsing; W5 analysis; W6 discovery + cache; W7 search + pipeline + CLI twin.
 
+pub mod analysis;
 pub mod config;
 pub mod discovery;
 pub mod parsing;
