@@ -24,6 +24,7 @@ use std::process::ExitCode;
 use std::time::{Duration, Instant};
 
 use claude_devtools_lib::analysis::chunk_builder;
+use claude_devtools_lib::analytics;
 use claude_devtools_lib::discovery::path_decoder;
 use claude_devtools_lib::discovery::project_scanner;
 use claude_devtools_lib::discovery::session_lister;
@@ -338,12 +339,69 @@ fn run(args: Vec<String>) -> Result<(), String> {
             _ => Err("tail requires <project_id> <session_id>".to_string()),
         },
         "stats" => cmd_stats(json),
+        "dump-analytics" => match positional.get(1) {
+            Some(d) => cmd_dump_analytics(d),
+            None => Err("dump-analytics requires <days>".to_string()),
+        },
+        "dump-productivity" => match positional.get(1) {
+            Some(d) => cmd_dump_productivity(d),
+            None => Err("dump-productivity requires <days>".to_string()),
+        },
+        "dump-duration" => match positional.get(1) {
+            Some(d) => cmd_dump_duration(d),
+            None => Err("dump-duration requires <days>".to_string()),
+        },
+        "dump-model-comparison" => match positional.get(1) {
+            Some(d) => cmd_dump_model_comparison(d),
+            None => Err("dump-model-comparison requires <days>".to_string()),
+        },
+        "dump-cost-forecast" => match positional.get(1) {
+            Some(d) => cmd_dump_cost_forecast(d),
+            None => Err("dump-cost-forecast requires <windowDays>".to_string()),
+        },
         "help" | "--help" | "-h" | "" => {
             print_help();
             Ok(())
         }
         other => Err(format!("Unknown command: {other}")),
     }
+}
+
+// The W8 analytics dumps mirror cmd/cli's dump-* and Go analytics.Compute*.
+// They take only an integer window (no path arg) and resolve the corpus from
+// $HOME, so they carry no path-injection surface (no validate_id needed — the
+// whole-project scanners with a project arg are W9). Parity is verified live vs
+// the Go CLI over a synthetic $HOME (internal/paritytest, W8 Step 5).
+
+fn parse_days(arg: &str) -> Result<u32, String> {
+    arg.parse::<u32>()
+        .map_err(|e| format!("invalid days arg {arg:?}: {e}"))
+}
+
+fn emit_json<T: serde::Serialize>(value: &T) -> Result<(), String> {
+    let payload = serde_json::to_string(value).map_err(|e| e.to_string())?;
+    println!("{payload}");
+    Ok(())
+}
+
+fn cmd_dump_analytics(days_arg: &str) -> Result<(), String> {
+    emit_json(&analytics::compute_analytics(parse_days(days_arg)?)?)
+}
+
+fn cmd_dump_productivity(days_arg: &str) -> Result<(), String> {
+    emit_json(&analytics::compute_productivity_metrics(parse_days(days_arg)?)?)
+}
+
+fn cmd_dump_duration(days_arg: &str) -> Result<(), String> {
+    emit_json(&analytics::compute_session_duration_stats(parse_days(days_arg)?)?)
+}
+
+fn cmd_dump_model_comparison(days_arg: &str) -> Result<(), String> {
+    emit_json(&analytics::compute_model_comparison(parse_days(days_arg)?)?)
+}
+
+fn cmd_dump_cost_forecast(window_arg: &str) -> Result<(), String> {
+    emit_json(&analytics::compute_cost_forecast(parse_days(window_arg)?)?)
 }
 
 fn main() -> ExitCode {

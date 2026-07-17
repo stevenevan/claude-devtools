@@ -22,11 +22,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
 
 	"claude-devtools/internal/analysis"
+	"claude-devtools/internal/analytics"
 	"claude-devtools/internal/discovery"
 	"claude-devtools/internal/domain"
 	"claude-devtools/internal/parsing"
@@ -261,6 +263,92 @@ func cmdDumpDetail(projectID, sessionID string) error {
 	return nil
 }
 
+// parseDaysArg parses a uint32 window arg for the analytics dump commands.
+// The Compute* functions clamp to their own [min,max]; this only rejects
+// non-numeric input. No path arg → no session_path guard needed.
+func parseDaysArg(s string) (uint32, error) {
+	n, err := strconv.ParseUint(s, 10, 32)
+	if err != nil {
+		return 0, fmt.Errorf("invalid days arg %q: %w", s, err)
+	}
+	return uint32(n), nil
+}
+
+// emitJSON marshals v and prints it (one line), matching the other dump commands.
+func emitJSON(v any) error {
+	payload, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(payload))
+	return nil
+}
+
+// The W8 analytics dumps mirror analyticsservice.Get* → analytics.Compute*.
+// They take only an integer window (no path arg) and resolve the corpus from
+// $HOME, so they carry no path-injection surface. Parity is verified live vs the
+// Rust CLI twin over a synthetic $HOME (internal/paritytest, W8 Step 5).
+
+func cmdDumpAnalytics(daysArg string) error {
+	days, err := parseDaysArg(daysArg)
+	if err != nil {
+		return err
+	}
+	resp, err := analytics.ComputeAnalytics(days)
+	if err != nil {
+		return err
+	}
+	return emitJSON(resp)
+}
+
+func cmdDumpProductivity(daysArg string) error {
+	days, err := parseDaysArg(daysArg)
+	if err != nil {
+		return err
+	}
+	resp, err := analytics.ComputeProductivityMetrics(days)
+	if err != nil {
+		return err
+	}
+	return emitJSON(resp)
+}
+
+func cmdDumpDuration(daysArg string) error {
+	days, err := parseDaysArg(daysArg)
+	if err != nil {
+		return err
+	}
+	resp, err := analytics.ComputeSessionDurationStats(days)
+	if err != nil {
+		return err
+	}
+	return emitJSON(resp)
+}
+
+func cmdDumpModelComparison(daysArg string) error {
+	days, err := parseDaysArg(daysArg)
+	if err != nil {
+		return err
+	}
+	resp, err := analytics.ComputeModelComparison(days)
+	if err != nil {
+		return err
+	}
+	return emitJSON(resp)
+}
+
+func cmdDumpCostForecast(windowArg string) error {
+	windowDays, err := parseDaysArg(windowArg)
+	if err != nil {
+		return err
+	}
+	resp, err := analytics.ComputeCostForecast(windowDays)
+	if err != nil {
+		return err
+	}
+	return emitJSON(resp)
+}
+
 func cmdShowSession(projectID, sessionID, format string) error {
 	// Validate + canonicalize before building (guards), then build the detail
 	// via the same stub path the parity harness uses.
@@ -460,6 +548,31 @@ func run(args []string) error {
 			return fmt.Errorf("dump-detail requires <project_id> <session_id>")
 		}
 		return cmdDumpDetail(arg(1), arg(2))
+	case "dump-analytics":
+		if arg(1) == "" {
+			return fmt.Errorf("dump-analytics requires <days>")
+		}
+		return cmdDumpAnalytics(arg(1))
+	case "dump-productivity":
+		if arg(1) == "" {
+			return fmt.Errorf("dump-productivity requires <days>")
+		}
+		return cmdDumpProductivity(arg(1))
+	case "dump-duration":
+		if arg(1) == "" {
+			return fmt.Errorf("dump-duration requires <days>")
+		}
+		return cmdDumpDuration(arg(1))
+	case "dump-model-comparison":
+		if arg(1) == "" {
+			return fmt.Errorf("dump-model-comparison requires <days>")
+		}
+		return cmdDumpModelComparison(arg(1))
+	case "dump-cost-forecast":
+		if arg(1) == "" {
+			return fmt.Errorf("dump-cost-forecast requires <windowDays>")
+		}
+		return cmdDumpCostForecast(arg(1))
 	case "tail":
 		if arg(1) == "" || arg(2) == "" {
 			return fmt.Errorf("tail requires <project_id> <session_id>")

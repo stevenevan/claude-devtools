@@ -36,6 +36,28 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['notifications.onClicked', (a) => a.notifications.onClicked(() => {})],
   // W7: first flat data method wired via the invoke bridge.
   ['getSessionDetail', (a) => a.getSessionDetail('p', 's')],
+  // W8: flat analytics + backend-observability methods.
+  ['getAnalytics', (a) => a.getAnalytics(30)],
+  ['getCostForecast', (a) => a.getCostForecast(14)],
+  ['getProductivityMetrics', (a) => a.getProductivityMetrics(30)],
+  ['getSessionDurationStats', (a) => a.getSessionDurationStats(30)],
+  ['getModelComparison', (a) => a.getModelComparison(30)],
+  ['getBackendTimings', (a) => a.getBackendTimings()],
+  ['getCacheStats', (a) => a.getCacheStats()],
+  ['setCacheCapacity', (a) => a.setCacheCapacity(100)],
+  ['clearSessionCache', (a) => a.clearSessionCache()],
+];
+
+// DEFERRED — Go-backed insights methods with a WailsAPI slot that W8 intentionally
+// leaves notPorted (closed in W9). Machine-checking the deferral (architect finding)
+// means a premature/silent wiring is caught here, not just by commit discipline.
+// W9 moves these from NOT_YET_PORTED into PORTED.
+const NOT_YET_PORTED: Array<[string, (api: any) => unknown]> = [
+  ['getFileGraph', (a) => a.getFileGraph('p', 's')],
+  ['getToolAnalytics', (a) => a.getToolAnalytics('p', 30)],
+  ['getToolTimeHeatmap', (a) => a.getToolTimeHeatmap('p', 30)],
+  ['getErrorHotspots', (a) => a.getErrorHotspots('p', 30, 2)],
+  ['getErrorClusters', (a) => a.getErrorClusters('p', 30, 2)],
 ];
 
 let createTauriClient: () => any;
@@ -60,4 +82,18 @@ test('an un-ported data method still throws notPorted (gate detects gaps)', () =
   const api = createTauriClient();
   // getSessionMetrics is a flat WailsAPI method not yet wired — must still throw.
   expect(() => api.getSessionMetrics('p', 's')).toThrow(NOT_PORTED);
+});
+
+test('W8-deferred insights methods still throw notPorted (deferral is machine-checked)', () => {
+  const api = createTauriClient();
+  const wired: string[] = [];
+  for (const [name, call] of NOT_YET_PORTED) {
+    try {
+      call(api);
+      wired.push(name); // resolved instead of throwing → prematurely/silently wired
+    } catch (e) {
+      if (!NOT_PORTED.test(String((e as Error).message))) wired.push(name);
+    }
+  }
+  expect(wired).toEqual([]);
 });

@@ -6,6 +6,7 @@
 //! parsing; W5 analysis; W6 discovery + cache; W7 search + pipeline + CLI twin.
 
 pub mod analysis;
+pub mod analytics;
 pub mod cache;
 pub mod config;
 pub mod discovery;
@@ -13,6 +14,8 @@ pub mod nl_query;
 pub mod parsing;
 pub mod pipeline;
 pub mod time_util;
+pub mod timing;
+pub mod tokenizer;
 pub mod types;
 
 #[cfg(test)]

@@ -22,10 +22,16 @@ pub fn scan_projects(
     registry.clear();
     let mut all_projects = Vec::new();
 
-    let entries = std::fs::read_dir(projects_dir)
-        .map_err(|e| format!("Failed to read projects dir: {e}"))?;
+    // Go's os.ReadDir returns entries sorted by filename; mirror that so the
+    // scan (and any downstream stable sort that ties, e.g. by most-recent-session)
+    // is deterministic and matches Go rather than the raw filesystem order.
+    let mut dir_entries: Vec<_> = std::fs::read_dir(projects_dir)
+        .map_err(|e| format!("Failed to read projects dir: {e}"))?
+        .flatten()
+        .collect();
+    dir_entries.sort_by_key(|e| e.file_name());
 
-    for entry in entries.flatten() {
+    for entry in dir_entries {
         let name = entry.file_name();
         let name = name.to_string_lossy().to_string();
 
@@ -76,13 +82,15 @@ fn scan_project(
         let session_id = file_name.trim_end_matches(".jsonl").to_string();
         let file_path = entry.path();
 
-        // Get file creation time for sorting
+        // Session time for sorting. Go uses info.ModTime().UnixMilli() — mtime,
+        // integer ms (project_scanner.go:79). Match it exactly: modified() (not
+        // created()/birthtime) and integer millis (not fractional as_secs_f64).
         let created_at = entry
             .metadata()
             .ok()
-            .and_then(|m| m.created().ok())
+            .and_then(|m| m.modified().ok())
             .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-            .map(|d| d.as_secs_f64() * 1000.0)
+            .map(|d| d.as_millis() as f64)
             .unwrap_or(0.0);
 
         // Extract cwd from the first line of the session file
