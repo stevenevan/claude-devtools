@@ -19,6 +19,7 @@ pub mod time_util;
 pub mod timing;
 pub mod tokenizer;
 pub mod types;
+pub mod watcher;
 
 #[cfg(test)]
 pub mod testutil;

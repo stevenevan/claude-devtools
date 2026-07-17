@@ -1,0 +1,100 @@
+[
+  {
+    "kind": "project",
+    "dir": "/w/projects",
+    "path": "/w/projects/-Users-a-proj/sess.jsonl",
+    "changeType": "add",
+    "event": {
+      "type": "add",
+      "path": "/w/projects/-Users-a-proj/sess.jsonl",
+      "projectId": "-Users-a-proj",
+      "sessionId": "sess",
+      "isSubagent": false
+    }
+  },
+  {
+    "kind": "project",
+    "dir": "/w/projects",
+    "path": "/w/projects/-Users-a-proj/sess/subagents/agent-abc.jsonl",
+    "changeType": "change",
+    "event": {
+      "type": "change",
+      "path": "/w/projects/-Users-a-proj/sess/subagents/agent-abc.jsonl",
+      "projectId": "-Users-a-proj",
+      "sessionId": "sess",
+      "isSubagent": true
+    }
+  },
+  {
+    "kind": "project",
+    "dir": "/w/projects",
+    "path": "/w/projects/-Users-a-proj/notes.txt",
+    "changeType": "add",
+    "event": null
+  },
+  {
+    "kind": "project",
+    "dir": "/w/projects",
+    "path": "/w/projects/loose.jsonl",
+    "changeType": "add",
+    "event": null
+  },
+  {
+    "kind": "project",
+    "dir": "/w/projects",
+    "path": "/w/projects/-p/sess/extra.jsonl",
+    "changeType": "unlink",
+    "event": null
+  },
+  {
+    "kind": "project",
+    "dir": "/w/projects",
+    "path": "/w/projects/-p/sess/notsub/a.jsonl",
+    "changeType": "add",
+    "event": null
+  },
+  {
+    "kind": "project",
+    "dir": "/w/projects",
+    "path": "/w/projects/-p/s.jsonl",
+    "changeType": "unlink",
+    "event": {
+      "type": "unlink",
+      "path": "/w/projects/-p/s.jsonl",
+      "projectId": "-p",
+      "sessionId": "s",
+      "isSubagent": false
+    }
+  },
+  {
+    "kind": "todo",
+    "dir": "/w/todos",
+    "path": "/w/todos/sess.json",
+    "changeType": "add",
+    "event": {
+      "type": "add",
+      "path": "/w/todos/sess.json",
+      "sessionId": "sess",
+      "isSubagent": false
+    }
+  },
+  {
+    "kind": "todo",
+    "dir": "/w/todos",
+    "path": "/w/todos/9f8e-uuid.json",
+    "changeType": "unlink",
+    "event": {
+      "type": "unlink",
+      "path": "/w/todos/9f8e-uuid.json",
+      "sessionId": "9f8e-uuid",
+      "isSubagent": false
+    }
+  },
+  {
+    "kind": "todo",
+    "dir": "/w/todos",
+    "path": "/w/todos/notes.txt",
+    "changeType": "change",
+    "event": null
+  }
+]

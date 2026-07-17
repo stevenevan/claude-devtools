@@ -40,3 +40,7 @@ tiktoken-rs = "0.6"
 # Snapshots (W9): frozen on-disk format gzip(json(detail)) via flate2; uuid v4 ids.
 flate2 = "1"
 uuid = { version = "1", features = ["v4"] }
+# File watcher (W10): recursive FS events. The 100ms per-path debounce is
+# hand-rolled to match Go's rjeczalik/notify runner exactly (not delegated to
+# notify-debouncer-full, whose coalescing would diverge from the Go oracle).
+notify = { version = "7", features = ["macos_fsevent"] }
