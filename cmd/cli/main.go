@@ -27,6 +27,7 @@ import (
 	"unicode"
 
 	"claude-devtools/internal/discovery"
+	"claude-devtools/internal/parsing"
 	"claude-devtools/internal/pipeline"
 )
 
@@ -194,6 +195,26 @@ func cmdListSessions(projectID string, asJSON bool) error {
 		fmt.Printf("%s\t%s\tmessages=%d\n", s.ID, preview, s.MessageCount)
 	}
 	fmt.Printf("\n%d sessions (more=%t)\n", len(result.Sessions), result.HasMore)
+	return nil
+}
+
+// cmdDumpMessages emits the raw parsed ParsedMessage[] as JSON — the W4 parser
+// parity golden generator. Read-only; reuses the full sessionPath guard chain
+// (validateID + validateUnderRoot) before touching the file.
+func cmdDumpMessages(projectID, sessionID string) error {
+	path, err := sessionPath(projectID, sessionID)
+	if err != nil {
+		return err
+	}
+	messages, _, err := parsing.ParseJSONLFile(path)
+	if err != nil {
+		return err
+	}
+	payload, err := json.Marshal(messages)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(payload))
 	return nil
 }
 
@@ -386,6 +407,11 @@ func run(args []string) error {
 			return fmt.Errorf("show-session requires <project_id> <session_id>")
 		}
 		return cmdShowSession(arg(1), arg(2), format)
+	case "dump-messages":
+		if arg(1) == "" || arg(2) == "" {
+			return fmt.Errorf("dump-messages requires <project_id> <session_id>")
+		}
+		return cmdDumpMessages(arg(1), arg(2))
 	case "tail":
 		if arg(1) == "" || arg(2) == "" {
 			return fmt.Errorf("tail requires <project_id> <session_id>")

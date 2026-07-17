@@ -7,6 +7,8 @@
 
 pub mod config;
 pub mod discovery;
+pub mod parsing;
+pub mod time_util;
 pub mod types;
 
 #[cfg(test)]
