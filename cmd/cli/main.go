@@ -30,6 +30,9 @@ import (
 	"claude-devtools/internal/analysis"
 	"claude-devtools/internal/analytics"
 	"claude-devtools/internal/discovery"
+	"claude-devtools/internal/insights/error_hotspots"
+	"claude-devtools/internal/insights/file_graph"
+	"claude-devtools/internal/insights/tool_analytics"
 	"claude-devtools/internal/domain"
 	"claude-devtools/internal/parsing"
 	"claude-devtools/internal/pipeline"
@@ -349,6 +352,99 @@ func cmdDumpCostForecast(windowArg string) error {
 	return emitJSON(resp)
 }
 
+// The W9 insights dumps mirror analyticsservice.Get{ToolAnalytics,ToolTimeHeatmap,
+// ErrorHotspots,ErrorClusters} → insights.Compute*. Unlike the W8 dumps these take
+// a <project> arg, so they MUST validateID it (they have no <session> arg, so the
+// sessionPath guard does not cover them; the compute functions build the corpus
+// path by raw join with no validation of their own — SECURITY).
+
+func cmdDumpToolAnalytics(projectID, daysArg string) error {
+	if err := validateID("project_id", projectID); err != nil {
+		return err
+	}
+	days, err := parseDaysArg(daysArg)
+	if err != nil {
+		return err
+	}
+	resp, err := tool_analytics.ComputeToolAnalytics(projectID, days)
+	if err != nil {
+		return err
+	}
+	return emitJSON(resp)
+}
+
+func cmdDumpToolHeatmap(projectID, daysArg, toolFilter string) error {
+	if err := validateID("project_id", projectID); err != nil {
+		return err
+	}
+	days, err := parseDaysArg(daysArg)
+	if err != nil {
+		return err
+	}
+	resp, err := tool_analytics.ComputeToolTimeHeatmap(projectID, days, toolFilter)
+	if err != nil {
+		return err
+	}
+	return emitJSON(resp)
+}
+
+func cmdDumpErrorHotspots(projectID, daysArg, minArg string) error {
+	if err := validateID("project_id", projectID); err != nil {
+		return err
+	}
+	days, err := parseDaysArg(daysArg)
+	if err != nil {
+		return err
+	}
+	minOccurrences, err := parseDaysArg(minArg)
+	if err != nil {
+		return err
+	}
+	resp, err := error_hotspots.ComputeErrorHotspots(projectID, days, minOccurrences)
+	if err != nil {
+		return err
+	}
+	return emitJSON(resp)
+}
+
+func cmdDumpErrorClusters(projectID, daysArg, minArg string) error {
+	if err := validateID("project_id", projectID); err != nil {
+		return err
+	}
+	days, err := parseDaysArg(daysArg)
+	if err != nil {
+		return err
+	}
+	minClusterSize, err := parseDaysArg(minArg)
+	if err != nil {
+		return err
+	}
+	resp, err := error_hotspots.ComputeErrorClusters(projectID, days, minClusterSize)
+	if err != nil {
+		return err
+	}
+	return emitJSON(resp)
+}
+
+// cmdDumpFileGraph mirrors analyticsservice.GetFileGraph → file_graph.ComputeFileGraph.
+// It takes <project> <session> and resolves the root from ~/.claude/projects (what
+// the service does when canonicalRoot is empty). Guarded by the sessionPath chain
+// (validates both IDs + confines under root) before computing.
+func cmdDumpFileGraph(projectID, sessionID string) error {
+	if _, err := sessionPath(projectID, sessionID); err != nil {
+		return err
+	}
+	root, err := projectsDir()
+	if err != nil {
+		return err
+	}
+	resp, err := file_graph.ComputeFileGraph(root, projectID, sessionID)
+	if err != nil {
+		return err
+	}
+	return emitJSON(resp)
+}
+
 func cmdShowSession(projectID, sessionID, format string) error {
 	// Validate + canonicalize before building (guards), then build the detail
 	// via the same stub path the parity harness uses.
@@ -573,6 +669,31 @@ func run(args []string) error {
 			return fmt.Errorf("dump-cost-forecast requires <windowDays>")
 		}
 		return cmdDumpCostForecast(arg(1))
+	case "dump-tool-analytics":
+		if arg(1) == "" || arg(2) == "" {
+			return fmt.Errorf("dump-tool-analytics requires <project_id> <days>")
+		}
+		return cmdDumpToolAnalytics(arg(1), arg(2))
+	case "dump-tool-heatmap":
+		if arg(1) == "" || arg(2) == "" {
+			return fmt.Errorf("dump-tool-heatmap requires <project_id> <days> [toolFilter]")
+		}
+		return cmdDumpToolHeatmap(arg(1), arg(2), arg(3))
+	case "dump-error-hotspots":
+		if arg(1) == "" || arg(2) == "" || arg(3) == "" {
+			return fmt.Errorf("dump-error-hotspots requires <project_id> <days> <minOccurrences>")
+		}
+		return cmdDumpErrorHotspots(arg(1), arg(2), arg(3))
+	case "dump-error-clusters":
+		if arg(1) == "" || arg(2) == "" || arg(3) == "" {
+			return fmt.Errorf("dump-error-clusters requires <project_id> <days> <minClusterSize>")
+		}
+		return cmdDumpErrorClusters(arg(1), arg(2), arg(3))
+	case "dump-file-graph":
+		if arg(1) == "" || arg(2) == "" {
+			return fmt.Errorf("dump-file-graph requires <project_id> <session_id>")
+		}
+		return cmdDumpFileGraph(arg(1), arg(2))
 	case "tail":
 		if arg(1) == "" || arg(2) == "" {
 			return fmt.Errorf("tail requires <project_id> <session_id>")

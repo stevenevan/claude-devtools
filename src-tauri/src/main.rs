@@ -12,7 +12,19 @@ use claude_devtools_lib::analytics::{
     ModelComparisonResponse, ProductivityMetrics, SessionDurationResponse,
 };
 use claude_devtools_lib::cache::SessionCache;
+use claude_devtools_lib::config::root;
+use claude_devtools_lib::insights::error_hotspots::{
+    compute_error_clusters, compute_error_hotspots, ErrorClustersResponse, ErrorHotspotsResponse,
+};
+use claude_devtools_lib::insights::file_graph::{compute_file_graph, FileGraphResponse};
+use claude_devtools_lib::insights::tool_analytics::{
+    compute_tool_analytics, compute_tool_time_heatmap, ToolAnalyticsResponse,
+    ToolTimeHeatmapResponse,
+};
 use claude_devtools_lib::pipeline;
+use claude_devtools_lib::snapshots::{
+    create_snapshot, delete_snapshot, list_snapshots, open_snapshot, SnapshotMeta,
+};
 use claude_devtools_lib::timing::{summarize, CacheStats, PercentileSummary, TimingBuffer};
 use claude_devtools_lib::types::chunks::SessionDetail;
 
@@ -97,6 +109,103 @@ fn clear_session_cache(cache: State<'_, SharedCache>) -> Result<(), String> {
     Ok(())
 }
 
+// ── W9 insights commands ─────────────────────────────────────────────────────
+
+// SECURITY: the insights compute functions build the corpus path from the
+// frontend-supplied project_id by raw join (resolve_project_dir), so guard it
+// here at the command boundary. Go's analyticsservice does NOT (it passes args
+// straight through) — this hardens the Tauri path without breaking parity, since
+// legit dashed / `::`-composite ids pass. Rejects traversal / control chars.
+fn validate_project_id(id: &str) -> Result<(), String> {
+    if id.is_empty() || id.len() > 200 {
+        return Err("invalid project_id".into());
+    }
+    if id.contains('/') || id.contains('\\') || id.contains("..") || id.contains('\0') {
+        return Err("project_id contains an illegal path component".into());
+    }
+    if id.chars().any(|c| c.is_control()) {
+        return Err("project_id contains a control character".into());
+    }
+    Ok(())
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn get_tool_analytics(project_id: String, days: u32) -> Result<ToolAnalyticsResponse, String> {
+    validate_project_id(&project_id)?;
+    compute_tool_analytics(&project_id, days)
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn get_tool_time_heatmap(
+    project_id: String,
+    days: u32,
+    tool_filter: Option<String>,
+) -> Result<ToolTimeHeatmapResponse, String> {
+    validate_project_id(&project_id)?;
+    compute_tool_time_heatmap(&project_id, days, tool_filter.as_deref())
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn get_error_hotspots(
+    project_id: String,
+    days: u32,
+    min_occurrences: u32,
+) -> Result<ErrorHotspotsResponse, String> {
+    validate_project_id(&project_id)?;
+    compute_error_hotspots(&project_id, days, min_occurrences)
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn get_error_clusters(
+    project_id: String,
+    days: u32,
+    min_cluster_size: u32,
+) -> Result<ErrorClustersResponse, String> {
+    validate_project_id(&project_id)?;
+    compute_error_clusters(&project_id, days, min_cluster_size)
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn get_file_graph(project_id: String, session_id: String) -> Result<FileGraphResponse, String> {
+    validate_project_id(&project_id)?;
+    // Root resolved from ~/.claude/projects, matching analyticsservice.GetFileGraph
+    // when canonicalRoot is empty.
+    let root_dir = root::projects_dir()?;
+    compute_file_graph(&root_dir, &project_id, &session_id)
+}
+
+// ── W9 snapshots commands ────────────────────────────────────────────────────
+
+#[tauri::command(rename_all = "camelCase")]
+fn snapshots_list() -> Result<Vec<SnapshotMeta>, String> {
+    list_snapshots()
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn snapshots_create_from_session(
+    project_id: String,
+    session_id: String,
+    label: Option<String>,
+) -> Result<SnapshotMeta, String> {
+    let detail = pipeline::get_session_detail(&project_id, &session_id)?;
+    // Label fallback = session id when blank/whitespace (snapshotservice.go:29-32).
+    let resolved = match label {
+        Some(l) if !l.trim().is_empty() => l,
+        _ => detail.session.id.clone(),
+    };
+    create_snapshot(&resolved, &detail)
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn snapshots_delete(snapshot_id: String) -> Result<(), String> {
+    delete_snapshot(&snapshot_id)
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn snapshots_open(snapshot_id: String) -> Result<SessionDetail, String> {
+    open_snapshot(&snapshot_id)
+}
+
 fn main() {
     // Go defaults (cache.go:27-28): capacity 50, ttl 600s.
     let cache: SharedCache = Arc::new(Mutex::new(SessionCache::new(50, Duration::from_secs(600))));
@@ -116,6 +225,15 @@ fn main() {
             get_cache_stats,
             set_cache_capacity,
             clear_session_cache,
+            get_tool_analytics,
+            get_tool_time_heatmap,
+            get_error_hotspots,
+            get_error_clusters,
+            get_file_graph,
+            snapshots_list,
+            snapshots_create_from_session,
+            snapshots_delete,
+            snapshots_open,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

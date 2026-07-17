@@ -46,18 +46,16 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['getCacheStats', (a) => a.getCacheStats()],
   ['setCacheCapacity', (a) => a.setCacheCapacity(100)],
   ['clearSessionCache', (a) => a.clearSessionCache()],
-];
-
-// DEFERRED — Go-backed insights methods with a WailsAPI slot that W8 intentionally
-// leaves notPorted (closed in W9). Machine-checking the deferral (architect finding)
-// means a premature/silent wiring is caught here, not just by commit discipline.
-// W9 moves these from NOT_YET_PORTED into PORTED.
-const NOT_YET_PORTED: Array<[string, (api: any) => unknown]> = [
+  // W9: insights methods (closes the W8 deferral) + snapshots slice.
   ['getFileGraph', (a) => a.getFileGraph('p', 's')],
   ['getToolAnalytics', (a) => a.getToolAnalytics('p', 30)],
   ['getToolTimeHeatmap', (a) => a.getToolTimeHeatmap('p', 30)],
   ['getErrorHotspots', (a) => a.getErrorHotspots('p', 30, 2)],
   ['getErrorClusters', (a) => a.getErrorClusters('p', 30, 2)],
+  ['snapshots.list', (a) => a.snapshots.list()],
+  ['snapshots.createFromSession', (a) => a.snapshots.createFromSession('p', 's')],
+  ['snapshots.delete', (a) => a.snapshots.delete('id')],
+  ['snapshots.open', (a) => a.snapshots.open('id')],
 ];
 
 let createTauriClient: () => any;
@@ -84,16 +82,3 @@ test('an un-ported data method still throws notPorted (gate detects gaps)', () =
   expect(() => api.getSessionMetrics('p', 's')).toThrow(NOT_PORTED);
 });
 
-test('W8-deferred insights methods still throw notPorted (deferral is machine-checked)', () => {
-  const api = createTauriClient();
-  const wired: string[] = [];
-  for (const [name, call] of NOT_YET_PORTED) {
-    try {
-      call(api);
-      wired.push(name); // resolved instead of throwing → prematurely/silently wired
-    } catch (e) {
-      if (!NOT_PORTED.test(String((e as Error).message))) wired.push(name);
-    }
-  }
-  expect(wired).toEqual([]);
-});

@@ -37,3 +37,6 @@ base64 = "0.22"
 # cl100k_base token counting for the analytics path (W8). Same encoder family as
 # Go's weaviate/tiktoken-go; parity gated by tokenizer_matches_go_golden.
 tiktoken-rs = "0.6"
+# Snapshots (W9): frozen on-disk format gzip(json(detail)) via flate2; uuid v4 ids.
+flate2 = "1"
+uuid = { version = "1", features = ["v4"] }

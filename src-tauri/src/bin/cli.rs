@@ -26,6 +26,7 @@ use std::time::{Duration, Instant};
 use claude_devtools_lib::analysis::chunk_builder;
 use claude_devtools_lib::analytics;
 use claude_devtools_lib::discovery::path_decoder;
+use claude_devtools_lib::insights;
 use claude_devtools_lib::discovery::project_scanner;
 use claude_devtools_lib::discovery::session_lister;
 use claude_devtools_lib::discovery::subproject_registry::SubprojectRegistry;
@@ -359,6 +360,26 @@ fn run(args: Vec<String>) -> Result<(), String> {
             Some(d) => cmd_dump_cost_forecast(d),
             None => Err("dump-cost-forecast requires <windowDays>".to_string()),
         },
+        "dump-tool-analytics" => match (positional.get(1), positional.get(2)) {
+            (Some(p), Some(d)) => cmd_dump_tool_analytics(p, d),
+            _ => Err("dump-tool-analytics requires <project_id> <days>".to_string()),
+        },
+        "dump-tool-heatmap" => match (positional.get(1), positional.get(2)) {
+            (Some(p), Some(d)) => cmd_dump_tool_heatmap(p, d, positional.get(3).copied().unwrap_or("")),
+            _ => Err("dump-tool-heatmap requires <project_id> <days> [toolFilter]".to_string()),
+        },
+        "dump-error-hotspots" => match (positional.get(1), positional.get(2), positional.get(3)) {
+            (Some(p), Some(d), Some(m)) => cmd_dump_error_hotspots(p, d, m),
+            _ => Err("dump-error-hotspots requires <project_id> <days> <minOccurrences>".to_string()),
+        },
+        "dump-error-clusters" => match (positional.get(1), positional.get(2), positional.get(3)) {
+            (Some(p), Some(d), Some(m)) => cmd_dump_error_clusters(p, d, m),
+            _ => Err("dump-error-clusters requires <project_id> <days> <minClusterSize>".to_string()),
+        },
+        "dump-file-graph" => match (positional.get(1), positional.get(2)) {
+            (Some(p), Some(s)) => cmd_dump_file_graph(p, s),
+            _ => Err("dump-file-graph requires <project_id> <session_id>".to_string()),
+        },
         "help" | "--help" | "-h" | "" => {
             print_help();
             Ok(())
@@ -402,6 +423,61 @@ fn cmd_dump_model_comparison(days_arg: &str) -> Result<(), String> {
 
 fn cmd_dump_cost_forecast(window_arg: &str) -> Result<(), String> {
     emit_json(&analytics::compute_cost_forecast(parse_days(window_arg)?)?)
+}
+
+// W9 insights dumps. The whole-project scanners take a <project> arg but no
+// <session>, so session_path can't guard them — each validate_id's the project
+// before compute (resolve_project_dir builds the corpus path by raw join). file
+// -graph takes both ids and is guarded by the session_path chain like Go's twin.
+
+fn cmd_dump_tool_analytics(project_id: &str, days_arg: &str) -> Result<(), String> {
+    validate_id("project_id", project_id)?;
+    emit_json(&insights::tool_analytics::compute_tool_analytics(
+        project_id,
+        parse_days(days_arg)?,
+    )?)
+}
+
+fn cmd_dump_tool_heatmap(project_id: &str, days_arg: &str, tool_filter: &str) -> Result<(), String> {
+    validate_id("project_id", project_id)?;
+    let filter = if tool_filter.is_empty() {
+        None
+    } else {
+        Some(tool_filter)
+    };
+    emit_json(&insights::tool_analytics::compute_tool_time_heatmap(
+        project_id,
+        parse_days(days_arg)?,
+        filter,
+    )?)
+}
+
+fn cmd_dump_error_hotspots(project_id: &str, days_arg: &str, min_arg: &str) -> Result<(), String> {
+    validate_id("project_id", project_id)?;
+    emit_json(&insights::error_hotspots::compute_error_hotspots(
+        project_id,
+        parse_days(days_arg)?,
+        parse_days(min_arg)?,
+    )?)
+}
+
+fn cmd_dump_error_clusters(project_id: &str, days_arg: &str, min_arg: &str) -> Result<(), String> {
+    validate_id("project_id", project_id)?;
+    emit_json(&insights::error_hotspots::compute_error_clusters(
+        project_id,
+        parse_days(days_arg)?,
+        parse_days(min_arg)?,
+    )?)
+}
+
+fn cmd_dump_file_graph(project_id: &str, session_id: &str) -> Result<(), String> {
+    // Guard both ids + confine under root, then resolve the projects root (what
+    // the service passes when canonicalRoot is empty).
+    session_path(project_id, session_id)?;
+    let root = projects_dir()?;
+    emit_json(&insights::file_graph::compute_file_graph(
+        &root, project_id, session_id,
+    )?)
 }
 
 fn main() -> ExitCode {

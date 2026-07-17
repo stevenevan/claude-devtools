@@ -11,6 +11,9 @@ import (
 	"time"
 
 	"claude-devtools/internal/analytics"
+	"claude-devtools/internal/insights/error_hotspots"
+	"claude-devtools/internal/insights/file_graph"
+	"claude-devtools/internal/insights/tool_analytics"
 )
 
 // TestAnalyticsCLIParity is the W8 CI-gated parity gate for the home+days
@@ -99,6 +102,83 @@ func TestAnalyticsCLIParity(t *testing.T) {
 			// The exact-canon tier stays for Cycle B's passthrough-number detail.
 			if diff := numericParityDiff(goJSON, out); diff != "" {
 				t.Errorf("analytics parity mismatch %s: %s\n go: %s\nrust: %s", tc.name, diff, goJSON, out)
+			}
+		})
+	}
+}
+
+// TestInsightsCLIParity is the W9 CI-gated parity gate for the insights
+// home+days scanners + file_graph. Same synthetic-$HOME / live-vs-live / numeric-
+// tolerant / midnight-guard design as TestAnalyticsCLIParity; visible-skips only
+// when the Rust binary is absent.
+func TestInsightsCLIParity(t *testing.T) {
+	rust := rustCLI()
+	if _, err := os.Stat(rust); err != nil {
+		t.Skipf("rust cli not built: %s (run: cd src-tauri && cargo build --bin claude-devtools-cli)", rust)
+	}
+	guardMidnight(t)
+
+	home := t.TempDir()
+	writeSyntheticCorpus(t, home)
+	t.Setenv("HOME", home)
+	root := filepath.Join(home, ".claude", "projects")
+	const proj = "-Users-test-alpha"
+	const sess = "s1"
+
+	cases := []struct {
+		name    string
+		cliArgs []string
+		goJSON  func() ([]byte, error)
+	}{
+		{"tool-analytics", []string{"dump-tool-analytics", proj, "30"}, func() ([]byte, error) {
+			r, err := tool_analytics.ComputeToolAnalytics(proj, 30)
+			if err != nil {
+				return nil, err
+			}
+			return json.Marshal(r)
+		}},
+		{"tool-heatmap", []string{"dump-tool-heatmap", proj, "30"}, func() ([]byte, error) {
+			r, err := tool_analytics.ComputeToolTimeHeatmap(proj, 30, "")
+			if err != nil {
+				return nil, err
+			}
+			return json.Marshal(r)
+		}},
+		{"error-hotspots", []string{"dump-error-hotspots", proj, "30", "2"}, func() ([]byte, error) {
+			r, err := error_hotspots.ComputeErrorHotspots(proj, 30, 2)
+			if err != nil {
+				return nil, err
+			}
+			return json.Marshal(r)
+		}},
+		{"error-clusters", []string{"dump-error-clusters", proj, "30", "2"}, func() ([]byte, error) {
+			r, err := error_hotspots.ComputeErrorClusters(proj, 30, 2)
+			if err != nil {
+				return nil, err
+			}
+			return json.Marshal(r)
+		}},
+		{"file-graph", []string{"dump-file-graph", proj, sess}, func() ([]byte, error) {
+			r, err := file_graph.ComputeFileGraph(root, proj, sess)
+			if err != nil {
+				return nil, err
+			}
+			return json.Marshal(r)
+		}},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			goJSON, err := tc.goJSON()
+			if err != nil {
+				t.Fatalf("go compute %s: %v", tc.name, err)
+			}
+			out, err := exec.Command(rust, tc.cliArgs...).Output()
+			if err != nil {
+				t.Fatalf("rust cli %v: %v", tc.cliArgs, err)
+			}
+			if diff := numericParityDiff(goJSON, out); diff != "" {
+				t.Errorf("insights parity mismatch %s: %s\n go: %s\nrust: %s", tc.name, diff, goJSON, out)
 			}
 		})
 	}
@@ -247,8 +327,12 @@ func writeSyntheticCorpus(t *testing.T, home string) {
 						"cache_read_input_tokens":     20 + i,
 						"cache_creation_input_tokens": 10 + i,
 					},
+					// Read+Edit the same file (file_graph read-to-edit edge) + a
+					// repeated tool error (error_hotspots/clusters + tool error rate).
 					"content": []map[string]any{
-						{"type": "tool_use", "name": "Read"},
+						{"type": "tool_use", "name": "Read", "input": map[string]any{"file_path": "/work" + s.project + "/mod.ts"}},
+						{"type": "tool_use", "name": "Edit", "input": map[string]any{"file_path": "/work" + s.project + "/mod.ts"}},
+						{"type": "tool_result", "is_error": true, "content": "Error: cannot compile module xyz"},
 					},
 				},
 			}
