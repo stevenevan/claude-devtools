@@ -15,6 +15,8 @@ pub mod nl_query;
 pub mod parsing;
 pub mod pipeline;
 pub mod snapshots;
+pub mod ssh;
+pub mod system;
 pub mod time_util;
 pub mod timing;
 pub mod tokenizer;

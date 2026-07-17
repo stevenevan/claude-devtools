@@ -25,6 +25,11 @@ use claude_devtools_lib::pipeline;
 use claude_devtools_lib::snapshots::{
     create_snapshot, delete_snapshot, list_snapshots, open_snapshot, SnapshotMeta,
 };
+use claude_devtools_lib::ssh::{
+    connect_with_retry, default_retry_config, get_config_hosts, resolve_host, test_connection,
+    ConfigHostEntry, ConnectionConfig, ConnectionStatus, LastConnection, NetDialer, State as SshState,
+};
+use claude_devtools_lib::system;
 use claude_devtools_lib::timing::{summarize, CacheStats, PercentileSummary, TimingBuffer};
 use claude_devtools_lib::types::chunks::SessionDetail;
 use claude_devtools_lib::watcher::{resolve_claude_dir, Runner};
@@ -37,6 +42,30 @@ type SharedTiming = Arc<TimingBuffer>;
 // The live file watcher (W10). None until start_watching. Mirrors systemservice's
 // `runner *watcher.Runner` guarded field.
 type SharedWatcher = Arc<Mutex<Option<Runner>>>;
+// SSH connection state (W11) + last-connection. Go persists last-connection to
+// the config file (ConfigState); that disk layer is the W12 config-files spine,
+// so W11 holds it in-memory (same API + within-session behavior).
+type SharedSsh = Arc<SshState>;
+type SharedLastConn = Arc<Mutex<Option<LastConnection>>>;
+
+// Builds a ConnectionStatus emission (connecting/retrying/connected/error).
+fn ssh_status(
+    state: &str,
+    host: Option<String>,
+    error: Option<String>,
+    remote_projects_path: Option<String>,
+    retry_attempt: Option<u32>,
+    max_retries: Option<u32>,
+) -> ConnectionStatus {
+    ConnectionStatus {
+        state: state.to_string(),
+        host,
+        error,
+        remote_projects_path,
+        retry_attempt,
+        max_retries,
+    }
+}
 
 // First real Tauri command (W7): the in-app session-detail load. Mirrors the
 // frozen WailsAPI `getSessionDetail(projectId, sessionId) => SessionDetail | null`.
@@ -257,16 +286,145 @@ fn stop_watching(watcher: State<'_, SharedWatcher>) -> Result<(), String> {
     Ok(())
 }
 
+// ── W11 SSH commands (mirror sshservice's 8) ─────────────────────────────────
+// connect/test are async (russh). connect emits ssh-status (connecting →
+// retrying* → connected/error) via app.emit, reaching the frontend's W02
+// onStatus listener identically to the Wails path.
+
+#[tauri::command(rename_all = "camelCase")]
+async fn ssh_connect(
+    config: ConnectionConfig,
+    app: tauri::AppHandle,
+    ssh: State<'_, SharedSsh>,
+) -> Result<ConnectionStatus, String> {
+    let state = ssh.inner().clone();
+    state.clear_conn(); // drop any live connection before dialing (Go H4)
+    let host = config.host.clone();
+    let _ = app.emit(
+        "ssh-status",
+        ssh_status("connecting", Some(host.clone()), None, None, None, None),
+    );
+
+    let retry = default_retry_config();
+    let emit_app = app.clone();
+    let emit_host = host.clone();
+    let result = connect_with_retry(&config, &retry, &NetDialer, move |attempt, max, err| {
+        let _ = emit_app.emit(
+            "ssh-status",
+            ssh_status(
+                "retrying",
+                Some(emit_host.clone()),
+                Some(err.to_string()),
+                None,
+                Some(attempt),
+                Some(max),
+            ),
+        );
+    })
+    .await;
+
+    match result {
+        Ok(conn) => {
+            let status = ssh_status(
+                "connected",
+                Some(host),
+                None,
+                Some(conn.remote_projects_path.clone()),
+                None,
+                None,
+            );
+            let _ = app.emit("ssh-status", status.clone());
+            state.set_conn(Some(conn)); // swap AFTER emitting (no lock across I/O)
+            Ok(status)
+        }
+        Err(e) => {
+            let status = ssh_status("error", Some(host), Some(e.clone()), None, None, None);
+            let _ = app.emit("ssh-status", status);
+            Err(e)
+        }
+    }
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn ssh_disconnect(app: tauri::AppHandle, ssh: State<'_, SharedSsh>) -> Result<ConnectionStatus, String> {
+    ssh.clear_conn();
+    let status = ConnectionStatus::disconnected();
+    let _ = app.emit("ssh-status", status.clone());
+    Ok(status)
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn ssh_get_state(ssh: State<'_, SharedSsh>) -> Result<ConnectionStatus, String> {
+    Ok(ssh.get_status())
+}
+
+#[tauri::command(rename_all = "camelCase")]
+async fn ssh_test(config: ConnectionConfig) -> Result<serde_json::Value, String> {
+    match test_connection(&config, &NetDialer).await {
+        Ok(()) => Ok(serde_json::json!({ "success": true })),
+        Err(e) => Ok(serde_json::json!({ "success": false, "error": e })),
+    }
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn ssh_get_config_hosts() -> Result<Vec<ConfigHostEntry>, String> {
+    Ok(get_config_hosts())
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn ssh_resolve_host(alias: String) -> Result<Option<ConfigHostEntry>, String> {
+    Ok(resolve_host(&alias))
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn ssh_save_last_connection(
+    config: LastConnection,
+    last: State<'_, SharedLastConn>,
+) -> Result<(), String> {
+    *last.lock().map_err(|e| e.to_string())? = Some(config);
+    Ok(())
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn ssh_get_last_connection(last: State<'_, SharedLastConn>) -> Result<Option<LastConnection>, String> {
+    Ok(last.lock().map_err(|e| e.to_string())?.clone())
+}
+
+// ── W11 system commands (systemservice) ──────────────────────────────────────
+
+#[tauri::command(rename_all = "camelCase")]
+fn get_app_version() -> Result<String, String> {
+    Ok(system::app_version().to_string())
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn open_path(target_path: String, _project_root: Option<String>) -> serde_json::Value {
+    // Go's OpenPath ignores projectRoot. argv form (system::open_path_cmd) — never shell.
+    match system::open_path_cmd(&target_path).spawn() {
+        Ok(_) => serde_json::json!({ "success": true }),
+        Err(e) => serde_json::json!({ "success": false, "error": e.to_string() }),
+    }
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn get_all_todos(project_ids: Vec<String>) -> Result<Vec<system::AggregatedSessionTodos>, String> {
+    system::get_all_todos(project_ids)
+}
+
 fn main() {
     // Go defaults (cache.go:27-28): capacity 50, ttl 600s.
     let cache: SharedCache = Arc::new(Mutex::new(SessionCache::new(50, Duration::from_secs(600))));
     let timing: SharedTiming = Arc::new(TimingBuffer::default());
     let watcher: SharedWatcher = Arc::new(Mutex::new(None));
+    let ssh: SharedSsh = Arc::new(SshState::new());
+    let last_conn: SharedLastConn = Arc::new(Mutex::new(None));
 
     tauri::Builder::default()
         .manage(cache)
         .manage(timing)
         .manage(watcher)
+        .manage(ssh)
+        .manage(last_conn)
         .invoke_handler(tauri::generate_handler![
             get_session_detail,
             get_analytics,
@@ -289,6 +447,17 @@ fn main() {
             snapshots_open,
             start_watching,
             stop_watching,
+            ssh_connect,
+            ssh_disconnect,
+            ssh_get_state,
+            ssh_test,
+            ssh_get_config_hosts,
+            ssh_resolve_host,
+            ssh_save_last_connection,
+            ssh_get_last_connection,
+            get_app_version,
+            open_path,
+            get_all_todos,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

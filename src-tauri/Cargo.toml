@@ -44,3 +44,11 @@ uuid = { version = "1", features = ["v4"] }
 # hand-rolled to match Go's rjeczalik/notify runner exactly (not delegated to
 # notify-debouncer-full, whose coalescing would diverge from the Go oracle).
 notify = { version = "7", features = ["macos_fsevent"] }
+# SSH remote mode (W11). russh is async → the live-I/O commands run on a small
+# tokio runtime. russh >=0.60.3 fixes RUSTSEC-2026-0153/0154 (the old 0.48 pin was
+# vulnerable); keys are now `russh::keys` (the separate russh-keys crate is gone).
+# The residual rsa Marvin advisory (RUSTSEC-2023-0071, transitive, no upstream fix)
+# is documented + ignored in the audit gate.
+tokio = { version = "1", features = ["process", "io-util", "time", "rt-multi-thread", "sync", "net", "macros"] }
+russh = "0.60.3"
+russh-sftp = "2"

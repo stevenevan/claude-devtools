@@ -1,6 +1,28 @@
-import type { ContextInfo, FileChangeEvent, SshConnectionStatus } from '@shared/types';
+import type {
+  AggregatedSessionTodos,
+  ContextInfo,
+  FileChangeEvent,
+  SshConnectionStatus,
+} from '@shared/types';
 
 import { bridgeEvent } from '../eventBridge';
+import { call } from '../invoke';
+
+// Flat system data methods (WailsAPI top-level, W11). Mirror systemservice's
+// GetAppVersion / OpenPath / GetAllTodos. No reviveDates (no Date fields).
+export const systemCommands = {
+  getAppVersion: (): Promise<string> => call<string>('get_app_version'),
+  openPath: (
+    targetPath: string,
+    projectRoot?: string
+  ): Promise<{ success: boolean; error?: string }> =>
+    call<{ success: boolean; error?: string }>('open_path', {
+      targetPath,
+      projectRoot: projectRoot ?? null,
+    }),
+  getAllTodos: (projectIds: string[]): Promise<AggregatedSessionTodos[]> =>
+    call<AggregatedSessionTodos[]>('get_all_todos', { projectIds }),
+};
 
 // Event wirings owned by the Wails "system" adapter, ported to Tauri `listen`.
 // Data methods (getAppVersion, openPath, windowControls, …) are ported by later

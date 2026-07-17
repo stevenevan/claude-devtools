@@ -56,6 +56,18 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['snapshots.createFromSession', (a) => a.snapshots.createFromSession('p', 's')],
   ['snapshots.delete', (a) => a.snapshots.delete('id')],
   ['snapshots.open', (a) => a.snapshots.open('id')],
+  // W11: ssh slice data methods + flat system methods.
+  ['ssh.connect', (a) => a.ssh.connect({})],
+  ['ssh.disconnect', (a) => a.ssh.disconnect()],
+  ['ssh.getState', (a) => a.ssh.getState()],
+  ['ssh.test', (a) => a.ssh.test({})],
+  ['ssh.getConfigHosts', (a) => a.ssh.getConfigHosts()],
+  ['ssh.resolveHost', (a) => a.ssh.resolveHost('h')],
+  ['ssh.saveLastConnection', (a) => a.ssh.saveLastConnection({})],
+  ['ssh.getLastConnection', (a) => a.ssh.getLastConnection()],
+  ['getAppVersion', (a) => a.getAppVersion()],
+  ['openPath', (a) => a.openPath('/x')],
+  ['getAllTodos', (a) => a.getAllTodos([])],
 ];
 
 let createTauriClient: () => any;
