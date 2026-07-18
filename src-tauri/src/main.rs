@@ -15,7 +15,7 @@ use claude_devtools_lib::cache::SessionCache;
 use claude_devtools_lib::commands::notify::NotifyState;
 use claude_devtools_lib::commands::{
     config as config_cmds, files as files_cmds, maintenance as maintenance_cmds,
-    notify as notify_cmds,
+    notify as notify_cmds, session as session_cmds,
 };
 use claude_devtools_lib::config::root;
 use claude_devtools_lib::config::state::ConfigState;
@@ -410,6 +410,16 @@ fn get_app_version() -> Result<String, String> {
     Ok(system::app_version().to_string())
 }
 
+#[tauri::command]
+fn plugins_discover() -> Result<Vec<system::PluginEntry>, String> {
+    system::plugins_discover()
+}
+
+#[tauri::command]
+fn quit_app(app: tauri::AppHandle) {
+    app.exit(0);
+}
+
 #[tauri::command(rename_all = "camelCase")]
 fn open_path(target_path: String, _project_root: Option<String>) -> serde_json::Value {
     // Go's OpenPath ignores projectRoot. argv form (system::open_path_cmd) — never shell.
@@ -464,6 +474,7 @@ fn main() {
         // W14: native save/open dialogs (config export/import) + desktop toasts.
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_opener::init())
         .manage(cache)
         .manage(timing)
         .manage(watcher)
@@ -492,6 +503,23 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             get_session_detail,
+            session_cmds::get_projects,
+            session_cmds::get_sessions,
+            session_cmds::get_sessions_paginated,
+            session_cmds::get_sessions_by_ids,
+            session_cmds::get_session_detail_incremental,
+            session_cmds::get_session_metrics,
+            session_cmds::get_waterfall_data,
+            session_cmds::get_subagent_detail,
+            session_cmds::get_session_groups,
+            session_cmds::get_repository_groups,
+            session_cmds::get_worktree_sessions,
+            session_cmds::search_sessions,
+            session_cmds::search_all_projects,
+            session_cmds::search_sessions_filtered,
+            session_cmds::search_session_content,
+            session_cmds::session_scroll_to_line,
+            claude_devtools_lib::nl_query::parse_nl_query,
             get_analytics,
             get_cost_forecast,
             get_productivity_metrics,
@@ -523,6 +551,8 @@ fn main() {
             get_app_version,
             open_path,
             get_all_todos,
+            plugins_discover,
+            quit_app,
             // ── W12 config commands ──
             config_cmds::config_get,
             config_cmds::config_update,

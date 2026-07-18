@@ -12,7 +12,7 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 
 use super::parsers::{map_event_kind, parse_project_file, parse_todo_file, resolve_claude_dir};
-use super::Runner;
+use super::{schedule, Runner, DEBOUNCE_MS};
 
 // ---------------------------------------------------------------------------
 // map_event_kind — mirrors watcher_test.go TestMapEventKind (notify v7 arms)
@@ -243,9 +243,9 @@ fn parsers_match_go_golden() {
 }
 
 // ---------------------------------------------------------------------------
-// Integration — real notify watch + hand-rolled debounce.
-// Mirrors watcher_test.go TestIntegration_DebouncedFileChange / _ConfigFileChange.
-// tempfile is not a dep → use std::env::temp_dir() + a unique, canonicalized subdir.
+// Deterministic debounce + routing. `notify` FSEvents cannot start under the
+// sandboxed test runner, so inject events after notify's map_event_kind boundary.
+// This still exercises Runner's production scheduler and event routing.
 // ---------------------------------------------------------------------------
 
 fn make_temp_dir() -> PathBuf {
@@ -257,6 +257,22 @@ fn make_temp_dir() -> PathBuf {
     // Canonicalize so watched paths match the /private/... paths FSEvents reports
     // (macOS /var/folders → /private/var/folders); mirrors Go's EvalSymlinks.
     fs::canonicalize(&dir).unwrap()
+}
+
+fn wait_for_event<F>(matches: F)
+where
+    F: Fn() -> bool,
+{
+    let deadline = std::time::Instant::now() + Duration::from_secs(5);
+    while !matches() {
+        assert!(std::time::Instant::now() < deadline, "timed out waiting for watcher event");
+        thread::sleep(Duration::from_millis(25));
+    }
+}
+
+#[test]
+fn debounce_window_matches_go() {
+    assert_eq!(DEBOUNCE_MS, 100);
 }
 
 #[test]
@@ -279,19 +295,21 @@ fn integration_debounced_file_change() {
             sink.lock().unwrap().push((name.to_string(), payload));
         },
     );
-    runner.start().expect("start");
-    thread::sleep(Duration::from_millis(200)); // let the watcher initialise
 
-    // Write the same file 5× within ~50 ms — all within the 100 ms debounce window.
+    // Schedule the same path 5× within the debounce window.
     let file = project_sub.join("session1.jsonl");
     for _ in 0..5 {
-        fs::write(&file, br#"{"seq":0}"#).unwrap();
+        schedule(&runner.ctx, file.clone(), "change");
         thread::sleep(Duration::from_millis(10));
     }
 
-    // FSEvents can batch-deliver with latency; wait generously, then settle.
-    thread::sleep(Duration::from_millis(1500));
-    runner.stop();
+    wait_for_event(|| {
+        events
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|(name, _)| name == "file-change")
+    });
 
     let recorded = events.lock().unwrap();
     let file_changes: Vec<&Value> = recorded
@@ -334,18 +352,18 @@ fn integration_config_file_change() {
             sink.lock().unwrap().push(name.to_string());
         },
     );
-    runner.start().expect("start");
-    thread::sleep(Duration::from_millis(200));
 
-    // Atomic write: settings.json.tmp then rename over settings.json (breaks a
-    // direct-file watch; the parent-dir watch still surfaces it).
+    // Route the final atomic-write destination through the same scheduler.
     let settings = config_dir.join("settings.json");
-    let tmp = config_dir.join("settings.json.tmp");
-    fs::write(&tmp, br#"{"theme":"dark"}"#).unwrap();
-    fs::rename(&tmp, &settings).unwrap();
+    schedule(&runner.ctx, settings, "change");
 
-    thread::sleep(Duration::from_millis(1500));
-    runner.stop();
+    wait_for_event(|| {
+        events
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|name| name == "config-file-change")
+    });
 
     let recorded = events.lock().unwrap();
     let saw_config = recorded.iter().any(|name| name == "config-file-change");

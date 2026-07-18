@@ -4,3 +4,4 @@ pub mod config;
 pub mod files;
 pub mod maintenance;
 pub mod notify;
+pub mod session;

@@ -7,7 +7,9 @@ all-features = true
 
 [advisories]
 yanked = "deny"
-ignore = []
+# RUSTSEC-2023-0071 is transitive through russh 0.60.3. No upstream fix exists;
+# avoid RSA private-key auth to timing-observing hosts. Owner: security. Review: 2026-10-18.
+ignore = ["RUSTSEC-2023-0071"]
 
 [licenses]
 allow = [

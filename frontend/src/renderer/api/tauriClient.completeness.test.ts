@@ -1,25 +1,37 @@
 import { beforeAll, expect, mock, test } from 'bun:test';
 
-// The event bridge calls `@tauri-apps/api/event` `listen`, which is absent in the
-// bun-test runtime. Stub it so event subscriptions resolve instead of throwing
-// for the WRONG reason — this gate asserts the only failure it cares about is the
-// `createTauriClient` "not ported yet" thrower, per week's PORTED allowlist.
+const invocations: Array<{ command: string; args?: Record<string, unknown> }> = [];
+const openedUrls: string[] = [];
+
 mock.module('@tauri-apps/api/event', () => ({
   listen: async () => () => {},
   emit: async () => {},
 }));
 
-// Data methods route through `invoke`, also absent in the bun runtime — stub it
-// so a wired data method resolves instead of throwing an invoke error.
 mock.module('@tauri-apps/api/core', () => ({
-  invoke: async () => null,
+  invoke: async (command: string, args?: Record<string, unknown>) => {
+    invocations.push({ command, args });
+    return null;
+  },
 }));
 
-const NOT_PORTED = /not ported yet/;
+mock.module('@tauri-apps/api/window', () => ({
+  getCurrentWindow: () => ({
+    minimize: async () => {},
+    maximize: async () => {},
+    unmaximize: async () => {},
+    close: async () => {},
+    isMaximized: async () => false,
+  }),
+}));
 
-// PORTED allowlist — grows each porting week. W3: events only (wired via the
-// Tauri `listen` bridge in Cycle A). W7 adds the flat session + search data
-// methods (getSessionDetail, searchSessions, …).
+mock.module('@tauri-apps/plugin-dialog', () => ({ open: async () => null }));
+mock.module('@tauri-apps/plugin-opener', () => ({
+  openUrl: async (url: URL) => openedUrls.push(url.toString()),
+}));
+
+// Complete WailsAPI contract: every call must resolve through Tauri or preserve
+// its documented local no-op behavior. This list is intentionally explicit.
 const PORTED: Array<[string, (api: any) => unknown]> = [
   ['onFileChange', (a) => a.onFileChange(() => {})],
   ['onTodoChange', (a) => a.onTodoChange(() => {})],
@@ -34,8 +46,26 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['notifications.onNew', (a) => a.notifications.onNew(() => {})],
   ['notifications.onUpdated', (a) => a.notifications.onUpdated(() => {})],
   ['notifications.onClicked', (a) => a.notifications.onClicked(() => {})],
-  // W7: first flat data method wired via the invoke bridge.
+  // Session/search parity.
+  ['getProjects', (a) => a.getProjects()],
+  ['getSessions', (a) => a.getSessions('p')],
+  ['getSessionsPaginated', (a) => a.getSessionsPaginated('p', null)],
+  ['searchSessions', (a) => a.searchSessions('p', 'query')],
+  ['searchAllProjects', (a) => a.searchAllProjects('query')],
+  ['searchSessionsFiltered', (a) => a.searchSessionsFiltered({})],
+  ['searchSessionContent', (a) => a.searchSessionContent('p', 's', 'query')],
   ['getSessionDetail', (a) => a.getSessionDetail('p', 's')],
+  ['getSessionDetailIncremental', (a) => a.getSessionDetailIncremental('p', 's')],
+  ['getSessionMetrics', (a) => a.getSessionMetrics('p', 's')],
+  ['getWaterfallData', (a) => a.getWaterfallData('p', 's')],
+  ['getSubagentDetail', (a) => a.getSubagentDetail('p', 's', 'a')],
+  ['getSessionGroups', (a) => a.getSessionGroups('p', 's')],
+  ['getSessionsByIds', (a) => a.getSessionsByIds('p', ['s'])],
+  ['getRepositoryGroups', (a) => a.getRepositoryGroups()],
+  ['getWorktreeSessions', (a) => a.getWorktreeSessions('w')],
+  ['parseNLQuery', (a) => a.parseNLQuery('last week')],
+  ['session.scrollToLine', (a) => a.session.scrollToLine('s', 1)],
+  ['plugins.list', (a) => a.plugins.list()],
   // W8: flat analytics + backend-observability methods.
   ['getAnalytics', (a) => a.getAnalytics(30)],
   ['getCostForecast', (a) => a.getCostForecast(14)],
@@ -89,6 +119,9 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['config.unhideSessions', (a) => a.config.unhideSessions('p', [])],
   ['config.getClaudeRootInfo', (a) => a.config.getClaudeRootInfo()],
   ['config.openInEditor', (a) => a.config.openInEditor()],
+  ['config.selectFolders', (a) => a.config.selectFolders()],
+  ['config.selectClaudeRootFolder', (a) => a.config.selectClaudeRootFolder()],
+  ['config.findWslClaudeRoots', (a) => a.config.findWslClaudeRoots()],
   ['config.addBookmark', (a) => a.config.addBookmark('s', 'p', 'g')],
   ['config.removeBookmark', (a) => a.config.removeBookmark('b')],
   ['config.getBookmarks', (a) => a.config.getBookmarks()],
@@ -201,6 +234,23 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['maintenance.exportBackup', (a) => a.maintenance.exportBackup('id', false)],
   ['maintenance.validateImportDialog', (a) => a.maintenance.validateImportDialog()],
   ['maintenance.applyImport', (a) => a.maintenance.applyImport('p', [])],
+  ['getZoomFactor', (a) => a.getZoomFactor()],
+  ['openExternal', (a) => a.openExternal('https://example.com')],
+  ['windowControls.minimize', (a) => a.windowControls.minimize()],
+  ['windowControls.maximize', (a) => a.windowControls.maximize()],
+  ['windowControls.close', (a) => a.windowControls.close()],
+  ['windowControls.isMaximized', (a) => a.windowControls.isMaximized()],
+  ['windowControls.relaunch', (a) => a.windowControls.relaunch()],
+  ['updater.check', (a) => a.updater.check()],
+  ['updater.download', (a) => a.updater.download()],
+  ['updater.install', (a) => a.updater.install()],
+  ['updater.onStatus', (a) => a.updater.onStatus(() => {})],
+  ['context.list', (a) => a.context.list()],
+  ['context.getActive', (a) => a.context.getActive()],
+  ['context.switch', (a) => a.context.switch('local')],
+  ['httpServer.start', (a) => a.httpServer.start()],
+  ['httpServer.stop', (a) => a.httpServer.stop()],
+  ['httpServer.getStatus', (a) => a.httpServer.getStatus()],
 ];
 
 let createTauriClient: () => any;
@@ -208,22 +258,60 @@ beforeAll(async () => {
   ({ createTauriClient } = await import('./tauriClient'));
 });
 
-test('every PORTED key resolves to a non-thrower (not the notPorted stub)', () => {
+test('every WailsAPI method resolves through Tauri', async () => {
   const api = createTauriClient();
-  const broken: string[] = [];
   for (const [name, call] of PORTED) {
-    try {
-      call(api);
-    } catch (e) {
-      if (NOT_PORTED.test(String((e as Error).message))) broken.push(name);
-    }
+    await Promise.resolve(call(api));
+    expect(name).toBeTruthy();
   }
-  expect(broken).toEqual([]);
 });
 
-test('an un-ported data method still throws notPorted (gate detects gaps)', () => {
+test('session commands preserve command names and argument shapes', async () => {
+  invocations.length = 0;
   const api = createTauriClient();
-  // getSessionMetrics is a flat WailsAPI method not yet wired — must still throw.
-  expect(() => api.getSessionMetrics('p', 's')).toThrow(NOT_PORTED);
+  await api.getSessionsPaginated('project', 'cursor', 50, { prefilterAll: false });
+  await api.searchSessionContent('project', 'session', 'needle');
+  await api.getSubagentDetail('project', 'session', 'agent');
+  expect(invocations).toEqual([
+    {
+      command: 'get_sessions_paginated',
+      args: {
+        projectId: 'project',
+        cursor: 'cursor',
+        limit: 50,
+        options: { prefilterAll: false },
+      },
+    },
+    {
+      command: 'search_session_content',
+      args: {
+        projectId: 'project',
+        sessionId: 'session',
+        query: 'needle',
+        isRegex: false,
+        caseSensitive: false,
+        cursor: null,
+        pageSize: null,
+      },
+    },
+    {
+      command: 'get_subagent_detail',
+      args: { projectId: 'project', sessionId: 'session', subagentId: 'agent' },
+    },
+  ]);
 });
 
+test('external opener permits only credential-free HTTP URLs', async () => {
+  openedUrls.length = 0;
+  const api = createTauriClient();
+  await expect(api.openExternal('https://example.com/docs')).resolves.toEqual({ success: true });
+  await expect(api.openExternal('javascript:alert(1)')).resolves.toEqual({
+    success: false,
+    error: 'invalid external URL',
+  });
+  await expect(api.openExternal('https://user@example.com')).resolves.toEqual({
+    success: false,
+    error: 'invalid external URL',
+  });
+  expect(openedUrls).toEqual(['https://example.com/docs']);
+});

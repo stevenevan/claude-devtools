@@ -2,14 +2,17 @@ import type {
   AnnotationEntry,
   AppConfig,
   ClaudeRootInfo,
+  ClaudeRootFolderSelection,
   ConfigAPI,
   FilterPresetEntry,
   NotificationsAPI,
   NotificationTrigger,
   TriggerTestResult,
   WebhookAPI,
+  WslClaudeRootCandidate,
 } from '@shared/types';
 import type { AnnotationImportReport } from '@shared/types/api';
+import { open } from '@tauri-apps/plugin-dialog';
 
 import { bridgeEvent } from '../eventBridge';
 import { call } from '../invoke';
@@ -83,6 +86,9 @@ type ConfigCommands = Pick<
   | 'importAnnotations'
   | 'getDismissedSuggestions'
   | 'dismissSuggestion'
+  | 'selectFolders'
+  | 'selectClaudeRootFolder'
+  | 'findWslClaudeRoots'
 >;
 
 export const configApi: ConfigCommands = {
@@ -165,6 +171,21 @@ export const configApi: ConfigCommands = {
     call<AnnotationImportReport>('config_import_annotations', { jsonStr: json }),
   getDismissedSuggestions: () => call<string[]>('get_dismissed_suggestions'),
   dismissSuggestion: (rule) => call<void>('dismiss_suggestion', { rule }),
+  selectFolders: async (): Promise<string[]> => {
+    const selected = await open({ directory: true, multiple: true });
+    if (Array.isArray(selected)) return selected;
+    return selected ? [selected] : [];
+  },
+  selectClaudeRootFolder: async (): Promise<ClaudeRootFolderSelection | null> => {
+    const selected = await open({ directory: true, multiple: false });
+    if (!selected || Array.isArray(selected)) return null;
+    return {
+      path: selected,
+      isClaudeDirName: selected.endsWith('.claude'),
+      hasProjectsDir: false,
+    };
+  },
+  findWslClaudeRoots: async (): Promise<WslClaudeRootCandidate[]> => [],
 };
 
 // NotifyService-backed store methods of the WailsAPI.notifications slice (W14).

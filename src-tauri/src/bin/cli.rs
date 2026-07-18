@@ -26,9 +26,10 @@ use std::time::{Duration, Instant};
 use claude_devtools_lib::analysis::chunk_builder;
 use claude_devtools_lib::analytics;
 use claude_devtools_lib::discovery::path_decoder;
-use claude_devtools_lib::insights;
 use claude_devtools_lib::discovery::project_scanner;
 use claude_devtools_lib::discovery::session_lister;
+use claude_devtools_lib::discovery::{ongoing_detector, subagent_resolver};
+use claude_devtools_lib::insights;
 use claude_devtools_lib::discovery::subproject_registry::SubprojectRegistry;
 use claude_devtools_lib::parsing::session_parser;
 use claude_devtools_lib::types::domain::{Session, SessionsPaginationOptions};
@@ -212,6 +213,48 @@ fn cmd_show_session(project_id: &str, session_id: &str, format: &str) -> Result<
     Ok(())
 }
 
+fn cmd_dump_messages(project_id: &str, session_id: &str) -> Result<(), String> {
+    let (messages, _) = session_parser::parse_jsonl_file(&session_path(project_id, session_id)?)?;
+    emit_json(&messages)
+}
+
+fn cmd_dump_detail(project_id: &str, session_id: &str) -> Result<(), String> {
+    let path = session_path(project_id, session_id)?;
+    let parsed = session_parser::parse_session_file(&path)?;
+    let projects = projects_dir()?;
+    let subagents = subagent_resolver::resolve_subagents(
+        &projects,
+        project_id,
+        session_id,
+        &parsed.task_calls,
+        &parsed.messages,
+    );
+    let session = Session {
+        id: session_id.to_string(),
+        project_id: project_id.to_string(),
+        project_path: path_decoder::decode_path(&path_decoder::extract_base_dir(project_id)),
+        todo_data: None,
+        created_at: 0.0,
+        first_message: None,
+        message_timestamp: None,
+        has_subagents: !subagents.is_empty(),
+        message_count: parsed.messages.len() as u32,
+        is_ongoing: ongoing_detector::detect_ongoing(&path),
+        git_branch: None,
+        metadata_level: Some("deep".to_string()),
+        context_consumption: None,
+        compaction_count: None,
+        phase_breakdown: None,
+        custom_title: parsed.custom_title.clone(),
+        agent_name: parsed.agent_name.clone(),
+    };
+    emit_json(&chunk_builder::build_session_detail(
+        session,
+        parsed.messages,
+        subagents,
+    ))
+}
+
 fn cmd_tail(project_id: &str, session_id: &str) -> Result<(), String> {
     let path = session_path(project_id, session_id)?;
     let file = std::fs::File::open(&path).map_err(|e| format!("open failed: {e}"))?;
@@ -334,6 +377,14 @@ fn run(args: Vec<String>) -> Result<(), String> {
         "show-session" | "show" => match (positional.get(1), positional.get(2)) {
             (Some(p), Some(s)) => cmd_show_session(p, s, format),
             _ => Err("show-session requires <project_id> <session_id>".to_string()),
+        },
+        "dump-messages" => match (positional.get(1), positional.get(2)) {
+            (Some(p), Some(s)) => cmd_dump_messages(p, s),
+            _ => Err("dump-messages requires <project_id> <session_id>".to_string()),
+        },
+        "dump-detail" => match (positional.get(1), positional.get(2)) {
+            (Some(p), Some(s)) => cmd_dump_detail(p, s),
+            _ => Err("dump-detail requires <project_id> <session_id>".to_string()),
         },
         "tail" => match (positional.get(1), positional.get(2)) {
             (Some(p), Some(s)) => cmd_tail(p, s),
@@ -526,6 +577,12 @@ mod tests {
     fn accepts_valid_ids() {
         assert!(validate_id("project_id", "-Users-name-project").is_ok());
         assert!(validate_id("session_id", "abc-123_v2.5").is_ok());
+    }
+
+    #[test]
+    fn dump_commands_require_both_ids() {
+        assert!(run(vec!["dump-messages".to_string()]).is_err());
+        assert!(run(vec!["dump-detail".to_string()]).is_err());
     }
 
     #[test]
