@@ -1,0 +1,38 @@
+[
+  {
+    "text": "",
+    "count": 0
+  },
+  {
+    "text": "Hello, world!",
+    "count": 4
+  },
+  {
+    "text": "The quick brown fox jumps over the lazy dog.",
+    "count": 10
+  },
+  {
+    "text": "café — naïve — 日本語 — 🚀 — Ω≈ç√∫",
+    "count": 24
+  },
+  {
+    "text": "fn main() { println!(\"Hello\"); }\n\tlet x: u32 = 42;",
+    "count": 18
+  },
+  {
+    "text": "\u003c|endoftext|\u003e",
+    "count": 1
+  },
+  {
+    "text": "prefix \u003c|endoftext|\u003e suffix",
+    "count": 4
+  },
+  {
+    "text": "   \n\t  multiple   spaces\tand\ttabs\n\n",
+    "count": 9
+  },
+  {
+    "text": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "count": 7
+  }
+]

@@ -2,7 +2,7 @@
 
 Thanks for contributing to claude-devtools.
 
-This project is a fork of [matt1398/claude-devtools](https://github.com/matt1398/claude-devtools), rebuilt with Wails v3 and a Go backend.
+This project is a fork of [matt1398/claude-devtools](https://github.com/matt1398/claude-devtools), rebuilt with Tauri 2 and Rust.
 
 ## Project Philosophy & Scope
 
@@ -22,9 +22,9 @@ Our priorities:
 If you're considering a non-trivial contribution, **open an Issue first**.
 
 ## Prerequisites
-- [Go](https://go.dev/dl/) (stable toolchain)
+- [Rust](https://www.rust-lang.org/tools/install) (stable toolchain)
 - [bun](https://bun.sh/)
-- Wails v3 system dependencies ([see Wails docs](https://v3alpha.wails.io/getting-started/installation/))
+- Tauri 2 system dependencies for your platform
 
 ## Setup
 ```bash
@@ -36,14 +36,9 @@ bun run dev
 Before opening a PR, run:
 ```bash
 bun run typecheck
-bun run lint
 bun run test
-bun run build
-```
-
-Or all at once:
-```bash
-bun run check
+bun run test:rust
+bun run qa
 ```
 
 ## Pull Request Guidelines

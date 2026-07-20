@@ -1,0 +1,4 @@
+# Tauri build artifacts and codegen. Cargo.lock is intentionally NOT ignored
+# (app crate → committed for reproducible, auditable builds).
+/target
+/gen

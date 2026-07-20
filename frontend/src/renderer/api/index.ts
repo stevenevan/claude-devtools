@@ -1,25 +1,29 @@
-import { createWailsClient } from './wailsClient';
+import { createTauriClient } from './tauriClient';
 
-import type { WailsAPI } from '@shared/types/api';
+import type { DesktopAPI } from '@shared/types/api';
 
-let client: WailsAPI | null = null;
+let client: DesktopAPI | null = null;
+
+function createClient(): DesktopAPI {
+  return createTauriClient();
+}
 
 export async function initializeApi(): Promise<void> {
   if (!client) {
-    client = createWailsClient();
+    client = createClient();
   }
 }
 
-function getImpl(): WailsAPI {
+function getImpl(): DesktopAPI {
   if (!client) {
-    client = createWailsClient();
+    client = createClient();
   }
   return client;
 }
 
 export const isDesktopMode = (): boolean => true;
 
-export const api: WailsAPI = new Proxy({} as WailsAPI, {
+export const api: DesktopAPI = new Proxy({} as DesktopAPI, {
   get(_target, prop, receiver) {
     const impl = getImpl();
     const value = Reflect.get(impl, prop, receiver) as unknown;

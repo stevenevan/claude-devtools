@@ -1,0 +1,58 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "claude-devtools",
+  "version": "0.4.8",
+  "identifier": "com.claude-devtools.app",
+  "build": {
+    "beforeDevCommand": "cd frontend && bun run dev",
+    "devUrl": "http://127.0.0.1:9245",
+    "beforeBuildCommand": "cd frontend && bun run build",
+    "frontendDist": "../frontend/dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "claude-devtools",
+        "width": 1400,
+        "height": 900,
+        "minWidth": 900,
+        "minHeight": 600,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
+      }
+    ],
+    "security": {
+      "csp": {
+        "default-src": "'self' customprotocol: asset: http://asset.localhost",
+        "connect-src": "'self' ipc: http://ipc.localhost ws://ipc.localhost",
+        "font-src": "'self' data:",
+        "img-src": "'self' asset: http://asset.localhost blob: data:",
+        "style-src": "'self' 'unsafe-inline'",
+        "script-src": "'self' 'wasm-unsafe-eval'"
+      },
+      "devCsp": {
+        "default-src": "'self' customprotocol: asset: http://asset.localhost",
+        "connect-src": "'self' ipc: http://ipc.localhost ws://ipc.localhost http://127.0.0.1:9245 ws://127.0.0.1:9245",
+        "font-src": "'self' data:",
+        "img-src": "'self' asset: http://asset.localhost blob: data:",
+        "style-src": "'self' 'unsafe-inline'",
+        "script-src": "'self' 'wasm-unsafe-eval' http://127.0.0.1:9245"
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "app",
+    "macOS": {
+      "signingIdentity": "-"
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

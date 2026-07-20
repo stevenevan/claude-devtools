@@ -49,13 +49,6 @@ remotion/*
 # Bundle analysis
 stats.html
 
-# Wails
-/bin/
+# Tauri frontend output
 frontend/dist/
-frontend/bindings/
 frontend/node_modules/
-
-# Parity golden snapshots: large (~65MB), machine-derived from local ~/.claude,
-# regenerable via golden/manifest.json. Track the manifest, not the blobs.
-docs/wails-migration/golden/*.json
-!docs/wails-migration/golden/manifest.json.task/

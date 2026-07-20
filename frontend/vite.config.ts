@@ -1,6 +1,5 @@
-// Vite config for the Wails frontend: root = src/renderer, @renderer/@shared
-// aliases, Tailwind 4 + React Compiler, builds to frontend/dist for
-// `//go:embed all:frontend/dist`.
+// Vite config for the Tauri frontend: root = src/renderer, @renderer/@shared
+// aliases, Tailwind 4 + React Compiler, builds to frontend/dist.
 
 import babel from '@rolldown/plugin-babel'
 import tailwindcss from '@tailwindcss/vite'
@@ -31,10 +30,12 @@ export default defineConfig({
     },
   },
   server: {
-    // Bind IPv4 loopback: Wails' dev asset proxy dials tcp4 127.0.0.1, but Vite's
-    // default `localhost` resolves to IPv6 (::1) on macOS → "connection refused".
+    // Tauri's development URL uses IPv4 loopback.
     host: '127.0.0.1',
-    port: Number(process.env.WAILS_VITE_PORT) || 9245,
+    port: Number(process.env.TAURI_DEV_PORT) || 9245,
     strictPort: true,
+    watch: {
+      ignored: ['**/src-tauri/**'],
+    },
   },
 })

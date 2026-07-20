@@ -60,20 +60,21 @@ function createViewerMarkdownComponents(searchCtx: SearchContext | null): Compon
     ),
 
     // Links — inline element, no hl(); parent block element's hl() descends here
-    a: ({ href, children }) => (
-      <a
-        href={href}
-        className="cursor-pointer text-blue-400 no-underline hover:underline"
-        onClick={(e) => {
-          e.preventDefault();
-          if (href) {
-            void api.openExternal(href);
-          }
-        }}
-      >
-        {children}
-      </a>
-    ),
+    a: ({ href, children }) => {
+      const isExternal = /^https?:\/\//i.test(href ?? '');
+      return (
+        <a
+          href={isExternal ? href : undefined}
+          className="cursor-pointer text-blue-400 no-underline hover:underline"
+          onClick={(e) => {
+            e.preventDefault();
+            if (isExternal && href) void api.openExternal(href);
+          }}
+        >
+          {children}
+        </a>
+      );
+    },
 
     strong: ({ children }) => <strong className="text-foreground font-semibold">{children}</strong>,
     em: ({ children }) => <em className="text-foreground italic">{children}</em>,

@@ -1,0 +1,64 @@
+[package]
+name = "claude-devtools"
+version = "0.4.8"
+description = "Visualizes Claude Code session execution"
+edition = "2021"
+# Disambiguate the app binary (src/main.rs) from the CLI twin so cargo run /
+# tauri dev / tauri build know which binary is the app.
+default-run = "claude-devtools"
+
+# Shared backend lib used by the Tauri app (src/main.rs) and the read-only CLI
+# twin (src/bin/cli.rs). Ported week-by-week from internal/*.
+[lib]
+name = "claude_devtools_lib"
+
+# Read-only CLI twin — the parity oracle's Rust counterpart (mirrors cmd/cli).
+[[bin]]
+name = "claude-devtools-cli"
+path = "src/bin/cli.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+# float_roundtrip: parse f64 with full precision so raw-passthrough numbers
+# (e.g. toolUseResult.durationSeconds) round-trip byte-identically to Go's
+# encoding/json (whose default parser is correctly-rounded). Without it,
+# serde_json's best-effort parse differs from Go by up to 1 ULP → parity break.
+serde_json = { version = "1", features = ["float_roundtrip"] }
+dirs = "6"
+regex = "1"
+chrono = { version = "0.4", features = ["serde"] }
+lru = "0.16.3"
+sha2 = "0.10"
+base64 = "0.22"
+# cl100k_base token counting for the analytics path (W8). Same encoder family as
+# Go's weaviate/tiktoken-go; parity gated by tokenizer_matches_go_golden.
+tiktoken-rs = "0.6"
+# Snapshots (W9): frozen on-disk format gzip(json(detail)) via flate2; uuid v4 ids.
+flate2 = "1"
+uuid = { version = "1", features = ["v4"] }
+# File watcher (W10): recursive FS events. The 100ms per-path debounce is
+# hand-rolled to match Go's rjeczalik/notify runner exactly (not delegated to
+# notify-debouncer-full, whose coalescing would diverge from the Go oracle).
+notify = { version = "7", features = ["macos_fsevent"] }
+# SSH remote mode (W11). russh is async → the live-I/O commands run on a small
+# tokio runtime. russh >=0.60.3 fixes RUSTSEC-2026-0153/0154 (the old 0.48 pin was
+# vulnerable); keys are now `russh::keys` (the separate russh-keys crate is gone).
+# The residual rsa Marvin advisory (RUSTSEC-2023-0071, transitive, no upstream fix)
+# is documented + ignored in the audit gate.
+tokio = { version = "1", features = ["process", "io-util", "time", "rt-multi-thread", "sync", "net", "macros"] }
+russh = "0.60.3"
+russh-sftp = "2"
+# Config service (W12): OS launch-at-login sync (Go go-autostart/v2 equivalent).
+tauri-plugin-autostart = "2"
+# Config backup (W14): zip export/import (Go archive/zip equivalent, Deflate).
+zip = "8"
+# Notifications (W14): webhook delivery. max_redirects(0) closes redirect-SSRF.
+ureq = "3"
+# Native save/open dialogs + desktop toasts (W14 configbackup export/import + notify).
+tauri-plugin-dialog = "2"
+tauri-plugin-notification = "2"
+tauri-plugin-opener = "2"

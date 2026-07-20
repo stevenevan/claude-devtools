@@ -46,13 +46,14 @@ if ! command -v bun >/dev/null 2>&1; then
   fail "bun not installed"
 fi
 bun audit --audit-level high
+(cd frontend && bun audit --audit-level high)
 
 # 4. cargo deny
 step "Running cargo deny check"
 if ! command -v cargo-deny >/dev/null 2>&1; then
   fail "cargo-deny not installed. Install: cargo install cargo-deny --locked --version 0.16.4"
 fi
-(cd src-tauri && cargo deny --manifest-path Cargo.toml check)
+(cd src-tauri && cargo deny --manifest-path Cargo.toml --config ../deny.toml check)
 
 echo
 echo "ALL CHECKS PASSED"

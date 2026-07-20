@@ -17,10 +17,15 @@
     "url": "https://github.com/matt1398/claude-devtools/issues"
   },
   "scripts": {
-    "dev": "wails3 dev",
-    "build": "wails3 build",
-    "bindings": "wails3 generate bindings -ts",
-    "test": "go test ./...",
-    "test:frontend": "cd frontend && bun run build"
+    "dev": "tauri dev",
+    "build": "tauri build --no-bundle",
+    "package": "tauri build --bundles app",
+    "typecheck": "cd frontend && bunx tsc --noEmit",
+    "test": "cd frontend && bun test",
+    "test:rust": "cd src-tauri && cargo test",
+    "qa": "bun run typecheck && bun run test && bun run test:rust && bash scripts/qa-rust-grep-gate.sh"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
   }
 }
