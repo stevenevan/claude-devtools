@@ -1,6 +1,6 @@
 import { listen } from '@tauri-apps/api/event';
 
-// Wails `Events.On` returns its unlisten fn synchronously; Tauri `listen` returns
+// legacy `Events.On` returns its unlisten fn synchronously; Tauri `listen` returns
 // `Promise<UnlistenFn>`. Bridge the gap: return a synchronous unsubscribe that
 // unlistens once the pending listen resolves — and immediately if it was
 // unsubscribed before resolving. Double-unlisten is guarded by nulling the ref.

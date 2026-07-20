@@ -3,7 +3,7 @@
 //! single tokens, matching Go's `Encode(text, ["all"], nil)`. The encoder is
 //! expensive to build, so it is cached once via OnceLock.
 //!
-//! No `WailsAPI` slot: the frozen frontend estimates tokens itself
+//! No `DesktopAPI` slot: the frozen frontend estimates tokens itself
 //! (`@shared/utils/tokenFormatting.estimateTokens`) and never calls the Go
 //! `AnalyticsService.CountTokens`. This module exists for Go↔Rust module parity;
 //! `count_tokens`/`count_tokens_batch` are never adapter-wired.
@@ -62,10 +62,7 @@ mod tests {
         assert!(counts[2] > 0);
     }
 
-    // W08 PREMISE GATE. Loads the same tokenizer_cases.json the Go golden test
-    // generates (internal/paritytest/testdata) and asserts the Rust cl100k_base
-    // counts match Go's weaviate/tiktoken-go for every case. A green run on both
-    // sides proves the tokenizer parity premise before any token method is wired.
+    // Loads the committed tokenizer cases and asserts cl100k_base counts.
     #[test]
     fn tokenizer_matches_go_golden() {
         #[derive(serde::Deserialize)]
@@ -75,10 +72,10 @@ mod tests {
         }
         let path = concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../internal/paritytest/testdata/tokenizer_cases.json"
+            "/tests/fixtures/parity/tokenizer_cases.json"
         );
         let raw = std::fs::read_to_string(path)
-            .unwrap_or_else(|e| panic!("read {path} (run: GEN_GOLDENS=1 go test ./internal/paritytest -run TestTokenizerGolden): {e}"));
+            .unwrap_or_else(|e| panic!("read committed tokenizer fixture {path}: {e}"));
         let cases: Vec<Case> = serde_json::from_str(&raw).expect("parse tokenizer_cases.json");
         assert!(!cases.is_empty(), "no tokenizer cases");
         for c in &cases {

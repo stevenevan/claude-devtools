@@ -7,7 +7,7 @@ import type {
 
 import { call } from '../invoke';
 
-// SSH data methods (WailsAPI.ssh slice, W11). Mirrors sshservice's 8 commands.
+// SSH data methods (DesktopAPI.ssh slice, W11). Mirrors sshservice's 8 commands.
 // The `onStatus` event is wired separately in system.ts (sshEvents, W02); the
 // tauriClient merges both into the `ssh` slice. connect/test emit ssh-status
 // events (connecting → retrying → connected/error) that onStatus receives. No

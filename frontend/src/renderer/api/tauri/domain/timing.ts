@@ -2,9 +2,9 @@ import type { BackendCacheStats, BackendTimingSummary } from '@shared/types';
 
 import { call } from '../invoke';
 
-// Flat backend-observability methods (WailsAPI top-level, W8). Mirror
+// Flat backend-observability methods (DesktopAPI top-level, W8). Mirror
 // timingservice.GetBackendTimings/GetCacheStats/SetCacheCapacity/ClearSessionCache.
-// No reviveDates (the Wails adapter revives none of these).
+// No reviveDates (the legacy adapter revives none of these).
 export const timingCommands = {
   getBackendTimings: (limit?: number): Promise<BackendTimingSummary[]> =>
     call<BackendTimingSummary[]>('get_backend_timings', { limit: limit ?? null }),

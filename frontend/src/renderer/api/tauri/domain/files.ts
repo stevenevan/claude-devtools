@@ -1,4 +1,4 @@
-import type { ClaudeMdFileInfo, WailsAPI } from '@shared/types';
+import type { ClaudeMdFileInfo, DesktopAPI } from '@shared/types';
 import type {
   AgentConfig,
   ClaudeJSONBackup,
@@ -15,11 +15,11 @@ import type {
 
 import { call } from '../invoke';
 
-// Flat FilesService methods (WailsAPI top-level, W12). Mirrors the Wails filesApi
+// Flat FilesService methods (DesktopAPI top-level, W12). Mirrors the legacy filesApi
 // (domain/files.ts) method-for-method, routed through the Tauri invoke bridge.
-// Only the two backup-list methods revive dates, exactly like the Wails adapter.
+// Only the two backup-list methods revive dates, exactly like the legacy adapter.
 type FilesSlice = Pick<
-  WailsAPI,
+  DesktopAPI,
   | 'validatePath'
   | 'validateMentions'
   | 'readClaudeMdFiles'

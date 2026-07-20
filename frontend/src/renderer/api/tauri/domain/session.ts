@@ -1,9 +1,9 @@
-import type { PluginsAPI, SessionAPI, WailsAPI } from '@shared/types';
+import type { PluginsAPI, SessionAPI, DesktopAPI } from '@shared/types';
 
 import { call } from '../invoke';
 
 type FlatSessionCommands = Pick<
-  WailsAPI,
+  DesktopAPI,
   | 'getProjects'
   | 'getSessions'
   | 'getSessionsPaginated'
@@ -24,28 +24,28 @@ type FlatSessionCommands = Pick<
 >;
 
 export const sessionCommands: FlatSessionCommands = {
-  getProjects: () => call<Awaited<ReturnType<WailsAPI['getProjects']>>>('get_projects'),
-  getSessions: (projectId) => call<Awaited<ReturnType<WailsAPI['getSessions']>>>('get_sessions', { projectId }),
+  getProjects: () => call<Awaited<ReturnType<DesktopAPI['getProjects']>>>('get_projects'),
+  getSessions: (projectId) => call<Awaited<ReturnType<DesktopAPI['getSessions']>>>('get_sessions', { projectId }),
   getSessionsPaginated: (projectId, cursor, limit, options) =>
-    call<Awaited<ReturnType<WailsAPI['getSessionsPaginated']>>>('get_sessions_paginated', {
+    call<Awaited<ReturnType<DesktopAPI['getSessionsPaginated']>>>('get_sessions_paginated', {
       projectId,
       cursor,
       limit: limit ?? null,
       options: options ?? null,
     }),
   searchSessions: (projectId, query, maxResults) =>
-    call<Awaited<ReturnType<WailsAPI['searchSessions']>>>('search_sessions', {
+    call<Awaited<ReturnType<DesktopAPI['searchSessions']>>>('search_sessions', {
       projectId,
       query,
       maxResults: maxResults ?? null,
     }),
   searchAllProjects: (query, maxResults) =>
-    call<Awaited<ReturnType<WailsAPI['searchAllProjects']>>>('search_all_projects', {
+    call<Awaited<ReturnType<DesktopAPI['searchAllProjects']>>>('search_all_projects', {
       query,
       maxResults: maxResults ?? null,
     }),
   searchSessionsFiltered: (filters, maxResults) =>
-    call<Awaited<ReturnType<WailsAPI['searchSessionsFiltered']>>>('search_sessions_filtered', {
+    call<Awaited<ReturnType<DesktopAPI['searchSessionsFiltered']>>>('search_sessions_filtered', {
       query: filters.query ?? null,
       maxResults: maxResults ?? null,
       statusFilter: filters.statusFilter ?? null,
@@ -53,7 +53,7 @@ export const sessionCommands: FlatSessionCommands = {
       maxCreatedAt: filters.maxCreatedAt ?? null,
     }),
   searchSessionContent: (projectId, sessionId, query, isRegex, caseSensitive, cursor, pageSize) =>
-    call<Awaited<ReturnType<WailsAPI['searchSessionContent']>>>('search_session_content', {
+    call<Awaited<ReturnType<DesktopAPI['searchSessionContent']>>>('search_session_content', {
       projectId,
       sessionId,
       query,
@@ -63,51 +63,51 @@ export const sessionCommands: FlatSessionCommands = {
       pageSize: pageSize ?? null,
     }),
   getSessionDetail: (projectId, sessionId) =>
-    call<Awaited<ReturnType<WailsAPI['getSessionDetail']>>>(
+    call<Awaited<ReturnType<DesktopAPI['getSessionDetail']>>>(
       'get_session_detail',
       { projectId, sessionId },
       { reviveDates: true }
     ),
   getSessionDetailIncremental: (projectId, sessionId) =>
-    call<Awaited<ReturnType<WailsAPI['getSessionDetailIncremental']>>>(
+    call<Awaited<ReturnType<DesktopAPI['getSessionDetailIncremental']>>>(
       'get_session_detail_incremental',
       { projectId, sessionId },
       { reviveDates: true }
     ),
   getSessionMetrics: (projectId, sessionId) =>
-    call<Awaited<ReturnType<WailsAPI['getSessionMetrics']>>>('get_session_metrics', {
+    call<Awaited<ReturnType<DesktopAPI['getSessionMetrics']>>>('get_session_metrics', {
       projectId,
       sessionId,
     }),
   getWaterfallData: (projectId, sessionId) =>
-    call<Awaited<ReturnType<WailsAPI['getWaterfallData']>>>(
+    call<Awaited<ReturnType<DesktopAPI['getWaterfallData']>>>(
       'get_waterfall_data',
       { projectId, sessionId },
       { reviveDates: true }
     ),
   getSubagentDetail: (projectId, sessionId, subagentId) =>
-    call<Awaited<ReturnType<WailsAPI['getSubagentDetail']>>>(
+    call<Awaited<ReturnType<DesktopAPI['getSubagentDetail']>>>(
       'get_subagent_detail',
       { projectId, sessionId, subagentId },
       { reviveDates: true }
     ),
   getSessionGroups: (projectId, sessionId) =>
-    call<Awaited<ReturnType<WailsAPI['getSessionGroups']>>>('get_session_groups', {
+    call<Awaited<ReturnType<DesktopAPI['getSessionGroups']>>>('get_session_groups', {
       projectId,
       sessionId,
     }),
   getSessionsByIds: (projectId, sessionIds) =>
-    call<Awaited<ReturnType<WailsAPI['getSessionsByIds']>>>('get_sessions_by_ids', {
+    call<Awaited<ReturnType<DesktopAPI['getSessionsByIds']>>>('get_sessions_by_ids', {
       projectId,
       sessionIds,
     }),
   getRepositoryGroups: () =>
-    call<Awaited<ReturnType<WailsAPI['getRepositoryGroups']>>>('get_repository_groups'),
+    call<Awaited<ReturnType<DesktopAPI['getRepositoryGroups']>>>('get_repository_groups'),
   getWorktreeSessions: (worktreeId) =>
-    call<Awaited<ReturnType<WailsAPI['getWorktreeSessions']>>>('get_worktree_sessions', {
+    call<Awaited<ReturnType<DesktopAPI['getWorktreeSessions']>>>('get_worktree_sessions', {
       worktreeId,
     }),
-  parseNLQuery: (query) => call<Awaited<ReturnType<WailsAPI['parseNLQuery']>>>('parse_nl_query', { query }),
+  parseNLQuery: (query) => call<Awaited<ReturnType<DesktopAPI['parseNLQuery']>>>('parse_nl_query', { query }),
 };
 
 export const sessionApi: SessionAPI = {

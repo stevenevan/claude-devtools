@@ -31,7 +31,7 @@ serde_json = { version = "1", features = ["float_roundtrip"] }
 dirs = "6"
 regex = "1"
 chrono = { version = "0.4", features = ["serde"] }
-lru = "0.12"
+lru = "0.16.3"
 sha2 = "0.10"
 base64 = "0.22"
 # cl100k_base token counting for the analytics path (W8). Same encoder family as

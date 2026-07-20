@@ -192,8 +192,7 @@ fn resolve_claude_dir_returns_some() {
 }
 
 // ---------------------------------------------------------------------------
-// Parsers golden — cross-language byte-parity on the event shape.
-// The golden is generated from the Go oracle (internal/paritytest/testdata).
+// Parser golden — committed event-shape fixture.
 // ---------------------------------------------------------------------------
 
 #[derive(Deserialize)]
@@ -209,10 +208,10 @@ struct GoldenEntry {
 #[test]
 fn parsers_match_go_golden() {
     let path =
-        concat!(env!("CARGO_MANIFEST_DIR"), "/../internal/paritytest/testdata/watcher_events.golden.json");
+        concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/parity/watcher_events.golden.json");
     let raw = fs::read_to_string(path).unwrap_or_else(|_| {
         panic!(
-            "golden not found at {path}: run GEN_GOLDENS (orchestrator generates it from the Go oracle)"
+            "committed watcher fixture not found at {path}"
         )
     });
     let entries: Vec<GoldenEntry> = serde_json::from_str(&raw).expect("parse golden json");

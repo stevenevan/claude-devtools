@@ -2,8 +2,8 @@ import type { SessionDetail, SnapshotMeta, SnapshotsAPI } from '@shared/types';
 
 import { call } from '../invoke';
 
-// Snapshots slice (WailsAPI.snapshots, W9). Mirrors snapshotservice. `open`
-// revives dates (returns a SessionDetail) exactly like the Wails adapter
+// Snapshots slice (DesktopAPI.snapshots, W9). Mirrors snapshotservice. `open`
+// revives dates (returns a SessionDetail) exactly like the legacy adapter
 // (domain/sessions.ts); list/create/delete do not.
 export const snapshotsCommands: SnapshotsAPI = {
   list: (): Promise<SnapshotMeta[]> => call<SnapshotMeta[]>('snapshots_list'),

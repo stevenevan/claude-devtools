@@ -5,10 +5,8 @@
 use super::*;
 use crate::files::claudejson::CLAUDE_JSON_MASK;
 
-// W12 "masked reads identical" gate: loads the shared golden the Go paritytest
-// generates (internal/paritytest/testdata/mask_settings.golden.json) and asserts
-// mask_settings_secrets(input) is byte-identical to Go's MaskSettingsSecrets —
-// including Go's HTML escaping of `<`, `>`, `&`.
+// Loads the committed masked-settings fixture, including HTML escaping of `<`,
+// `>`, and `&`.
 #[test]
 fn mask_settings_matches_go_golden() {
     #[derive(serde::Deserialize)]
@@ -18,10 +16,10 @@ fn mask_settings_matches_go_golden() {
     }
     let path = concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../internal/paritytest/testdata/mask_settings.golden.json"
+        "/tests/fixtures/parity/mask_settings.golden.json"
     );
     let raw = std::fs::read_to_string(path).unwrap_or_else(|e| {
-        panic!("read {path} (run: GEN_GOLDENS=1 go test ./internal/paritytest -run TestMaskSettingsGolden): {e}")
+        panic!("read committed mask-settings fixture {path}: {e}")
     });
     let cases: Vec<Case> = serde_json::from_str(&raw).expect("parse mask_settings.golden.json");
     assert!(!cases.is_empty(), "no mask cases");

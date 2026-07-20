@@ -6,17 +6,15 @@ use crate::maintenance::types::{go_zero_time, CategorySpec};
 
 use chrono::{DateTime, Local, TimeZone, Utc};
 
-// Cross-language parity: loads the shared golden the Go paritytest generates
-// (internal/paritytest/testdata/maintenance_cutoffs.golden.json) and asserts
-// cutoff_default(id) matches Go's CutoffDefault for every registered id.
+// Loads the committed cutoff fixture for every registered category.
 #[test]
 fn cutoff_default_matches_go_golden() {
     let path = concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../internal/paritytest/testdata/maintenance_cutoffs.golden.json"
+        "/tests/fixtures/parity/maintenance_cutoffs.golden.json"
     );
     let raw = std::fs::read_to_string(path).unwrap_or_else(|e| {
-        panic!("read {path} (run: GEN_GOLDENS=1 go test ./internal/paritytest -run TestMaintenanceCutoffGolden): {e}")
+        panic!("read committed maintenance-cutoff fixture {path}: {e}")
     });
     let pairs: Vec<(String, i64)> =
         serde_json::from_str(&raw).expect("parse maintenance_cutoffs.golden.json");

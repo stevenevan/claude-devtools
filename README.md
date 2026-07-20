@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <sub>Based on <a href="https://github.com/matt1398/claude-devtools">matt1398/claude-devtools</a> (Electron). This fork replaces the Electron + Node.js sidecar architecture with <strong>Wails v3 + Go</strong> for a faster, lighter native experience.</sub>
+  <sub>Based on <a href="https://github.com/matt1398/claude-devtools">matt1398/claude-devtools</a> (Electron). This fork uses <strong>Tauri 2 + Rust</strong> for a fast native experience.</sub>
 </p>
 
 ---
@@ -20,9 +20,9 @@
 
 The [original claude-devtools](https://github.com/matt1398/claude-devtools) uses Electron with a Node.js/TypeScript backend (sidecar HTTP server). This fork:
 
-- **Replaced Electron with Wails v3** — smaller binary, lower memory usage, native OS integration
-- **Ported the entire backend to Go** — file watching (`rjeczalik/notify`), JSONL parsing (`encoding/json`), project scanning, chunk building, config management, notification triggers, and SSH support (`golang.org/x/crypto/ssh`, `pkg/sftp`) — all run natively without a Node.js runtime
-- **Removed the sidecar** — the frontend communicates directly with the Go backend via Wails v3 bindings, no intermediate HTTP server
+- **Replaced Electron with Tauri 2** — smaller binary, lower memory usage, native OS integration
+- **Runs the backend in Rust** — file watching, JSONL parsing, project scanning, chunk building, configuration, notifications, and SSH run without a Node.js sidecar
+- **Removed the sidecar** — the frontend uses Tauri IPC, with no intermediate HTTP server
 - **Switched to bun** as the JavaScript package manager and task runner
 - **Switched to oxlint/oxfmt** for linting and formatting
 
@@ -68,7 +68,7 @@ Subagent sessions rendered as expandable inline cards with their own metrics. Te
 
 ### SSH Remote Sessions
 
-Connect to remote machines over SSH and inspect Claude Code sessions there. Parses `~/.ssh/config`, supports agent forwarding, private keys, and password auth via `golang.org/x/crypto/ssh`.
+Connect to remote machines over SSH and inspect Claude Code sessions there. Parses `~/.ssh/config`, supports agent forwarding, private keys, and password auth.
 
 ### Multi-Pane Layout
 
@@ -95,12 +95,12 @@ Open multiple sessions side-by-side. Drag-and-drop tabs between panes, split vie
 
 | Layer | Technology |
 |-------|-----------|
-| Desktop framework | Wails v3 |
-| Backend | Go (rjeczalik/notify, golang.org/x/crypto/ssh, pkg/sftp, golang-lru) |
-| Frontend | React 18, TypeScript 5, Tailwind CSS 4, Zustand 5 |
+| Desktop framework | Tauri 2 |
+| Backend | Rust |
+| Frontend | React 19, TypeScript, Tailwind CSS 4, Zustand 5 |
 | Package manager | bun |
 | Linting/Formatting | oxlint, oxfmt |
-| Testing | Vitest |
+| Testing | Bun test + Cargo test |
 
 ---
 
@@ -108,9 +108,9 @@ Open multiple sessions side-by-side. Drag-and-drop tabs between panes, split vie
 
 ### Prerequisites
 
-- [Go](https://go.dev/dl/) (stable)
+- [Rust](https://www.rust-lang.org/tools/install) (stable)
 - [bun](https://bun.sh/)
-- Wails v3 system dependencies ([see Wails docs](https://v3alpha.wails.io/getting-started/installation/))
+- Tauri 2 system dependencies for your platform
 
 ### Setup
 
@@ -128,14 +128,12 @@ The app auto-discovers your Claude Code projects from `~/.claude/`.
 | Command | Description |
 |---------|-------------|
 | `bun run dev` | Development with hot reload |
-| `bun run build` | Production build (Wails) |
+| `bun run build` | Compile production Tauri app without a bundle |
+| `bun run package` | Build a macOS app bundle |
 | `bun run typecheck` | TypeScript type checking |
-| `bun run lint:fix` | Lint and auto-fix |
-| `bun run format` | Format code |
-| `bun run test` | Run all tests |
-| `bun run test:watch` | Watch mode |
-| `bun run test:coverage` | Coverage report |
-| `bun run check` | Full quality gate (types + lint + test + build) |
+| `bun run test` | Run frontend tests |
+| `bun run test:rust` | Run Rust tests |
+| `bun run qa` | Typecheck and run all test/safety gates |
 
 ---
 
@@ -145,7 +143,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
 ## Security
 
-The Go backend validates all inputs with strict path containment checks. File reads are constrained to the project root and `~/.claude`. See [SECURITY.md](SECURITY.md) for details.
+The Rust backend validates all inputs with strict path containment checks. File reads are constrained to the project root and `~/.claude`. See [SECURITY.md](SECURITY.md) for details.
 
 ## Acknowledgments
 

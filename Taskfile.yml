@@ -1,67 +1,33 @@
 version: '3'
 
-vars:
-  APP_NAME: "claude-devtools"
-  BIN_DIR: "bin"
-  PACKAGE_MANAGER: '{{.PACKAGE_MANAGER | default "bun"}}'
-  VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
-
-includes:
-  common: ./build/Taskfile.yml
-  windows: ./build/windows/Taskfile.yml
-  darwin: ./build/darwin/Taskfile.yml
-  linux: ./build/linux/Taskfile.yml
-
 tasks:
-  build:
-    summary: Builds the application
+  dev:
+    summary: Runs the Tauri app in development mode
     cmds:
-      - task: "{{OS}}:build"
+      - bun run dev
+
+  build:
+    summary: Builds the Tauri binary without bundling
+    cmds:
+      - bun run build
 
   package:
-    summary: Packages a production build of the application
+    summary: Creates a local/testing macOS app bundle
     cmds:
-      - task: "{{OS}}:package"
+      - bun run package
 
-  run:
-    summary: Runs the application
+  typecheck:
+    summary: Type-checks the frontend
     cmds:
-      - task: "{{OS}}:run"
+      - bun run typecheck
 
-  dev:
-    summary: Runs the application in development mode
+  test:
+    summary: Runs frontend and Rust tests
     cmds:
-      - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
-
-  setup:docker:
-    summary: Builds Docker image for cross-compilation (~800MB download)
-    cmds:
-      - task: common:setup:docker
-
-  build:server:
-    summary: Builds the application in server mode (no GUI, HTTP server only)
-    cmds:
-      - task: common:build:server
-
-  run:server:
-    summary: Runs the application in server mode
-    cmds:
-      - task: common:run:server
-
-  build:docker:
-    summary: Builds a Docker image for server mode deployment
-    cmds:
-      - task: common:build:docker
-
-  run:docker:
-    summary: Builds and runs the Docker image
-    cmds:
-      - task: common:run:docker
+      - bun run test
+      - bun run test:rust
 
   qa:
-    summary: Program-QA gate — gofmt, go vet, go test, and the grep-gate (the CI surface; no .github/ exists)
+    summary: Runs all Tauri quality gates
     cmds:
-      - sh -c 'out=$(gofmt -l .); if [ -n "$out" ]; then echo "gofmt needs formatting:"; echo "$out"; exit 1; fi'
-      - go vet ./...
-      - go test ./...
-      - bash scripts/qa-grep-gate.sh
+      - bun run qa

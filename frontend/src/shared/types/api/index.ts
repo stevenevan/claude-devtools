@@ -108,7 +108,7 @@ export interface SourcesView {
   provenance: Record<string, string>;
 }
 
-export interface WailsAPI {
+export interface DesktopAPI {
   getAppVersion: () => Promise<string>;
   getProjects: () => Promise<Project[]>;
   getSessions: (projectId: string) => Promise<Session[]>;

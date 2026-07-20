@@ -3,7 +3,7 @@
 //! Read commands return zero-values on the internal error where Go swallows;
 //! write commands propagate the sentinel/`files:` error strings verbatim.
 //! Every `crate::files::*` fn is imported under an `_impl` alias so the command
-//! name (the snake_case Wails contract) is free to match the Go method exactly.
+//! name (the snake_case legacy contract) is free to match the Go method exactly.
 
 use std::collections::HashMap;
 use std::path::Path;

@@ -2,20 +2,21 @@
 
 ## Network Activity
 
-claude-devtools makes **zero** outbound network calls to third-party servers. There is no telemetry, analytics, tracking, or data exfiltration of any kind.
+claude-devtools makes no telemetry, analytics, tracking, or automatic third-party network calls.
 
 | Network activity | When | User-initiated |
 |---|---|---|
 | SSH connections | Settings > SSH | Yes |
+| Configured webhooks | Notification settings | Yes |
 
-The app is a native Wails v3 desktop application — there is no HTTP server, no auto-updater phoning home, and no standalone/Docker mode.
+The app is a native Tauri desktop application. It exposes no HTTP server and does not phone home for updates.
 
 ## Data Handling
 
 - All session data is read **locally** from `~/.claude/` — it never leaves your machine.
 - The app does not write to session files.
 - Configuration is stored at `~/.claude/claude-devtools-config.json` on the local filesystem.
-- No data is sent to Anthropic, GitHub, or any other third party.
+- No data is sent to Anthropic, GitHub, or any other third party unless you configure a webhook or start an SSH connection.
 
 ## Backend Command Validation
 

@@ -17,9 +17,9 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { bridgeEvent } from '../eventBridge';
 import { call } from '../invoke';
 
-// Notification event wirings owned by the Wails "config" adapter, ported to
-// Tauri `listen`. Two-arg WailsAPI callbacks `(event, data)` are fed `null` as
-// the leading event arg, matching the current Wails adapter.
+// Notification event wirings owned by the legacy "config" adapter, ported to
+// Tauri `listen`. Two-arg DesktopAPI callbacks `(event, data)` are fed `null` as
+// the leading event arg, matching the current legacy adapter.
 export const notificationEvents = {
   onNew: (callback: (event: unknown, error: unknown) => void): (() => void) =>
     bridgeEvent<unknown>('notification:new', (data) => callback(null, data)),
@@ -33,14 +33,14 @@ export const notificationEvents = {
     bridgeEvent<unknown>('notification:clicked', (data) => callback(null, data)),
 };
 
-// ConfigService-backed methods of the WailsAPI.config slice (W12). Mirrors the
-// Wails configApiImpl (domain/config.ts) method-for-method, routed through the
-// Tauri invoke bridge. testTrigger is NotifyService-backed (W14) — the Wails
+// ConfigService-backed methods of the DesktopAPI.config slice (W12). Mirrors the
+// legacy configApiImpl (domain/config.ts) method-for-method, routed through the
+// Tauri invoke bridge. testTrigger is NotifyService-backed (W14) — the legacy
 // twin routes it through NotificationsTestTrigger, so the Tauri twin calls
 // `notifications_test_trigger`. The remaining ConfigAPI methods are host APIs
 // not ported here — selectFolders / selectClaudeRootFolder / findWslClaudeRoots
 // (native dialogs / WSL) — so they fall through to makeSlice's notPorted stub.
-// No reviveDates: the Wails config adapter revives none of these.
+// No reviveDates: the legacy config adapter revives none of these.
 type ConfigCommands = Pick<
   ConfigAPI,
   | 'get'
@@ -107,7 +107,7 @@ export const configApi: ConfigCommands = {
     call<AppConfig>('config_update_trigger', { triggerId, updates }),
   removeTrigger: (triggerId) => call<AppConfig>('config_remove_trigger', { triggerId }),
   getTriggers: () => call<NotificationTrigger[]>('config_get_triggers'),
-  // Wails passes null for the limit arg; match it.
+  // legacy passes null for the limit arg; match it.
   testTrigger: (trigger) =>
     call<TriggerTestResult>('notifications_test_trigger', { trigger, limit: null }),
   pinSession: (projectId, sessionId) => call<void>('config_pin_session', { projectId, sessionId }),
@@ -188,11 +188,11 @@ export const configApi: ConfigCommands = {
   findWslClaudeRoots: async (): Promise<WslClaudeRootCandidate[]> => [],
 };
 
-// NotifyService-backed store methods of the WailsAPI.notifications slice (W14).
-// Mirrors the Wails notificationsApiImpl (domain/config.ts) method-for-method.
+// NotifyService-backed store methods of the DesktopAPI.notifications slice (W14).
+// Mirrors the legacy notificationsApiImpl (domain/config.ts) method-for-method.
 // The three event methods (onNew/onUpdated/onClicked) live in notificationEvents
 // above. No reviveDates: DetectedError.createdAt/timestamp are plain numbers and
-// the Wails twin revives nothing here. The registered `get_state` command has no
+// the legacy twin revives nothing here. The registered `get_state` command has no
 // counterpart on the NotificationsAPI contract, so it is intentionally unwired.
 type NotificationsCommands = Pick<
   NotificationsAPI,
@@ -222,7 +222,7 @@ export const notificationsApi: NotificationsCommands = {
     call<void>('raise_config_drift', { file, hourBucket, keyCount }),
 };
 
-// NotifyService-backed webhook slice (W14). Mirrors the Wails webhookApiImpl.
+// NotifyService-backed webhook slice (W14). Mirrors the legacy webhookApiImpl.
 export const webhookApi: WebhookAPI = {
   testSend: (endpoint) => call<void>('webhook_test_send', { endpoint }),
 };

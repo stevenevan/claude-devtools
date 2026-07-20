@@ -18,5 +18,5 @@ export type * from './notifications';
 // Re-export visualization types (WaterfallData, WaterfallItem)
 export type * from './visualization';
 
-// Re-export API types (WailsAPI, ConfigAPI, etc.)
+// Re-export API types (DesktopAPI, ConfigAPI, etc.)
 export type * from './api';

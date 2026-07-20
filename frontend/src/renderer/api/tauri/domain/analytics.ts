@@ -8,10 +8,10 @@ import type {
 
 import { call } from '../invoke';
 
-// Flat analytics data methods (WailsAPI top-level, W8). Each mirrors
-// analyticsservice.Get* → analytics.Compute*. No reviveDates: the Wails adapter
+// Flat analytics data methods (DesktopAPI top-level, W8). Each mirrors
+// analyticsservice.Get* → analytics.Compute*. No reviveDates: the legacy adapter
 // (domain/analytics.ts) revives none of these, so the Tauri path must not either.
-// countTokens/countTokensBatch are intentionally absent — they have no WailsAPI
+// countTokens/countTokensBatch are intentionally absent — they have no DesktopAPI
 // slot (the frontend estimates tokens itself); tokenizer.rs is module-parity only.
 export const analyticsCommands = {
   getAnalytics: (days: number): Promise<AnalyticsResponse> =>

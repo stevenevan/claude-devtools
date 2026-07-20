@@ -156,7 +156,7 @@ fn is_secret_string_value(value: &Value) -> bool {
 /// Returns `value` with every secret-shaped key or value replaced by the mask,
 /// recursing into objects (masking children by their own key) and arrays (by
 /// value shape). Mirrors `maskJSONValue` exactly. Pure — never mutates input.
-pub(super) fn mask_json_value(key: &str, value: &Value) -> Value {
+pub(crate) fn mask_json_value(key: &str, value: &Value) -> Value {
     if is_secret_key(key) || is_secret_string_value(value) {
         return Value::String(CLAUDE_JSON_MASK.to_string());
     }

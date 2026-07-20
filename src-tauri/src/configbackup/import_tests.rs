@@ -36,10 +36,8 @@ fn read_json_map(path: &Path) -> Map<String, Value> {
     serde_json::from_slice(&raw).unwrap()
 }
 
-// Cross-language parity (W14 gate): applies the SAME committed fixture archive
-// the Go paritytest builds and asserts the SAME post-import settings.json +
-// hooks-disabled.json bytes — proving "import yields identical on-disk result
-// incl. disarmed hooks" across Go and Rust. Uses redirect_home; never touches
+// Applies the committed fixture archive and asserts the expected post-import
+// settings.json and hooks-disabled.json bytes. Uses redirect_home; never touches
 // real ~/.claude.
 #[test]
 fn apply_import_matches_go_golden() {
@@ -49,10 +47,10 @@ fn apply_import_matches_go_golden() {
         #[serde(rename = "hooksDisabled")]
         hooks_disabled: String,
     }
-    let base = concat!(env!("CARGO_MANIFEST_DIR"), "/../internal/paritytest/testdata/");
+    let base = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/parity/");
     let fixture = Path::new(base).join("configbackup_fixture.zip");
     let golden_raw = fs::read_to_string(Path::new(base).join("configbackup_import.golden.json"))
-        .unwrap_or_else(|e| panic!("read golden (run: GEN_GOLDENS=1 go test ./internal/paritytest -run TestConfigbackupImportGolden): {e}"));
+        .unwrap_or_else(|e| panic!("read committed import fixture: {e}"));
     let golden: Golden = serde_json::from_str(&golden_raw).expect("parse golden");
 
     let (_guard, root, app_data) = setup();

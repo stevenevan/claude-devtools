@@ -9,9 +9,9 @@ import { sshCommands } from './tauri/domain/ssh';
 import { contextEvents, sshEvents, systemCommands, systemEvents } from './tauri/domain/system';
 import { timingCommands } from './tauri/domain/timing';
 
-import type { WailsAPI } from '@shared/types/api';
+import type { DesktopAPI } from '@shared/types/api';
 
-export function createTauriClient(): WailsAPI {
+export function createTauriClient(): DesktopAPI {
   return {
     ...systemEvents,
     ...sessionCommands, // flat session data methods (getSessionDetail, …) — W7

@@ -1,0 +1,20 @@
+src-tauri/src/bin/cli.rs: //!   - CLAUDE_HOME / HOME env overrides ignored; dirs::home_dir() resolved once
+src-tauri/src/bin/cli.rs: dirs::home_dir().ok_or_else(|| "cannot resolve home directory (no fallback)".to_string())
+src-tauri/src/commands/maintenance/state.rs: let home = match dirs::home_dir() {
+src-tauri/src/config/root.rs: //! confinement guard anchor to `dirs::home_dir()/.claude` and MUST NOT consult
+src-tauri/src/config/root.rs: dirs::home_dir().ok_or_else(|| "cannot resolve home directory".to_string())
+src-tauri/src/config/root.rs: let home = dirs::home_dir().unwrap();
+src-tauri/src/files/claudejson.rs: let home = dirs::home_dir().ok_or_else(|| "files: cannot resolve home directory".to_string())?;
+src-tauri/src/files/pathutil.rs: if let Some(home) = dirs::home_dir() {
+src-tauri/src/main.rs: let claude_json_dir = dirs::home_dir().unwrap_or_default();
+src-tauri/src/notifications/manager.rs: let path = dirs::home_dir()
+src-tauri/src/ssh/agent_discovery.rs: let home = dirs::home_dir()?;
+src-tauri/src/ssh/config_parser.rs: let home = dirs::home_dir()?;
+src-tauri/src/ssh/config_parser.rs: let home = match dirs::home_dir() {
+src-tauri/src/ssh/connection_manager.rs: if let Some(home) = dirs::home_dir() {
+src-tauri/src/ssh/connection_manager.rs: let path = match dirs::home_dir() {
+src-tauri/src/ssh/known_hosts.rs: let home = dirs::home_dir().ok_or_else(|| "cannot resolve home directory".to_string())?;
+src-tauri/src/system.rs: ///     so we use `dirs::home_dir()/.claude` — not `watcher::resolve_claude_dir`.
+src-tauri/src/system.rs: let home = dirs::home_dir().ok_or("cannot resolve home directory")?;
+src-tauri/src/system.rs: let home = dirs::home_dir().ok_or_else(|| "cannot resolve home directory".to_string())?;
+src-tauri/src/watcher/parsers.rs: dirs::home_dir().map(|h| h.join(".claude"))

@@ -81,7 +81,7 @@ fn ssh_status(
 }
 
 // First real Tauri command (W7): the in-app session-detail load. Mirrors the
-// frozen WailsAPI `getSessionDetail(projectId, sessionId) => SessionDetail | null`.
+// frozen DesktopAPI `getSessionDetail(projectId, sessionId) => SessionDetail | null`.
 #[tauri::command(rename_all = "camelCase")]
 fn get_session_detail(project_id: String, session_id: String) -> Result<Option<SessionDetail>, String> {
     pipeline::get_session_detail(&project_id, &session_id).map(Some)
@@ -256,11 +256,11 @@ fn snapshots_open(snapshot_id: String) -> Result<SessionDetail, String> {
 // ── W10 file watcher bridge ──────────────────────────────────────────────────
 // The Tauri twin of systemservice.StartWatching/StopWatching. emit_fn = app.emit,
 // so watcher `file-change`/`todo-change`/`config-file-change` events reach the
-// frontend's W02 listeners identically to the Wails path. NOTE (verified): no
+// frontend's W02 listeners identically to the legacy path. NOTE (verified): no
 // tracked source on EITHER backend triggers StartWatching today — the frontend
 // listens but nothing starts the watcher (systemservice.go:71 "command-triggered,
 // not auto-started"; grep finds no caller). These commands complete the emit path
-// for when a trigger is added; they are not invoked by the frozen WailsAPI.
+// for when a trigger is added; they are not invoked by the frozen DesktopAPI.
 
 #[tauri::command(rename_all = "camelCase")]
 fn start_watching(app: tauri::AppHandle, watcher: State<'_, SharedWatcher>) -> Result<(), String> {
@@ -302,7 +302,7 @@ fn stop_watching(watcher: State<'_, SharedWatcher>) -> Result<(), String> {
 // ── W11 SSH commands (mirror sshservice's 8) ─────────────────────────────────
 // connect/test are async (russh). connect emits ssh-status (connecting →
 // retrying* → connected/error) via app.emit, reaching the frontend's W02
-// onStatus listener identically to the Wails path.
+// onStatus listener identically to the legacy path.
 
 #[tauri::command(rename_all = "camelCase")]
 async fn ssh_connect(
@@ -408,6 +408,15 @@ fn ssh_get_last_connection(last: State<'_, SharedLastConn>) -> Result<Option<Las
 #[tauri::command(rename_all = "camelCase")]
 fn get_app_version() -> Result<String, String> {
     Ok(system::app_version().to_string())
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn log_renderer_event(
+    level: String,
+    message: String,
+    context: serde_json::Value,
+) -> Result<(), String> {
+    system::log_renderer_event(&level, &message, &context)
 }
 
 #[tauri::command]
@@ -549,6 +558,7 @@ fn main() {
             ssh_save_last_connection,
             ssh_get_last_connection,
             get_app_version,
+            log_renderer_event,
             open_path,
             get_all_todos,
             plugins_discover,

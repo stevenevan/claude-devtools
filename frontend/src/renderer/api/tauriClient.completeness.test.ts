@@ -30,7 +30,7 @@ mock.module('@tauri-apps/plugin-opener', () => ({
   openUrl: async (url: URL) => openedUrls.push(url.toString()),
 }));
 
-// Complete WailsAPI contract: every call must resolve through Tauri or preserve
+// Complete DesktopAPI contract: every call must resolve through Tauri or preserve
 // its documented local no-op behavior. This list is intentionally explicit.
 const PORTED: Array<[string, (api: any) => unknown]> = [
   ['onFileChange', (a) => a.onFileChange(() => {})],
@@ -258,7 +258,7 @@ beforeAll(async () => {
   ({ createTauriClient } = await import('./tauriClient'));
 });
 
-test('every WailsAPI method resolves through Tauri', async () => {
+test('every DesktopAPI method resolves through Tauri', async () => {
   const api = createTauriClient();
   for (const [name, call] of PORTED) {
     await Promise.resolve(call(api));

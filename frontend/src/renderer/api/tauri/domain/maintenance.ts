@@ -14,14 +14,14 @@ import type {
   ScheduleStatus,
   SkillInventoryEntry,
   TrashReceipt,
-  WailsAPI,
+  DesktopAPI,
 } from '@shared/types';
 
 import { bridgeEvent } from '../eventBridge';
 import { call } from '../invoke';
 
-// Event wirings owned by the Wails "maintenance" adapter, ported to Tauri
-// `listen`. Payload shapes mirror the current Wails adapter exactly.
+// Event wirings owned by the legacy "maintenance" adapter, ported to Tauri
+// `listen`. Payload shapes mirror the current legacy adapter exactly.
 export const maintenanceEvents = {
   onScanProgress: (callback: (progress: MaintenanceScanProgress) => void): (() => void) =>
     bridgeEvent<MaintenanceScanProgress>('maintenance:scan-progress', callback),
@@ -35,15 +35,15 @@ export const maintenanceEvents = {
     ),
 };
 
-// The MaintenanceService data methods (W13 + W14). Mirrors the Wails
+// The MaintenanceService data methods (W13 + W14). Mirrors the legacy
 // maintenanceApi (domain/maintenance.ts) method-for-method, routed through the
-// Tauri invoke bridge. reviveDates opts in exactly where the Wails twin does:
+// Tauri invoke bridge. reviveDates opts in exactly where the legacy twin does:
 // TrashReceipt, DirUsage/Candidate mtimes, and HistoryStats. The config-backup
 // methods (captureConfig, listConfigBackups, restoreConfig, deleteConfigBackup,
 // exportBackup, validateImportDialog, applyImport) are W14 — never revived
-// (Manifest.createdMs is a plain number, matching the Wails twin).
+// (Manifest.createdMs is a plain number, matching the legacy twin).
 type MaintenanceCommands = Pick<
-  WailsAPI['maintenance'],
+  DesktopAPI['maintenance'],
   | 'scanClaudeDir'
   | 'cancelScan'
   | 'scanCategory'
@@ -182,7 +182,7 @@ export const maintenanceCommands: MaintenanceCommands = {
     call<TrashReceipt>('delete_memory_file', { dirId, fileName }, { reviveDates: true }),
 
   // Config backup (W14). createdMs is a plain number, not an ISO date — never
-  // reviveDates these, matching the Wails twin.
+  // reviveDates these, matching the legacy twin.
   captureConfig: (label) => call<Manifest>('capture_config', { label }),
 
   listConfigBackups: () => call<Manifest[]>('list_config_backups'),

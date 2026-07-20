@@ -2,7 +2,7 @@
 //!
 //! Mirrors `internal/sessionservice.buildSessionDetail`, NOT the CLI
 //! `show-session` path: it resolves subagents into `processes` and reports
-//! `has_subagents` / `is_ongoing`, matching the frozen `WailsAPI` contract
+//! `has_subagents` / `is_ongoing`, matching the frozen `DesktopAPI` contract
 //! (invariant #2). The CLI twin's empty-processes build stays in `bin/cli.rs`.
 
 use crate::analysis::chunk_builder::build_session_detail;

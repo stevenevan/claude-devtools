@@ -6,7 +6,7 @@ import type {
   HttpServerStatus,
   SshConnectionStatus,
   UpdaterAPI,
-  WailsAPI,
+  DesktopAPI,
 } from '@shared/types';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { openUrl } from '@tauri-apps/plugin-opener';
@@ -15,7 +15,7 @@ import { bridgeEvent } from '../eventBridge';
 import { call } from '../invoke';
 
 type SystemCommands = Pick<
-  WailsAPI,
+  DesktopAPI,
   | 'getAppVersion'
   | 'getZoomFactor'
   | 'openPath'
@@ -52,7 +52,7 @@ function validExternalUrl(value: string): URL | null {
   }
 }
 
-// Flat system data methods. Native methods preserve Wails' no-op updater,
+// Flat system data methods. Native methods preserve legacy' no-op updater,
 // context, and HTTP-server behavior while moving dialog/window/url calls to Tauri.
 export const systemCommands: SystemCommands = {
   getAppVersion: (): Promise<string> => call<string>('get_app_version'),
@@ -98,7 +98,7 @@ export const systemCommands: SystemCommands = {
   httpServer,
 };
 
-// Event wirings owned by the Wails "system" adapter, ported to Tauri `listen`.
+// Event wirings owned by the legacy "system" adapter, ported to Tauri `listen`.
 // Data methods (getAppVersion, openPath, windowControls, …) are ported by later
 // weeks and route to notPorted via makeSlice in tauriClient.
 
@@ -107,7 +107,7 @@ export const systemEvents = {
     bridgeEvent<FileChangeEvent>('file-change', callback),
   onTodoChange: (callback: (event: FileChangeEvent) => void): (() => void) =>
     bridgeEvent<FileChangeEvent>('todo-change', callback),
-  // No backing event today — the Wails client stubs these too. Do NOT invent a name.
+  // No backing event today — the legacy client stubs these too. Do NOT invent a name.
   onZoomFactorChanged: (_callback: (zoomFactor: number) => void): (() => void) => () => {},
   onSessionRefresh: (_callback: () => void): (() => void) => () => {},
 };
@@ -117,7 +117,7 @@ export const sshEvents = {
     bridgeEvent<SshConnectionStatus>('ssh-status', (data) => callback(null, data)),
 };
 
-// No backing event today (Wails no-op) — matches current behavior.
+// No backing event today (legacy no-op) — matches current behavior.
 export const contextEvents = {
   onChanged: (_callback: (event: unknown, data: ContextInfo) => void): (() => void) => () => {},
 };

@@ -1,4 +1,4 @@
-import { LogRendererEvent } from '../../../bindings/claude-devtools/internal/systemservice/systemservice';
+import { invoke } from '@tauri-apps/api/core';
 
 type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 
@@ -50,7 +50,7 @@ function emit(level: LogLevel, msg: string, ctx?: Record<string, unknown>): void
       // eslint-disable-next-line no-console -- intentional dev mirror so console still surfaces logger calls
       (console[level] ?? console.log).call(console, `[${level}]`, safeMsg, safeCtx);
     }
-    void LogRendererEvent(level, safeMsg, safeCtx).catch(() => {
+    void invoke('log_renderer_event', { level, message: safeMsg, context: safeCtx }).catch(() => {
       /* swallow — never throw from logger */
     });
   } catch {
