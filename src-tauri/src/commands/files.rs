@@ -10,8 +10,9 @@ use std::path::Path;
 
 use serde_json::{Map, Value};
 
-use crate::config::root::app_data_dir;
+use crate::config::root::{app_data_dir, claude_dir};
 use crate::files::agents_write::{read_agent_configs as read_agent_configs_impl, AgentConfig};
+use crate::files::claude_read::{self, FileMeta};
 use crate::files::claudejson::{
     list_claude_json_backups as list_backups_impl, read_claude_json as read_claude_json_impl,
     read_claude_json_backup as read_backup_impl, read_claude_json_masked as read_masked_impl,
@@ -224,4 +225,19 @@ pub fn list_claude_json_app_backups() -> Result<Vec<ClaudeJsonBackup>, String> {
 #[tauri::command(rename_all = "camelCase")]
 pub fn restore_claude_json_app_backup(name: String) -> Result<(), String> {
     restore_app_backup_impl(&name)
+}
+
+// ── read-only viewers (shell-snapshots) ──
+
+#[tauri::command]
+pub fn list_shell_snapshots() -> Result<Vec<FileMeta>, String> {
+    let root = claude_dir()?;
+    claude_read::list_dir_files(&root.to_string_lossy(), "shell-snapshots", "sh")
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn read_shell_snapshot(name: String) -> Result<String, String> {
+    let root = claude_dir()?;
+    let bytes = claude_read::read_confined_file(&root.to_string_lossy(), "shell-snapshots", &name)?;
+    Ok(String::from_utf8_lossy(&bytes).into_owned())
 }
