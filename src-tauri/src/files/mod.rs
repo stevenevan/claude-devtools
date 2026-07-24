@@ -13,6 +13,7 @@ pub mod fsutil;
 pub mod history_reader;
 pub mod hooks_write;
 pub mod json_util;
+pub mod marketplace_reader;
 pub mod mcp_status;
 pub mod memory;
 pub mod memory_write;

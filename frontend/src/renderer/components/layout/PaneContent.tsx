@@ -56,6 +56,9 @@ const HistoryBrowser = lazy(() =>
 const TranscriptsViewer = lazy(() =>
   import('../dashboard/TranscriptsViewer').then((m) => ({ default: m.TranscriptsViewer }))
 );
+const MarketplaceBrowser = lazy(() =>
+  import('../dashboard/MarketplaceBrowser').then((m) => ({ default: m.MarketplaceBrowser }))
+);
 
 const LazyFallback = (): JSX.Element => (
   <div className="bg-background flex flex-1 items-center justify-center">
@@ -89,7 +92,8 @@ export const PaneContent = ({ pane }: PaneContentProps): JSX.Element => {
     activeActivity === 'search' ||
     activeActivity === 'maintenance' ||
     activeActivity === 'history' ||
-    activeActivity === 'transcripts';
+    activeActivity === 'transcripts' ||
+    activeActivity === 'marketplace';
   const showGlobalContent = isGlobalActivity || showDefaultContent;
 
   return (
@@ -119,6 +123,7 @@ export const PaneContent = ({ pane }: PaneContentProps): JSX.Element => {
               {activeActivity === 'maintenance' && <MaintenanceView />}
               {activeActivity === 'history' && <HistoryBrowser />}
               {activeActivity === 'transcripts' && <TranscriptsViewer />}
+              {activeActivity === 'marketplace' && <MarketplaceBrowser />}
             </Suspense>
           </ErrorBoundary>
         </div>

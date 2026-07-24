@@ -23,6 +23,7 @@ import {
   ScrollText,
   Settings,
   Sparkles,
+  Store,
   Wrench,
 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -191,6 +192,13 @@ export const ActivityBar = (): JSX.Element => {
                 activity="transcripts"
                 isActive={activeActivity === 'transcripts'}
                 onClick={() => setActiveActivity('transcripts')}
+              />
+              <ActivityBarItem
+                icon={Store}
+                label="Marketplace"
+                activity="marketplace"
+                isActive={activeActivity === 'marketplace'}
+                onClick={() => setActiveActivity('marketplace')}
               />
             </>
           )}

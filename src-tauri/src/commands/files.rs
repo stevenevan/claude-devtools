@@ -15,6 +15,7 @@ use crate::files::agents_write::{read_agent_configs as read_agent_configs_impl, 
 use crate::files::claude_read::{self, FileMeta};
 use crate::files::filehistory_reader::{self, CheckpointGroup};
 use crate::files::history_reader::{self, HistoryPage};
+use crate::files::marketplace_reader::{self, MarketplaceCatalog};
 use crate::files::transcripts_reader::{self, TranscriptRecord};
 use crate::files::claudejson::{
     list_claude_json_backups as list_backups_impl, read_claude_json as read_claude_json_impl,
@@ -305,4 +306,12 @@ pub fn list_transcripts() -> Result<Vec<FileMeta>, String> {
 pub fn read_transcript(id: String) -> Result<Vec<TranscriptRecord>, String> {
     let root = claude_dir()?;
     transcripts_reader::read_transcript(&root.to_string_lossy(), &id)
+}
+
+// ── read-only viewers (marketplace) ──
+
+#[tauri::command]
+pub fn read_marketplace_catalog() -> Result<MarketplaceCatalog, String> {
+    let root = claude_dir()?;
+    marketplace_reader::read_marketplace_catalog(&root.to_string_lossy())
 }

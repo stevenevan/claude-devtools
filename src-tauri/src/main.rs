@@ -647,6 +647,7 @@ fn main() {
             files_cmds::read_history_page,
             files_cmds::list_transcripts,
             files_cmds::read_transcript,
+            files_cmds::read_marketplace_catalog,
             // ── W13 maintenance: service.go ──
             maintenance_cmds::scan_claude_dir,
             maintenance_cmds::scan_category,

@@ -3,6 +3,7 @@ import type {
   DesktopAPI,
   FileMeta,
   HistoryPage,
+  MarketplaceCatalog,
   TranscriptRecord,
 } from '@shared/types/api';
 
@@ -20,6 +21,7 @@ type ClaudeFilesSlice = Pick<
   | 'readHistoryPage'
   | 'listTranscripts'
   | 'readTranscript'
+  | 'readMarketplaceCatalog'
 >;
 
 export const claudeFilesCommands: ClaudeFilesSlice = {
@@ -35,4 +37,5 @@ export const claudeFilesCommands: ClaudeFilesSlice = {
     call<HistoryPage>('read_history_page', { before, limit, query }),
   listTranscripts: () => call<FileMeta[]>('list_transcripts'),
   readTranscript: (id) => call<TranscriptRecord[]>('read_transcript', { id }),
+  readMarketplaceCatalog: () => call<MarketplaceCatalog>('read_marketplace_catalog'),
 };

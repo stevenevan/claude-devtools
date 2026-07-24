@@ -34,6 +34,7 @@ import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
 import type { HistoryPage } from './history';
 import type { MaintenanceAPI } from './maintenance';
+import type { MarketplaceCatalog } from './marketplace';
 import type { TranscriptRecord } from './transcripts';
 import type { MCPStatusView } from './mcp';
 import type { PermissionRulesView, PermissionScope } from './permissions';
@@ -56,6 +57,7 @@ export type * from './configBackup';
 export type * from './context';
 export type * from './history';
 export type * from './maintenance';
+export type * from './marketplace';
 export type * from './mcp';
 export type * from './memory';
 export type * from './permissions';
@@ -279,6 +281,7 @@ export interface DesktopAPI {
   readHistoryPage: (before: number | null, limit: number, query?: string) => Promise<HistoryPage>;
   listTranscripts: () => Promise<FileMeta[]>;
   readTranscript: (id: string) => Promise<TranscriptRecord[]>;
+  readMarketplaceCatalog: () => Promise<MarketplaceCatalog>;
 
   // Notifications API
   notifications: NotificationsAPI;
