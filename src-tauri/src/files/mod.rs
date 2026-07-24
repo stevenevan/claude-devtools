@@ -10,8 +10,10 @@ pub mod claudejson;
 pub mod claudejson_write;
 pub mod filehistory_reader;
 pub mod fsutil;
+pub mod history_reader;
 pub mod hooks_write;
 pub mod json_util;
+pub mod marketplace_reader;
 pub mod mcp_status;
 pub mod memory;
 pub mod memory_write;
@@ -23,7 +25,9 @@ pub mod settings_generations;
 pub mod settings_sources;
 pub mod settings_write;
 pub mod skills_inventory;
+pub mod task_graph_reader;
 pub mod text_write;
+pub mod transcripts_reader;
 pub mod usage_reader;
 
 // One process-wide lock shared by every test that redirects `$HOME` /

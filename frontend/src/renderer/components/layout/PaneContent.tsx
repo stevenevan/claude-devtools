@@ -50,6 +50,18 @@ const GlobalContentView = lazy(() =>
 const MaintenanceView = lazy(() =>
   import('../maintenance/MaintenanceView').then((m) => ({ default: m.MaintenanceView }))
 );
+const HistoryBrowser = lazy(() =>
+  import('../dashboard/HistoryBrowser').then((m) => ({ default: m.HistoryBrowser }))
+);
+const TranscriptsViewer = lazy(() =>
+  import('../dashboard/TranscriptsViewer').then((m) => ({ default: m.TranscriptsViewer }))
+);
+const MarketplaceBrowser = lazy(() =>
+  import('../dashboard/MarketplaceBrowser').then((m) => ({ default: m.MarketplaceBrowser }))
+);
+const TaskGraphViewer = lazy(() =>
+  import('../dashboard/TaskGraphViewer').then((m) => ({ default: m.TaskGraphViewer }))
+);
 
 const LazyFallback = (): JSX.Element => (
   <div className="bg-background flex flex-1 items-center justify-center">
@@ -81,7 +93,11 @@ export const PaneContent = ({ pane }: PaneContentProps): JSX.Element => {
     activeActivity === 'settings' ||
     activeActivity === 'notifications' ||
     activeActivity === 'search' ||
-    activeActivity === 'maintenance';
+    activeActivity === 'maintenance' ||
+    activeActivity === 'history' ||
+    activeActivity === 'transcripts' ||
+    activeActivity === 'marketplace' ||
+    activeActivity === 'taskGraph';
   const showGlobalContent = isGlobalActivity || showDefaultContent;
 
   return (
@@ -109,6 +125,10 @@ export const PaneContent = ({ pane }: PaneContentProps): JSX.Element => {
               {activeActivity === 'search' && <SearchView />}
               {activeActivity === 'settings' && <SettingsView />}
               {activeActivity === 'maintenance' && <MaintenanceView />}
+              {activeActivity === 'history' && <HistoryBrowser />}
+              {activeActivity === 'transcripts' && <TranscriptsViewer />}
+              {activeActivity === 'marketplace' && <MarketplaceBrowser />}
+              {activeActivity === 'taskGraph' && <TaskGraphViewer />}
             </Suspense>
           </ErrorBoundary>
         </div>

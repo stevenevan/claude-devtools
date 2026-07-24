@@ -32,7 +32,10 @@ import type { CheckpointGroup, FileMeta } from './claudeFiles';
 import type { ClaudeJSONBackup, ClaudeJSONCensus, PurgeResult } from './claudeJson';
 import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
+import type { HistoryPage } from './history';
 import type { MaintenanceAPI } from './maintenance';
+import type { MarketplaceCatalog } from './marketplace';
+import type { TranscriptRecord } from './transcripts';
 import type { MCPStatusView } from './mcp';
 import type { PermissionRulesView, PermissionScope } from './permissions';
 import type { NotificationsAPI } from './notificationsApi';
@@ -43,6 +46,7 @@ import type { SnapshotsAPI } from './snapshots';
 import type { SshAPI } from './ssh';
 import type { Suggestion } from './suggestions';
 import type { HttpServerAPI, UpdaterAPI } from './system';
+import type { TaskGraphMeta, TaskNode } from './taskGraph';
 import type { WebhookAPI } from './webhook';
 
 export type * from './agents';
@@ -52,7 +56,9 @@ export type * from './claudeJson';
 export type * from './config';
 export type * from './configBackup';
 export type * from './context';
+export type * from './history';
 export type * from './maintenance';
+export type * from './marketplace';
 export type * from './mcp';
 export type * from './memory';
 export type * from './permissions';
@@ -65,6 +71,8 @@ export type * from './snapshots';
 export type * from './ssh';
 export type * from './suggestions';
 export type * from './system';
+export type * from './taskGraph';
+export type * from './transcripts';
 export type * from './webhook';
 
 export interface GlobalSettingsPatch {
@@ -272,6 +280,12 @@ export interface DesktopAPI {
   readTelemetryEvent: (name: string) => Promise<unknown>;
   listFileHistory: () => Promise<CheckpointGroup[]>;
   readCheckpoint: (sessionUuid: string, fileHash: string, version: number) => Promise<string>;
+  readHistoryPage: (before: number | null, limit: number, query?: string) => Promise<HistoryPage>;
+  listTranscripts: () => Promise<FileMeta[]>;
+  readTranscript: (id: string) => Promise<TranscriptRecord[]>;
+  readMarketplaceCatalog: () => Promise<MarketplaceCatalog>;
+  listTaskGraphs: () => Promise<TaskGraphMeta[]>;
+  readTaskGraph: (uuid: string) => Promise<TaskNode[]>;
 
   // Notifications API
   notifications: NotificationsAPI;

@@ -14,6 +14,10 @@ use crate::config::root::{app_data_dir, claude_dir};
 use crate::files::agents_write::{read_agent_configs as read_agent_configs_impl, AgentConfig};
 use crate::files::claude_read::{self, FileMeta};
 use crate::files::filehistory_reader::{self, CheckpointGroup};
+use crate::files::history_reader::{self, HistoryPage};
+use crate::files::marketplace_reader::{self, MarketplaceCatalog};
+use crate::files::task_graph_reader::{self, TaskGraphMeta, TaskNode};
+use crate::files::transcripts_reader::{self, TranscriptRecord};
 use crate::files::claudejson::{
     list_claude_json_backups as list_backups_impl, read_claude_json as read_claude_json_impl,
     read_claude_json_backup as read_backup_impl, read_claude_json_masked as read_masked_impl,
@@ -277,4 +281,52 @@ pub fn list_file_history() -> Result<Vec<CheckpointGroup>, String> {
 pub fn read_checkpoint(session_uuid: String, file_hash: String, version: u32) -> Result<String, String> {
     let root = claude_dir()?;
     filehistory_reader::read_checkpoint(&root.to_string_lossy(), &session_uuid, &file_hash, version)
+}
+
+// ── read-only viewers (history) ──
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn read_history_page(
+    before: Option<i64>,
+    limit: usize,
+    query: Option<String>,
+) -> Result<HistoryPage, String> {
+    let root = claude_dir()?;
+    history_reader::read_history_page(&root.to_string_lossy(), before, limit, query.as_deref())
+}
+
+// ── read-only viewers (transcripts) ──
+
+#[tauri::command]
+pub fn list_transcripts() -> Result<Vec<FileMeta>, String> {
+    let root = claude_dir()?;
+    claude_read::list_dir_files(&root.to_string_lossy(), "transcripts", "jsonl")
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn read_transcript(id: String) -> Result<Vec<TranscriptRecord>, String> {
+    let root = claude_dir()?;
+    transcripts_reader::read_transcript(&root.to_string_lossy(), &id)
+}
+
+// ── read-only viewers (marketplace) ──
+
+#[tauri::command]
+pub fn read_marketplace_catalog() -> Result<MarketplaceCatalog, String> {
+    let root = claude_dir()?;
+    marketplace_reader::read_marketplace_catalog(&root.to_string_lossy())
+}
+
+// ── read-only viewers (task-graph) ──
+
+#[tauri::command]
+pub fn list_task_graphs() -> Result<Vec<TaskGraphMeta>, String> {
+    let root = claude_dir()?;
+    task_graph_reader::list_task_graphs(&root.to_string_lossy())
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn read_task_graph(uuid: String) -> Result<Vec<TaskNode>, String> {
+    let root = claude_dir()?;
+    task_graph_reader::read_task_graph(&root.to_string_lossy(), &uuid)
 }

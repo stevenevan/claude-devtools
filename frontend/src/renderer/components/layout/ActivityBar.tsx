@@ -16,11 +16,15 @@ import {
   Bot,
   FolderGit2,
   HelpCircle,
+  History,
   ListTodo,
   MessageSquareText,
   Puzzle,
+  ScrollText,
   Settings,
   Sparkles,
+  Store,
+  Workflow,
   Wrench,
 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -174,6 +178,38 @@ export const ActivityBar = (): JSX.Element => {
             isActive={activeActivity === 'todos'}
             onClick={() => setActiveActivity('todos')}
           />
+          {isDesktopMode() && (
+            <>
+              <ActivityBarItem
+                icon={History}
+                label="History"
+                activity="history"
+                isActive={activeActivity === 'history'}
+                onClick={() => setActiveActivity('history')}
+              />
+              <ActivityBarItem
+                icon={ScrollText}
+                label="Transcripts"
+                activity="transcripts"
+                isActive={activeActivity === 'transcripts'}
+                onClick={() => setActiveActivity('transcripts')}
+              />
+              <ActivityBarItem
+                icon={Store}
+                label="Marketplace"
+                activity="marketplace"
+                isActive={activeActivity === 'marketplace'}
+                onClick={() => setActiveActivity('marketplace')}
+              />
+              <ActivityBarItem
+                icon={Workflow}
+                label="Task Graph"
+                activity="taskGraph"
+                isActive={activeActivity === 'taskGraph'}
+                onClick={() => setActiveActivity('taskGraph')}
+              />
+            </>
+          )}
         </div>
 
         <div className="flex-1" />
