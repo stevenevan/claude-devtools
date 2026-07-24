@@ -45,6 +45,7 @@ use crate::files::settings_write::{
     read_global_settings as read_settings_impl, update_global_settings as update_settings_impl,
     SettingsPatch,
 };
+use crate::files::usage_reader;
 use crate::insights::permissions_analyzer::{analyze_usage, Suggestion};
 
 #[tauri::command(rename_all = "camelCase")]
@@ -240,4 +241,25 @@ pub fn read_shell_snapshot(name: String) -> Result<String, String> {
     let root = claude_dir()?;
     let bytes = claude_read::read_confined_file(&root.to_string_lossy(), "shell-snapshots", &name)?;
     Ok(String::from_utf8_lossy(&bytes).into_owned())
+}
+
+// ── read-only viewers (usage/telemetry) ──
+
+#[tauri::command]
+pub fn read_usage_stats() -> Result<Value, String> {
+    let root = claude_dir()?;
+    usage_reader::read_usage_stats(&root.to_string_lossy())
+}
+
+#[tauri::command]
+pub fn list_telemetry_events() -> Result<Vec<FileMeta>, String> {
+    let root = claude_dir()?;
+    claude_read::list_dir_files(&root.to_string_lossy(), "telemetry", "json")
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn read_telemetry_event(name: String) -> Result<Value, String> {
+    let root = claude_dir()?;
+    let bytes = claude_read::read_confined_file(&root.to_string_lossy(), "telemetry", &name)?;
+    serde_json::from_slice(&bytes).map_err(|e| e.to_string())
 }

@@ -639,6 +639,9 @@ fn main() {
             // ── read-only viewers ──
             files_cmds::list_shell_snapshots,
             files_cmds::read_shell_snapshot,
+            files_cmds::read_usage_stats,
+            files_cmds::list_telemetry_events,
+            files_cmds::read_telemetry_event,
             // ── W13 maintenance: service.go ──
             maintenance_cmds::scan_claude_dir,
             maintenance_cmds::scan_category,
