@@ -173,6 +173,14 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['removePermissionRule', (a) => a.removePermissionRule('global', 'allow', 'r')],
   ['movePermissionRule', (a) => a.movePermissionRule('global', 'projectLocal', 'allow', 'allow', 'r')],
   ['analyzePermissionSuggestions', (a) => a.analyzePermissionSuggestions('r')],
+  // read-only ~/.claude viewers (shell snapshots, usage/telemetry, file-history)
+  ['listShellSnapshots', (a) => a.listShellSnapshots()],
+  ['readShellSnapshot', (a) => a.readShellSnapshot('x')],
+  ['readUsageStats', (a) => a.readUsageStats()],
+  ['listTelemetryEvents', (a) => a.listTelemetryEvents()],
+  ['readTelemetryEvent', (a) => a.readTelemetryEvent('x')],
+  ['listFileHistory', (a) => a.listFileHistory()],
+  ['readCheckpoint', (a) => a.readCheckpoint('u', 'h', 1)],
   // W13: maintenance slice data methods (41). Config-backup methods stay notPorted (W14).
   ['maintenance.scanClaudeDir', (a) => a.maintenance.scanClaudeDir()],
   ['maintenance.cancelScan', (a) => a.maintenance.cancelScan()],

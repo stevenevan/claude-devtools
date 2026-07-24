@@ -28,6 +28,7 @@ import type {
 import type { WaterfallData } from '../visualization';
 import type { AgentConfig, GlobalPlugin } from './agents';
 import type { BackendCacheStats, BackendTimingSummary } from './backend';
+import type { CheckpointGroup, FileMeta } from './claudeFiles';
 import type { ClaudeJSONBackup, ClaudeJSONCensus, PurgeResult } from './claudeJson';
 import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
@@ -46,6 +47,7 @@ import type { WebhookAPI } from './webhook';
 
 export type * from './agents';
 export type * from './backend';
+export type * from './claudeFiles';
 export type * from './claudeJson';
 export type * from './config';
 export type * from './configBackup';
@@ -261,6 +263,15 @@ export interface DesktopAPI {
   // Permission analyzer (Week 30). Mines the user's own structured tool_use
   // records under `root` and returns narrowest-match allow-rule suggestions.
   analyzePermissionSuggestions: (root: string) => Promise<Suggestion[]>;
+
+  // read-only ~/.claude viewers
+  listShellSnapshots: () => Promise<FileMeta[]>;
+  readShellSnapshot: (name: string) => Promise<string>;
+  readUsageStats: () => Promise<unknown>;
+  listTelemetryEvents: () => Promise<FileMeta[]>;
+  readTelemetryEvent: (name: string) => Promise<unknown>;
+  listFileHistory: () => Promise<CheckpointGroup[]>;
+  readCheckpoint: (sessionUuid: string, fileHash: string, version: number) => Promise<string>;
 
   // Notifications API
   notifications: NotificationsAPI;
