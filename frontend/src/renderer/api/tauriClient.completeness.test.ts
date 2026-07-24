@@ -182,6 +182,8 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['listFileHistory', (a) => a.listFileHistory()],
   ['readCheckpoint', (a) => a.readCheckpoint('u', 'h', 1)],
   ['readHistoryPage', (a) => a.readHistoryPage(null, 50)],
+  ['listTranscripts', (a) => a.listTranscripts()],
+  ['readTranscript', (a) => a.readTranscript('x')],
   // W13: maintenance slice data methods (41). Config-backup methods stay notPorted (W14).
   ['maintenance.scanClaudeDir', (a) => a.maintenance.scanClaudeDir()],
   ['maintenance.cancelScan', (a) => a.maintenance.cancelScan()],

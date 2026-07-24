@@ -20,6 +20,7 @@ import {
   ListTodo,
   MessageSquareText,
   Puzzle,
+  ScrollText,
   Settings,
   Sparkles,
   Wrench,
@@ -176,13 +177,22 @@ export const ActivityBar = (): JSX.Element => {
             onClick={() => setActiveActivity('todos')}
           />
           {isDesktopMode() && (
-            <ActivityBarItem
-              icon={History}
-              label="History"
-              activity="history"
-              isActive={activeActivity === 'history'}
-              onClick={() => setActiveActivity('history')}
-            />
+            <>
+              <ActivityBarItem
+                icon={History}
+                label="History"
+                activity="history"
+                isActive={activeActivity === 'history'}
+                onClick={() => setActiveActivity('history')}
+              />
+              <ActivityBarItem
+                icon={ScrollText}
+                label="Transcripts"
+                activity="transcripts"
+                isActive={activeActivity === 'transcripts'}
+                onClick={() => setActiveActivity('transcripts')}
+              />
+            </>
           )}
         </div>
 

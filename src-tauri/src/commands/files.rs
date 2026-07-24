@@ -15,6 +15,7 @@ use crate::files::agents_write::{read_agent_configs as read_agent_configs_impl, 
 use crate::files::claude_read::{self, FileMeta};
 use crate::files::filehistory_reader::{self, CheckpointGroup};
 use crate::files::history_reader::{self, HistoryPage};
+use crate::files::transcripts_reader::{self, TranscriptRecord};
 use crate::files::claudejson::{
     list_claude_json_backups as list_backups_impl, read_claude_json as read_claude_json_impl,
     read_claude_json_backup as read_backup_impl, read_claude_json_masked as read_masked_impl,
@@ -290,4 +291,18 @@ pub fn read_history_page(
 ) -> Result<HistoryPage, String> {
     let root = claude_dir()?;
     history_reader::read_history_page(&root.to_string_lossy(), before, limit, query.as_deref())
+}
+
+// ── read-only viewers (transcripts) ──
+
+#[tauri::command]
+pub fn list_transcripts() -> Result<Vec<FileMeta>, String> {
+    let root = claude_dir()?;
+    claude_read::list_dir_files(&root.to_string_lossy(), "transcripts", "jsonl")
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn read_transcript(id: String) -> Result<Vec<TranscriptRecord>, String> {
+    let root = claude_dir()?;
+    transcripts_reader::read_transcript(&root.to_string_lossy(), &id)
 }

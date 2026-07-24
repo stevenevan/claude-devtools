@@ -25,6 +25,7 @@ pub mod settings_sources;
 pub mod settings_write;
 pub mod skills_inventory;
 pub mod text_write;
+pub mod transcripts_reader;
 pub mod usage_reader;
 
 // One process-wide lock shared by every test that redirects `$HOME` /

@@ -1,4 +1,10 @@
-import type { CheckpointGroup, DesktopAPI, FileMeta, HistoryPage } from '@shared/types/api';
+import type {
+  CheckpointGroup,
+  DesktopAPI,
+  FileMeta,
+  HistoryPage,
+  TranscriptRecord,
+} from '@shared/types/api';
 
 import { call } from '../invoke';
 
@@ -12,6 +18,8 @@ type ClaudeFilesSlice = Pick<
   | 'listFileHistory'
   | 'readCheckpoint'
   | 'readHistoryPage'
+  | 'listTranscripts'
+  | 'readTranscript'
 >;
 
 export const claudeFilesCommands: ClaudeFilesSlice = {
@@ -25,4 +33,6 @@ export const claudeFilesCommands: ClaudeFilesSlice = {
     call<string>('read_checkpoint', { sessionUuid, fileHash, version }),
   readHistoryPage: (before, limit, query) =>
     call<HistoryPage>('read_history_page', { before, limit, query }),
+  listTranscripts: () => call<FileMeta[]>('list_transcripts'),
+  readTranscript: (id) => call<TranscriptRecord[]>('read_transcript', { id }),
 };

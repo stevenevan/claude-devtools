@@ -34,6 +34,7 @@ import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
 import type { HistoryPage } from './history';
 import type { MaintenanceAPI } from './maintenance';
+import type { TranscriptRecord } from './transcripts';
 import type { MCPStatusView } from './mcp';
 import type { PermissionRulesView, PermissionScope } from './permissions';
 import type { NotificationsAPI } from './notificationsApi';
@@ -67,6 +68,7 @@ export type * from './snapshots';
 export type * from './ssh';
 export type * from './suggestions';
 export type * from './system';
+export type * from './transcripts';
 export type * from './webhook';
 
 export interface GlobalSettingsPatch {
@@ -275,6 +277,8 @@ export interface DesktopAPI {
   listFileHistory: () => Promise<CheckpointGroup[]>;
   readCheckpoint: (sessionUuid: string, fileHash: string, version: number) => Promise<string>;
   readHistoryPage: (before: number | null, limit: number, query?: string) => Promise<HistoryPage>;
+  listTranscripts: () => Promise<FileMeta[]>;
+  readTranscript: (id: string) => Promise<TranscriptRecord[]>;
 
   // Notifications API
   notifications: NotificationsAPI;
