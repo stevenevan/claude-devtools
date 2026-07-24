@@ -289,6 +289,8 @@ export interface DesktopAPI {
   readTelemetryEvent: (name: string) => Promise<unknown>;
   listFileHistory: () => Promise<CheckpointGroup[]>;
   readCheckpoint: (sessionUuid: string, fileHash: string, version: number) => Promise<string>;
+  // Resolves false when the user cancels the save dialog.
+  exportCheckpoint: (sessionUuid: string, fileHash: string, version: number) => Promise<boolean>;
   readHistoryPage: (before: number | null, limit: number, query?: string) => Promise<HistoryPage>;
   listTranscripts: () => Promise<FileMeta[]>;
   readTranscript: (id: string) => Promise<TranscriptRecord[]>;

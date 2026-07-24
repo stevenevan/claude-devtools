@@ -20,6 +20,7 @@ type ClaudeFilesSlice = Pick<
   | 'readTelemetryEvent'
   | 'listFileHistory'
   | 'readCheckpoint'
+  | 'exportCheckpoint'
   | 'readHistoryPage'
   | 'listTranscripts'
   | 'readTranscript'
@@ -37,6 +38,8 @@ export const claudeFilesCommands: ClaudeFilesSlice = {
   listFileHistory: () => call<CheckpointGroup[]>('list_file_history'),
   readCheckpoint: (sessionUuid, fileHash, version) =>
     call<string>('read_checkpoint', { sessionUuid, fileHash, version }),
+  exportCheckpoint: (sessionUuid, fileHash, version) =>
+    call<boolean>('export_checkpoint', { sessionUuid, fileHash, version }),
   readHistoryPage: (before, limit, query) =>
     call<HistoryPage>('read_history_page', { before, limit, query }),
   listTranscripts: () => call<FileMeta[]>('list_transcripts'),

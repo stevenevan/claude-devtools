@@ -184,6 +184,7 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['readTelemetryEvent', (a) => a.readTelemetryEvent('x')],
   ['listFileHistory', (a) => a.listFileHistory()],
   ['readCheckpoint', (a) => a.readCheckpoint('u', 'h', 1)],
+  ['exportCheckpoint', (a) => a.exportCheckpoint('u', 'h', 1)],
   ['readHistoryPage', (a) => a.readHistoryPage(null, 50)],
   ['listTranscripts', (a) => a.listTranscripts()],
   ['readTranscript', (a) => a.readTranscript('x')],
