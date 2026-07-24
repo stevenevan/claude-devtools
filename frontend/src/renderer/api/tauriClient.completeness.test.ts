@@ -168,6 +168,9 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['listClaudeJSONAppBackups', (a) => a.listClaudeJSONAppBackups()],
   ['restoreClaudeJSONAppBackup', (a) => a.restoreClaudeJSONAppBackup('n')],
   ['getMCPStatus', (a) => a.getMCPStatus()],
+  ['addMCPServer', (a) => a.addMCPServer('n', { command: 'x' })],
+  ['updateMCPServer', (a) => a.updateMCPServer('n', { args: [] })],
+  ['removeMCPServer', (a) => a.removeMCPServer('n')],
   ['getPermissionRules', (a) => a.getPermissionRules('r')],
   ['addPermissionRule', (a) => a.addPermissionRule('global', 'allow', 'r')],
   ['removePermissionRule', (a) => a.removePermissionRule('global', 'allow', 'r')],
@@ -312,6 +315,19 @@ test('session commands preserve command names and argument shapes', async () => 
       command: 'get_subagent_detail',
       args: { projectId: 'project', sessionId: 'session', subagentId: 'agent' },
     },
+  ]);
+});
+
+test('MCP server write commands preserve command names and argument shapes', async () => {
+  invocations.length = 0;
+  const api = createTauriClient();
+  await api.addMCPServer('n', { command: 'x' });
+  await api.updateMCPServer('n', { args: [] });
+  await api.removeMCPServer('n');
+  expect(invocations).toEqual([
+    { command: 'add_mcp_server', args: { name: 'n', config: { command: 'x' } } },
+    { command: 'update_mcp_server', args: { name: 'n', patch: { args: [] } } },
+    { command: 'remove_mcp_server', args: { name: 'n' } },
   ]);
 });
 

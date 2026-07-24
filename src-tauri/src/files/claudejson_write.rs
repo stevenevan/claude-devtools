@@ -7,6 +7,12 @@
 //! before the rename, and a post-write re-verify. Auth material is never mutated,
 //! never downgraded to a weaker file mode, never clobbered.
 //!
+//! Also handles add/update/remove of GLOBAL (top-level) `mcpServers` entries
+//! under the identical guardrails: same mutex, same fresh-read/CAS/backup/verify
+//! shape, same byte-preserving `Box<RawValue>` handling for every untouched key
+//! (top-level and sibling server entries alike). Project-scoped
+//! `projects[<path>].mcpServers` is never touched by these functions.
+//!
 //! Faithfulness note: Go keeps each value as `json.RawMessage` so numbers/nested
 //! key order survive byte-for-byte. Rust uses `Box<RawValue>` (serde_json
 //! `raw_value` feature) for the identical guarantee — `serde_json::Value` would
@@ -23,12 +29,13 @@ use std::time::SystemTime;
 
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue;
+use serde_json::Value;
 
 use crate::config::root::app_data_dir;
 
 use super::claudejson::{
     claude_json_path, is_secret_key, json_valid, live_project_paths, read_claude_json_with_retry,
-    system_time_to_utc, triage_project, ClaudeJsonBackup, TRIAGE_STALE,
+    system_time_to_utc, triage_project, ClaudeJsonBackup, CLAUDE_JSON_MASK, TRIAGE_STALE,
 };
 use super::fsutil;
 use super::pathutil::confine;
@@ -461,6 +468,517 @@ fn verify_purge_applied(
         }
     }
     Ok(())
+}
+
+// ── global mcpServers add/edit/remove ──
+//
+// Same guardrails as the purge above: dedicated mutex, fresh read, a
+// structural guard on the actual output bytes before any I/O, an app-side
+// backup, a CAS re-read immediately before the rename, a single retry on
+// conflict, and a post-write re-verify. Only the top-level `mcpServers` key is
+// ever touched; every other top-level key (including `projects` and any
+// project-scoped `mcpServers`) stays byte-identical.
+
+/// Transport types accepted for the `type` field on any server.
+const MCP_TYPES: [&str; 5] = ["stdio", "http", "streamable-http", "sse", "ws"];
+/// Transport types valid when a server has a `url` and no `command` — a bare
+/// `url` with no `type` is a documented Claude Code configuration error.
+const MCP_URL_TYPES: [&str; 4] = ["http", "streamable-http", "sse", "ws"];
+
+fn validate_mcp_server_name(name: &str) -> Result<(), String> {
+    if name.is_empty() || name.chars().any(|c| c.is_control()) {
+        return Err("files: invalid MCP server name".to_string());
+    }
+    Ok(())
+}
+
+fn non_empty_str(v: Option<&Value>) -> Option<&str> {
+    v.and_then(Value::as_str).filter(|s| !s.is_empty())
+}
+
+/// Reports whether any string leaf anywhere in `v` equals the mask placeholder
+/// — a mask reaching the writer would overwrite the real credential.
+fn contains_mask_value(v: &Value) -> bool {
+    match v {
+        Value::String(s) => s == CLAUDE_JSON_MASK,
+        Value::Array(items) => items.iter().any(contains_mask_value),
+        Value::Object(map) => map.values().any(contains_mask_value),
+        _ => false,
+    }
+}
+
+/// Validates one server config (an `add`'s full config, or an `update`'s
+/// merged result): must be an object, must carry a non-empty `command` or
+/// `url`, a url-only server must declare a valid `type`, `args`/`env`/`headers`
+/// must be shaped correctly if present, and no field may carry the mask
+/// placeholder. Unknown fields are passed through untouched (not rejected).
+fn validate_mcp_server_config(config: &Value) -> Result<(), String> {
+    let Some(obj) = config.as_object() else {
+        return Err("files: MCP server config must be a JSON object".to_string());
+    };
+    if contains_mask_value(config) {
+        return Err(
+            "files: MCP server config contains a masked placeholder value — refusing to write"
+                .to_string(),
+        );
+    }
+
+    let command = non_empty_str(obj.get("command"));
+    let url = non_empty_str(obj.get("url"));
+    if command.is_none() && url.is_none() {
+        return Err(
+            "files: MCP server config must have a non-empty \"command\" or \"url\"".to_string(),
+        );
+    }
+
+    let type_val = match obj.get("type") {
+        Some(v) => Some(
+            v.as_str()
+                .ok_or_else(|| "files: MCP server \"type\" must be a string".to_string())?,
+        ),
+        None => None,
+    };
+    if command.is_none() {
+        match type_val {
+            Some(t) if MCP_URL_TYPES.contains(&t) => {}
+            _ => {
+                return Err(format!(
+                    "files: an MCP server with a \"url\" and no \"command\" requires \"type\" to be one of {MCP_URL_TYPES:?}"
+                ))
+            }
+        }
+    } else if let Some(t) = type_val {
+        if !MCP_TYPES.contains(&t) {
+            return Err(format!(
+                "files: invalid MCP server \"type\" {t:?} (want one of {MCP_TYPES:?})"
+            ));
+        }
+    }
+
+    if let Some(args) = obj.get("args") {
+        let valid = args.as_array().is_some_and(|a| a.iter().all(Value::is_string));
+        if !valid {
+            return Err("files: MCP server \"args\" must be an array of strings".to_string());
+        }
+    }
+    for key in ["env", "headers"] {
+        if let Some(v) = obj.get(key) {
+            let valid = v.as_object().is_some_and(|m| m.values().all(Value::is_string));
+            if !valid {
+                return Err(format!(
+                    "files: MCP server {key:?} must be an object of string values"
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Parses the top-level `mcpServers` block into a raw map, or an empty map when
+/// the key is absent (mirrors the `projects` `None` branch in the purge above —
+/// `add` is what creates the block).
+fn mcp_servers_map(top: &BTreeMap<String, Box<RawValue>>) -> Result<BTreeMap<String, Box<RawValue>>, String> {
+    match top.get("mcpServers") {
+        Some(v) => serde_json::from_str(v.get()).map_err(|_| {
+            "files: ~/.claude.json mcpServers block is not readable right now — try again"
+                .to_string()
+        }),
+        None => Ok(BTreeMap::new()),
+    }
+}
+
+/// Which single-server mutation `guard_mcp_write_output`/`verify_mcp_write_applied`
+/// are checking the output of.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum McpOp {
+    Add,
+    Update,
+    Remove,
+}
+
+/// Proves that `out` differs from the pre-image ONLY by the `name` entry inside
+/// `mcpServers`: every other top-level key (and, within `mcpServers`, every
+/// other server entry) is content-identical, `mcpServers` is created if it was
+/// absent, and `name` ends up present (add/update) or absent (remove) with the
+/// expected resulting server count.
+fn guard_mcp_write_output(
+    out: &[u8],
+    pre_top: &BTreeMap<String, Box<RawValue>>,
+    name: &str,
+    op: McpOp,
+) -> Result<(), String> {
+    let out_top: BTreeMap<String, Box<RawValue>> = serde_json::from_slice(out)
+        .map_err(|_| "files: MCP server write produced unreadable JSON — aborting".to_string())?;
+
+    let pre_has_mcp = pre_top.contains_key("mcpServers");
+    let expected_top_len = if pre_has_mcp { pre_top.len() } else { pre_top.len() + 1 };
+    if out_top.len() != expected_top_len {
+        return Err(
+            "files: MCP server write would change the top-level key set — aborting".to_string(),
+        );
+    }
+    for (k, pre_val) in pre_top {
+        let Some(out_val) = out_top.get(k) else {
+            return Err(format!(
+                "files: MCP server write would drop top-level key {k:?} — aborting"
+            ));
+        };
+        if k == "mcpServers" {
+            continue;
+        }
+        if !compact_raw_equal(pre_val.get(), out_val.get()) {
+            if is_secret_key(k) {
+                return Err(format!(
+                    "files: MCP server write would mutate credential key {k:?} — aborting"
+                ));
+            }
+            return Err(format!(
+                "files: MCP server write would mutate top-level key {k:?} — aborting"
+            ));
+        }
+    }
+    if !out_top.contains_key("mcpServers") {
+        return Err(
+            "files: MCP server write did not produce an mcpServers block — aborting".to_string(),
+        );
+    }
+
+    let pre_sm: BTreeMap<String, Box<RawValue>> = match pre_top.get("mcpServers") {
+        Some(v) => serde_json::from_str(v.get()).map_err(|_| {
+            "files: ~/.claude.json mcpServers block unreadable — try again".to_string()
+        })?,
+        None => BTreeMap::new(),
+    };
+    let out_sm: BTreeMap<String, Box<RawValue>> = {
+        let v = out_top.get("mcpServers").expect("checked above");
+        serde_json::from_str(v.get()).map_err(|_| {
+            "files: MCP server write produced an unreadable mcpServers block — aborting".to_string()
+        })?
+    };
+
+    for (k, pre_val) in &pre_sm {
+        if k == name {
+            continue; // the target entry is allowed to change per op
+        }
+        match out_sm.get(k) {
+            Some(out_val) if compact_raw_equal(pre_val.get(), out_val.get()) => {}
+            _ => {
+                return Err(format!(
+                    "files: MCP server write would alter unrelated server {k:?} — aborting"
+                ))
+            }
+        }
+    }
+
+    match op {
+        McpOp::Add | McpOp::Update => {
+            if !out_sm.contains_key(name) {
+                return Err(format!(
+                    "files: MCP server write failed to write server {name:?} — aborting"
+                ));
+            }
+        }
+        McpOp::Remove => {
+            if out_sm.contains_key(name) {
+                return Err(format!(
+                    "files: MCP server write failed to remove server {name:?} — aborting"
+                ));
+            }
+        }
+    }
+
+    let expected_sm_len = match op {
+        McpOp::Add => pre_sm.len() + 1,
+        McpOp::Update => pre_sm.len(),
+        McpOp::Remove => pre_sm.len() - 1,
+    };
+    if out_sm.len() != expected_sm_len {
+        return Err(
+            "files: MCP server write changed the server count unexpectedly — aborting".to_string(),
+        );
+    }
+    Ok(())
+}
+
+/// Re-reads the live file after the write and confirms `name` ended up
+/// present/absent as expected and no credential-shaped top-level key changed
+/// relative to the pre-image (catching a CLI rewrite landing right after our
+/// rename).
+fn verify_mcp_write_applied(
+    path: &Path,
+    pre_top: &BTreeMap<String, Box<RawValue>>,
+    name: &str,
+    op: McpOp,
+) -> Result<(), String> {
+    let after = read_claude_json_with_retry(path).map_err(|e| {
+        format!(
+            "files: MCP server write written but ~/.claude.json could not be re-verified — please refresh: {e}"
+        )
+    })?;
+    let after_top: BTreeMap<String, Box<RawValue>> = serde_json::from_slice(&after).map_err(|_| {
+        "files: MCP server write written but ~/.claude.json is not readable for verification — please refresh"
+            .to_string()
+    })?;
+    let after_sm: BTreeMap<String, Box<RawValue>> = match after_top.get("mcpServers") {
+        Some(v) => serde_json::from_str(v.get()).unwrap_or_default(),
+        None => BTreeMap::new(),
+    };
+    match op {
+        McpOp::Add | McpOp::Update => {
+            if !after_sm.contains_key(name) {
+                return Err(format!(
+                    "files: MCP server {name:?} missing from ~/.claude.json after write (the CLI may have rewritten it) — please refresh and retry"
+                ));
+            }
+        }
+        McpOp::Remove => {
+            if after_sm.contains_key(name) {
+                return Err(format!(
+                    "files: MCP server {name:?} reappeared in ~/.claude.json after removal (the CLI rewrote it) — please refresh and retry"
+                ));
+            }
+        }
+    }
+    for (k, pre_val) in pre_top {
+        if k == "mcpServers" || !is_secret_key(k) {
+            continue;
+        }
+        match after_top.get(k) {
+            Some(after_val) if compact_raw_equal(pre_val.get(), after_val.get()) => {}
+            _ => {
+                return Err(format!(
+                    "files: credential key {k:?} changed in ~/.claude.json right after an MCP server write (CLI activity) — please verify your auth and refresh"
+                ))
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Adds one server to the top-level `mcpServers` block, creating the block if
+/// absent. Rejects a duplicate `name`. Holds the write mutex across a single
+/// CAS-guarded retry, exactly like the purge above.
+pub fn add_global_mcp_server(name: &str, config: Value) -> Result<(), String> {
+    validate_mcp_server_name(name)?;
+    validate_mcp_server_config(&config)?;
+
+    let _guard = fsutil::lock(&CLAUDE_JSON_WRITE_MU);
+
+    let mut attempt = 0;
+    loop {
+        let result = add_global_mcp_server_once(name, &config);
+        if let Err(ref e) = result {
+            if e == ERR_CLAUDE_JSON_CONFLICT && attempt == 0 {
+                attempt += 1;
+                continue; // one retry from a fresh read
+            }
+        }
+        return result;
+    }
+}
+
+fn add_global_mcp_server_once(name: &str, config: &Value) -> Result<(), String> {
+    let path = claude_json_path()?;
+    let pre = read_claude_json_with_retry(&path)?;
+
+    #[cfg(test)]
+    run_race_hook();
+
+    let pre_top: BTreeMap<String, Box<RawValue>> =
+        serde_json::from_slice(&pre).map_err(|_| ERR_TRY_AGAIN.to_string())?;
+    let mut top_raw: BTreeMap<String, Box<RawValue>> =
+        serde_json::from_slice(&pre).map_err(|_| ERR_TRY_AGAIN.to_string())?;
+
+    let mut servers_map = mcp_servers_map(&top_raw)?;
+    if servers_map.contains_key(name) {
+        return Err(format!(
+            "files: refusing add: MCP server {name:?} already exists in ~/.claude.json"
+        ));
+    }
+    let config_raw = RawValue::from_string(
+        serde_json::to_string(config).map_err(|e| format!("files: marshal MCP server config: {e}"))?,
+    )
+    .map_err(|e| format!("files: marshal MCP server config: {e}"))?;
+    servers_map.insert(name.to_string(), config_raw);
+
+    let new_servers_raw = RawValue::from_string(
+        serde_json::to_string(&servers_map).map_err(|e| format!("files: marshal mcpServers: {e}"))?,
+    )
+    .map_err(|e| format!("files: marshal mcpServers: {e}"))?;
+    top_raw.insert("mcpServers".to_string(), new_servers_raw);
+
+    let compact =
+        serde_json::to_vec(&top_raw).map_err(|e| format!("files: marshal ~/.claude.json: {e}"))?;
+    let out = pretty_indent(&compact);
+
+    guard_mcp_write_output(&out, &pre_top, name, McpOp::Add)?;
+    write_claude_json_app_backup(&pre)?;
+
+    match fs::read(&path) {
+        Ok(cur) if cur == pre => {}
+        _ => return Err(ERR_CLAUDE_JSON_CONFLICT.to_string()),
+    }
+    atomic_write_claude_json(&path, &out)?;
+
+    verify_mcp_write_applied(&path, &pre_top, name, McpOp::Add)
+}
+
+/// Shallow-merges `patch` into the existing `mcpServers[name]` entry at the
+/// RawValue level: only the fields named in `patch` are replaced, every other
+/// field of the existing entry (masked secrets included) stays byte-identical.
+/// Requires `name` to already exist. Holds the write mutex across a single
+/// CAS-guarded retry, exactly like the purge above.
+pub fn update_global_mcp_server(name: &str, patch: Value) -> Result<(), String> {
+    validate_mcp_server_name(name)?;
+    if !patch.is_object() {
+        return Err("files: MCP server patch must be a JSON object".to_string());
+    }
+    if contains_mask_value(&patch) {
+        return Err(
+            "files: MCP server patch contains a masked placeholder value — refusing to write"
+                .to_string(),
+        );
+    }
+
+    let _guard = fsutil::lock(&CLAUDE_JSON_WRITE_MU);
+
+    let mut attempt = 0;
+    loop {
+        let result = update_global_mcp_server_once(name, &patch);
+        if let Err(ref e) = result {
+            if e == ERR_CLAUDE_JSON_CONFLICT && attempt == 0 {
+                attempt += 1;
+                continue; // one retry from a fresh read
+            }
+        }
+        return result;
+    }
+}
+
+fn update_global_mcp_server_once(name: &str, patch: &Value) -> Result<(), String> {
+    let path = claude_json_path()?;
+    let pre = read_claude_json_with_retry(&path)?;
+
+    #[cfg(test)]
+    run_race_hook();
+
+    let pre_top: BTreeMap<String, Box<RawValue>> =
+        serde_json::from_slice(&pre).map_err(|_| ERR_TRY_AGAIN.to_string())?;
+    let mut top_raw: BTreeMap<String, Box<RawValue>> =
+        serde_json::from_slice(&pre).map_err(|_| ERR_TRY_AGAIN.to_string())?;
+
+    let mut servers_map = mcp_servers_map(&top_raw)?;
+    let Some(existing_raw) = servers_map.get(name) else {
+        return Err(format!(
+            "files: refusing update: MCP server {name:?} does not exist in ~/.claude.json"
+        ));
+    };
+    let mut fields: BTreeMap<String, Box<RawValue>> = serde_json::from_str(existing_raw.get())
+        .map_err(|_| format!("files: MCP server {name:?} is not an object — cannot merge"))?;
+
+    // patch is validated as an object in the public wrapper.
+    let patch_obj = patch.as_object().expect("validated as object above");
+    for (k, v) in patch_obj {
+        let v_raw = RawValue::from_string(
+            serde_json::to_string(v).map_err(|e| format!("files: marshal patch field {k:?}: {e}"))?,
+        )
+        .map_err(|e| format!("files: marshal patch field {k:?}: {e}"))?;
+        fields.insert(k.clone(), v_raw);
+    }
+
+    let merged_str =
+        serde_json::to_string(&fields).map_err(|e| format!("files: marshal merged MCP server: {e}"))?;
+    let merged_value: Value = serde_json::from_str(&merged_str)
+        .map_err(|e| format!("files: marshal merged MCP server: {e}"))?;
+    validate_mcp_server_config(&merged_value)?;
+
+    let merged_raw = RawValue::from_string(merged_str)
+        .map_err(|e| format!("files: marshal merged MCP server: {e}"))?;
+    servers_map.insert(name.to_string(), merged_raw);
+
+    let new_servers_raw = RawValue::from_string(
+        serde_json::to_string(&servers_map).map_err(|e| format!("files: marshal mcpServers: {e}"))?,
+    )
+    .map_err(|e| format!("files: marshal mcpServers: {e}"))?;
+    top_raw.insert("mcpServers".to_string(), new_servers_raw);
+
+    let compact =
+        serde_json::to_vec(&top_raw).map_err(|e| format!("files: marshal ~/.claude.json: {e}"))?;
+    let out = pretty_indent(&compact);
+
+    guard_mcp_write_output(&out, &pre_top, name, McpOp::Update)?;
+    write_claude_json_app_backup(&pre)?;
+
+    match fs::read(&path) {
+        Ok(cur) if cur == pre => {}
+        _ => return Err(ERR_CLAUDE_JSON_CONFLICT.to_string()),
+    }
+    atomic_write_claude_json(&path, &out)?;
+
+    verify_mcp_write_applied(&path, &pre_top, name, McpOp::Update)
+}
+
+/// Removes one server from the top-level `mcpServers` block. Requires `name` to
+/// already exist. Holds the write mutex across a single CAS-guarded retry,
+/// exactly like the purge above.
+pub fn remove_global_mcp_server(name: &str) -> Result<(), String> {
+    validate_mcp_server_name(name)?;
+
+    let _guard = fsutil::lock(&CLAUDE_JSON_WRITE_MU);
+
+    let mut attempt = 0;
+    loop {
+        let result = remove_global_mcp_server_once(name);
+        if let Err(ref e) = result {
+            if e == ERR_CLAUDE_JSON_CONFLICT && attempt == 0 {
+                attempt += 1;
+                continue; // one retry from a fresh read
+            }
+        }
+        return result;
+    }
+}
+
+fn remove_global_mcp_server_once(name: &str) -> Result<(), String> {
+    let path = claude_json_path()?;
+    let pre = read_claude_json_with_retry(&path)?;
+
+    #[cfg(test)]
+    run_race_hook();
+
+    let pre_top: BTreeMap<String, Box<RawValue>> =
+        serde_json::from_slice(&pre).map_err(|_| ERR_TRY_AGAIN.to_string())?;
+    let mut top_raw: BTreeMap<String, Box<RawValue>> =
+        serde_json::from_slice(&pre).map_err(|_| ERR_TRY_AGAIN.to_string())?;
+
+    let mut servers_map = mcp_servers_map(&top_raw)?;
+    if !servers_map.contains_key(name) {
+        return Err(format!(
+            "files: refusing remove: MCP server {name:?} does not exist in ~/.claude.json"
+        ));
+    }
+    servers_map.remove(name);
+
+    let new_servers_raw = RawValue::from_string(
+        serde_json::to_string(&servers_map).map_err(|e| format!("files: marshal mcpServers: {e}"))?,
+    )
+    .map_err(|e| format!("files: marshal mcpServers: {e}"))?;
+    top_raw.insert("mcpServers".to_string(), new_servers_raw);
+
+    let compact =
+        serde_json::to_vec(&top_raw).map_err(|e| format!("files: marshal ~/.claude.json: {e}"))?;
+    let out = pretty_indent(&compact);
+
+    guard_mcp_write_output(&out, &pre_top, name, McpOp::Remove)?;
+    write_claude_json_app_backup(&pre)?;
+
+    match fs::read(&path) {
+        Ok(cur) if cur == pre => {}
+        _ => return Err(ERR_CLAUDE_JSON_CONFLICT.to_string()),
+    }
+    atomic_write_claude_json(&path, &out)?;
+
+    verify_mcp_write_applied(&path, &pre_top, name, McpOp::Remove)
 }
 
 /// Enumerates `<AppDataDir>/claude-json-backups/*.claude.json.bak` newest-first.

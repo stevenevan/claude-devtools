@@ -24,9 +24,11 @@ use crate::files::claudejson::{
     reveal_claude_json_value as reveal_value_impl, ClaudeJsonBackup, ClaudeJsonCensus,
 };
 use crate::files::claudejson_write::{
-    list_claude_json_app_backups as list_app_backups_impl,
+    add_global_mcp_server as add_mcp_server_impl, list_claude_json_app_backups as list_app_backups_impl,
     purge_claude_json_projects as purge_impl,
-    restore_claude_json_app_backup as restore_app_backup_impl, PurgeResult,
+    remove_global_mcp_server as remove_mcp_server_impl,
+    restore_claude_json_app_backup as restore_app_backup_impl,
+    update_global_mcp_server as update_mcp_server_impl, PurgeResult,
 };
 use crate::files::hooks_write::{read_hooks as read_hooks_impl, toggle_hook as toggle_hook_impl, HookView};
 use crate::files::mcp_status::{get_mcp_status as get_mcp_status_impl, MCPStatusView};
@@ -231,6 +233,25 @@ pub fn list_claude_json_app_backups() -> Result<Vec<ClaudeJsonBackup>, String> {
 #[tauri::command(rename_all = "camelCase")]
 pub fn restore_claude_json_app_backup(name: String) -> Result<(), String> {
     restore_app_backup_impl(&name)
+}
+
+// These three target the LOCAL ~/.claude.json and configure code Claude Code
+// will spawn (MCP server commands/URLs) — any future network-exposed IPC MUST
+// gate them.
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn add_mcp_server(name: String, config: Value) -> Result<(), String> {
+    add_mcp_server_impl(&name, config)
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn update_mcp_server(name: String, patch: Value) -> Result<(), String> {
+    update_mcp_server_impl(&name, patch)
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn remove_mcp_server(name: String) -> Result<(), String> {
+    remove_mcp_server_impl(&name)
 }
 
 // ── read-only viewers (shell-snapshots) ──
