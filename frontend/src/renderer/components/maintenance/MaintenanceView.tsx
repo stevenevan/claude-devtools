@@ -10,6 +10,7 @@ import { BackupsCleanupPanel } from './BackupsCleanupPanel';
 import { CachesCleanupPanel } from './CachesCleanupPanel';
 import { ClaudeJsonPanel } from './ClaudeJsonPanel';
 import { ConfigBackupPanel } from './ConfigBackupPanel';
+import { FileHistoryBrowserPanel } from './FileHistoryBrowserPanel';
 import { FileHistoryCleanupPanel } from './FileHistoryCleanupPanel';
 import { HealthPanel } from './HealthPanel';
 import { HistoryPanel } from './HistoryPanel';
@@ -26,9 +27,11 @@ import { ProjectSettingsPanel } from './ProjectSettingsPanel';
 import { RetentionPolicyPanel } from './RetentionPolicyPanel';
 import { RuntimeCleanupPanel } from './RuntimeCleanupPanel';
 import { SettingsDiffPanel } from './SettingsDiffPanel';
+import { ShellSnapshotPanel } from './ShellSnapshotPanel';
 import { StorageTable } from './StorageTable';
 import { TranscriptsCleanupPanel } from './TranscriptsCleanupPanel';
 import { TrashPanel } from './TrashPanel';
+import { UsageStatsPanel } from './UsageStatsPanel';
 
 // Maintenance tab registry. Each cleanup week appends its panel here; "storage"
 // keeps the raw scan + table and "trash" the restore/empty surface.
@@ -42,6 +45,11 @@ const CLEANUP_TABS: MaintenanceTab[] = [
   { id: 'plugins', label: 'Plugins', render: () => <PluginsCleanupPanel /> },
   { id: 'transcripts', label: 'Transcripts', render: () => <TranscriptsCleanupPanel /> },
   { id: 'file-history', label: 'File History', render: () => <FileHistoryCleanupPanel /> },
+  {
+    id: 'file-history-browser',
+    label: 'File History (view)',
+    render: () => <FileHistoryBrowserPanel />,
+  },
   { id: 'junk', label: 'Junk', render: () => <JunkCleanupPanel /> },
   { id: 'runtime', label: 'Runtime', render: () => <RuntimeCleanupPanel /> },
   { id: 'plans', label: 'Plans', render: () => <PlansCleanupPanel /> },
@@ -60,6 +68,8 @@ const CLEANUP_TABS: MaintenanceTab[] = [
   { id: 'memory', label: 'Memory', render: () => <MemoryPanel /> },
   { id: 'config-backup', label: 'Config Backup', render: () => <ConfigBackupPanel /> },
   { id: 'retention', label: 'Retention', render: () => <RetentionPolicyPanel /> },
+  { id: 'shell-snapshots', label: 'Shell Snapshots', render: () => <ShellSnapshotPanel /> },
+  { id: 'usage', label: 'Usage', render: () => <UsageStatsPanel /> },
 ];
 
 export const MaintenanceView = (): JSX.Element => {

@@ -5,8 +5,10 @@
 //! them literally). See `pathutil::confine`.
 
 pub mod agents_write;
+pub mod claude_read;
 pub mod claudejson;
 pub mod claudejson_write;
+pub mod filehistory_reader;
 pub mod fsutil;
 pub mod hooks_write;
 pub mod json_util;
@@ -22,6 +24,7 @@ pub mod settings_sources;
 pub mod settings_write;
 pub mod skills_inventory;
 pub mod text_write;
+pub mod usage_reader;
 
 // One process-wide lock shared by every test that redirects `$HOME` /
 // `CLAUDE_DEVTOOLS_DIR` (settings/claudejson/hooks families resolve paths off

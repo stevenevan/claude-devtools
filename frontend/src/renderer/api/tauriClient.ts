@@ -1,4 +1,5 @@
 import { analyticsCommands } from './tauri/domain/analytics';
+import { claudeFilesCommands } from './tauri/domain/claudeFiles';
 import { configApi, notificationEvents, notificationsApi, webhookApi } from './tauri/domain/config';
 import { filesCommands } from './tauri/domain/files';
 import { insightsCommands } from './tauri/domain/insights';
@@ -20,6 +21,7 @@ export function createTauriClient(): DesktopAPI {
     ...insightsCommands, // flat insights data methods (getToolAnalytics, …) — W9
     ...systemCommands, // flat system data methods (getAppVersion, openPath, …) — W11
     ...filesCommands, // flat FilesService methods (validatePath, getMCPStatus, …) — W12
+    ...claudeFilesCommands, // flat read-only ~/.claude viewer methods
     ssh: { ...sshEvents, ...sshCommands },
     context: { ...systemCommands.context, ...contextEvents },
     maintenance: { ...maintenanceEvents, ...maintenanceCommands },
