@@ -36,7 +36,7 @@ import type { HistoryPage } from './history';
 import type { MaintenanceAPI } from './maintenance';
 import type { MarketplaceCatalog } from './marketplace';
 import type { TranscriptRecord } from './transcripts';
-import type { MCPStatusView } from './mcp';
+import type { MCPServerConfig, MCPStatusView } from './mcp';
 import type { PermissionRulesView, PermissionScope } from './permissions';
 import type { NotificationsAPI } from './notificationsApi';
 import type { PluginsAPI } from './plugins';
@@ -253,6 +253,15 @@ export interface DesktopAPI {
   // (top-level + per-project mcpServers), .mcp.json, and the auth-needed
   // connector cache; every commandOrUrl is server-side masked.
   getMCPStatus: () => Promise<MCPStatusView>;
+
+  // Global MCP server add/edit/remove. Writes only the top-level ~/.claude.json
+  // mcpServers block, under the same guarded-write path as the claude.json
+  // purge; project-scoped mcpServers is never touched. update sends a partial
+  // patch — shallow-merged server-side so untouched fields (masked secrets
+  // included) survive.
+  addMCPServer: (name: string, config: MCPServerConfig) => Promise<void>;
+  updateMCPServer: (name: string, patch: MCPServerConfig) => Promise<void>;
+  removeMCPServer: (name: string) => Promise<void>;
 
   // Permissions consolidation editor (Week 19). Merges permission rules
   // across global + project + project-local settings; only global and

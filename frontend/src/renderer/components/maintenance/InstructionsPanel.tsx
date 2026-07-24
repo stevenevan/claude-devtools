@@ -3,6 +3,7 @@ import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { useStore } from '@renderer/store';
 
+import { CommandDetailEditor } from './CommandDetailEditor';
 import { ContextCostMeter } from './ContextCostMeter';
 import { DryRunConfirmDialog } from './DryRunConfirmDialog';
 import {
@@ -139,16 +140,29 @@ export const InstructionsPanel = (): JSX.Element => {
 
           <div className="flex-1">
             {selectedRelPath ? (
-              <InstructionFileEditor
-                key={selectedRelPath}
-                relPath={selectedRelPath}
-                isNewFile={isNewFile}
-                deletable={deletable}
-                canAct={canAct}
-                onSaved={() => void refreshFiles()}
-                onDirtyChange={setEditorDirty}
-                onRequestDelete={handleRequestDelete}
-              />
+              bucket === 'commands' ? (
+                <CommandDetailEditor
+                  key={selectedRelPath}
+                  relPath={selectedRelPath}
+                  isNewFile={isNewFile}
+                  deletable={deletable}
+                  canAct={canAct}
+                  onSaved={() => void refreshFiles()}
+                  onDirtyChange={setEditorDirty}
+                  onRequestDelete={handleRequestDelete}
+                />
+              ) : (
+                <InstructionFileEditor
+                  key={selectedRelPath}
+                  relPath={selectedRelPath}
+                  isNewFile={isNewFile}
+                  deletable={deletable}
+                  canAct={canAct}
+                  onSaved={() => void refreshFiles()}
+                  onDirtyChange={setEditorDirty}
+                  onRequestDelete={handleRequestDelete}
+                />
+              )
             ) : (
               <p className="text-muted-foreground px-4 py-3 text-xs">Select a file to edit.</p>
             )}

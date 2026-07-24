@@ -44,6 +44,9 @@ type FilesSlice = Pick<
   | 'listClaudeJSONAppBackups'
   | 'restoreClaudeJSONAppBackup'
   | 'getMCPStatus'
+  | 'addMCPServer'
+  | 'updateMCPServer'
+  | 'removeMCPServer'
   | 'getPermissionRules'
   | 'addPermissionRule'
   | 'removePermissionRule'
@@ -116,6 +119,12 @@ export const filesCommands: FilesSlice = {
   restoreClaudeJSONAppBackup: (name) => call<void>('restore_claude_json_app_backup', { name }),
 
   getMCPStatus: () => call<MCPStatusView>('get_mcp_status'),
+
+  addMCPServer: (name, config) => call<void>('add_mcp_server', { name, config }),
+
+  updateMCPServer: (name, patch) => call<void>('update_mcp_server', { name, patch }),
+
+  removeMCPServer: (name) => call<void>('remove_mcp_server', { name }),
 
   getPermissionRules: (projectRoot) =>
     call<PermissionRulesView>('get_permission_rules', { projectRoot }),

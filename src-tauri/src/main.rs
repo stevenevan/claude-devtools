@@ -636,6 +636,9 @@ fn main() {
             files_cmds::purge_claude_json_projects,
             files_cmds::list_claude_json_app_backups,
             files_cmds::restore_claude_json_app_backup,
+            files_cmds::add_mcp_server,
+            files_cmds::update_mcp_server,
+            files_cmds::remove_mcp_server,
             // ── read-only viewers ──
             files_cmds::list_shell_snapshots,
             files_cmds::read_shell_snapshot,
