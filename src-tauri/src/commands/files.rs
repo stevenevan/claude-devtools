@@ -13,6 +13,7 @@ use serde_json::{Map, Value};
 use crate::config::root::{app_data_dir, claude_dir};
 use crate::files::agents_write::{read_agent_configs as read_agent_configs_impl, AgentConfig};
 use crate::files::claude_read::{self, FileMeta};
+use crate::files::filehistory_reader::{self, CheckpointGroup};
 use crate::files::claudejson::{
     list_claude_json_backups as list_backups_impl, read_claude_json as read_claude_json_impl,
     read_claude_json_backup as read_backup_impl, read_claude_json_masked as read_masked_impl,
@@ -262,4 +263,18 @@ pub fn read_telemetry_event(name: String) -> Result<Value, String> {
     let root = claude_dir()?;
     let bytes = claude_read::read_confined_file(&root.to_string_lossy(), "telemetry", &name)?;
     serde_json::from_slice(&bytes).map_err(|e| e.to_string())
+}
+
+// ── read-only viewers (file-history) ──
+
+#[tauri::command]
+pub fn list_file_history() -> Result<Vec<CheckpointGroup>, String> {
+    let root = claude_dir()?;
+    filehistory_reader::list_file_history(&root.to_string_lossy())
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn read_checkpoint(session_uuid: String, file_hash: String, version: u32) -> Result<String, String> {
+    let root = claude_dir()?;
+    filehistory_reader::read_checkpoint(&root.to_string_lossy(), &session_uuid, &file_hash, version)
 }
