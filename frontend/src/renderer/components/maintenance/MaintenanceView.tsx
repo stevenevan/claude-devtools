@@ -30,6 +30,7 @@ import { ShellSnapshotPanel } from './ShellSnapshotPanel';
 import { StorageTable } from './StorageTable';
 import { TranscriptsCleanupPanel } from './TranscriptsCleanupPanel';
 import { TrashPanel } from './TrashPanel';
+import { UsageStatsPanel } from './UsageStatsPanel';
 
 // Maintenance tab registry. Each cleanup week appends its panel here; "storage"
 // keeps the raw scan + table and "trash" the restore/empty surface.
@@ -62,6 +63,7 @@ const CLEANUP_TABS: MaintenanceTab[] = [
   { id: 'config-backup', label: 'Config Backup', render: () => <ConfigBackupPanel /> },
   { id: 'retention', label: 'Retention', render: () => <RetentionPolicyPanel /> },
   { id: 'shell-snapshots', label: 'Shell Snapshots', render: () => <ShellSnapshotPanel /> },
+  { id: 'usage', label: 'Usage', render: () => <UsageStatsPanel /> },
 ];
 
 export const MaintenanceView = (): JSX.Element => {
