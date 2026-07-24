@@ -10,6 +10,7 @@ import { BackupsCleanupPanel } from './BackupsCleanupPanel';
 import { CachesCleanupPanel } from './CachesCleanupPanel';
 import { ClaudeJsonPanel } from './ClaudeJsonPanel';
 import { ConfigBackupPanel } from './ConfigBackupPanel';
+import { FileHistoryBrowserPanel } from './FileHistoryBrowserPanel';
 import { FileHistoryCleanupPanel } from './FileHistoryCleanupPanel';
 import { HealthPanel } from './HealthPanel';
 import { HistoryPanel } from './HistoryPanel';
@@ -44,6 +45,11 @@ const CLEANUP_TABS: MaintenanceTab[] = [
   { id: 'plugins', label: 'Plugins', render: () => <PluginsCleanupPanel /> },
   { id: 'transcripts', label: 'Transcripts', render: () => <TranscriptsCleanupPanel /> },
   { id: 'file-history', label: 'File History', render: () => <FileHistoryCleanupPanel /> },
+  {
+    id: 'file-history-browser',
+    label: 'File History (view)',
+    render: () => <FileHistoryBrowserPanel />,
+  },
   { id: 'junk', label: 'Junk', render: () => <JunkCleanupPanel /> },
   { id: 'runtime', label: 'Runtime', render: () => <RuntimeCleanupPanel /> },
   { id: 'plans', label: 'Plans', render: () => <PlansCleanupPanel /> },
