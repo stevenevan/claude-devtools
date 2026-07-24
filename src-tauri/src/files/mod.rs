@@ -25,6 +25,7 @@ pub mod settings_generations;
 pub mod settings_sources;
 pub mod settings_write;
 pub mod skills_inventory;
+pub mod task_graph_reader;
 pub mod text_write;
 pub mod transcripts_reader;
 pub mod usage_reader;

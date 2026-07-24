@@ -4,6 +4,8 @@ import type {
   FileMeta,
   HistoryPage,
   MarketplaceCatalog,
+  TaskGraphMeta,
+  TaskNode,
   TranscriptRecord,
 } from '@shared/types/api';
 
@@ -22,6 +24,8 @@ type ClaudeFilesSlice = Pick<
   | 'listTranscripts'
   | 'readTranscript'
   | 'readMarketplaceCatalog'
+  | 'listTaskGraphs'
+  | 'readTaskGraph'
 >;
 
 export const claudeFilesCommands: ClaudeFilesSlice = {
@@ -38,4 +42,6 @@ export const claudeFilesCommands: ClaudeFilesSlice = {
   listTranscripts: () => call<FileMeta[]>('list_transcripts'),
   readTranscript: (id) => call<TranscriptRecord[]>('read_transcript', { id }),
   readMarketplaceCatalog: () => call<MarketplaceCatalog>('read_marketplace_catalog'),
+  listTaskGraphs: () => call<TaskGraphMeta[]>('list_task_graphs'),
+  readTaskGraph: (uuid) => call<TaskNode[]>('read_task_graph', { uuid }),
 };

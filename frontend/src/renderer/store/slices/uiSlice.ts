@@ -15,7 +15,8 @@ export type ActivityView =
   | 'maintenance'
   | 'history'
   | 'transcripts'
-  | 'marketplace';
+  | 'marketplace'
+  | 'taskGraph';
 
 export interface UISlice {
   commandPaletteOpen: boolean;

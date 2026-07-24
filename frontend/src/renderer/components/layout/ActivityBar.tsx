@@ -24,6 +24,7 @@ import {
   Settings,
   Sparkles,
   Store,
+  Workflow,
   Wrench,
 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -199,6 +200,13 @@ export const ActivityBar = (): JSX.Element => {
                 activity="marketplace"
                 isActive={activeActivity === 'marketplace'}
                 onClick={() => setActiveActivity('marketplace')}
+              />
+              <ActivityBarItem
+                icon={Workflow}
+                label="Task Graph"
+                activity="taskGraph"
+                isActive={activeActivity === 'taskGraph'}
+                onClick={() => setActiveActivity('taskGraph')}
               />
             </>
           )}

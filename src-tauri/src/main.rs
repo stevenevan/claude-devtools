@@ -648,6 +648,8 @@ fn main() {
             files_cmds::list_transcripts,
             files_cmds::read_transcript,
             files_cmds::read_marketplace_catalog,
+            files_cmds::list_task_graphs,
+            files_cmds::read_task_graph,
             // ── W13 maintenance: service.go ──
             maintenance_cmds::scan_claude_dir,
             maintenance_cmds::scan_category,

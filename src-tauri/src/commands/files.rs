@@ -16,6 +16,7 @@ use crate::files::claude_read::{self, FileMeta};
 use crate::files::filehistory_reader::{self, CheckpointGroup};
 use crate::files::history_reader::{self, HistoryPage};
 use crate::files::marketplace_reader::{self, MarketplaceCatalog};
+use crate::files::task_graph_reader::{self, TaskGraphMeta, TaskNode};
 use crate::files::transcripts_reader::{self, TranscriptRecord};
 use crate::files::claudejson::{
     list_claude_json_backups as list_backups_impl, read_claude_json as read_claude_json_impl,
@@ -314,4 +315,18 @@ pub fn read_transcript(id: String) -> Result<Vec<TranscriptRecord>, String> {
 pub fn read_marketplace_catalog() -> Result<MarketplaceCatalog, String> {
     let root = claude_dir()?;
     marketplace_reader::read_marketplace_catalog(&root.to_string_lossy())
+}
+
+// ── read-only viewers (task-graph) ──
+
+#[tauri::command]
+pub fn list_task_graphs() -> Result<Vec<TaskGraphMeta>, String> {
+    let root = claude_dir()?;
+    task_graph_reader::list_task_graphs(&root.to_string_lossy())
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn read_task_graph(uuid: String) -> Result<Vec<TaskNode>, String> {
+    let root = claude_dir()?;
+    task_graph_reader::read_task_graph(&root.to_string_lossy(), &uuid)
 }
