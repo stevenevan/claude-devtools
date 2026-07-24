@@ -103,9 +103,19 @@ pub fn list_file_history(root: &str) -> Result<Vec<CheckpointGroup>, String> {
     Ok(out)
 }
 
+/// Rejects `session_uuid`/`file_hash` containing `/`, `\`, or `..`. `pub(crate)`
+/// so a command can run it BEFORE using either id for anything (e.g. building a
+/// save-dialog filename), per CLAUDE.md's validate-at-the-IPC-boundary rule.
+pub(crate) fn validate_ids(session_uuid: &str, file_hash: &str) -> Result<(), String> {
+    let is_unsafe = |s: &str| s.contains('/') || s.contains('\\') || s.contains("..");
+    if is_unsafe(session_uuid) || is_unsafe(file_hash) {
+        return Err("files: invalid id".to_string());
+    }
+    Ok(())
+}
+
 /// Reads one leaf `{file_hash}@v{version}` under
-/// `file-history/{session_uuid}/`, traversal-safe. Rejects `session_uuid`/
-/// `file_hash` containing `/`, `\`, or `..` before delegating to the
+/// `file-history/{session_uuid}/`, traversal-safe, delegating to the
 /// root-anchored `claude_read::read_confined_file`.
 pub fn read_checkpoint(
     root: &str,
@@ -113,17 +123,37 @@ pub fn read_checkpoint(
     file_hash: &str,
     version: u32,
 ) -> Result<String, String> {
-    let is_unsafe = |s: &str| s.contains('/') || s.contains('\\') || s.contains("..");
-    if is_unsafe(session_uuid) || is_unsafe(file_hash) {
-        return Err("files: invalid id".to_string());
-    }
+    let bytes = read_checkpoint_bytes(root, session_uuid, file_hash, version)?;
+    Ok(String::from_utf8_lossy(&bytes).into_owned())
+}
 
-    let bytes = claude_read::read_confined_file(
+fn read_checkpoint_bytes(
+    root: &str,
+    session_uuid: &str,
+    file_hash: &str,
+    version: u32,
+) -> Result<Vec<u8>, String> {
+    validate_ids(session_uuid, file_hash)?;
+    claude_read::read_confined_file(
         root,
         &format!("file-history/{session_uuid}"),
         &format!("{file_hash}@v{version}"),
-    )?;
-    Ok(String::from_utf8_lossy(&bytes).into_owned())
+    )
+}
+
+/// Copies one checkpoint leaf to `dest` as RAW BYTES — not `read_checkpoint`'s
+/// lossy UTF-8 `String` — so a non-UTF-8 checkpoint exports byte-exact. `dest`
+/// is a user-chosen path from the native save dialog and is deliberately NOT
+/// root-confined; the user authorizes it by picking it.
+pub fn export_checkpoint_to(
+    root: &str,
+    session_uuid: &str,
+    file_hash: &str,
+    version: u32,
+    dest: &Path,
+) -> Result<(), String> {
+    let bytes = read_checkpoint_bytes(root, session_uuid, file_hash, version)?;
+    fs::write(dest, &bytes).map_err(|e| format!("files: write checkpoint export: {e}"))
 }
 
 #[cfg(test)]

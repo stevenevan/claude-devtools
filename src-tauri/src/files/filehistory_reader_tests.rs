@@ -86,3 +86,37 @@ fn read_checkpoint_rejects_traversal_ids() {
     assert!(read_checkpoint(&root_str, "../evil", "aaaa", 1).is_err());
     assert!(read_checkpoint(&root_str, "session-1", "a/b", 1).is_err());
 }
+
+#[test]
+fn export_checkpoint_writes_exact_bytes() {
+    let root = make_temp_root();
+    let uuid_dir = root.join("file-history").join("session-1");
+    fs::create_dir_all(&uuid_dir).unwrap();
+    // Invalid UTF-8: read_checkpoint would lossily replace 0xFF with U+FFFD.
+    let raw: &[u8] = &[0x68, 0x69, 0xFF, 0x00, 0x0A];
+    fs::write(uuid_dir.join("aaaa@v3"), raw).unwrap();
+
+    let dest = root.join("exported.bin");
+    let root_str = root.to_string_lossy().into_owned();
+    export_checkpoint_to(&root_str, "session-1", "aaaa", 3, &dest).expect("export_checkpoint_to");
+
+    assert_eq!(fs::read(&dest).unwrap(), raw);
+}
+
+#[test]
+fn export_checkpoint_rejects_traversal_ids() {
+    let root = make_temp_root();
+    fs::create_dir_all(root.join("file-history").join("session-1")).unwrap();
+    let root_str = root.to_string_lossy().into_owned();
+    let dest = root.join("out.bin");
+
+    assert_eq!(
+        export_checkpoint_to(&root_str, "../evil", "aaaa", 1, &dest).unwrap_err(),
+        "files: invalid id"
+    );
+    assert_eq!(
+        export_checkpoint_to(&root_str, "session-1", "a/b", 1, &dest).unwrap_err(),
+        "files: invalid id"
+    );
+    assert!(!dest.exists(), "rejected export must not create the dest file");
+}

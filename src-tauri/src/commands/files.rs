@@ -9,6 +9,8 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use serde_json::{Map, Value};
+use tauri::AppHandle;
+use tauri_plugin_dialog::DialogExt;
 
 use crate::config::root::{app_data_dir, claude_dir};
 use crate::files::agents_write::{read_agent_configs as read_agent_configs_impl, AgentConfig};
@@ -302,6 +304,42 @@ pub fn list_file_history() -> Result<Vec<CheckpointGroup>, String> {
 pub fn read_checkpoint(session_uuid: String, file_hash: String, version: u32) -> Result<String, String> {
     let root = claude_dir()?;
     filehistory_reader::read_checkpoint(&root.to_string_lossy(), &session_uuid, &file_hash, version)
+}
+
+/// Saves one checkpoint to a path the user picks in the native save dialog.
+/// Returns whether a file was written — `false` means the user cancelled, so
+/// the UI does not claim "Saved". `async` is load-bearing: the blocking dialog
+/// must run off the main thread or it deadlocks the event loop (same reason as
+/// `configbackup::export_backup`).
+#[tauri::command(rename_all = "camelCase")]
+pub async fn export_checkpoint(
+    session_uuid: String,
+    file_hash: String,
+    version: u32,
+    app: AppHandle,
+) -> Result<bool, String> {
+    // Before the ids are used for ANYTHING, including the suggested filename.
+    filehistory_reader::validate_ids(&session_uuid, &file_hash)?;
+    let root = claude_dir()?;
+
+    let Some(file_path) = app
+        .dialog()
+        .file()
+        .set_file_name(format!("{file_hash}@v{version}"))
+        .blocking_save_file()
+    else {
+        return Ok(false); // user cancel — no-op
+    };
+    let dest = file_path.into_path().map_err(|e| e.to_string())?;
+
+    filehistory_reader::export_checkpoint_to(
+        &root.to_string_lossy(),
+        &session_uuid,
+        &file_hash,
+        version,
+        &dest,
+    )?;
+    Ok(true)
 }
 
 // ── read-only viewers (history) ──
