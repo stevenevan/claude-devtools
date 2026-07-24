@@ -10,6 +10,7 @@ pub mod claudejson;
 pub mod claudejson_write;
 pub mod filehistory_reader;
 pub mod fsutil;
+pub mod history_reader;
 pub mod hooks_write;
 pub mod json_util;
 pub mod mcp_status;

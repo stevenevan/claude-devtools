@@ -1,4 +1,4 @@
-import type { CheckpointGroup, DesktopAPI, FileMeta } from '@shared/types/api';
+import type { CheckpointGroup, DesktopAPI, FileMeta, HistoryPage } from '@shared/types/api';
 
 import { call } from '../invoke';
 
@@ -11,6 +11,7 @@ type ClaudeFilesSlice = Pick<
   | 'readTelemetryEvent'
   | 'listFileHistory'
   | 'readCheckpoint'
+  | 'readHistoryPage'
 >;
 
 export const claudeFilesCommands: ClaudeFilesSlice = {
@@ -22,4 +23,6 @@ export const claudeFilesCommands: ClaudeFilesSlice = {
   listFileHistory: () => call<CheckpointGroup[]>('list_file_history'),
   readCheckpoint: (sessionUuid, fileHash, version) =>
     call<string>('read_checkpoint', { sessionUuid, fileHash, version }),
+  readHistoryPage: (before, limit, query) =>
+    call<HistoryPage>('read_history_page', { before, limit, query }),
 };

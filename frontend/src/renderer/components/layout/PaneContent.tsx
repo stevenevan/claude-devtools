@@ -50,6 +50,9 @@ const GlobalContentView = lazy(() =>
 const MaintenanceView = lazy(() =>
   import('../maintenance/MaintenanceView').then((m) => ({ default: m.MaintenanceView }))
 );
+const HistoryBrowser = lazy(() =>
+  import('../dashboard/HistoryBrowser').then((m) => ({ default: m.HistoryBrowser }))
+);
 
 const LazyFallback = (): JSX.Element => (
   <div className="bg-background flex flex-1 items-center justify-center">
@@ -81,7 +84,8 @@ export const PaneContent = ({ pane }: PaneContentProps): JSX.Element => {
     activeActivity === 'settings' ||
     activeActivity === 'notifications' ||
     activeActivity === 'search' ||
-    activeActivity === 'maintenance';
+    activeActivity === 'maintenance' ||
+    activeActivity === 'history';
   const showGlobalContent = isGlobalActivity || showDefaultContent;
 
   return (
@@ -109,6 +113,7 @@ export const PaneContent = ({ pane }: PaneContentProps): JSX.Element => {
               {activeActivity === 'search' && <SearchView />}
               {activeActivity === 'settings' && <SettingsView />}
               {activeActivity === 'maintenance' && <MaintenanceView />}
+              {activeActivity === 'history' && <HistoryBrowser />}
             </Suspense>
           </ErrorBoundary>
         </div>

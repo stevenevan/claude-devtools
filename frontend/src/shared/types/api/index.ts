@@ -32,6 +32,7 @@ import type { CheckpointGroup, FileMeta } from './claudeFiles';
 import type { ClaudeJSONBackup, ClaudeJSONCensus, PurgeResult } from './claudeJson';
 import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
+import type { HistoryPage } from './history';
 import type { MaintenanceAPI } from './maintenance';
 import type { MCPStatusView } from './mcp';
 import type { PermissionRulesView, PermissionScope } from './permissions';
@@ -52,6 +53,7 @@ export type * from './claudeJson';
 export type * from './config';
 export type * from './configBackup';
 export type * from './context';
+export type * from './history';
 export type * from './maintenance';
 export type * from './mcp';
 export type * from './memory';
@@ -272,6 +274,7 @@ export interface DesktopAPI {
   readTelemetryEvent: (name: string) => Promise<unknown>;
   listFileHistory: () => Promise<CheckpointGroup[]>;
   readCheckpoint: (sessionUuid: string, fileHash: string, version: number) => Promise<string>;
+  readHistoryPage: (before: number | null, limit: number, query?: string) => Promise<HistoryPage>;
 
   // Notifications API
   notifications: NotificationsAPI;

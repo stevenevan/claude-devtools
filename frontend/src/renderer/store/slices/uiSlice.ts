@@ -12,7 +12,8 @@ export type ActivityView =
   | 'settings'
   | 'notifications'
   | 'search'
-  | 'maintenance';
+  | 'maintenance'
+  | 'history';
 
 export interface UISlice {
   commandPaletteOpen: boolean;

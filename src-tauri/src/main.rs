@@ -644,6 +644,7 @@ fn main() {
             files_cmds::read_telemetry_event,
             files_cmds::list_file_history,
             files_cmds::read_checkpoint,
+            files_cmds::read_history_page,
             // ── W13 maintenance: service.go ──
             maintenance_cmds::scan_claude_dir,
             maintenance_cmds::scan_category,

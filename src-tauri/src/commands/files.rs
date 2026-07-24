@@ -14,6 +14,7 @@ use crate::config::root::{app_data_dir, claude_dir};
 use crate::files::agents_write::{read_agent_configs as read_agent_configs_impl, AgentConfig};
 use crate::files::claude_read::{self, FileMeta};
 use crate::files::filehistory_reader::{self, CheckpointGroup};
+use crate::files::history_reader::{self, HistoryPage};
 use crate::files::claudejson::{
     list_claude_json_backups as list_backups_impl, read_claude_json as read_claude_json_impl,
     read_claude_json_backup as read_backup_impl, read_claude_json_masked as read_masked_impl,
@@ -277,4 +278,16 @@ pub fn list_file_history() -> Result<Vec<CheckpointGroup>, String> {
 pub fn read_checkpoint(session_uuid: String, file_hash: String, version: u32) -> Result<String, String> {
     let root = claude_dir()?;
     filehistory_reader::read_checkpoint(&root.to_string_lossy(), &session_uuid, &file_hash, version)
+}
+
+// ── read-only viewers (history) ──
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn read_history_page(
+    before: Option<i64>,
+    limit: usize,
+    query: Option<String>,
+) -> Result<HistoryPage, String> {
+    let root = claude_dir()?;
+    history_reader::read_history_page(&root.to_string_lossy(), before, limit, query.as_deref())
 }

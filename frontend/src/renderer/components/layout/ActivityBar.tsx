@@ -16,6 +16,7 @@ import {
   Bot,
   FolderGit2,
   HelpCircle,
+  History,
   ListTodo,
   MessageSquareText,
   Puzzle,
@@ -174,6 +175,15 @@ export const ActivityBar = (): JSX.Element => {
             isActive={activeActivity === 'todos'}
             onClick={() => setActiveActivity('todos')}
           />
+          {isDesktopMode() && (
+            <ActivityBarItem
+              icon={History}
+              label="History"
+              activity="history"
+              isActive={activeActivity === 'history'}
+              onClick={() => setActiveActivity('history')}
+            />
+          )}
         </div>
 
         <div className="flex-1" />
