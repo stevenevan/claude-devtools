@@ -26,6 +26,7 @@ import { ProjectSettingsPanel } from './ProjectSettingsPanel';
 import { RetentionPolicyPanel } from './RetentionPolicyPanel';
 import { RuntimeCleanupPanel } from './RuntimeCleanupPanel';
 import { SettingsDiffPanel } from './SettingsDiffPanel';
+import { ShellSnapshotPanel } from './ShellSnapshotPanel';
 import { StorageTable } from './StorageTable';
 import { TranscriptsCleanupPanel } from './TranscriptsCleanupPanel';
 import { TrashPanel } from './TrashPanel';
@@ -60,6 +61,7 @@ const CLEANUP_TABS: MaintenanceTab[] = [
   { id: 'memory', label: 'Memory', render: () => <MemoryPanel /> },
   { id: 'config-backup', label: 'Config Backup', render: () => <ConfigBackupPanel /> },
   { id: 'retention', label: 'Retention', render: () => <RetentionPolicyPanel /> },
+  { id: 'shell-snapshots', label: 'Shell Snapshots', render: () => <ShellSnapshotPanel /> },
 ];
 
 export const MaintenanceView = (): JSX.Element => {
