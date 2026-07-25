@@ -1,12 +1,16 @@
 import { JSX, useEffect, useMemo, useState } from 'react';
 import { api } from '@renderer/api';
-import { CodeBlockViewer } from '@renderer/components/chat/viewers';
+import { CodeBlockViewer, DiffViewer } from '@renderer/components/chat/viewers';
+import { CopyButton } from '@renderer/components/common/CopyButton';
 import { Button } from '@renderer/components/ui/button';
+import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
 import { cn } from '@renderer/lib/utils';
 import { formatBytes } from '@renderer/utils/formatters';
 import { RefreshCw } from 'lucide-react';
 
 import type { CheckpointGroup } from '@shared/types/api';
+
+const COMPARE_OFF = '';
 
 function errText(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
@@ -31,6 +35,12 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
   const [content, setContent] = useState<string | null>(null);
   const [contentLoading, setContentLoading] = useState(false);
   const [contentError, setContentError] = useState<string | null>(null);
+
+  const [compareVersion, setCompareVersion] = useState<number | null>(null);
+  const [compareContent, setCompareContent] = useState<string | null>(null);
+  const [compareError, setCompareError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [exported, setExported] = useState(false);
 
   const sessionGroups = useMemo<SessionGroup[]>(() => {
     const bySession = new Map<string, CheckpointGroup[]>();
@@ -61,12 +71,20 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
     void loadList();
   }, []);
 
+  const resetCompare = (): void => {
+    setCompareVersion(null);
+    setCompareContent(null);
+    setCompareError(null);
+    setExported(false);
+  };
+
   const selectSession = (sessionUuid: string): void => {
     setSelectedSession(sessionUuid);
     setSelectedFile(null);
     setSelectedVersion(null);
     setContent(null);
     setContentError(null);
+    resetCompare();
   };
 
   const selectFile = (group: CheckpointGroup): void => {
@@ -74,6 +92,7 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
     setSelectedVersion(null);
     setContent(null);
     setContentError(null);
+    resetCompare();
   };
 
   const selectVersion = async (version: number): Promise<void> => {
@@ -81,6 +100,7 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
     setSelectedVersion(version);
     setContent(null);
     setContentError(null);
+    resetCompare();
     setContentLoading(true);
     try {
       setContent(await api.readCheckpoint(selectedSession, selectedFile.fileHash, version));
@@ -88,6 +108,43 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
       setContentError(errText(err));
     } finally {
       setContentLoading(false);
+    }
+  };
+
+  const selectCompareVersion = async (raw: string): Promise<void> => {
+    if (!selectedSession || !selectedFile) return;
+    if (raw === COMPARE_OFF) {
+      resetCompare();
+      return;
+    }
+    const version = Number(raw);
+    setCompareVersion(version);
+    setCompareContent(null);
+    setCompareError(null);
+    try {
+      setCompareContent(
+        await api.readCheckpoint(selectedSession, selectedFile.fileHash, version)
+      );
+    } catch (err) {
+      setCompareError(errText(err));
+    }
+  };
+
+  const exportSelected = async (): Promise<void> => {
+    if (!selectedSession || !selectedFile || selectedVersion === null) return;
+    setExporting(true);
+    setExported(false);
+    try {
+      const saved = await api.exportCheckpoint(
+        selectedSession,
+        selectedFile.fileHash,
+        selectedVersion
+      );
+      setExported(saved);
+    } catch (err) {
+      setContentError(errText(err));
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -99,8 +156,9 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
         <div>
           <p className="text-foreground text-sm font-medium">File History</p>
           <p className="text-muted-foreground mt-0.5 text-xs">
-            Read-only browser for the per-file checkpoints Claude Code keeps under
-            ~/.claude/file-history, keyed by session and an opaque file hash. Nothing here writes.
+            Browser for the per-file checkpoints Claude Code keeps under ~/.claude/file-history,
+            keyed by session and an opaque file hash. Read-only over ~/.claude; Save as… writes
+            only to the file you pick.
           </p>
         </div>
         <Button variant="outline" size="sm" disabled={listLoading} onClick={() => void loadList()}>
@@ -173,13 +231,57 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
             )}
           </div>
 
-          <div className="min-w-0">
+          <div className="flex min-w-0 flex-col gap-2">
+            {selectedFile && selectedVersion !== null && content !== null && (
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="text-muted-foreground text-xs" htmlFor="checkpoint-compare">
+                  Compare with
+                </label>
+                <NativeSelect
+                  id="checkpoint-compare"
+                  size="sm"
+                  value={compareVersion === null ? COMPARE_OFF : String(compareVersion)}
+                  onChange={(e) => void selectCompareVersion(e.target.value)}
+                >
+                  <NativeSelectOption value={COMPARE_OFF}>None</NativeSelectOption>
+                  {selectedFile.versions
+                    .filter((v) => v !== selectedVersion)
+                    .map((v) => (
+                      <NativeSelectOption key={v} value={String(v)}>
+                        v{v}
+                      </NativeSelectOption>
+                    ))}
+                </NativeSelect>
+
+                <div className="ml-auto flex items-center gap-1.5">
+                  {exported && <span className="text-muted-foreground text-xs">Saved</span>}
+                  <CopyButton text={content} inline />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={exporting}
+                    onClick={() => void exportSelected()}
+                  >
+                    Save as…
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {compareError && (
+              <div className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-xs">
+                {compareError}
+              </div>
+            )}
+
             <CheckpointContent
               fileHash={selectedFile?.fileHash ?? null}
               version={selectedVersion}
               content={content}
               loading={contentLoading}
               error={contentError}
+              compareVersion={compareVersion}
+              compareContent={compareContent}
             />
           </div>
         </div>
@@ -258,6 +360,8 @@ interface CheckpointContentProps {
   content: string | null;
   loading: boolean;
   error: string | null;
+  compareVersion: number | null;
+  compareContent: string | null;
 }
 
 const CheckpointContent = ({
@@ -266,6 +370,8 @@ const CheckpointContent = ({
   content,
   loading,
   error,
+  compareVersion,
+  compareContent,
 }: Readonly<CheckpointContentProps>): JSX.Element => {
   const placeholder = (
     <p className="text-muted-foreground text-xs">
@@ -281,6 +387,18 @@ const CheckpointContent = ({
     );
   }
   if (content === null) return placeholder;
+
+  // fileHash is opaque, so this header is an identifier, not a filename — no
+  // language is inferred from it either way.
+  if (compareVersion !== null && compareContent !== null) {
+    return (
+      <DiffViewer
+        fileName={`${fileHash}@v${version}`}
+        oldString={compareContent}
+        newString={content}
+      />
+    );
+  }
 
   return <CodeBlockViewer fileName={`${fileHash}@v${version}`} content={content} />;
 };
