@@ -9,6 +9,8 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use serde_json::{Map, Value};
+use tauri::AppHandle;
+use tauri_plugin_dialog::DialogExt;
 
 use crate::config::root::{app_data_dir, claude_dir};
 use crate::files::agents_write::{read_agent_configs as read_agent_configs_impl, AgentConfig};
@@ -48,6 +50,7 @@ use crate::files::plugins_write::{
     DuplicateGroup, Plugin,
 };
 use crate::files::settings_sources::{enumerate_settings_sources as enumerate_sources_impl, SourcesView};
+use crate::files::statusline::{self, StatusLineConfig, StatusLineScriptInfo};
 use crate::files::settings_write::{
     read_global_settings as read_settings_impl, update_global_settings as update_settings_impl,
     SettingsPatch,
@@ -302,6 +305,75 @@ pub fn list_file_history() -> Result<Vec<CheckpointGroup>, String> {
 pub fn read_checkpoint(session_uuid: String, file_hash: String, version: u32) -> Result<String, String> {
     let root = claude_dir()?;
     filehistory_reader::read_checkpoint(&root.to_string_lossy(), &session_uuid, &file_hash, version)
+}
+
+/// Saves one checkpoint to a path the user picks in the native save dialog.
+/// Returns whether a file was written — `false` means the user cancelled, so
+/// the UI does not claim "Saved". `async` is load-bearing: the blocking dialog
+/// must run off the main thread or it deadlocks the event loop (same reason as
+/// `configbackup::export_backup`).
+#[tauri::command(rename_all = "camelCase")]
+pub async fn export_checkpoint(
+    session_uuid: String,
+    file_hash: String,
+    version: u32,
+    app: AppHandle,
+) -> Result<bool, String> {
+    // Before the ids are used for ANYTHING, including the suggested filename.
+    filehistory_reader::validate_ids(&session_uuid, &file_hash)?;
+    let root = claude_dir()?;
+
+    let Some(file_path) = app
+        .dialog()
+        .file()
+        .set_file_name(format!("{file_hash}@v{version}"))
+        .blocking_save_file()
+    else {
+        return Ok(false); // user cancel — no-op
+    };
+    let dest = file_path.into_path().map_err(|e| e.to_string())?;
+
+    filehistory_reader::export_checkpoint_to(
+        &root.to_string_lossy(),
+        &session_uuid,
+        &file_hash,
+        version,
+        &dest,
+    )?;
+    Ok(true)
+}
+
+// ── status line config ──
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn read_status_line() -> Result<Option<StatusLineConfig>, String> {
+    statusline::read_status_line()
+}
+
+/// Persists the `statusLine` object, or removes it when `config` is `None`.
+/// Validated here at the IPC boundary before it reaches the writer.
+#[tauri::command(rename_all = "camelCase")]
+pub fn update_status_line(config: Option<StatusLineConfig>) -> Result<(), String> {
+    if let Some(cfg) = &config {
+        statusline::validate(cfg)?;
+    }
+    statusline::write_status_line(config)
+}
+
+/// Metadata about the script `command` points at — never its content, and
+/// never executed.
+#[tauri::command(rename_all = "camelCase")]
+pub fn stat_status_line_script(command: String) -> Result<StatusLineScriptInfo, String> {
+    let root = claude_dir()?;
+    Ok(statusline::stat_status_line_script(&command, &root))
+}
+
+/// Reveals the script in the OS file manager. Reveal, not open: a real
+/// `status-line` can be a Mach-O binary, which `open` would execute.
+#[tauri::command(rename_all = "camelCase")]
+pub fn reveal_status_line_script(command: String) -> Result<(), String> {
+    let root = claude_dir()?;
+    statusline::reveal_status_line_script(&command, &root)
 }
 
 // ── read-only viewers (history) ──

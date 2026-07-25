@@ -10,6 +10,8 @@ import type {
   PermissionRulesView,
   PurgeResult,
   SourcesView,
+  StatusLineConfig,
+  StatusLineScriptInfo,
   Suggestion,
 } from '@shared/types/api';
 
@@ -29,6 +31,10 @@ type FilesSlice = Pick<
   | 'readGlobalPlugins'
   | 'readGlobalSettings'
   | 'updateGlobalSettings'
+  | 'readStatusLine'
+  | 'updateStatusLine'
+  | 'statStatusLineScript'
+  | 'revealStatusLineScript'
   | 'readHooks'
   | 'toggleHook'
   | 'setPluginEnabled'
@@ -85,6 +91,12 @@ export const filesCommands: FilesSlice = {
   readGlobalSettings: () => call<Record<string, unknown>>('read_global_settings'),
 
   updateGlobalSettings: (patch) => call<void>('update_global_settings', { patch }),
+
+  readStatusLine: () => call<StatusLineConfig | null>('read_status_line'),
+  updateStatusLine: (config) => call<void>('update_status_line', { config }),
+  statStatusLineScript: (command) =>
+    call<StatusLineScriptInfo>('stat_status_line_script', { command }),
+  revealStatusLineScript: (command) => call<void>('reveal_status_line_script', { command }),
 
   readHooks: () => call<HookView>('read_hooks'),
 
