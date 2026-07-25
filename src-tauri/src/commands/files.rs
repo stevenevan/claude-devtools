@@ -50,6 +50,7 @@ use crate::files::plugins_write::{
     DuplicateGroup, Plugin,
 };
 use crate::files::settings_sources::{enumerate_settings_sources as enumerate_sources_impl, SourcesView};
+use crate::files::statusline::{self, StatusLineConfig};
 use crate::files::settings_write::{
     read_global_settings as read_settings_impl, update_global_settings as update_settings_impl,
     SettingsPatch,
@@ -340,6 +341,23 @@ pub async fn export_checkpoint(
         &dest,
     )?;
     Ok(true)
+}
+
+// ── status line config ──
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn read_status_line() -> Result<Option<StatusLineConfig>, String> {
+    statusline::read_status_line()
+}
+
+/// Persists the `statusLine` object, or removes it when `config` is `None`.
+/// Validated here at the IPC boundary before it reaches the writer.
+#[tauri::command(rename_all = "camelCase")]
+pub fn update_status_line(config: Option<StatusLineConfig>) -> Result<(), String> {
+    if let Some(cfg) = &config {
+        statusline::validate(cfg)?;
+    }
+    statusline::write_status_line(config)
 }
 
 // ── read-only viewers (history) ──
