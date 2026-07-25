@@ -650,6 +650,8 @@ fn main() {
             files_cmds::export_checkpoint,
             files_cmds::read_status_line,
             files_cmds::update_status_line,
+            files_cmds::stat_status_line_script,
+            files_cmds::reveal_status_line_script,
             files_cmds::read_history_page,
             files_cmds::list_transcripts,
             files_cmds::read_transcript,

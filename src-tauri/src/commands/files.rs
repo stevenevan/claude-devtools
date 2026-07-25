@@ -50,7 +50,7 @@ use crate::files::plugins_write::{
     DuplicateGroup, Plugin,
 };
 use crate::files::settings_sources::{enumerate_settings_sources as enumerate_sources_impl, SourcesView};
-use crate::files::statusline::{self, StatusLineConfig};
+use crate::files::statusline::{self, StatusLineConfig, StatusLineScriptInfo};
 use crate::files::settings_write::{
     read_global_settings as read_settings_impl, update_global_settings as update_settings_impl,
     SettingsPatch,
@@ -358,6 +358,22 @@ pub fn update_status_line(config: Option<StatusLineConfig>) -> Result<(), String
         statusline::validate(cfg)?;
     }
     statusline::write_status_line(config)
+}
+
+/// Metadata about the script `command` points at — never its content, and
+/// never executed.
+#[tauri::command(rename_all = "camelCase")]
+pub fn stat_status_line_script(command: String) -> Result<StatusLineScriptInfo, String> {
+    let root = claude_dir()?;
+    Ok(statusline::stat_status_line_script(&command, &root))
+}
+
+/// Reveals the script in the OS file manager. Reveal, not open: a real
+/// `status-line` can be a Mach-O binary, which `open` would execute.
+#[tauri::command(rename_all = "camelCase")]
+pub fn reveal_status_line_script(command: String) -> Result<(), String> {
+    let root = claude_dir()?;
+    statusline::reveal_status_line_script(&command, &root)
 }
 
 // ── read-only viewers (history) ──
