@@ -46,6 +46,7 @@ import type { SnapshotsAPI } from './snapshots';
 import type { SshAPI } from './ssh';
 import type { Suggestion } from './suggestions';
 import type { HttpServerAPI, UpdaterAPI } from './system';
+import type { StatusLineConfig, StatusLineScriptInfo } from './statusLine';
 import type { TaskGraphMeta, TaskNode } from './taskGraph';
 import type { WebhookAPI } from './webhook';
 
@@ -71,6 +72,7 @@ export type * from './snapshots';
 export type * from './ssh';
 export type * from './suggestions';
 export type * from './system';
+export type * from './statusLine';
 export type * from './taskGraph';
 export type * from './transcripts';
 export type * from './webhook';
@@ -222,6 +224,11 @@ export interface DesktopAPI {
   readGlobalPlugins: () => Promise<GlobalPlugin[]>;
   readGlobalSettings: () => Promise<Record<string, unknown>>;
   updateGlobalSettings: (patch: GlobalSettingsPatch) => Promise<void>;
+  readStatusLine: () => Promise<StatusLineConfig | null>;
+  // null removes the statusLine key — the documented way to disable it.
+  updateStatusLine: (config: StatusLineConfig | null) => Promise<void>;
+  statStatusLineScript: (command: string) => Promise<StatusLineScriptInfo>;
+  revealStatusLineScript: (command: string) => Promise<void>;
   readHooks: () => Promise<HookView>;
   toggleHook: (
     event: string,
