@@ -136,9 +136,9 @@ fn resolve_command_path(command: &str, root: &Path) -> Option<PathBuf> {
 
     if let Some(rest) = trimmed.strip_prefix("~/") {
         // The claude root is `$HOME/.claude`, so its parent is the home dir.
-        // Derived rather than calling dirs::home_dir(), which would add a new
-        // site to the QA gate-3 baseline. A configurable root of "/" has no
-        // parent — return None rather than unwrapping.
+        // Derived from the root rather than resolving the home directory
+        // directly, which would add a new site to the QA gate-3 baseline.
+        // A configurable root of "/" has no parent — return None, never unwrap.
         let home = root.parent()?;
         return Some(home.join(rest));
     }

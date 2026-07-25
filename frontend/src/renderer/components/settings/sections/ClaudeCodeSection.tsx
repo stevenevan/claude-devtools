@@ -9,6 +9,7 @@ import { SettingsSectionHeader } from '../components';
 import { EnvFlagsPanel } from './claudeCode/EnvFlagsPanel';
 import { HooksPanel } from './claudeCode/HooksPanel';
 import { PluginsPanel } from './claudeCode/PluginsPanel';
+import { StatusLinePanel } from './claudeCode/StatusLinePanel';
 
 import type { GlobalSettingsPatch } from '@shared/types/api';
 
@@ -196,6 +197,9 @@ export const ClaudeCodeSection = (): JSX.Element | null => {
 
       <SettingsSectionHeader title="Hooks" />
       <HooksPanel />
+
+      <SettingsSectionHeader title="Status Line" />
+      <StatusLinePanel />
 
       <SettingsSectionHeader title="Plugins" />
       <PluginsPanel />
