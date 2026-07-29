@@ -1,6 +1,7 @@
 import { JSX, useEffect, useMemo, useState } from 'react';
 import { api } from '@renderer/api';
 import { CodeBlockViewer, DiffViewer } from '@renderer/components/chat/viewers';
+import { CopyablePath } from '@renderer/components/common/CopyablePath';
 import { CopyButton } from '@renderer/components/common/CopyButton';
 import { Button } from '@renderer/components/ui/button';
 import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
@@ -8,7 +9,7 @@ import { cn } from '@renderer/lib/utils';
 import { formatBytes } from '@renderer/utils/formatters';
 import { RefreshCw } from 'lucide-react';
 
-import type { CheckpointGroup } from '@shared/types/api';
+import type { CheckpointGroup, CheckpointOrigin } from '@shared/types/api';
 
 const COMPARE_OFF = '';
 
@@ -41,6 +42,15 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
   const [compareError, setCompareError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [exported, setExported] = useState(false);
+
+  // Origin is per file hash, so it survives version switching. It is
+  // deliberately NOT cleared in resetCompare: selectVersion calls that, and the
+  // action row only renders once a version is selected, so clearing there would
+  // wipe the value selectFile just resolved and the Restore button would never
+  // appear.
+  const [origin, setOrigin] = useState<CheckpointOrigin | null>(null);
+  const [restoring, setRestoring] = useState(false);
+  const [restoredPath, setRestoredPath] = useState<string | null>(null);
 
   const sessionGroups = useMemo<SessionGroup[]>(() => {
     const bySession = new Map<string, CheckpointGroup[]>();
@@ -76,6 +86,7 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
     setCompareContent(null);
     setCompareError(null);
     setExported(false);
+    setRestoredPath(null);
   };
 
   const selectSession = (sessionUuid: string): void => {
@@ -84,15 +95,23 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
     setSelectedVersion(null);
     setContent(null);
     setContentError(null);
+    setOrigin(null);
     resetCompare();
   };
 
-  const selectFile = (group: CheckpointGroup): void => {
+  const selectFile = async (group: CheckpointGroup): Promise<void> => {
     setSelectedFile(group);
     setSelectedVersion(null);
     setContent(null);
     setContentError(null);
+    setOrigin(null);
     resetCompare();
+    if (!selectedSession) return;
+    try {
+      setOrigin(await api.resolveCheckpointOrigin(selectedSession, group.fileHash));
+    } catch (err) {
+      setContentError(errText(err));
+    }
   };
 
   const selectVersion = async (version: number): Promise<void> => {
@@ -148,6 +167,21 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
     }
   };
 
+  const restoreSelected = async (): Promise<void> => {
+    if (!selectedSession || !selectedFile || selectedVersion === null) return;
+    setRestoring(true);
+    setRestoredPath(null);
+    try {
+      setRestoredPath(
+        await api.restoreCheckpoint(selectedSession, selectedFile.fileHash, selectedVersion)
+      );
+    } catch (err) {
+      setContentError(errText(err));
+    } finally {
+      setRestoring(false);
+    }
+  };
+
   const activeSession = sessionGroups.find((s) => s.sessionUuid === selectedSession) ?? null;
 
   return (
@@ -157,8 +191,9 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
           <p className="text-foreground text-sm font-medium">File History</p>
           <p className="text-muted-foreground mt-0.5 text-xs">
             Browser for the per-file checkpoints Claude Code keeps under ~/.claude/file-history,
-            keyed by session and an opaque file hash. Read-only over ~/.claude; Save as… writes
-            only to the file you pick.
+            keyed by session and an opaque file hash. Read-only over ~/.claude; Save as… and
+            Restore both write only to the file you pick in the dialog. Always reads and writes
+            this machine, even while an SSH session is connected.
           </p>
         </div>
         <Button variant="outline" size="sm" disabled={listLoading} onClick={() => void loadList()}>
@@ -207,7 +242,7 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
                       key={file.fileHash}
                       file={file}
                       selected={file.fileHash === selectedFile?.fileHash}
-                      onSelect={() => selectFile(file)}
+                      onSelect={() => void selectFile(file)}
                     />
                   ))}
                 </div>
@@ -265,6 +300,37 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
                     Save as…
                   </Button>
                 </div>
+              </div>
+            )}
+
+            {selectedFile && selectedVersion !== null && content !== null && (
+              <div className="text-muted-foreground flex min-w-0 flex-wrap items-center gap-2 text-xs">
+                {origin ? (
+                  <>
+                    <span className="shrink-0">Original</span>
+                    <CopyablePath
+                      displayText={origin.realPath}
+                      copyText={origin.realPath}
+                      className="text-foreground font-mono text-[11px]"
+                    />
+                    <div className="ml-auto flex shrink-0 items-center gap-1.5">
+                      {restoredPath && <span>Restored to {restoredPath}</span>}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={restoring}
+                        onClick={() => void restoreSelected()}
+                      >
+                        Restore to original…
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <span>
+                    Original path unknown — use Save as… (the session log this is recovered from
+                    may have been pruned).
+                  </span>
+                )}
               </div>
             )}
 
