@@ -135,12 +135,19 @@ const StatsSection = ({ stats, loading, error }: Readonly<StatsSectionProps>): J
     <p className="text-foreground mb-2 text-xs font-medium">Stats cache</p>
 
     {error && (
-      <div className="bg-destructive/10 text-destructive mb-2 rounded-md px-3 py-2 text-xs">
+      <div
+        role="alert"
+        className="bg-destructive/10 text-destructive mb-2 rounded-md px-3 py-2 text-xs"
+      >
         {error}
       </div>
     )}
 
-    {loading && <p className="text-muted-foreground text-xs">Loading…</p>}
+    {loading && (
+      <p role="status" className="text-muted-foreground text-xs">
+        Loading…
+      </p>
+    )}
 
     {!loading && !error && !stats && (
       <p className="text-muted-foreground text-xs">No stats-cache.json found under ~/.claude.</p>
@@ -196,12 +203,19 @@ const TelemetrySection = ({
     <p className="text-foreground mb-2 text-xs font-medium">Telemetry events</p>
 
     {error && (
-      <div className="bg-destructive/10 text-destructive mb-2 rounded-md px-3 py-2 text-xs">
+      <div
+        role="alert"
+        className="bg-destructive/10 text-destructive mb-2 rounded-md px-3 py-2 text-xs"
+      >
         {error}
       </div>
     )}
 
-    {loading && <p className="text-muted-foreground text-xs">Loading…</p>}
+    {loading && (
+      <p role="status" className="text-muted-foreground text-xs">
+        Loading…
+      </p>
+    )}
 
     {!loading && !error && events.length === 0 && (
       <p className="text-muted-foreground text-xs">
@@ -211,7 +225,10 @@ const TelemetrySection = ({
 
     {!loading && events.length > 0 && (
       <div className="flex gap-4">
-        <div className="flex max-h-96 w-64 shrink-0 flex-col gap-1.5 overflow-y-auto">
+        <div
+          aria-label="Telemetry events"
+          className="flex max-h-96 w-64 shrink-0 flex-col gap-1.5 overflow-y-auto"
+        >
           {events.map((event) => (
             <EventRow
               key={event.name}
@@ -243,6 +260,7 @@ interface EventRowProps {
 const EventRow = ({ event, selected, onSelect }: Readonly<EventRowProps>): JSX.Element => (
   <Button
     variant="ghost"
+    aria-current={selected || undefined}
     onClick={onSelect}
     className={cn(
       'h-auto w-full min-w-0 flex-col items-start gap-0.5 rounded-md border px-2.5 py-2 text-left',
@@ -273,11 +291,17 @@ const EventContent = ({
     return <p className="text-muted-foreground text-xs">Select an event to view its contents.</p>;
   }
   if (loading) {
-    return <p className="text-muted-foreground text-xs">Loading…</p>;
+    return (
+      <p role="status" className="text-muted-foreground text-xs">
+        Loading…
+      </p>
+    );
   }
   if (error) {
     return (
-      <div className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-xs">{error}</div>
+      <div role="alert" className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-xs">
+        {error}
+      </div>
     );
   }
   if (event === null) {

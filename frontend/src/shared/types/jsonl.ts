@@ -145,7 +145,18 @@ export interface FileHistorySnapshotEntry extends BaseEntry {
   messageId: string;
   snapshot: {
     messageId: string;
-    trackedFileBackups: Record<string, string>;
+    // Older sessions wrote a bare string value here; current ones write this
+    // object, and `backupFileName` may be null. Readers must tolerate both.
+    trackedFileBackups: Record<
+      string,
+      | string
+      | {
+          backupFileName: string | null;
+          version: number;
+          backupTime: string;
+          realParentDir?: string;
+        }
+    >;
     timestamp: string;
   };
   isSnapshotUpdate: boolean;

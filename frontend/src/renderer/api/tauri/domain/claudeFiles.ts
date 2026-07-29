@@ -1,5 +1,6 @@
 import type {
   CheckpointGroup,
+  CheckpointOrigin,
   DesktopAPI,
   FileMeta,
   HistoryPage,
@@ -21,6 +22,8 @@ type ClaudeFilesSlice = Pick<
   | 'listFileHistory'
   | 'readCheckpoint'
   | 'exportCheckpoint'
+  | 'resolveCheckpointOrigin'
+  | 'restoreCheckpoint'
   | 'readHistoryPage'
   | 'listTranscripts'
   | 'readTranscript'
@@ -40,6 +43,10 @@ export const claudeFilesCommands: ClaudeFilesSlice = {
     call<string>('read_checkpoint', { sessionUuid, fileHash, version }),
   exportCheckpoint: (sessionUuid, fileHash, version) =>
     call<boolean>('export_checkpoint', { sessionUuid, fileHash, version }),
+  resolveCheckpointOrigin: (sessionUuid, fileHash) =>
+    call<CheckpointOrigin | null>('resolve_checkpoint_origin', { sessionUuid, fileHash }),
+  restoreCheckpoint: (sessionUuid, fileHash, version) =>
+    call<string | null>('restore_checkpoint', { sessionUuid, fileHash, version }),
   readHistoryPage: (before, limit, query) =>
     call<HistoryPage>('read_history_page', { before, limit, query }),
   listTranscripts: () => call<FileMeta[]>('list_transcripts'),

@@ -163,6 +163,7 @@ export const HistoryBrowser = (): JSX.Element => {
           <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
           <input
             type="text"
+            aria-label="Search prompts and projects"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search prompts and projects..."
@@ -190,15 +191,24 @@ export const HistoryBrowser = (): JSX.Element => {
       </div>
 
       {error && (
-        <div className="border-border/50 bg-destructive/10 text-destructive shrink-0 border-b px-4 py-2 text-xs">
+        <div
+          role="alert"
+          className="border-border/50 bg-destructive/10 text-destructive shrink-0 border-b px-4 py-2 text-xs"
+        >
           {error}
         </div>
       )}
 
       <div className="flex flex-1 overflow-hidden">
-        <div ref={parentRef} className="border-border/50 flex-1 overflow-y-auto border-r">
+        <div
+          ref={parentRef}
+          aria-label="History entries"
+          className="border-border/50 flex-1 overflow-y-auto border-r"
+        >
           {loading && entries.length === 0 ? (
-            <p className="text-muted-foreground px-4 py-3 text-xs">Loading…</p>
+            <p role="status" className="text-muted-foreground px-4 py-3 text-xs">
+              Loading…
+            </p>
           ) : filteredEntries.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
               <HistoryIcon className="text-muted-foreground size-6 opacity-50" />
@@ -233,7 +243,10 @@ export const HistoryBrowser = (): JSX.Element => {
             </div>
           )}
           {loadingMore && (
-            <div className="text-muted-foreground flex items-center justify-center gap-1.5 py-2 text-xs">
+            <div
+              role="status"
+              className="text-muted-foreground flex items-center justify-center gap-1.5 py-2 text-xs"
+            >
               <Loader2 className="size-3 animate-spin" />
               Loading more…
             </div>
@@ -260,6 +273,7 @@ const HistoryRow = ({ entry, selected, onSelect }: Readonly<HistoryRowProps>): J
     <div
       role="button"
       tabIndex={0}
+      aria-current={selected || undefined}
       onClick={onSelect}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
