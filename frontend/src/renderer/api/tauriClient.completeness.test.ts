@@ -189,6 +189,8 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['listFileHistory', (a) => a.listFileHistory()],
   ['readCheckpoint', (a) => a.readCheckpoint('u', 'h', 1)],
   ['exportCheckpoint', (a) => a.exportCheckpoint('u', 'h', 1)],
+  ['resolveCheckpointOrigin', (a) => a.resolveCheckpointOrigin('u', 'h')],
+  ['restoreCheckpoint', (a) => a.restoreCheckpoint('u', 'h', 1)],
   ['readHistoryPage', (a) => a.readHistoryPage(null, 50)],
   ['listTranscripts', (a) => a.listTranscripts()],
   ['readTranscript', (a) => a.readTranscript('x')],

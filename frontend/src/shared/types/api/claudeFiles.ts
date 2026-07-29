@@ -11,3 +11,8 @@ export interface CheckpointGroup {
   latestMtime: number;
   latestSize: number;
 }
+
+export interface CheckpointOrigin {
+  realPath: string;
+  backupTime: string | null;
+}

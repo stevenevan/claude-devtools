@@ -28,7 +28,7 @@ import type {
 import type { WaterfallData } from '../visualization';
 import type { AgentConfig, GlobalPlugin } from './agents';
 import type { BackendCacheStats, BackendTimingSummary } from './backend';
-import type { CheckpointGroup, FileMeta } from './claudeFiles';
+import type { CheckpointGroup, CheckpointOrigin, FileMeta } from './claudeFiles';
 import type { ClaudeJSONBackup, ClaudeJSONCensus, PurgeResult } from './claudeJson';
 import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
@@ -296,6 +296,15 @@ export interface DesktopAPI {
   readTelemetryEvent: (name: string) => Promise<unknown>;
   listFileHistory: () => Promise<CheckpointGroup[]>;
   readCheckpoint: (sessionUuid: string, fileHash: string, version: number) => Promise<string>;
+  resolveCheckpointOrigin: (
+    sessionUuid: string,
+    fileHash: string
+  ) => Promise<CheckpointOrigin | null>;
+  restoreCheckpoint: (
+    sessionUuid: string,
+    fileHash: string,
+    version: number
+  ) => Promise<string | null>;
   // Resolves false when the user cancels the save dialog.
   exportCheckpoint: (sessionUuid: string, fileHash: string, version: number) => Promise<boolean>;
   readHistoryPage: (before: number | null, limit: number, query?: string) => Promise<HistoryPage>;
