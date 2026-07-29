@@ -7,6 +7,8 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 ## [Unreleased]
 
 ### Added
+- Inspector views for `~/.claude` data that was previously cleanup-only or read-only status: prompt/command history browser, subagent transcripts viewer, file-history checkpoint browser, checkpoint diff and export, shell-snapshot viewer, usage/telemetry viewer, status-line editor, marketplace catalog browser, marketplace install/enable, MCP server editor, slash-command frontmatter editor, and background task-graph viewer.
+- Restore a file-history checkpoint to the file it was captured from. The original path is resolved from the session's `trackedFileBackups` map and the native save dialog opens pre-aimed at it, so the write is authorized in the dialog rather than performed silently. Not offered when the path cannot be resolved.
 - `general.autoExpandAIGroups` setting: automatically expands all AI response groups when opening a transcript or when new AI responses arrive in a live session. Defaults to off. Stored in the on-disk config so it persists across restarts.
 
 
@@ -19,6 +21,7 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - Open-source governance docs (`LICENSE`, `CONTRIBUTING`, `CODE_OF_CONDUCT`, `SECURITY`).
 
 ### Changed
+- The `~/.claude` inspector lists now name their scroll regions, mark the selected row with `aria-current`, and announce errors and loading state via `role="alert"` / `role="status"`.
 - `readMentionedFile` preload API signature now requires `projectRoot`.
 - Notification update event contract standardized to `{ total, unreadCount }`.
 - Session pagination uses cached displayable-content detection for performance.

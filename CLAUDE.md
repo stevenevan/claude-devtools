@@ -25,7 +25,19 @@ cd src-tauri && cargo run --bin claude-devtools-cli -- show-session <projectId> 
 - `src-tauri/` — Rust application, command registration, domain services, and parity fixtures.
 - `frontend/` — React renderer and Tauri IPC adapter.
 - `scripts/qa-rust-grep-gate.sh` — write/delete/root-resolution safety boundary.
-- `docs/tauri-migration/` — migration records; completed scope is in `completed.md`.
+- `docs/roadmap/` — `~/.claude` inspector-viewer sprints; per-sprint status in `README.md`.
+
+### `~/.claude` inspector views
+
+ActivityBar views: History (`history.jsonl`), Transcripts (`transcripts/`), Marketplace
+(`plugins/`), Task Graph (`tasks/`). Maintenance panels: File History (`file-history/`), Shell
+Snapshots (`shell-snapshots/`), Usage & Telemetry (`stats-cache.json`, `telemetry/`).
+
+All of these read `~/.claude` only. The one exception is File History's `Save as…` and
+`Restore to original…`, which write the single file the user picks in the native save dialog —
+never a path the renderer supplies. Restore resolves the original path server-side from the
+session's `trackedFileBackups` map, and both actions always act on the local machine even while an
+SSH session is connected.
 
 ## Data Pipeline
 

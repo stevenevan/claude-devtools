@@ -53,3 +53,25 @@ Sprint 03 (`read_checkpoint`, the browser panel).
 ## 8. Drift / risk notes
 - **Assumption 2 (unverified):** restore path-mapping. Gated at task 1; export is unaffected either
   way. Never overwrite a file without a trash-backup first.
+
+## 9. Premise-gate outcome (task 1) — recorded
+
+**Gate passed; restore shipped, but not as this spec designed it.**
+
+`trackedFileBackups` is populated in real sessions. Over all 141 local `file-history` dirs (2566
+leaves), the mapping resolves **94.5%** of checkpoints once three key forms are handled
+(`realParentDir` + basename, absolute key, key relative to session `cwd`) and the join is made on
+the **hash segment** rather than `{hash}@v{version}` — the map records only the current backup
+name, so an exact match misses every `@v1` leaf, which is the pre-edit original users most want.
+
+**The trash-backup requirement in §3 could not be met.** `trash::trash_items` routes every path
+through `confine_parent_to_root` against `[claude root, app-data dir]`, and real restore targets
+live outside both, so it refuses them. Rather than weaken that confinement, restore reuses the
+existing user-authorized export write: the native save dialog opens pre-aimed at the resolved
+original, and the user confirms the overwrite there. A pre-write backup copy into app-data was
+considered and deliberately not taken.
+
+**Consequence — the "never overwrite without a backup" rule above is no longer satisfied.** The
+macOS replace prompt is the only remaining guard, and it was never confirmed by clicking through
+the app. If that prompt does not appear, Restore silently overwrites a live file with no undo.
+
