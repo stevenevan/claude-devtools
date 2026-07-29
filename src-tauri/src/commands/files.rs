@@ -6,7 +6,7 @@
 //! name (the snake_case legacy contract) is free to match the Go method exactly.
 
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use serde_json::{Map, Value};
 use tauri::AppHandle;
@@ -14,6 +14,7 @@ use tauri_plugin_dialog::DialogExt;
 
 use crate::config::root::{app_data_dir, claude_dir};
 use crate::files::agents_write::{read_agent_configs as read_agent_configs_impl, AgentConfig};
+use crate::files::checkpoint_origin::{self, CheckpointOrigin};
 use crate::files::claude_read::{self, FileMeta};
 use crate::files::filehistory_reader::{self, CheckpointGroup};
 use crate::files::history_reader::{self, HistoryPage};
@@ -307,11 +308,61 @@ pub fn read_checkpoint(session_uuid: String, file_hash: String, version: u32) ->
     filehistory_reader::read_checkpoint(&root.to_string_lossy(), &session_uuid, &file_hash, version)
 }
 
+/// The shared body of every checkpoint save: validate the ids, open the native
+/// save dialog, and write the raw bytes to whatever the user picked. `aim`
+/// pre-fills the dialog with an existing file's directory and name; `None`
+/// leaves the dialog wherever it last was, with the opaque `{hash}@v{version}`
+/// as the suggested name.
+///
+/// Returns the path actually written, or `None` when the user cancelled.
+///
+/// This is the ONE place the dialog is configured, so a guard added here covers
+/// both save-as and restore. `async` is load-bearing: the blocking dialog must
+/// run off the main thread or it deadlocks the event loop (same reason as
+/// `configbackup::export_backup`).
+async fn save_checkpoint_via_dialog(
+    app: AppHandle,
+    session_uuid: &str,
+    file_hash: &str,
+    version: u32,
+    aim: Option<&Path>,
+    title: Option<&str>,
+) -> Result<Option<PathBuf>, String> {
+    // Before the ids are used for ANYTHING, including the suggested filename.
+    filehistory_reader::validate_ids(session_uuid, file_hash)?;
+    let root = claude_dir()?;
+
+    let mut builder = app.dialog().file();
+    match aim.and_then(|path| path.parent().zip(path.file_name())) {
+        Some((parent, name)) => {
+            builder = builder
+                .set_directory(parent)
+                .set_file_name(name.to_string_lossy());
+        }
+        None => builder = builder.set_file_name(format!("{file_hash}@v{version}")),
+    }
+    if let Some(title) = title {
+        builder = builder.set_title(title);
+    }
+
+    let Some(file_path) = builder.blocking_save_file() else {
+        return Ok(None); // user cancel — no-op
+    };
+    let dest = file_path.into_path().map_err(|e| e.to_string())?;
+
+    filehistory_reader::export_checkpoint_to(
+        &root.to_string_lossy(),
+        session_uuid,
+        file_hash,
+        version,
+        &dest,
+    )?;
+    Ok(Some(dest))
+}
+
 /// Saves one checkpoint to a path the user picks in the native save dialog.
 /// Returns whether a file was written — `false` means the user cancelled, so
-/// the UI does not claim "Saved". `async` is load-bearing: the blocking dialog
-/// must run off the main thread or it deadlocks the event loop (same reason as
-/// `configbackup::export_backup`).
+/// the UI does not claim "Saved".
 #[tauri::command(rename_all = "camelCase")]
 pub async fn export_checkpoint(
     session_uuid: String,
@@ -319,28 +370,60 @@ pub async fn export_checkpoint(
     version: u32,
     app: AppHandle,
 ) -> Result<bool, String> {
-    // Before the ids are used for ANYTHING, including the suggested filename.
-    filehistory_reader::validate_ids(&session_uuid, &file_hash)?;
+    let written =
+        save_checkpoint_via_dialog(app, &session_uuid, &file_hash, version, None, None).await?;
+    Ok(written.is_some())
+}
+
+/// Where a checkpoint's bytes came from, for display and to decide whether the
+/// Restore action is offered at all. Read-only.
+#[tauri::command(rename_all = "camelCase")]
+pub fn resolve_checkpoint_origin(
+    session_uuid: String,
+    file_hash: String,
+) -> Result<Option<CheckpointOrigin>, String> {
     let root = claude_dir()?;
-
-    let Some(file_path) = app
-        .dialog()
-        .file()
-        .set_file_name(format!("{file_hash}@v{version}"))
-        .blocking_save_file()
-    else {
-        return Ok(false); // user cancel — no-op
-    };
-    let dest = file_path.into_path().map_err(|e| e.to_string())?;
-
-    filehistory_reader::export_checkpoint_to(
+    checkpoint_origin::resolve_checkpoint_origin(
         &root.to_string_lossy(),
         &session_uuid,
         &file_hash,
+    )
+}
+
+/// Saves one checkpoint back over the file it was captured from, with the save
+/// dialog pre-aimed at that path so the user confirms the overwrite natively.
+///
+/// The origin is re-resolved HERE rather than accepted from the renderer, so no
+/// caller-supplied value can steer the write. Returns the path actually
+/// written, which may differ from the origin if the user navigated elsewhere in
+/// the dialog — the UI must not claim a restore over a file never touched.
+#[tauri::command(rename_all = "camelCase")]
+pub async fn restore_checkpoint(
+    session_uuid: String,
+    file_hash: String,
+    version: u32,
+    app: AppHandle,
+) -> Result<Option<String>, String> {
+    filehistory_reader::validate_ids(&session_uuid, &file_hash)?;
+    let root = claude_dir()?;
+
+    let origin = checkpoint_origin::resolve_checkpoint_origin(
+        &root.to_string_lossy(),
+        &session_uuid,
+        &file_hash,
+    )?
+    .ok_or("files: original path for this checkpoint is unknown")?;
+
+    let written = save_checkpoint_via_dialog(
+        app,
+        &session_uuid,
+        &file_hash,
         version,
-        &dest,
-    )?;
-    Ok(true)
+        Some(Path::new(&origin.real_path)),
+        Some("Restore checkpoint"),
+    )
+    .await?;
+    Ok(written.map(|path| path.to_string_lossy().into_owned()))
 }
 
 // ── status line config ──
