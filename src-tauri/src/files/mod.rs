@@ -5,6 +5,7 @@
 //! them literally). See `pathutil::confine`.
 
 pub mod agents_write;
+pub mod checkpoint_origin;
 pub mod claude_read;
 pub mod claudejson;
 pub mod claudejson_write;
