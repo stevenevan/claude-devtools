@@ -74,15 +74,23 @@ export const MarketplaceBrowser = (): JSX.Element => {
       </div>
 
       {error && (
-        <div className="border-border/50 bg-destructive/10 text-destructive shrink-0 border-b px-4 py-2 text-xs">
+        <div
+          role="alert"
+          className="border-border/50 bg-destructive/10 text-destructive shrink-0 border-b px-4 py-2 text-xs"
+        >
           {error}
         </div>
       )}
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="border-border/50 w-64 shrink-0 overflow-y-auto border-r">
+        <div
+          aria-label="Marketplaces"
+          className="border-border/50 w-64 shrink-0 overflow-y-auto border-r"
+        >
           {loading ? (
-            <p className="text-muted-foreground px-4 py-3 text-xs">Loading…</p>
+            <p role="status" className="text-muted-foreground px-4 py-3 text-xs">
+              Loading…
+            </p>
           ) : marketplaces.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
               <Store className="text-muted-foreground size-6 opacity-50" />
@@ -130,6 +138,7 @@ const MarketplaceRow = ({
 }: Readonly<MarketplaceRowProps>): JSX.Element => (
   <Button
     variant="ghost"
+    aria-current={selected || undefined}
     onClick={onSelect}
     className={cn(
       'h-auto w-full min-w-0 flex-col items-start gap-0.5 rounded-none border-b px-4 py-2 text-left',

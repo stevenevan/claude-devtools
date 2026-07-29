@@ -203,12 +203,19 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
       </div>
 
       {listError && (
-        <div className="border-border/50 bg-destructive/10 text-destructive border-b px-4 py-2 text-xs">
+        <div
+          role="alert"
+          className="border-border/50 bg-destructive/10 text-destructive border-b px-4 py-2 text-xs"
+        >
           {listError}
         </div>
       )}
 
-      {listLoading && <p className="text-muted-foreground px-4 py-3 text-xs">Loading…</p>}
+      {listLoading && (
+        <p role="status" className="text-muted-foreground px-4 py-3 text-xs">
+          Loading…
+        </p>
+      )}
 
       {!listLoading && !listError && groups.length === 0 && (
         <p className="text-muted-foreground px-4 py-3 text-xs">
@@ -221,7 +228,7 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
           <div className="flex gap-4">
             <div className="flex w-56 shrink-0 flex-col gap-1.5">
               <p className="text-muted-foreground text-xs font-medium">Sessions</p>
-              <div className="flex max-h-96 flex-col gap-1.5 overflow-y-auto">
+              <div aria-label="Sessions" className="flex max-h-96 flex-col gap-1.5 overflow-y-auto">
                 {sessionGroups.map((session) => (
                   <SessionRow
                     key={session.sessionUuid}
@@ -236,7 +243,7 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
             {activeSession && (
               <div className="flex w-56 shrink-0 flex-col gap-1.5">
                 <p className="text-muted-foreground text-xs font-medium">Files</p>
-                <div className="flex max-h-96 flex-col gap-1.5 overflow-y-auto">
+                <div aria-label="Files" className="flex max-h-96 flex-col gap-1.5 overflow-y-auto">
                   {activeSession.files.map((file) => (
                     <FileRow
                       key={file.fileHash}
@@ -252,7 +259,7 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
             {selectedFile && (
               <div className="flex w-56 shrink-0 flex-col gap-1.5">
                 <p className="text-muted-foreground text-xs font-medium">Versions</p>
-                <div className="flex max-h-96 flex-col gap-1.5 overflow-y-auto">
+                <div aria-label="Versions" className="flex max-h-96 flex-col gap-1.5 overflow-y-auto">
                   {selectedFile.versions.map((version) => (
                     <VersionRow
                       key={version}
@@ -335,7 +342,10 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
             )}
 
             {compareError && (
-              <div className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-xs">
+              <div
+                role="alert"
+                className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-xs"
+              >
                 {compareError}
               </div>
             )}
@@ -365,6 +375,7 @@ interface SessionRowProps {
 const SessionRow = ({ session, selected, onSelect }: Readonly<SessionRowProps>): JSX.Element => (
   <Button
     variant="ghost"
+    aria-current={selected || undefined}
     onClick={onSelect}
     className={cn(
       'h-auto w-full min-w-0 flex-col items-start gap-0.5 rounded-md border px-2.5 py-2 text-left',
@@ -385,6 +396,7 @@ interface FileRowProps {
 const FileRow = ({ file, selected, onSelect }: Readonly<FileRowProps>): JSX.Element => (
   <Button
     variant="ghost"
+    aria-current={selected || undefined}
     onClick={onSelect}
     className={cn(
       'h-auto w-full min-w-0 flex-col items-start gap-0.5 rounded-md border px-2.5 py-2 text-left',
@@ -410,6 +422,7 @@ interface VersionRowProps {
 const VersionRow = ({ version, selected, onSelect }: Readonly<VersionRowProps>): JSX.Element => (
   <Button
     variant="ghost"
+    aria-current={selected || undefined}
     onClick={onSelect}
     className={cn(
       'h-auto w-full min-w-0 items-start rounded-md border px-2.5 py-2 text-left',
@@ -446,10 +459,17 @@ const CheckpointContent = ({
   );
 
   if (!fileHash || version === null) return placeholder;
-  if (loading) return <p className="text-muted-foreground text-xs">Loading…</p>;
+  if (loading)
+    return (
+      <p role="status" className="text-muted-foreground text-xs">
+        Loading…
+      </p>
+    );
   if (error) {
     return (
-      <div className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-xs">{error}</div>
+      <div role="alert" className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-xs">
+        {error}
+      </div>
     );
   }
   if (content === null) return placeholder;

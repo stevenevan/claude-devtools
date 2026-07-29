@@ -71,12 +71,19 @@ export const ShellSnapshotPanel = (): JSX.Element => {
       </div>
 
       {listError && (
-        <div className="border-border/50 bg-destructive/10 text-destructive border-b px-4 py-2 text-xs">
+        <div
+          role="alert"
+          className="border-border/50 bg-destructive/10 text-destructive border-b px-4 py-2 text-xs"
+        >
           {listError}
         </div>
       )}
 
-      {listLoading && <p className="text-muted-foreground px-4 py-3 text-xs">Loading…</p>}
+      {listLoading && (
+        <p role="status" className="text-muted-foreground px-4 py-3 text-xs">
+          Loading…
+        </p>
+      )}
 
       {!listLoading && !listError && snapshots.length === 0 && (
         <p className="text-muted-foreground px-4 py-3 text-xs">
@@ -86,7 +93,10 @@ export const ShellSnapshotPanel = (): JSX.Element => {
 
       {!listLoading && snapshots.length > 0 && (
         <div className="flex gap-4 px-4 py-3">
-          <div className="flex max-h-96 w-64 shrink-0 flex-col gap-1.5 overflow-y-auto">
+          <div
+            aria-label="Shell snapshots"
+            className="flex max-h-96 w-64 shrink-0 flex-col gap-1.5 overflow-y-auto"
+          >
             {snapshots.map((snapshot) => (
               <SnapshotRow
                 key={snapshot.name}
@@ -119,6 +129,7 @@ interface SnapshotRowProps {
 const SnapshotRow = ({ snapshot, selected, onSelect }: Readonly<SnapshotRowProps>): JSX.Element => (
   <Button
     variant="ghost"
+    aria-current={selected || undefined}
     onClick={onSelect}
     className={cn(
       'h-auto w-full min-w-0 flex-col items-start gap-0.5 rounded-md border px-2.5 py-2 text-left',
@@ -149,11 +160,17 @@ const SnapshotContent = ({
     return <p className="text-muted-foreground text-xs">Select a snapshot to view its contents.</p>;
   }
   if (loading) {
-    return <p className="text-muted-foreground text-xs">Loading…</p>;
+    return (
+      <p role="status" className="text-muted-foreground text-xs">
+        Loading…
+      </p>
+    );
   }
   if (error) {
     return (
-      <div className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-xs">{error}</div>
+      <div role="alert" className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-xs">
+        {error}
+      </div>
     );
   }
   if (content === null) {

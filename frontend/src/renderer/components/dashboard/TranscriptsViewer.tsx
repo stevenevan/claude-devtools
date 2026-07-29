@@ -88,15 +88,24 @@ export const TranscriptsViewer = (): JSX.Element => {
       </div>
 
       {listError && (
-        <div className="border-border/50 bg-destructive/10 text-destructive shrink-0 border-b px-4 py-2 text-xs">
+        <div
+          role="alert"
+          className="border-border/50 bg-destructive/10 text-destructive shrink-0 border-b px-4 py-2 text-xs"
+        >
           {listError}
         </div>
       )}
 
       <div className="flex flex-1 overflow-hidden">
-        <div ref={parentRef} className="border-border/50 w-72 shrink-0 overflow-y-auto border-r">
+        <div
+          ref={parentRef}
+          aria-label="Transcripts"
+          className="border-border/50 w-72 shrink-0 overflow-y-auto border-r"
+        >
           {listLoading ? (
-            <p className="text-muted-foreground px-4 py-3 text-xs">Loading…</p>
+            <p role="status" className="text-muted-foreground px-4 py-3 text-xs">
+              Loading…
+            </p>
           ) : transcripts.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
               <ScrollText className="text-muted-foreground size-6 opacity-50" />
@@ -155,6 +164,7 @@ interface TranscriptRowProps {
 const TranscriptRow = ({ transcript, selected, onSelect }: Readonly<TranscriptRowProps>): JSX.Element => (
   <Button
     variant="ghost"
+    aria-current={selected || undefined}
     onClick={onSelect}
     className={cn(
       'h-auto w-full min-w-0 flex-col items-start gap-0.5 rounded-none border-b px-4 py-2 text-left',
@@ -190,11 +200,18 @@ const TranscriptDetail = ({
     );
   }
   if (loading) {
-    return <p className="text-muted-foreground px-4 py-3 text-xs">Loading…</p>;
+    return (
+      <p role="status" className="text-muted-foreground px-4 py-3 text-xs">
+        Loading…
+      </p>
+    );
   }
   if (error) {
     return (
-      <div className="bg-destructive/10 text-destructive m-4 rounded-md px-3 py-2 text-xs">
+      <div
+        role="alert"
+        className="bg-destructive/10 text-destructive m-4 rounded-md px-3 py-2 text-xs"
+      >
         {error}
       </div>
     );
