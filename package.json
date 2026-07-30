@@ -26,6 +26,6 @@
     "qa": "bun run typecheck && bun run test && bun run test:rust && bash scripts/qa-rust-grep-gate.sh"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2"
+    "@tauri-apps/cli": "^2.11.4"
   }
 }
