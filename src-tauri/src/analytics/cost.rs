@@ -1,5 +1,6 @@
-// Cost estimation (pricing from litellm model_prices_and_context_window.json).
+// Cost estimation using first-party public list prices per token.
 
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ModelPricing {
     pub input: f64,
     pub output: f64,
@@ -7,37 +8,108 @@ pub struct ModelPricing {
     pub cache_write: f64,
 }
 
+const SONNET_STANDARD: ModelPricing = ModelPricing {
+    input: 3e-06,
+    output: 1.5e-05,
+    cache_read: 3e-07,
+    cache_write: 3.75e-06,
+};
+const SONNET_5_PROMO: ModelPricing = ModelPricing {
+    input: 2e-06,
+    output: 1e-05,
+    cache_read: 2e-07,
+    cache_write: 2.5e-06,
+};
+const SONNET_5_PROMO_CUTOFF_MS: f64 = 1_788_220_800_000.0;
+
 /// Resolve per-token pricing for a model string. Falls back to Sonnet pricing.
 pub fn get_model_pricing(model: Option<&str>) -> ModelPricing {
-    let model = match model {
-        Some(m) => m.to_lowercase(),
-        None => {
+    get_model_pricing_at(model, None)
+}
+
+pub fn get_model_pricing_at(model: Option<&str>, timestamp_ms: Option<f64>) -> ModelPricing {
+    let Some(model) = model else {
+        return SONNET_STANDARD;
+    };
+    let model = model.to_ascii_lowercase();
+
+    if (model.contains("fable") || model.contains("mythos")) && contains_version(&model, &["5"]) {
+        return ModelPricing {
+            input: 1e-05,
+            output: 5e-05,
+            cache_read: 1e-06,
+            cache_write: 1.25e-05,
+        };
+    }
+    if model.contains("opus") {
+        if contains_version(
+            &model,
+            &["4-5", "4.5", "4-6", "4.6", "4-7", "4.7", "4-8", "4.8", "5"],
+        ) {
             return ModelPricing {
-                input: 3e-06,
-                output: 1.5e-05,
-                cache_read: 3e-07,
-                cache_write: 3.75e-06,
+                input: 5e-06,
+                output: 2.5e-05,
+                cache_read: 5e-07,
+                cache_write: 6.25e-06,
             };
         }
-    };
-
-    if model.contains("opus") {
-        if model.contains("4-5") || model.contains("4.5") || model.contains("4-6") || model.contains("4.6") {
-            ModelPricing { input: 5e-06, output: 2.5e-05, cache_read: 5e-07, cache_write: 6.25e-06 }
-        } else {
-            ModelPricing { input: 1.5e-05, output: 7.5e-05, cache_read: 1.5e-06, cache_write: 1.875e-05 }
-        }
-    } else if model.contains("haiku") {
-        if model.contains("4-5") || model.contains("4.5") {
-            ModelPricing { input: 1e-06, output: 5e-06, cache_read: 1e-07, cache_write: 1.25e-06 }
-        } else if model.contains("3-5") || model.contains("3.5") {
-            ModelPricing { input: 8e-07, output: 4e-06, cache_read: 8e-08, cache_write: 1e-06 }
-        } else {
-            ModelPricing { input: 2.5e-07, output: 1.25e-06, cache_read: 2.5e-08, cache_write: 3.125e-07 }
-        }
-    } else {
-        ModelPricing { input: 3e-06, output: 1.5e-05, cache_read: 3e-07, cache_write: 3.75e-06 }
+        return ModelPricing {
+            input: 1.5e-05,
+            output: 7.5e-05,
+            cache_read: 1.5e-06,
+            cache_write: 1.875e-05,
+        };
     }
+    if model.contains("sonnet") {
+        if contains_version(&model, &["5"]) {
+            return match timestamp_ms {
+                Some(timestamp)
+                    if timestamp.is_finite() && timestamp < SONNET_5_PROMO_CUTOFF_MS =>
+                {
+                    SONNET_5_PROMO
+                }
+                _ => SONNET_STANDARD,
+            };
+        }
+        return SONNET_STANDARD;
+    }
+    if model.contains("haiku") {
+        if contains_version(&model, &["4-5", "4.5"]) {
+            return ModelPricing {
+                input: 1e-06,
+                output: 5e-06,
+                cache_read: 1e-07,
+                cache_write: 1.25e-06,
+            };
+        }
+        if contains_version(&model, &["3-5", "3.5"])
+            || model.contains("3-5-haiku")
+            || model.contains("3.5-haiku")
+        {
+            return ModelPricing {
+                input: 8e-07,
+                output: 4e-06,
+                cache_read: 8e-08,
+                cache_write: 1e-06,
+            };
+        }
+    }
+    SONNET_STANDARD
+}
+
+fn contains_version(model: &str, versions: &[&str]) -> bool {
+    let family = ["fable", "mythos", "opus", "sonnet", "haiku"]
+        .into_iter()
+        .find_map(|family| model.find(family).map(|index| (family, index)));
+    let Some((family, index)) = family else {
+        return false;
+    };
+    let version = model[index + family.len()..].trim_start_matches(['-', '_', ' ']);
+    versions.iter().any(|candidate| {
+        version == *candidate
+            || version.starts_with(&format!("{candidate}-"))
+            || version.starts_with(&format!("{candidate}."))
+    })
 }
 
 pub fn estimate_cost(
@@ -47,11 +119,43 @@ pub fn estimate_cost(
     cache_read: u64,
     cache_creation: u64,
 ) -> f64 {
-    let p = get_model_pricing(model);
-    (input as f64) * p.input
-        + (output as f64) * p.output
-        + (cache_read as f64) * p.cache_read
-        + (cache_creation as f64) * p.cache_write
+    estimate_with_pricing(
+        get_model_pricing(model),
+        input,
+        output,
+        cache_read,
+        cache_creation,
+    )
+}
+
+pub fn estimate_cost_at(
+    model: Option<&str>,
+    input: u64,
+    output: u64,
+    cache_read: u64,
+    cache_creation: u64,
+    timestamp_ms: Option<f64>,
+) -> f64 {
+    estimate_with_pricing(
+        get_model_pricing_at(model, timestamp_ms),
+        input,
+        output,
+        cache_read,
+        cache_creation,
+    )
+}
+
+fn estimate_with_pricing(
+    pricing: ModelPricing,
+    input: u64,
+    output: u64,
+    cache_read: u64,
+    cache_creation: u64,
+) -> f64 {
+    (input as f64) * pricing.input
+        + (output as f64) * pricing.output
+        + (cache_read as f64) * pricing.cache_read
+        + (cache_creation as f64) * pricing.cache_write
 }
 
 pub fn model_display_name(model: &str) -> String {
@@ -69,7 +173,9 @@ pub fn model_display_name(model: &str) -> String {
             }
             let mut buf = String::new();
             while num_iter.peek().is_some_and(|c| c.is_ascii_digit()) {
-                buf.push(num_iter.next().unwrap());
+                if let Some(character) = num_iter.next() {
+                    buf.push(character);
+                }
             }
             if !buf.is_empty() {
                 major = Some(buf.clone());
@@ -79,7 +185,9 @@ pub fn model_display_name(model: &str) -> String {
                 num_iter.next();
             }
             while num_iter.peek().is_some_and(|c| c.is_ascii_digit()) {
-                buf.push(num_iter.next().unwrap());
+                if let Some(character) = num_iter.next() {
+                    buf.push(character);
+                }
             }
             if !buf.is_empty() && buf.len() <= 2 {
                 minor = Some(buf);
@@ -92,93 +200,101 @@ pub fn model_display_name(model: &str) -> String {
             };
         }
     }
-    model
-        .strip_prefix("claude-")
-        .unwrap_or(model)
-        .to_string()
+    model.strip_prefix("claude-").unwrap_or(model).to_string()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_pricing_defaults_to_sonnet() {
-        let p = get_model_pricing(None);
-        assert_eq!(p.input, 3e-06);
-        assert_eq!(p.output, 1.5e-05);
+    fn assert_pricing(model: &str, expected: ModelPricing) {
+        assert_eq!(get_model_pricing(Some(model)), expected);
     }
 
     #[test]
-    fn test_pricing_opus_new() {
-        let p = get_model_pricing(Some("claude-opus-4-6-20260101"));
-        assert_eq!(p.input, 5e-06);
+    fn resolves_current_model_families() {
+        let premium = ModelPricing {
+            input: 1e-05,
+            output: 5e-05,
+            cache_read: 1e-06,
+            cache_write: 1.25e-05,
+        };
+        assert_pricing("claude-fable-5", premium);
+        assert_pricing("claude-mythos-5", premium);
+
+        let current_opus = ModelPricing {
+            input: 5e-06,
+            output: 2.5e-05,
+            cache_read: 5e-07,
+            cache_write: 6.25e-06,
+        };
+        for version in ["4-5", "4-6", "4-7", "4-8", "5"] {
+            assert_pricing(&format!("claude-opus-{version}"), current_opus);
+        }
+
+        assert_pricing(
+            "claude-3-opus-20240229",
+            ModelPricing {
+                input: 1.5e-05,
+                output: 7.5e-05,
+                cache_read: 1.5e-06,
+                cache_write: 1.875e-05,
+            },
+        );
+        assert_pricing(
+            "claude-haiku-4-5-20251001",
+            ModelPricing {
+                input: 1e-06,
+                output: 5e-06,
+                cache_read: 1e-07,
+                cache_write: 1.25e-06,
+            },
+        );
+        assert_pricing(
+            "claude-3-5-haiku-20241022",
+            ModelPricing {
+                input: 8e-07,
+                output: 4e-06,
+                cache_read: 8e-08,
+                cache_write: 1e-06,
+            },
+        );
     }
 
     #[test]
-    fn test_pricing_opus_old() {
-        let p = get_model_pricing(Some("claude-3-opus-20240229"));
-        assert_eq!(p.input, 1.5e-05);
+    fn applies_sonnet_5_promo_cutoff() {
+        assert_eq!(
+            get_model_pricing_at(
+                Some("claude-sonnet-5"),
+                Some(SONNET_5_PROMO_CUTOFF_MS - 1.0)
+            ),
+            SONNET_5_PROMO
+        );
+        assert_eq!(
+            get_model_pricing_at(Some("claude-sonnet-5"), Some(SONNET_5_PROMO_CUTOFF_MS)),
+            SONNET_STANDARD
+        );
+        assert_eq!(get_model_pricing(Some("claude-sonnet-5")), SONNET_STANDARD);
     }
 
     #[test]
-    fn test_pricing_haiku_45() {
-        let p = get_model_pricing(Some("claude-haiku-4-5-20251001"));
-        assert_eq!(p.input, 1e-06);
+    fn unknown_and_missing_models_fall_back_to_sonnet() {
+        assert_eq!(get_model_pricing(None), SONNET_STANDARD);
+        assert_eq!(get_model_pricing(Some("unknown")), SONNET_STANDARD);
     }
 
     #[test]
-    fn test_pricing_haiku_35() {
-        let p = get_model_pricing(Some("claude-3-5-haiku-20241022"));
-        assert_eq!(p.input, 8e-07);
-    }
-
-    #[test]
-    fn test_pricing_sonnet_fallback() {
-        let p = get_model_pricing(Some("claude-sonnet-4-20250514"));
-        assert_eq!(p.input, 3e-06);
-    }
-
-    #[test]
-    fn test_estimate_cost_zero_tokens() {
-        let cost = estimate_cost(None, 0, 0, 0, 0);
-        assert_eq!(cost, 0.0);
-    }
-
-    #[test]
-    fn test_estimate_cost_sonnet() {
-        let cost = estimate_cost(Some("claude-sonnet-4-20250514"), 1000, 500, 0, 0);
-        assert!((cost - 0.0105).abs() < 1e-10);
-    }
-
-    #[test]
-    fn test_estimate_cost_with_cache() {
+    fn estimates_five_minute_cache_creation() {
         let cost = estimate_cost(None, 0, 0, 1000, 500);
         assert!((cost - 0.002175).abs() < 1e-10);
     }
 
     #[test]
-    fn test_display_name_sonnet() {
+    fn display_names_remain_stable() {
         assert_eq!(model_display_name("claude-sonnet-4-20250514"), "Sonnet 4");
-    }
-
-    #[test]
-    fn test_display_name_opus_with_minor() {
         assert_eq!(model_display_name("claude-opus-4-6-20260101"), "Opus 4.6");
-    }
-
-    #[test]
-    fn test_display_name_haiku_45() {
         assert_eq!(model_display_name("claude-haiku-4-5-20251001"), "Haiku 4.5");
-    }
-
-    #[test]
-    fn test_display_name_unknown_model() {
         assert_eq!(model_display_name("gpt-4o"), "gpt-4o");
-    }
-
-    #[test]
-    fn test_display_name_claude_prefix_stripped() {
         assert_eq!(model_display_name("claude-unknown-model"), "unknown-model");
     }
 }

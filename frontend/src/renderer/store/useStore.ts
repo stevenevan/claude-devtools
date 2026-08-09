@@ -8,6 +8,7 @@ import { createConfigSlice } from './slices/configSlice';
 import { createConnectionSlice } from './slices/connectionSlice';
 import { createContextSlice } from './slices/contextSlice';
 import { createConversationSlice } from './slices/conversation';
+import { createConversationFeedSlice } from './slices/conversationFeedSlice';
 import { createMaintenanceSlice } from './slices/maintenanceSlice';
 import { createNotificationSlice } from './slices/notificationSlice';
 import { createPaneSlice } from './slices/paneSlice';
@@ -54,6 +55,7 @@ export const useStore = create<AppState>()(
       ...createSessionDetailSlice(...args),
       ...createSubagentSlice(...args),
       ...createConversationSlice(...args),
+      ...createConversationFeedSlice(...args),
       ...createTabSlice(...args),
       ...createTabUISlice(...args),
       ...createPaneSlice(...args),

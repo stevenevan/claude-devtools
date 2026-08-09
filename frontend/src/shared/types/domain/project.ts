@@ -60,6 +60,8 @@ export interface Session {
 
   messageCount: number;
 
+  costUsd?: number;
+
   isOngoing?: boolean;
 
   gitBranch?: string;
@@ -75,6 +77,21 @@ export interface Session {
   customTitle?: string;
 
   agentName?: string;
+}
+
+export interface GlobalSession {
+  id: string;
+  projectId: string;
+  projectPath: string;
+  projectName: string;
+  createdAt: number;
+  firstMessage?: string;
+  messageTimestamp?: string;
+  messageCount: number;
+  customTitle?: string;
+  agentName?: string;
+  model?: string;
+  costUsd?: number;
 }
 
 export interface SessionMetrics {

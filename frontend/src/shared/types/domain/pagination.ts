@@ -1,4 +1,4 @@
-import { type Session, type SessionMetadataLevel } from './project';
+import { type GlobalSession, type Session, type SessionMetadataLevel } from './project';
 
 export interface SessionCursor {
 
@@ -16,6 +16,12 @@ export interface PaginatedSessionsResult {
   hasMore: boolean;
 
   totalCount: number;
+}
+
+export interface PaginatedGlobalSessionsResult {
+  sessions: GlobalSession[];
+  nextCursor: string | null;
+  hasMore: boolean;
 }
 
 export interface SessionsPaginationOptions {

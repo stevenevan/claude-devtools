@@ -515,6 +515,7 @@ fn main() {
             session_cmds::get_projects,
             session_cmds::get_sessions,
             session_cmds::get_sessions_paginated,
+            session_cmds::get_global_sessions_paginated,
             session_cmds::get_sessions_by_ids,
             session_cmds::get_session_detail_incremental,
             session_cmds::get_session_metrics,

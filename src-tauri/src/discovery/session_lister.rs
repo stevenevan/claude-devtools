@@ -1,5 +1,4 @@
 /// Session listing with pagination — list sessions for a project with metadata.
-
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
@@ -7,7 +6,11 @@ use base64::Engine;
 use regex::Regex;
 use std::sync::LazyLock;
 
-use crate::types::domain::{PaginatedSessionsResult, Session, SessionsPaginationOptions};
+use crate::analytics::scan_session_light;
+use crate::types::domain::{
+    GlobalSession, PaginatedGlobalSessionsResult, PaginatedSessionsResult, Session,
+    SessionsPaginationOptions,
+};
 use crate::types::jsonl::RawJsonlEntry;
 
 use super::content_filter::has_non_noise_messages;
@@ -102,11 +105,7 @@ pub fn list_sessions_paginated(
     };
 
     // Paginate
-    let page: Vec<_> = session_files
-        .iter()
-        .skip(start_index)
-        .take(limit)
-        .collect();
+    let page: Vec<_> = session_files.iter().skip(start_index).take(limit).collect();
 
     let has_more = start_index + limit < session_files.len();
     let next_cursor = if has_more {
@@ -167,6 +166,163 @@ pub fn list_sessions_paginated(
     })
 }
 
+#[derive(Debug)]
+struct GlobalSessionCandidate {
+    project_id: String,
+    session_id: String,
+    modified_at: f64,
+    path: std::path::PathBuf,
+}
+
+pub fn list_global_sessions_paginated(
+    projects_dir: &Path,
+    cursor: Option<&str>,
+    limit: usize,
+) -> Result<PaginatedGlobalSessionsResult, String> {
+    if !(1..=100).contains(&limit) {
+        return Err("global sessions limit must be between 1 and 100".to_string());
+    }
+    let mut candidates = Vec::new();
+    let project_entries = std::fs::read_dir(projects_dir)
+        .map_err(|error| format!("Failed to read {}: {error}", projects_dir.display()))?;
+
+    for project_entry in project_entries {
+        let project_entry = project_entry.map_err(|error| {
+            format!(
+                "Failed to read entry in {}: {error}",
+                projects_dir.display()
+            )
+        })?;
+        let project_path = project_entry.path();
+        if !project_path.is_dir() {
+            continue;
+        }
+        let project_id = project_entry.file_name().to_string_lossy().into_owned();
+        let session_entries = std::fs::read_dir(&project_path)
+            .map_err(|error| format!("Failed to read {}: {error}", project_path.display()))?;
+        for session_entry in session_entries {
+            let session_entry = session_entry.map_err(|error| {
+                format!(
+                    "Failed to read entry in {}: {error}",
+                    project_path.display()
+                )
+            })?;
+            let file_name = session_entry.file_name().to_string_lossy().into_owned();
+            if !file_name.ends_with(".jsonl") || file_name.starts_with("agent_") {
+                continue;
+            }
+            let metadata = session_entry.metadata().map_err(|error| {
+                format!(
+                    "Failed to read metadata for {}: {error}",
+                    session_entry.path().display()
+                )
+            })?;
+            let modified_at = metadata
+                .modified()
+                .ok()
+                .and_then(|time| time.duration_since(std::time::UNIX_EPOCH).ok())
+                .map(|duration| duration.as_secs_f64() * 1000.0)
+                .unwrap_or(0.0);
+            candidates.push(GlobalSessionCandidate {
+                project_id: project_id.clone(),
+                session_id: file_name.trim_end_matches(".jsonl").to_string(),
+                modified_at,
+                path: session_entry.path(),
+            });
+        }
+    }
+
+    candidates.sort_by(|left, right| {
+        right
+            .modified_at
+            .total_cmp(&left.modified_at)
+            .then_with(|| left.project_id.cmp(&right.project_id))
+            .then_with(|| left.session_id.cmp(&right.session_id))
+    });
+    let start = match cursor {
+        None => 0,
+        Some(raw_cursor) => {
+            let decoded = decode_global_cursor(raw_cursor)
+                .ok_or_else(|| "invalid global sessions cursor".to_string())?;
+            candidates
+                .iter()
+                .position(|candidate| {
+                    candidate.modified_at.to_bits() == decoded.0.to_bits()
+                        && candidate.project_id == decoded.1
+                        && candidate.session_id == decoded.2
+                })
+                .map(|index| index + 1)
+                .ok_or_else(|| "global sessions cursor is no longer available".to_string())?
+        }
+    };
+    let end = start.saturating_add(limit).min(candidates.len());
+    let has_more = end < candidates.len();
+    let mut sessions = Vec::with_capacity(end.saturating_sub(start));
+
+    for candidate in &candidates[start..end] {
+        let Some(summary) = scan_session_light(&candidate.path) else {
+            continue;
+        };
+        let project_path = decode_path(&candidate.project_id);
+        if let Some(diagnostic) = summary.cost_diagnostic.as_deref() {
+            eprintln!(
+                "Light session scan cost unavailable for {}/{}: {diagnostic}",
+                candidate.project_id, candidate.session_id
+            );
+        }
+        sessions.push(GlobalSession {
+            id: candidate.session_id.clone(),
+            project_id: candidate.project_id.clone(),
+            project_name: extract_project_name(&candidate.project_id, None),
+            project_path,
+            created_at: candidate.modified_at,
+            first_message: summary.first_user_text,
+            message_timestamp: summary.first_timestamp,
+            message_count: summary.message_count,
+            custom_title: summary.custom_title,
+            agent_name: summary.agent_name,
+            model: summary.model,
+            cost_usd: summary.cost_usd,
+        });
+    }
+
+    let next_cursor = has_more
+        .then(|| {
+            candidates.get(end.saturating_sub(1)).map(|candidate| {
+                encode_global_cursor(
+                    candidate.modified_at,
+                    &candidate.project_id,
+                    &candidate.session_id,
+                )
+            })
+        })
+        .flatten();
+    Ok(PaginatedGlobalSessionsResult {
+        sessions,
+        next_cursor,
+        has_more,
+    })
+}
+
+fn encode_global_cursor(timestamp: f64, project_id: &str, session_id: &str) -> String {
+    let raw = format!("{}:{project_id}:{session_id}", timestamp.to_bits());
+    base64::engine::general_purpose::STANDARD.encode(raw)
+}
+
+fn decode_global_cursor(cursor: &str) -> Option<(f64, String, String)> {
+    let decoded = base64::engine::general_purpose::STANDARD
+        .decode(cursor)
+        .ok()?;
+    let raw = String::from_utf8(decoded).ok()?;
+    let mut parts = raw.splitn(3, ':');
+    let timestamp = f64::from_bits(parts.next()?.parse().ok()?);
+    Some((
+        timestamp,
+        parts.next()?.to_string(),
+        parts.next()?.to_string(),
+    ))
+}
+
 // First user message extraction
 
 struct SessionPreview {
@@ -194,8 +350,7 @@ static COMMAND_NAME_REGEX: LazyLock<Regex> =
 
 /// Sanitize display content by stripping XML-like wrapper tags.
 /// Simplified version of the TypeScript sanitizeDisplayContent.
-static STRIP_TAGS_REGEX: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"<[^>]+>").unwrap());
+static STRIP_TAGS_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"<[^>]+>").unwrap());
 
 fn sanitize_display_content(text: &str) -> String {
     // Remove common wrapper tags but keep the inner content
@@ -219,7 +374,13 @@ fn sanitize_display_content(text: &str) -> String {
 fn extract_session_preview(file_path: &Path) -> SessionPreview {
     let file = match std::fs::File::open(file_path) {
         Ok(f) => f,
-        Err(_) => return SessionPreview { first_message: None, custom_title: None, agent_name: None },
+        Err(_) => {
+            return SessionPreview {
+                first_message: None,
+                custom_title: None,
+                agent_name: None,
+            }
+        }
     };
     let reader = BufReader::new(file);
 
@@ -289,14 +450,12 @@ fn extract_session_preview(file_path: &Path) -> SessionPreview {
 
         let text = match content {
             serde_json::Value::String(s) => s.clone(),
-            serde_json::Value::Array(blocks) => {
-                blocks
-                    .iter()
-                    .filter(|b| b.get("type").and_then(|t| t.as_str()) == Some("text"))
-                    .filter_map(|b| b.get("text").and_then(|t| t.as_str()))
-                    .collect::<Vec<_>>()
-                    .join(" ")
-            }
+            serde_json::Value::Array(blocks) => blocks
+                .iter()
+                .filter(|b| b.get("type").and_then(|t| t.as_str()) == Some("text"))
+                .filter_map(|b| b.get("text").and_then(|t| t.as_str()))
+                .collect::<Vec<_>>()
+                .join(" "),
             _ => continue,
         };
 
@@ -402,4 +561,87 @@ fn parse_cursor(cursor: &str, sessions: &[(String, f64, u64)]) -> Option<usize> 
     }
 
     Some(sessions.len())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    static GLOBAL_LIST_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    #[test]
+    fn global_lister_pages_across_projects_without_duplicates() {
+        let _guard = GLOBAL_LIST_TEST_LOCK.lock().expect("lock tests");
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock")
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!("claude-devtools-global-list-{unique}"));
+        let fixture = r#"{"type":"assistant","timestamp":"2026-01-01T00:00:00Z","message":{"role":"assistant","model":"claude-sonnet-4","usage":{"input_tokens":1}}}"#;
+        for (project, session) in [("-tmp-alpha", "a"), ("-tmp-beta", "b")] {
+            let project_dir = root.join(project);
+            std::fs::create_dir_all(&project_dir).expect("create project");
+            std::fs::write(project_dir.join(format!("{session}.jsonl")), fixture)
+                .expect("write session");
+        }
+
+        let first = list_global_sessions_paginated(&root, None, 1).expect("first page");
+        let second = list_global_sessions_paginated(&root, first.next_cursor.as_deref(), 1)
+            .expect("second page");
+        std::fs::remove_dir_all(root).expect("remove fixture");
+
+        assert_eq!(first.sessions.len(), 1);
+        assert!(first.has_more);
+        assert_eq!(second.sessions.len(), 1);
+        assert!(!second.has_more);
+        assert_ne!(first.sessions[0].id, second.sessions[0].id);
+    }
+
+    #[test]
+    fn global_lister_enriches_only_current_page() {
+        let _guard = GLOBAL_LIST_TEST_LOCK.lock().expect("lock tests");
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock")
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!("claude-devtools-page-scan-{unique}"));
+        let project_dir = root.join("-tmp-alpha");
+        std::fs::create_dir_all(&project_dir).expect("create project");
+        let fixture = r#"{"type":"user","message":{"role":"user","content":"hello"}}"#;
+        for session in ["a", "b", "c"] {
+            std::fs::write(project_dir.join(format!("{session}.jsonl")), fixture)
+                .expect("write session");
+        }
+
+        crate::analytics::reset_light_scan_count();
+        let page = list_global_sessions_paginated(&root, None, 1).expect("page");
+        let scan_count = crate::analytics::light_scan_count();
+        std::fs::remove_dir_all(root).expect("remove fixture");
+
+        assert_eq!(page.sessions.len(), 1);
+        assert_eq!(scan_count, 1);
+        assert!(page.has_more);
+    }
+
+    #[test]
+    fn global_lister_rejects_out_of_range_limits_before_reading() {
+        let missing = Path::new("/definitely/missing");
+        assert_eq!(
+            list_global_sessions_paginated(missing, None, 0).expect_err("zero limit"),
+            "global sessions limit must be between 1 and 100"
+        );
+        assert_eq!(
+            list_global_sessions_paginated(missing, None, 101).expect_err("large limit"),
+            "global sessions limit must be between 1 and 100"
+        );
+    }
+
+    #[test]
+    fn global_cursor_round_trips_exact_timestamp_bits() {
+        let cursor = encode_global_cursor(1_234.5, "project", "session");
+        assert_eq!(
+            decode_global_cursor(&cursor),
+            Some((1_234.5, "project".to_string(), "session".to_string()))
+        );
+    }
 }

@@ -5,6 +5,7 @@ import { call } from '../invoke';
 type FlatSessionCommands = Pick<
   DesktopAPI,
   | 'getProjects'
+  | 'getGlobalSessionsPaginated'
   | 'getSessions'
   | 'getSessionsPaginated'
   | 'searchSessions'
@@ -25,6 +26,11 @@ type FlatSessionCommands = Pick<
 
 export const sessionCommands: FlatSessionCommands = {
   getProjects: () => call<Awaited<ReturnType<DesktopAPI['getProjects']>>>('get_projects'),
+  getGlobalSessionsPaginated: (cursor, limit) =>
+    call<Awaited<ReturnType<DesktopAPI['getGlobalSessionsPaginated']>>>(
+      'get_global_sessions_paginated',
+      { cursor, limit: limit ?? null }
+    ),
   getSessions: (projectId) => call<Awaited<ReturnType<DesktopAPI['getSessions']>>>('get_sessions', { projectId }),
   getSessionsPaginated: (projectId, cursor, limit, options) =>
     call<Awaited<ReturnType<DesktopAPI['getSessionsPaginated']>>>('get_sessions_paginated', {

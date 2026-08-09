@@ -17,6 +17,9 @@ pub use duration::{compute_session_duration_stats, SessionDurationResponse};
 pub use forecasting::{compute_cost_forecast, CostForecast};
 pub use model_comparison::{compute_model_comparison, ModelComparisonResponse};
 pub use productivity::{compute_productivity_metrics, ProductivityMetrics};
+pub(crate) use session_scan::scan_session_light;
+#[cfg(test)]
+pub(crate) use session_scan::{light_scan_count, reset_light_scan_count};
 pub use types::{
     AnalyticsResponse, ModelUsageEntry, ProjectUsageEntry, ScheduleEventEntry, TimeBucketUsage,
     TopSessionEntry,
