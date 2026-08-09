@@ -1,5 +1,7 @@
 import type { NotificationTrigger } from './triggers';
 
+export type UIMode = 'simple' | 'nerd';
+
 export interface AppConfig {
 
   notifications: {
@@ -39,6 +41,8 @@ export interface AppConfig {
     autoExpandAIGroups: boolean;
 
     useNativeTitleBar: boolean;
+
+    uiMode: UIMode;
   };
 
   display: {

@@ -12,10 +12,19 @@ use serde_json::Value;
 
 // ── General ──────────────────────────────────────────────────────────────────
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum UiMode {
+    Simple,
+    #[default]
+    Nerd,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GeneralConfig {
     pub launch_at_login: bool,
+    pub ui_mode: UiMode,
     pub theme: String,
     pub default_tab: String,
     pub claude_root_path: Option<String>,
@@ -27,6 +36,7 @@ impl Default for GeneralConfig {
     fn default() -> Self {
         Self {
             launch_at_login: false,
+            ui_mode: UiMode::Nerd,
             theme: "dark".to_string(),
             default_tab: "dashboard".to_string(),
             claude_root_path: None,

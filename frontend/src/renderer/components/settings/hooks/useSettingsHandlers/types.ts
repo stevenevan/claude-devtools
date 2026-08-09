@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
 import type { RepositoryDropdownItem } from '../useSettingsConfig';
 import type { AppConfig, NotificationTrigger } from '@renderer/types/data';
+import type { UIMode } from '@shared/types';
 
 export interface UseSettingsHandlersProps {
   config: AppConfig | null;
@@ -19,6 +20,7 @@ export interface SettingsHandlers {
   handleGeneralToggle: (key: keyof AppConfig['general'], value: boolean) => void;
   handleThemeChange: (value: 'dark' | 'light' | 'system') => void;
   handleDefaultTabChange: (value: 'dashboard' | 'last-session') => void;
+  handleUIModeChange: (value: UIMode) => void;
 
   // Notification handlers
   handleNotificationToggle: (key: keyof AppConfig['notifications'], value: boolean) => void;

@@ -14,6 +14,8 @@ import type {
 import type { AnnotationImportReport } from '@shared/types/api';
 import { open } from '@tauri-apps/plugin-dialog';
 
+import { cacheConfirmedUIMode } from '@renderer/utils/uiModeBootstrap';
+
 import { bridgeEvent } from '../eventBridge';
 import { call } from '../invoke';
 
@@ -92,8 +94,9 @@ type ConfigCommands = Pick<
 >;
 
 export const configApi: ConfigCommands = {
-  get: () => call<AppConfig>('config_get'),
-  update: (section, data) => call<AppConfig>('config_update', { section, data }),
+  get: async () => cacheConfirmedUIMode(await call<AppConfig>('config_get')),
+  update: async (section, data) =>
+    cacheConfirmedUIMode(await call<AppConfig>('config_update', { section, data })),
   addIgnoreRegex: (pattern) => call<AppConfig>('config_add_ignore_regex', { pattern }),
   removeIgnoreRegex: (pattern) => call<AppConfig>('config_remove_ignore_regex', { pattern }),
   addIgnoreRepository: (repositoryId) =>

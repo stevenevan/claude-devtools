@@ -103,6 +103,7 @@ export const SettingsView = (): JSX.Element | null => {
               saving={saving}
               onGeneralToggle={handlers.handleGeneralToggle}
               onThemeChange={handlers.handleThemeChange}
+              onUIModeChange={handlers.handleUIModeChange}
               onDisplayToggle={handlers.handleDisplayToggle}
               onCodeBlockThemeChange={handlers.handleCodeBlockThemeChange}
             />

@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 
 import type { SettingsHandlers, UseSettingsHandlersProps } from './types';
 import type { AppConfig } from '@renderer/types/data';
+import type { UIMode } from '@shared/types';
 
 type GeneralHandlersProps = Pick<UseSettingsHandlersProps, 'updateConfig'>;
 
@@ -9,7 +10,7 @@ export function useGeneralHandlers({
   updateConfig,
 }: GeneralHandlersProps): Pick<
   SettingsHandlers,
-  'handleGeneralToggle' | 'handleThemeChange' | 'handleDefaultTabChange'
+  'handleGeneralToggle' | 'handleThemeChange' | 'handleDefaultTabChange' | 'handleUIModeChange'
 > {
   // ponytail: useCallback required — returned from hook; callers include in dep arrays
   const handleGeneralToggle = useCallback(
@@ -35,5 +36,9 @@ export function useGeneralHandlers({
     [updateConfig]
   );
 
-  return { handleGeneralToggle, handleThemeChange, handleDefaultTabChange };
+  const handleUIModeChange = (value: UIMode): void => {
+    void updateConfig('general', { uiMode: value });
+  };
+
+  return { handleGeneralToggle, handleThemeChange, handleDefaultTabChange, handleUIModeChange };
 }

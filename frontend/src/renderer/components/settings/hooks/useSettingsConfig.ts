@@ -24,6 +24,7 @@ export interface SafeConfig {
     claudeRootPath: string | null;
     autoExpandAIGroups: boolean;
     useNativeTitleBar: boolean;
+    uiMode: AppConfig['general']['uiMode'];
   };
   notifications: {
     enabled: boolean;
@@ -147,6 +148,7 @@ export function useSettingsConfig(): UseSettingsConfigReturn {
         claudeRootPath: displayConfig?.general?.claudeRootPath ?? null,
         autoExpandAIGroups: displayConfig?.general?.autoExpandAIGroups ?? false,
         useNativeTitleBar: displayConfig?.general?.useNativeTitleBar ?? false,
+        uiMode: displayConfig?.general?.uiMode ?? 'nerd',
       },
       notifications: {
         enabled: displayConfig?.notifications?.enabled ?? true,

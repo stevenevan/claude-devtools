@@ -74,6 +74,7 @@ export function useAdvancedHandlers({
           claudeRootPath: null,
           autoExpandAIGroups: false,
           useNativeTitleBar: false,
+          uiMode: 'nerd',
         },
         display: {
           codeBlockTheme: 'default',
