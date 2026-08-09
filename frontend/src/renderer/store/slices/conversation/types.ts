@@ -1,5 +1,6 @@
 import type { SearchMatch } from '../../types';
-import type { AIGroupExpansionLevel, SessionConversation } from '@renderer/types/groups';
+import type { SearchableConversation } from '@renderer/types/simpleChat';
+import type { AIGroupExpansionLevel } from '@renderer/types/groups';
 
 type DetailItemType = 'thinking' | 'text' | 'linked-tool' | 'subagent';
 
@@ -40,8 +41,11 @@ export interface ConversationSlice {
   showDetailPopover: (aiGroupId: string, itemId: string, type: DetailItemType) => void;
   hideDetailPopover: () => void;
 
-  setSearchQuery: (query: string, conversationOverride?: SessionConversation | null) => void;
-  setSearchIsRegex: (isRegex: boolean) => void;
+  setSearchQuery: (query: string, conversationOverride?: SearchableConversation | null) => void;
+  setSearchIsRegex: (
+    isRegex: boolean,
+    conversationOverride?: SearchableConversation | null
+  ) => void;
   syncSearchMatchesWithRendered: (
     renderedMatches: { itemId: string; matchIndexInItem: number }[]
   ) => void;

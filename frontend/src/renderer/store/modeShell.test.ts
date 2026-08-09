@@ -51,6 +51,7 @@ function openSession(label: string): void {
 describe('mode-aware shell store behavior', () => {
   beforeEach(() => {
     useStore.setState(useStore.getInitialState(), true);
+    useStore.setState({ fetchSessionDetail: async () => undefined });
   });
 
   test('routes non-empty shell queries without changing conversation search state', () => {

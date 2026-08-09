@@ -127,6 +127,7 @@ export const ConversationList = (): JSX.Element => {
       return CONVERSATION_HEIGHT;
     },
     getItemKey: (index) => items[index]?.id ?? index,
+    measureElement: (element) => element.getBoundingClientRect().height,
     overscan: VIRTUAL_OVERSCAN,
   });
   const virtualRows = rowVirtualizer.getVirtualItems();
@@ -139,7 +140,8 @@ export const ConversationList = (): JSX.Element => {
       !isVirtualized ||
       !isEndSentinelVisible ||
       !conversationFeedHasMore ||
-      conversationFeedLoadingMore
+      conversationFeedLoadingMore ||
+      conversationFeedError
     ) {
       return;
     }
@@ -150,11 +152,19 @@ export const ConversationList = (): JSX.Element => {
     isEndSentinelVisible,
     conversationFeedHasMore,
     conversationFeedLoadingMore,
+    conversationFeedError,
     fetchMoreConversationFeed,
   ]);
 
   useEffect(() => {
-    if (isVirtualized || !conversationFeedHasMore || conversationFeedLoadingMore) return;
+    if (
+      isVirtualized ||
+      !conversationFeedHasMore ||
+      conversationFeedLoadingMore ||
+      conversationFeedError
+    ) {
+      return;
+    }
 
     const sentinel = endSentinelRef.current;
     if (!sentinel) return;
@@ -174,6 +184,7 @@ export const ConversationList = (): JSX.Element => {
     isVirtualized,
     conversationFeedHasMore,
     conversationFeedLoadingMore,
+    conversationFeedError,
     fetchMoreConversationFeed,
     items.length,
   ]);
@@ -192,6 +203,7 @@ export const ConversationList = (): JSX.Element => {
   );
 
   const hasRows = conversationFeedRows.length > 0;
+  const canRetryAppend = hasRows && conversationFeedHasMore;
 
   return (
     <section
@@ -209,12 +221,14 @@ export const ConversationList = (): JSX.Element => {
 
       {conversationFeedError && (
         <div role="alert" className="border-destructive/30 bg-destructive/10 flex items-center justify-between gap-4 border-b px-6 py-3 text-sm">
-          <span className="text-destructive">Could not load conversations: {conversationFeedError}</span>
+          <span className="text-destructive">Could not load conversations.</span>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => void fetchConversationFeed(true)}
+            onClick={() =>
+              void (canRetryAppend ? fetchMoreConversationFeed() : fetchConversationFeed(true))
+            }
           >
             Retry
           </Button>
@@ -254,12 +268,11 @@ export const ConversationList = (): JSX.Element => {
               return (
                 <div
                   key={item.id}
+                  ref={rowVirtualizer.measureElement}
+                  data-index={virtualRow.index}
                   role={item.type === 'conversation' ? 'listitem' : undefined}
                   className="absolute top-0 left-0 w-full"
-                  style={{
-                    height: `${virtualRow.size}px`,
-                    transform: `translateY(${virtualRow.start}px)`,
-                  }}
+                  style={{ transform: `translateY(${virtualRow.start}px)` }}
                 >
                   {renderItem(item)}
                 </div>

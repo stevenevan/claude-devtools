@@ -61,7 +61,8 @@ export const createConversationSlice: StateCreator<AppState, [], [], Conversatio
 
   setSearchQuery: (query, conversationOverride) =>
     runSetSearchQuery(get, set, query, conversationOverride),
-  setSearchIsRegex: (isRegex) => runSetSearchIsRegex(get, set, isRegex),
+  setSearchIsRegex: (isRegex, conversationOverride) =>
+    runSetSearchIsRegex(get, set, isRegex, conversationOverride),
   syncSearchMatchesWithRendered: (renderedMatches) =>
     runSyncSearchMatchesWithRendered(get, set, renderedMatches),
   selectSearchMatch: (itemId, matchIndexInItem) =>

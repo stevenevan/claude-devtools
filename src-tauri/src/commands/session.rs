@@ -238,6 +238,7 @@ pub fn get_subagent_detail(
         message_timestamp: None,
         has_subagents: false,
         message_count: parsed.messages.len() as u32,
+        cost_usd: None,
         is_ongoing: Some(false),
         git_branch: None,
         metadata_level: Some("deep".to_string()),

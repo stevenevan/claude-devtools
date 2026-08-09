@@ -2,7 +2,6 @@
 
 import {
   createSearchNavigationRequest,
-  findTabBySession,
   findTabBySessionAndProject,
   truncateLabel,
 } from '@renderer/types/tabs';
@@ -74,9 +73,9 @@ export const createTabSlice: StateCreator<AppState, [], [], TabSlice> = (set, ge
     const focusedPane = findPane(paneLayout, paneLayout.focusedPaneId);
     if (!focusedPane) return;
 
-    if (tab.type === 'session' && tab.sessionId && !options?.forceNewTab) {
+    if (tab.type === 'session' && tab.sessionId && tab.projectId && !options?.forceNewTab) {
       const allTabs = getAllTabs(paneLayout);
-      const existing = findTabBySession(allTabs, tab.sessionId);
+      const existing = findTabBySessionAndProject(allTabs, tab.sessionId, tab.projectId);
       if (existing) {
         state.setActiveTab(existing.id);
         return;
@@ -103,6 +102,7 @@ export const createTabSlice: StateCreator<AppState, [], [], TabSlice> = (set, ge
         };
         const newLayout = updatePane(paneLayout, updatedPane);
         set({ ...syncFromLayout(newLayout), isActivityViewActive: false });
+        get().setActiveTab(replacementTab.id);
         return;
       }
     }
@@ -121,6 +121,9 @@ export const createTabSlice: StateCreator<AppState, [], [], TabSlice> = (set, ge
     };
     const newLayout = updatePane(paneLayout, updatedPane);
     set({ ...syncFromLayout(newLayout), isActivityViewActive: false });
+    if (newTab.type === 'session') {
+      get().setActiveTab(newTab.id);
+    }
   },
 
   closeTab: (tabId: string) => {
@@ -304,9 +307,7 @@ export const createTabSlice: StateCreator<AppState, [], [], TabSlice> = (set, ge
     const state = get();
 
     const allTabs = getAllTabs(state.paneLayout);
-    const existingTab =
-      findTabBySessionAndProject(allTabs, sessionId, projectId) ??
-      findTabBySession(allTabs, sessionId);
+    const existingTab = findTabBySessionAndProject(allTabs, sessionId, projectId);
 
     if (existingTab) {
       state.setActiveTab(existingTab.id);
@@ -366,9 +367,6 @@ export const createTabSlice: StateCreator<AppState, [], [], TabSlice> = (set, ge
           state.enqueueTabNavigation(newTabId, navRequest);
         }
       }
-
-      const newTabIdForFetch = get().activeTabId ?? undefined;
-      void state.fetchSessionDetail(projectId, sessionId, newTabIdForFetch);
     }
   },
 });

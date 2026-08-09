@@ -3,12 +3,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useChatHistoryScroll } from '@renderer/hooks/useChatHistoryScroll';
 import { useTabNavigationController } from '@renderer/hooks/useTabNavigationController';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useTabUI } from '@renderer/hooks/useTabUI';
 import { useTurnNavigationListener } from '@renderer/hooks/useTurnNavigationListener';
 import { useVisibleAIGroup } from '@renderer/hooks/useVisibleAIGroup';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { countPendingTodos } from '@renderer/types/todos';
+
+import { SearchBar } from '../../search/SearchBar';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChevronsDown, MessageSquare } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -16,11 +19,12 @@ import { useShallow } from 'zustand/react/shallow';
 import { LiveMetricsBar } from '../../common/LiveMetricsBar';
 import { computeContextInjectionsForPhase } from '../chatHistoryDerivations';
 import { ChatHistoryLoadingState } from '../ChatHistoryLoadingState';
-import { ChatHistoryVirtualizer } from '../ChatHistoryVirtualizer';
+import { ChatHistoryVirtualizer, getChatItemKey } from '../ChatHistoryVirtualizer';
 import { ContextHeatmap } from '../ContextHeatmap';
 import { ReplayControls } from '../ReplayControls';
 import { useChatHistoryNavigation } from '../useChatHistoryNavigation';
 import { useSearchMatchSync } from '../useSearchMatchSync';
+import { createSimpleConversation } from '../simpleChat';
 
 import { ChatHistorySidePanels } from './ChatHistorySidePanels';
 import { ChatHistoryToolbar } from './ChatHistoryToolbar';
@@ -34,6 +38,8 @@ interface ChatHistoryProps {
 export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
   const VIRTUALIZATION_THRESHOLD = 120;
   const ESTIMATED_CHAT_ITEM_HEIGHT = 260;
+  const mode = useUIMode();
+  const isSimple = mode === 'simple';
 
   const {
     isContextPanelVisible,
@@ -104,6 +110,12 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     isStreaming,
   } = tabData;
 
+  const displayConversation = useMemo(
+    () => (isSimple ? createSimpleConversation(conversation) : conversation),
+    [conversation, isSimple]
+  );
+
+  const nerdConversation = isSimple ? null : conversation;
   const [isContextButtonHovered, setIsContextButtonHovered] = useState(false);
 
   const effectiveTabId = tabId ?? activeTabId;
@@ -115,12 +127,12 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
   const { allContextInjections, lastAiGroupTotalTokens } = useMemo(
     () =>
       computeContextInjectionsForPhase({
-        conversation,
+        conversation: nerdConversation,
         contextStats: sessionContextStats,
         phaseInfo: sessionPhaseInfo,
         selectedPhase: selectedContextPhase,
       }),
-    [sessionContextStats, conversation, selectedContextPhase, sessionPhaseInfo]
+    [sessionContextStats, nerdConversation, selectedContextPhase, sessionPhaseInfo]
   );
 
   const todoData = sessionDetail?.session?.todoData;
@@ -135,32 +147,36 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
   const toolItemRefs = useRef<Map<string, HTMLElement>>(new Map());
 
   const isSearchActive = searchQuery.trim().length > 0;
-  const shouldVirtualize = (conversation?.items.length ?? 0) >= VIRTUALIZATION_THRESHOLD;
+  const shouldVirtualize = (displayConversation?.items.length ?? 0) >= VIRTUALIZATION_THRESHOLD;
 
   // ponytail: useCallback required — passed to useTabNavigationController as setSearchQuery (in its dep array)
   const setSearchQueryForTab = useCallback(
     (query: string): void => {
-      setSearchQuery(query, conversation);
+      setSearchQuery(query, displayConversation);
     },
-    [setSearchQuery, conversation]
+    [setSearchQuery, displayConversation]
   );
 
   const groupIndexMap = useMemo(() => {
     const map = new Map<string, number>();
-    if (!conversation?.items) {
+    if (!displayConversation?.items) {
       return map;
     }
-    conversation.items.forEach((item, index) => {
+    displayConversation.items.forEach((item, index) => {
       map.set(item.group.id, index);
     });
     return map;
-  }, [conversation]);
+  }, [displayConversation]);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const rowVirtualizer = useVirtualizer({
-    count: shouldVirtualize ? (conversation?.items.length ?? 0) : 0,
+    count: shouldVirtualize ? (displayConversation?.items.length ?? 0) : 0,
     getScrollElement: () => scrollContainerRef.current,
+    getItemKey: (index) => {
+      const item = displayConversation?.items[index];
+      return item ? getChatItemKey(item) : index;
+    },
     estimateSize: () => ESTIMATED_CHAT_ITEM_HEIGHT,
     overscan: 8,
     measureElement: (element) => element.getBoundingClientRect().height,
@@ -192,9 +208,9 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     highlightColor,
     shouldDisableAutoScroll,
   } = useTabNavigationController({
-    isActiveTab: isThisTabActive,
+    isActiveTab: isThisTabActive && !isSimple,
     pendingNavigation,
-    conversation,
+    conversation: nerdConversation,
     conversationLoading,
     consumeTabNavigation,
     tabId: effectiveTabId ?? '',
@@ -218,13 +234,13 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     if (!isThisTabActive || !searchQuery.trim()) {
       return;
     }
-    setSearchQuery(searchQuery, conversation);
-  }, [isThisTabActive, searchQuery, conversation, setSearchQuery]);
+    setSearchQuery(searchQuery, displayConversation);
+  }, [isThisTabActive, searchQuery, displayConversation, setSearchQuery]);
 
   useSearchMatchSync({
     isThisTabActive,
     isSearchActive,
-    conversation,
+    conversation: displayConversation,
     shouldVirtualize,
     scrollContainerRef,
     currentSearchIndex,
@@ -245,7 +261,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
   const { showScrollButton, checkScrollButton, scrollToBottom, setShowScrollButton } =
     useChatHistoryScroll({
       scrollContainerRef,
-      conversation,
+      conversation: displayConversation,
       conversationLoading,
       isThisTabActive,
       effectiveTabId,
@@ -261,7 +277,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
 
   useTurnNavigationListener({
     isThisTabActive,
-    conversation,
+    conversation: displayConversation,
     effectiveTabId,
     shouldVirtualize,
     rowVirtualizer,
@@ -280,7 +296,7 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
 
   const { handleNavigateToTurn, handleNavigateToUserGroup, handleNavigateToTool } =
     useChatHistoryNavigation({
-      conversation,
+      conversation: nerdConversation,
       ensureGroupVisible,
       aiGroupRefs,
       chatItemRefs,
@@ -302,8 +318,8 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
   // ponytail: useCallback required — captures rowVirtualizer in dep array; passed to SessionMinimap
   const handleMinimapJump = useCallback(
     (index: number) => {
-      if (!conversation) return;
-      const item = conversation.items[index];
+      if (!displayConversation) return;
+      const item = displayConversation.items[index];
       if (!item) return;
 
       if (shouldVirtualize) {
@@ -314,12 +330,12 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
         el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     },
-    [conversation, shouldVirtualize, rowVirtualizer]
+    [displayConversation, shouldVirtualize, rowVirtualizer]
   );
 
   if (conversationLoading) return <ChatHistoryLoadingState />;
 
-  if (!conversation || conversation.items.length === 0) {
+  if (!displayConversation || displayConversation.items.length === 0) {
     return (
       <div className="bg-background flex flex-1 items-center justify-center overflow-hidden">
         <div className="text-muted-foreground space-y-2 text-center">
@@ -335,21 +351,26 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
     <div
       role="log"
       aria-label="Chat history"
-      className="bg-background flex flex-1 flex-col overflow-hidden"
+      className="bg-background relative flex flex-1 flex-col overflow-hidden"
     >
-      <LiveMetricsBar
-        metrics={sessionDetail?.metrics ?? null}
-        isStreaming={isStreaming}
-        startTime={sessionDetail?.session?.createdAt ?? null}
-      />
-      <ReplayControls totalChunks={conversation.items.length} />
+      <SearchBar conversation={displayConversation} />
+      {!isSimple && (
+        <>
+          <LiveMetricsBar
+            metrics={sessionDetail?.metrics ?? null}
+            isStreaming={isStreaming}
+            startTime={sessionDetail?.session?.createdAt ?? null}
+          />
+          <ReplayControls totalChunks={displayConversation.items.length} />
+        </>
+      )}
       <div className="relative flex flex-1 overflow-hidden">
         <div
           ref={scrollContainerRef}
           className="bg-background flex-1 overflow-y-auto"
           onScroll={checkScrollButton}
         >
-          {(allContextInjections.length > 0 || hasTodoData) && (
+          {!isSimple && (allContextInjections.length > 0 || hasTodoData) && (
             <ChatHistoryToolbar
               showHeatmapButton={!!sessionContextStats && sessionContextStats.size > 0}
               contextHeatmapVisible={contextHeatmapVisible}
@@ -365,14 +386,18 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
               setIsContextButtonHovered={setIsContextButtonHovered}
             />
           )}
-          {contextHeatmapVisible && sessionContextStats && conversation.items.length > 0 && (
-            <div className="sticky top-12 z-10 mx-auto max-w-5xl px-6 pt-2 pb-1">
-              <ContextHeatmap
-                items={conversation.items}
-                statsMap={sessionContextStats}
-                onSelectTurn={(_groupId, turnIndex) => handleNavigateToTurn(turnIndex)}
-              />
-            </div>
+          {!isSimple &&
+            contextHeatmapVisible &&
+            sessionContextStats &&
+            nerdConversation &&
+            nerdConversation.items.length > 0 && (
+              <div className="sticky top-12 z-10 mx-auto max-w-5xl px-6 pt-2 pb-1">
+                <ContextHeatmap
+                  items={nerdConversation.items}
+                  statsMap={sessionContextStats}
+                  onSelectTurn={(_groupId, turnIndex) => handleNavigateToTurn(turnIndex)}
+                />
+              </div>
           )}
           <div
             className={cn(
@@ -380,28 +405,29 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
               allContextInjections.length > 0 && '-mt-8'
             )}
           >
-            {(sessionDetail?.session?.customTitle || sessionDetail?.session?.agentName) && (
-              <div className="mb-6">
-                {sessionDetail.session.customTitle && (
-                  <h1 className="text-foreground text-lg font-semibold">
-                    {sessionDetail.session.customTitle}
-                  </h1>
-                )}
-                {sessionDetail.session.agentName &&
-                  sessionDetail.session.agentName !== sessionDetail.session.customTitle && (
-                    <p className="text-muted-foreground mt-1 text-sm">
-                      Agent: {sessionDetail.session.agentName}
-                    </p>
+            {!isSimple &&
+              (sessionDetail?.session?.customTitle || sessionDetail?.session?.agentName) && (
+                <div className="mb-6">
+                  {sessionDetail.session.customTitle && (
+                    <h1 className="text-foreground text-lg font-semibold">
+                      {sessionDetail.session.customTitle}
+                    </h1>
                   )}
-              </div>
+                  {sessionDetail.session.agentName &&
+                    sessionDetail.session.agentName !== sessionDetail.session.customTitle && (
+                      <p className="text-muted-foreground mt-1 text-sm">
+                        Agent: {sessionDetail.session.agentName}
+                      </p>
+                    )}
+                </div>
             )}
             <div className="space-y-6">
               <ChatHistoryVirtualizer
-                items={conversation.items}
+                items={displayConversation.items}
                 shouldVirtualize={shouldVirtualize}
                 rowVirtualizer={rowVirtualizer}
-                replayMode={replayMode}
-                replayCursorIndex={replayCursorIndex}
+                replayMode={isSimple ? 'off' : replayMode}
+                replayCursorIndex={isSimple ? 0 : replayCursorIndex}
                 highlightedGroupId={highlightedGroupId}
                 highlightToolUseId={effectiveHighlightToolUseId}
                 isSearchHighlight={isSearchHighlight}
@@ -435,26 +461,28 @@ export const ChatHistory = ({ tabId }: ChatHistoryProps): JSX.Element => {
           </button>
         )}
 
-        <ChatHistorySidePanels
-          items={conversation.items}
-          scrollContainerRef={scrollContainerRef}
-          onMinimapJump={handleMinimapJump}
-          isTodoPanelVisible={isTodoPanelVisible}
-          hasTodoData={hasTodoData}
-          todoData={todoData}
-          onCloseTodo={() => setIsTodoPanelVisible(false)}
-          isContextPanelVisible={isContextPanelVisible}
-          contextInjections={allContextInjections}
-          onCloseContext={() => setContextPanelVisible(false)}
-          projectRoot={sessionDetail?.session?.projectPath}
-          onNavigateToTurn={handleNavigateToTurn}
-          onNavigateToTool={handleNavigateToTool}
-          onNavigateToUserGroup={handleNavigateToUserGroup}
-          totalSessionTokens={lastAiGroupTotalTokens}
-          phaseInfo={sessionPhaseInfo ?? undefined}
-          selectedPhase={selectedContextPhase}
-          onPhaseChange={setSelectedContextPhase}
-        />
+        {!isSimple && nerdConversation && (
+          <ChatHistorySidePanels
+            items={nerdConversation.items}
+            scrollContainerRef={scrollContainerRef}
+            onMinimapJump={handleMinimapJump}
+            isTodoPanelVisible={isTodoPanelVisible}
+            hasTodoData={hasTodoData}
+            todoData={todoData}
+            onCloseTodo={() => setIsTodoPanelVisible(false)}
+            isContextPanelVisible={isContextPanelVisible}
+            contextInjections={allContextInjections}
+            onCloseContext={() => setContextPanelVisible(false)}
+            projectRoot={sessionDetail?.session?.projectPath}
+            onNavigateToTurn={handleNavigateToTurn}
+            onNavigateToTool={handleNavigateToTool}
+            onNavigateToUserGroup={handleNavigateToUserGroup}
+            totalSessionTokens={lastAiGroupTotalTokens}
+            phaseInfo={sessionPhaseInfo ?? undefined}
+            selectedPhase={selectedContextPhase}
+            onPhaseChange={setSelectedContextPhase}
+          />
+        )}
       </div>
     </div>
   );

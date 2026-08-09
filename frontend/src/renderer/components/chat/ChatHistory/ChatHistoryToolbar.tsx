@@ -42,6 +42,7 @@ export const ChatHistoryToolbar = ({
               : 'bg-muted text-muted-foreground hover:bg-accent'
           )}
           title={contextHeatmapVisible ? 'Hide context heatmap' : 'Show context heatmap'}
+          aria-pressed={contextHeatmapVisible}
         >
           Heatmap
         </button>
@@ -55,6 +56,7 @@ export const ChatHistoryToolbar = ({
               ? 'bg-emerald-500/45 text-emerald-100'
               : 'bg-muted text-muted-foreground hover:bg-accent'
           )}
+          aria-pressed={isTodoPanelVisible}
         >
           Tasks ({todoPendingCount})
         </button>
@@ -72,6 +74,7 @@ export const ChatHistoryToolbar = ({
                 ? 'hover:bg-accent text-muted-foreground'
                 : 'bg-muted text-muted-foreground'
           )}
+          aria-pressed={isContextPanelVisible}
         >
           Context ({contextInjectionCount})
         </button>

@@ -146,6 +146,7 @@ pub fn list_sessions_paginated(
                 message_timestamp: preview.first_message.as_ref().map(|p| p.timestamp.clone()),
                 has_subagents: has_subs,
                 message_count: 0,
+                cost_usd: None,
                 is_ongoing,
                 git_branch: None,
                 metadata_level: Some("light".to_string()),

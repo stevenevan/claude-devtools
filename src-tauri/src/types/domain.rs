@@ -44,6 +44,8 @@ pub struct Session {
     pub has_subagents: bool,
     pub message_count: u32,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub cost_usd: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_ongoing: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub git_branch: Option<String>,

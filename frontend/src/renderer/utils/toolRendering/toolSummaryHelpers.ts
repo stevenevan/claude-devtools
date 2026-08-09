@@ -1,8 +1,44 @@
 import { getBaseName } from '@renderer/utils/pathUtils';
+import { sanitizeSimpleText } from '@renderer/utils/simpleTextSanitizer';
 
 function truncate(str: string, maxLength: number): string {
   if (str.length <= maxLength) return str;
   return str.slice(0, maxLength) + '...';
+}
+
+function getInputString(input: Record<string, unknown>, key: string): string | undefined {
+  const value = input[key];
+  return typeof value === 'string' ? value : undefined;
+}
+
+export function getSimpleToolSummary(toolName: string, input: Record<string, unknown>): string {
+  const filePath = getInputString(input, 'file_path');
+  const fileName = filePath ? sanitizeSimpleText(getBaseName(filePath)) : undefined;
+
+  switch (toolName) {
+    case 'Read':
+      return fileName ? `Read ${fileName}` : 'Read a file';
+    case 'Edit':
+      return fileName ? `Edited ${fileName}` : 'Edited a file';
+    case 'Write':
+      return fileName ? `Wrote ${fileName}` : 'Wrote a file';
+    case 'Bash':
+      return 'Ran a command';
+    case 'Grep': {
+      const path = getInputString(input, 'path');
+      return path ? `Searched ${sanitizeSimpleText(getBaseName(path))}` : 'Searched files';
+    }
+    case 'Glob': {
+      const path = getInputString(input, 'path');
+      return path
+        ? `Looked for files in ${sanitizeSimpleText(getBaseName(path))}`
+        : 'Looked for files';
+    }
+    case 'Task':
+      return 'Asked a helper for help';
+    default:
+      return 'used a tool';
+  }
 }
 
 export function getToolSummary(toolName: string, input: Record<string, unknown>): string {

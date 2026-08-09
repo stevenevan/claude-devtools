@@ -1,9 +1,13 @@
 import { formatDistanceToNowStrict } from 'date-fns';
 
+import { sanitizeSimpleText } from '@renderer/utils/simpleTextSanitizer';
+
 import type { GlobalSession } from '@shared/types';
 
-export function formatConversationSubject(session: GlobalSession): string {
-  return session.customTitle ?? session.firstMessage ?? 'Untitled conversation';
+export function formatConversationSubject(
+  session: Pick<GlobalSession, 'customTitle' | 'firstMessage'>
+): string {
+  return sanitizeSimpleText(session.customTitle ?? session.firstMessage ?? 'Untitled conversation');
 }
 
 export function formatConversationTime(createdAt: number): string {
