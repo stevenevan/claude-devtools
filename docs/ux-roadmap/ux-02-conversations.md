@@ -67,10 +67,15 @@ Rules:
 
 - **One list, not a grid of cards plus a sidebar.** Conversations grouped under their folder name.
   The card/sidebar split is a power-user layout; Simple mode flattens it.
-- Each row: what the conversation was about, when, how many messages, roughly what it cost.
+- Each row: what the conversation was about, when, visible main-thread message count, and roughly
+  what it cost. A dedicated, cursor-paginated global feed supplies this metadata through a bounded
+  light Rust scan; only the requested page is enriched.
 - **Folder name only — never the absolute path.** No worktree count, no session ID.
-- Cost in currency, never tokens. "about $0.40" — the approximation is honest and readable.
+- Cost in currency, never tokens. "about $0.40" — the approximation is honest and readable. Cost
+  is optional: tokenless, malformed, or otherwise unpriceable rows remain usable with their
+  subject, time, and message count.
 - No outlier glyphs, no compaction markers, no phase breakdowns.
+- No local conversation search input. A non-empty shell query routes to global SearchView.
 - Empty state is a sentence that tells the user what to do, not an empty grid.
 
 ## 4. Nerd view
@@ -110,6 +115,9 @@ visible label instead of a `title`-only tooltip.
 
 ## 6. Files touched
 
+- `src-tauri/src/analytics/session_scan.rs`, `src-tauri/src/analytics/cost.rs`,
+  `src-tauri/src/commands/session.rs`, and `src-tauri/src/types/domain.rs` — bounded light session
+  summaries, current first-party list-price estimates, and cursor-paginated global feed metadata.
 - `frontend/src/renderer/components/dashboard/DashboardView/index.tsx`
 - `frontend/src/renderer/components/dashboard/DashboardView/RepositoryCard.tsx`
 - `frontend/src/renderer/components/dashboard/DashboardView/ProjectsGrid.tsx`
@@ -125,35 +133,43 @@ adding a second money formatter. If it has none, add one there — not in a comp
 ## 7. Tasks (ordered)
 
 0. **Load the `impeccable` skill.**
-1. Read `dashboardFormatters.ts` and the analytics cost path; establish the one cost formatter this
-   sprint and sprint 04 both use.
-2. `ConversationList.tsx` — grouped list, Simple mode only. Keep `@tanstack/react-virtual` if the
-   list can exceed ~100 rows.
+1. Use the dedicated global conversation feed from bounded light Rust summaries. It returns subject,
+   preview, agent metadata, visible main-thread count, and optional approximate cost without a
+   second preview scan; retain current first-party list-price rules in the shared cost resolver.
+2. `ConversationList.tsx` — Simple-only grouped list backed only by that global feed. Flatten
+   headings and rows into one discriminated sequence; use one `@tanstack/react-virtual` virtualizer
+   after 100 rendered items and request the next global page from its end sentinel.
 3. Branch `DashboardView/index.tsx` on `useUIMode()`: Simple renders `ConversationList`, Nerd
    renders today's grid.
-4. `Sidebar.tsx` — hidden in Simple (the list carries navigation); untouched in Nerd.
-5. `SessionItem.tsx` — mode-conditional labels per §5. Token display and the outlier glyph are
-   Nerd-only; the outlier gets a visible label there.
-6. Empty and error states for both modes, in plain language for Simple.
-7. Remove `DashboardView`'s own search box in Simple mode — the shell field from sprint 01 covers
-   it. Keep it in Nerd.
+4. `Sidebar.tsx` — unmount in Simple; leave Nerd unchanged.
+5. `SessionItem.tsx` — preserve Nerd row geometry, while adding keyboard access and a visible
+   meaning for its outlier indicator.
+6. Empty and error states for both modes, in plain language for Simple. When approximate cost is
+   unavailable, leave the row usable rather than failing or hiding it.
+7. Simple mounts no DashboardView or ConversationList search input. The shell field routes
+   non-empty queries to global SearchView; keep Nerd project search and page-local filters where
+   they already belong.
 
 ## 8. Verification / acceptance
 
-- `bun run typecheck && bun run test && bun run qa`
+- `bun run typecheck`
+- `bun run test` — Bun-native pure list/grouping and store/feed tests.
+- `bun run qa`
 
-Simple mode:
+Manual Tauri verification, Simple mode:
 
-- No absolute path, no token count, no "worktree", no outlier glyph anywhere on the page.
+- No absolute path, token count, "worktree", session ID, model ID, outlier glyph, or local search
+  input appears on the page.
 - Conversations are grouped by folder name and ordered most-recent-first.
-- Each row shows a cost in currency.
+- Rows use truthful visible-turn metadata and current approximate public-list-price cost when
+  available; unavailable cost does not make a row unusable.
 - With no projects, the empty state tells the user what to do.
-- Exactly one search field is visible (the shell's).
+- Exactly one search field is visible (the shell's), and a non-empty query opens global SearchView.
 
-Nerd mode:
+Manual Tauri verification, Nerd mode:
 
-- The page is visually identical to today apart from the outlier marker's visible label.
-- Filters, presets, date grouping and virtual scrolling all still work.
+- The page is visually identical to today apart from accessible outlier meaning.
+- Filters, presets, date grouping and virtual scrolling still work.
 
 ## 9. Accessibility
 
@@ -169,13 +185,10 @@ Sprint 01 — `useUIMode()`, and the shell search field this sprint defers to.
 
 ## 11. Risks / open questions
 
-- **Cost is derived, not recorded.** Rows show "about $0.40", which means this sprint needs a
-  token→currency conversion and a per-model rate. If the app has no rate table, Simple mode shows
-  message count only and the currency line waits for sprint 04. Decide in task 1; do not invent
-  rates.
-- Hiding the sidebar in Simple mode removes the filter presets. Acceptable — presets are a
-  power-user feature — but if the conversation list needs filtering, it gets a single "search these
-  conversations" field, not the preset bar.
+- **Cost is derived, not recorded.** Rows show "about $0.40" from retained usage and current
+  first-party public pricing. Cost is intentionally optional: a tokenless, malformed, oversized, or
+  non-finite-cost session keeps its otherwise usable row rather than receiving invented currency.
+- Unmounting the sidebar in Simple removes filter presets. This is intentional: shell-global search
+  searches across content through SearchView, rather than adding a ConversationList-local filter.
 - `SessionItem`'s height is pinned to `SESSION_HEIGHT` (48px) for virtual scrolling
-  (`SessionItem.tsx:220`). Changing row content in Nerd mode must keep that in sync or the list
-  mis-positions.
+  (`SessionItem.tsx:220`). Nerd row changes must keep that in sync or the list mis-positions.

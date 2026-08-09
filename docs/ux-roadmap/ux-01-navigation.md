@@ -5,8 +5,8 @@ Rail visibility: **not-on-the-rail** (this is the shell itself) · Depends on: �
 
 ## 1. Goal
 
-Build the two-mode shell: a six-item rail plus "More" in Simple, today's fifteen-item rail in
-Nerd, the `uiMode` plumbing that both read, and the search field the app has never had.
+Build the two-mode shell: seven Simple rail controls including More, today's fifteen-item rail in
+Nerd, shared `uiMode` plumbing, and shell-owned global search.
 
 ## 2. Today
 
@@ -74,14 +74,16 @@ Problems for a non-technical reader:
 
 Rules:
 
-- Six rail items, each with a **visible text label** under its icon: Conversations, Cost, Tasks,
-  Alerts, More; Help and Settings pinned at the bottom. Labels are what make the rail legible;
-  tooltips are not a substitute.
+- Seven rail controls, each with a **visible text label** under its icon: Conversations, Cost,
+  Tasks, Alerts, and More in the main section; Help and Settings pinned at the bottom. Labels are
+  what make the rail legible; tooltips are not a substitute.
 - "More" opens a popover listing the nine behind-More pages with labels and one-line
   descriptions. Nothing is unreachable.
-- **No tab bar, no split panes.** One view at a time.
-- A search field lives in the shell header, always visible.
-- The sidebar still appears for Conversations (sprint 02 owns its contents).
+- **No tab bar or sidebar, and no split panes.** Simple unmounts sidebar and tab chrome while
+  preserving the Nerd pane topology unchanged for its return.
+- A search field lives in the shell header, always visible. It owns global search and routes
+  non-empty queries to SearchView; Conversations has no local input. Per-session find remains
+  separate.
 
 ## 4. Nerd view
 
@@ -100,10 +102,11 @@ Rules:
 +----+--------------------------------------------------------------+
 ```
 
-Unchanged from today: the fifteen-item rail, tab bar, split panes, drag-to-split, the command
-palette, every keyboard shortcut. What changes: the rail's two `isDesktopMode()` fragments are
-unpicked so item order is data-driven rather than positional, and the digit tooltips are made
-honest (see task 7).
+The shell-global search field remains available in Nerd and routes to the same SearchView as Simple.
+Otherwise unchanged from today: the fifteen-item rail, tab bar, split panes, drag-to-split, command
+palette, and every keyboard shortcut. What changes: the rail's two `isDesktopMode()` fragments are
+unpicked so item order is data-driven rather than positional, and the digit tooltips are made honest
+(see task 7).
 
 ## 5. Words
 
@@ -138,11 +141,17 @@ Frontend:
 - `frontend/src/renderer/components/layout/ActivityBar.tsx` — rail split, labels, More popover.
 - `frontend/src/renderer/components/layout/MoreMenu.tsx` **(new)** — the More popover.
 - `frontend/src/renderer/components/layout/ShellSearchField.tsx` **(new)** — the shell search field.
-- `frontend/src/renderer/components/layout/TabbedLayout.tsx` — mount the search field; gate the
-  tab bar and pane chrome on mode.
-- `frontend/src/renderer/components/layout/PaneView.tsx` — hide `TabBar` in Simple.
-- `frontend/src/renderer/components/layout/PaneContainer.tsx` — disable split zones in Simple.
-- `frontend/src/renderer/components/layout/PaneContent.tsx` — the reconciliation fix (task 5).
+- `frontend/src/renderer/components/layout/TabbedLayout.tsx` — mount shell search and choose the
+  mode shell without destroying tabs or panes.
+- `frontend/src/renderer/components/layout/PaneView.tsx` — unmount `TabBar` in Simple.
+- `frontend/src/renderer/components/layout/PaneContainer.tsx` — disable drag/drop split zones in
+  Simple.
+- `frontend/src/renderer/components/layout/PaneContent.tsx` — make `activeActivity` authoritative
+  in Simple.
+- `frontend/src/renderer/hooks/useKeyboardShortcuts/handleShortcutKeyDown.ts` and
+  `frontend/src/renderer/store/slices/paneSlice.ts` — block keyboard and direct-store pane
+  creation in Simple.
+- Existing UI/search store domain — shell-global query state, distinct from per-session find.
 - `frontend/src/renderer/components/settings/sections/GeneralSection` — the mode control.
 - `frontend/src/renderer/components/settings/hooks/useSettingsHandlers/useGeneralHandlers.ts` —
   `handleUIModeChange`.
@@ -161,43 +170,47 @@ Frontend:
 4. Settings → General: the mode control using a new
    `handleUIModeChange(value: 'simple' | 'nerd')`. **Not** `handleGeneralToggle` — see
    [README.md](README.md) §12.
-5. **Tab/activity reconciliation.** Pick one and implement it in `PaneContent.tsx`: either Simple
-   mode's `setActiveActivity` clears the focused pane's `activeTabId`, or Simple never opens more
-   than one tab. Whichever is chosen, `activeActivity` becomes the single source of truth in
-   Simple mode and `isGlobalActivity` stops being load-bearing there. This task exists because the
-   dead end in §2 becomes unrecoverable once the TabBar is hidden — do not skip it.
-6. `ActivityBar`: data-driven item list, visible labels, Simple/Nerd split, `MoreMenu` popover.
-   Unpick the two `isDesktopMode()` fragments.
-7. Make the digit tooltips honest: either bind `Cmd+[1-9]` to activities, or remove the
-   `shortcut` prop from rail items that have no binding. Do not silently renumber them while
-   reordering the rail.
-8. `ShellSearchField`, mounted in `TabbedLayout`, routing to `activeActivity === 'search'`.
-9. Gate the tab bar (`PaneView`) and split zones (`PaneContainer`) on Simple mode.
-10. Onboarding: one screen offering Simple or Nerd, writing through `handleUIModeChange`.
+5. **Tab/activity reconciliation.** In Simple, `activeActivity` is authoritative in
+   `PaneContent.tsx`; selecting a rail destination cannot leave session content displayed beneath
+   it. Preserve existing Nerd tabs and pane topology without mutation so returning to Nerd restores
+   them.
+6. `ActivityBar`: data-driven item list, visible labels, seven-control Simple rail, `MoreMenu`
+   popover, and pinned Help/Settings. Unpick the two `isDesktopMode()` fragments.
+7. Remove misleading digit shortcut labels. `Cmd+[1-9]` remains pane-tab switching in Nerd.
+8. `ShellSearchField`, mounted in `TabbedLayout`, owns one global query in both modes. A non-empty
+   query routes to global SearchView; it does not filter a loaded Conversations page. Preserve
+   per-session find separately, and leave Plugins and Annotations filters page-local.
+9. Unmount tab chrome and disable drag/drop split zones in Simple. Also guard `Cmd+\`, `splitPane`,
+   and `moveTabToNewPane` using effective bootstrap mode, so keyboard, drag/drop, visual, and
+   direct-store callers cannot create a pane in Simple.
+10. Onboarding: require an explicit Simple or Nerd selection before Continue. Skip and reset write
+    Nerd until UX-15; fresh and missing mode values also remain Nerd.
 
 ## 8. Verification / acceptance
 
 Commands:
 
-- `bun run test:rust` — the two new Rust tests pass (validation rejects `uiMode: "expert"`;
-  migration sets `nerd` for a raw config with `onboardingCompleted: true` and no `uiMode`).
 - `bun run typecheck`
-- `bun run test`
+- `bun run test` — Bun-native pure and store tests cover shell query routing, bootstrap-mode
+  reconciliation, activity routing, pane-creation guards, and Nerd → Simple → Nerd restoration.
 - `bun run qa`
 
-Manual, Simple mode:
+Manual Tauri verification, Simple mode:
 
-- Rail shows six labelled items plus Help and Settings. No tab bar. Dragging does not split.
+- Rail shows seven labelled controls: Conversations, Cost, Tasks, Alerts, More, Help, and Settings.
+  Help and Settings remain pinned. No tab bar or sidebar. Dragging, keyboard shortcuts, and direct
+  store actions do not create a pane.
 - "More" lists all nine behind-More pages and each opens.
 - Open a conversation, then click Conversations: **the conversation list appears.** This is the
   regression test for task 5.
-- The search field is visible without knowing any shortcut, and finds a conversation.
+- The shell search field is visible without knowing a shortcut and routes a non-empty query to
+  global SearchView. Per-session find remains separate.
 
-Manual, Nerd mode:
+Manual Tauri verification, Nerd mode:
 
 - Rail shows fifteen items. Tab bar present. Drag-to-split works. Every shortcut behaves as before.
-- Toggling Simple → Nerd → Simple in Settings persists across a restart.
-- Cold start does not flash six items then expand to fifteen.
+- Toggling Nerd → Simple → Nerd restores prior tabs and panes, and persists across a restart.
+- Cold start does not render Simple rail before the cached or Rust-confirmed Nerd mode.
 
 ## 9. Accessibility
 
@@ -215,14 +228,13 @@ None. Every other sprint depends on this one.
 
 ## 11. Risks / open questions
 
-- **The six-item premise is unverified.** That a shorter rail helps the target audience is the
-  assumption this whole roadmap rests on, and it cannot be settled by reading code. Ship behind
-  the toggle and watch one non-technical person use it before committing to sprints 02–15.
+- **The shorter-rail premise is unverified.** That a reduced rail helps the target audience is the
+  assumption this roadmap rests on, and it cannot be settled by reading code. Ship behind the
+  toggle and watch one non-technical person use it before committing to sprints 04–15.
 - Persisting `uiMode` re-runs `sync_autostart` (`src-tauri/src/commands/config.rs:51-55`) because
   that fires on any `general` write. Idempotent and harmless; noted so nobody rediscovers it in a
   debugger.
-- Task 5's two options are not equivalent. Clearing `activeTabId` is smaller; single-tab Simple
-  mode is more predictable but touches `paneSlice`. Decide before starting, and record which in
-  this file.
+- Simple keeps Nerd topology non-destructively, but every pane-creation entry point must consult
+  effective bootstrap mode. A visual-only guard would leave hidden panes or state-created splits.
 - Default ships as `nerd` deliberately. Do not "fix" it to `simple` — that flip is sprint 15's
   final task, per [README.md](README.md) §5.

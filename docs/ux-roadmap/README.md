@@ -1,7 +1,8 @@
 # UI/UX Roadmap — Simple and Nerd Modes
 
 Fifteen sprint-weeks that rebuild this app's interface around two audiences instead of one.
-Sprint 01 rebuilds navigation; each of the fourteen after it takes exactly one page.
+UX-01–03 are the first grouped delivery, shipped together as one dependency-complete group; each
+later sprint still takes exactly one page.
 
 ## 1. What this roadmap is
 
@@ -43,22 +44,22 @@ rejected with `general.{k} is not a valid setting`
 - a field on `GeneralConfig` (`src-tauri/src/config/state/types.rs:15-24`)
 - the frontend `AppConfig` type (`frontend/src/shared/types/notifications/appConfig.ts`)
 
-**Defaults and migration.** Fresh configs get `simple`; installs that already exist get `nerd`, so
-nobody who is using the app today wakes up to a rail missing nine items.
+**Defaults and migration.** Until UX-15's release gate, fresh, missing, and reset mode values
+resolve to `nerd`. Existing installs without `uiMode` also resolve to `nerd`, so nobody using the
+app today wakes up to a restricted rail. An explicit Simple or Nerd selection persists unchanged.
 
 The migration **must happen in Rust**, in `merge_config_with_defaults`
 (`src-tauri/src/config/state/manager.rs:142`). It cannot be done in the frontend: config load
 overlays the on-disk `general` object onto a fully populated `GeneralConfig::default()`
 (`manager.rs:98-106`), so a field with a `Default` impl always materialises and the renderer can
-never observe it as absent. Inside `merge_config_with_defaults` both the raw `general` map and the
-raw `onboardingCompleted` are in hand — if raw `general` has no `uiMode` key and raw
-`onboardingCompleted` is `true`, set `nerd`. `uiMode` is then never optional and no third "unset"
-state crosses IPC into fourteen pages of branch code.
+never observe it as absent. `uiMode` is never optional and no third "unset" state crosses IPC into
+fourteen pages of branch code.
 
 Note that `onboardingCompleted` is a field on **`AppConfig`**, not on `GeneralConfig`, and it is
 written through section `onboarding`, key `completed` — `validate_onboarding` accepts no other key.
 
-**Onboarding** gains one screen offering the choice, so a new user is not silently assigned a mode.
+**Onboarding** gains one screen offering an explicit Simple or Nerd choice. Continue remains
+disabled until selection; Skip and reset deliberately choose `nerd` until UX-15.
 
 ## 4. Reading the mode
 
@@ -71,8 +72,7 @@ useUIMode(): 'simple' | 'nerd'
 It is seeded from a `localStorage` cache the way `useTheme` seeds the theme
 (`frontend/src/renderer/hooks/useTheme.ts:29-37`). This matters: `appConfig` is `null` until
 `fetchConfig()` resolves (`frontend/src/renderer/store/slices/configSlice.ts:78-92`), so without a
-cache a Nerd user watches the rail render six items and then expand to fifteen on every cold
-start.
+cache a Nerd user watches the Simple rail render and then expand to fifteen on every cold start.
 
 **Page sprints read the mode only through `useUIMode()`.** No page reads
 `appConfig.general.uiMode` directly, and no page invents its own pre-load fallback.
@@ -91,8 +91,8 @@ including its own would be self-referential — sprint 15 cannot read `done` whi
 runs.)
 
 Without this gate, weeks 1 through 14 hand a fresh install the restricted navigation with none of
-the simplified pages behind it: a six-item rail leading to raw UUIDs and token counts, with the
-tab bar and split panes removed. That is worse than shipping nothing.
+the simplified pages behind it: a seven-control rail leading to raw UUIDs and token counts, with
+the tab bar and split panes removed. That is worse than shipping nothing.
 
 ## 6. Rail contract
 
@@ -100,7 +100,9 @@ Three visibility values. There is no `nerd-only` page class — that would contr
 never forbids". Split panes and the tab bar are nerd-only *features*, not pages; sprint 01 covers
 them.
 
-**simple-rail** — on the rail in both modes:
+**simple-rail** — the Simple rail has seven controls. Conversations, Cost, Tasks, Alerts, and More
+sit in its main section; Help and Settings remain pinned at its bottom. Nerd keeps these
+corresponding destinations on its rail.
 
 | Rail label (Simple) | Rail label (Nerd) | `ActivityView` |
 |---|---|---|
@@ -108,10 +110,11 @@ them.
 | Cost | Analytics | `analytics` |
 | Tasks | Todos | `todos` |
 | Alerts | Notifications | `notifications` |
+| More | — | — (menu) |
 | Help | Help | — (panel) |
 | Settings | Settings | `settings` |
 
-**behind-More** — hidden behind a single "More" item in Simple, on the rail in Nerd: `agents`,
+**behind-More** — hidden behind More in Simple, on the rail in Nerd: `agents`,
 `skills`, `plugins`, `annotations`, `history`, `transcripts`, `marketplace`, `taskGraph`,
 `maintenance`.
 
@@ -122,9 +125,9 @@ is no runtime divergence, but sprint 01 has to unpick two conditional fragments 
 
 **not-on-the-rail** — the rail never lists these:
 
-- `search`. Its only entry point today is `Cmd+Shift+F`; there is no search field anywhere in the
-  shell and `CustomTitleBar.tsx` contains no input. **Sprint 01 creates one.** This is new work,
-  not existing surface to restyle.
+- `search`. The shell owns its one global query field in both modes; `Cmd+Shift+F` focuses the same
+  field. A non-empty shell query routes to global SearchView. This is distinct from per-session
+  find, which retains its own query, regex state, highlighting, and next/previous navigation.
 - The app shell itself (`ux-01`).
 - The session view (`ux-03`) — reached by opening a conversation.
 
@@ -239,9 +242,9 @@ Every `ux-NN-*.md` has the same eleven sections:
 
 | # | Sprint | Page | Root component | Rail visibility | Depends on | Status |
 |---|---|---|---|---|---|---|
-| 01 | [Navigation shell](ux-01-navigation.md) | app shell | `layout/TabbedLayout.tsx` | not-on-the-rail | — | planned |
-| 02 | [Conversations](ux-02-conversations.md) | Projects | `dashboard/DashboardView/` | simple-rail | 01 | planned |
-| 03 | [Session view](ux-03-session-view.md) | session transcript | `layout/SessionTabContent.tsx` | not-on-the-rail | 01, 02 | planned |
+| 01 | [Navigation shell](ux-01-navigation.md) | app shell | `layout/TabbedLayout.tsx` | not-on-the-rail | — | done (grouped) |
+| 02 | [Conversations](ux-02-conversations.md) | Projects | `dashboard/DashboardView/` | simple-rail | 01 | done (grouped) |
+| 03 | [Session view](ux-03-session-view.md) | session transcript | `layout/SessionTabContent.tsx` | not-on-the-rail | 01, 02 | done (grouped) |
 | 04 | [Cost](ux-04-cost.md) | Analytics | `dashboard/AnalyticsDashboard/` | simple-rail | 01 | planned |
 | 05 | [Tasks](ux-05-tasks.md) | Todos | `dashboard/TodosDashboard.tsx` | simple-rail | 01 | planned |
 | 06 | [Alerts](ux-06-alerts.md) | Notifications | `notifications/NotificationsView.tsx` | simple-rail | 01 | planned |
