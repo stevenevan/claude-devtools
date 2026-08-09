@@ -1,5 +1,6 @@
 import { JSX, lazy, Suspense } from 'react';
 import { TabUIProvider } from '@renderer/contexts/TabUIContext';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { Loader2 } from 'lucide-react';
@@ -76,8 +77,10 @@ interface PaneContentProps {
 }
 
 export const PaneContent = ({ pane }: PaneContentProps): JSX.Element => {
+  const mode = useUIMode();
   const activeTabId = pane.activeTabId;
-  const activeActivity = useStore((s) => s.activeActivity);
+  const activeActivity = useStore((state) => state.activeActivity);
+  const isActivityViewActive = useStore((state) => state.isActivityViewActive);
 
   const showDefaultContent = !activeTabId && pane.tabs.length === 0;
 
@@ -98,7 +101,8 @@ export const PaneContent = ({ pane }: PaneContentProps): JSX.Element => {
     activeActivity === 'transcripts' ||
     activeActivity === 'marketplace' ||
     activeActivity === 'taskGraph';
-  const showGlobalContent = isGlobalActivity || showDefaultContent;
+  const showGlobalContent =
+    (mode === 'simple' && isActivityViewActive) || isGlobalActivity || showDefaultContent;
 
   return (
     <div className="relative flex flex-1 overflow-hidden">
@@ -135,7 +139,7 @@ export const PaneContent = ({ pane }: PaneContentProps): JSX.Element => {
       )}
 
       {pane.tabs.map((tab) => {
-        const isActive = tab.id === activeTabId && !isGlobalActivity;
+        const isActive = tab.id === activeTabId && !showGlobalContent;
         return (
           <div key={tab.id} className={cn('absolute inset-0', isActive ? 'flex' : 'hidden')}>
             <ErrorBoundary>

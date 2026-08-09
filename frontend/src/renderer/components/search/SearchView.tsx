@@ -65,14 +65,14 @@ function formatTimestamp(ts: number): string {
 }
 
 export const SearchView = (): JSX.Element => {
-  const { openTab, setActiveActivity } = useStore(
-    useShallow((s) => ({
-      openTab: s.openTab,
-      setActiveActivity: s.setActiveActivity,
+  const { openTab, setActiveActivity, query, setQuery } = useStore(
+    useShallow((state) => ({
+      openTab: state.openTab,
+      setActiveActivity: state.setActiveActivity,
+      query: state.shellSearchQuery,
+      setQuery: state.setShellSearchQuery,
     }))
   );
-
-  const [query, setQuery] = useState('');
   const [datePreset, setDatePreset] = useState<DatePreset>('any');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [results, setResults] = useState<FilteredSearchResult[]>([]);
@@ -80,7 +80,6 @@ export const SearchView = (): JSX.Element => {
   const [hasSearched, setHasSearched] = useState(false);
   const [nlMode, setNlMode] = useState(false);
   const [parsed, setParsed] = useState<ParsedNLQuery | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // ponytail: useCallback required — in useEffect dep array
@@ -119,11 +118,8 @@ export const SearchView = (): JSX.Element => {
     };
   }, [query, datePreset, statusFilter, runSearch]);
 
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
-
   const handleResultClick = (result: FilteredSearchResult): void => {
+    setActiveActivity('projects');
     openTab({
       type: 'session',
       projectId: result.projectId,
@@ -131,16 +127,11 @@ export const SearchView = (): JSX.Element => {
       label: result.customTitle ?? result.preview ?? 'Session',
       fromSearch: true,
     });
-    setActiveActivity('projects');
   };
 
-  const clearAll = (): void => {
-    setQuery('');
+  const clearFilters = (): void => {
     setDatePreset('any');
     setStatusFilter('all');
-    setResults([]);
-    setHasSearched(false);
-    inputRef.current?.focus();
   };
 
   const hasFilters = datePreset !== 'any' || statusFilter !== 'all';
@@ -153,40 +144,27 @@ export const SearchView = (): JSX.Element => {
       />
 
       <div className="relative mx-auto max-w-3xl px-8 py-12">
-        <div className="bg-card border-border group relative mb-6 flex items-center gap-3 rounded-xs border px-4 py-3 transition-all focus-within:border-zinc-500 focus-within:shadow-[0_0_20px_rgba(255,255,255,0.04)] focus-within:ring-1 focus-within:ring-zinc-600/30">
-          <Search className="text-muted-foreground size-4 shrink-0" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search sessions across all projects..."
-            className="text-foreground placeholder:text-muted-foreground flex-1 bg-transparent text-sm outline-hidden"
-          />
-          <button
+        <div className="mb-4 flex items-center justify-end gap-2">
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
+            aria-pressed={nlMode}
             onClick={() => {
               const next = !nlMode;
               setNlMode(next);
               if (!next) setParsed(null);
             }}
-            className={cn(
-              'text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] transition-colors',
-              nlMode ? 'border-indigo-500/50 bg-indigo-500/10 text-indigo-300' : 'border-border'
-            )}
-            title="Toggle natural-language query"
+            className={cn(nlMode && 'border-indigo-500/50 bg-indigo-500/10 text-indigo-300')}
           >
             <Sparkles className="size-3" />
-            NL
-          </button>
-          {(query || hasFilters) && (
-            <button
-              onClick={clearAll}
-              className="text-muted-foreground hover:text-foreground"
-              title="Clear all"
-            >
+            Natural language
+          </Button>
+          {hasFilters && (
+            <Button type="button" variant="ghost" size="sm" onClick={clearFilters}>
               <X className="size-4" />
-            </button>
+              Clear filters
+            </Button>
           )}
         </div>
 
@@ -336,7 +314,7 @@ export const SearchView = (): JSX.Element => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={clearAll}
+                onClick={clearFilters}
                 className="text-muted-foreground mt-3"
               >
                 Clear filters

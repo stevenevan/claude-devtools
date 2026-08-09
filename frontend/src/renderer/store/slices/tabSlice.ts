@@ -102,7 +102,7 @@ export const createTabSlice: StateCreator<AppState, [], [], TabSlice> = (set, ge
           activeTabId: replacementTab.id,
         };
         const newLayout = updatePane(paneLayout, updatedPane);
-        set(syncFromLayout(newLayout));
+        set({ ...syncFromLayout(newLayout), isActivityViewActive: false });
         return;
       }
     }
@@ -120,7 +120,7 @@ export const createTabSlice: StateCreator<AppState, [], [], TabSlice> = (set, ge
       activeTabId: newTab.id,
     };
     const newLayout = updatePane(paneLayout, updatedPane);
-    set(syncFromLayout(newLayout));
+    set({ ...syncFromLayout(newLayout), isActivityViewActive: false });
   },
 
   closeTab: (tabId: string) => {
@@ -183,7 +183,7 @@ export const createTabSlice: StateCreator<AppState, [], [], TabSlice> = (set, ge
     const updatedPane = { ...pane, activeTabId: tabId };
     let newLayout = updatePane(paneLayout, updatedPane);
     newLayout = { ...newLayout, focusedPaneId: pane.id };
-    set(syncFromLayout(newLayout));
+    set({ ...syncFromLayout(newLayout), isActivityViewActive: false });
 
     syncSidebarForSessionTab(get, set, tab, tabId);
   },

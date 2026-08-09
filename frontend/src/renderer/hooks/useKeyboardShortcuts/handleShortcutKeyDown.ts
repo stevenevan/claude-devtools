@@ -2,6 +2,8 @@ import { createLogger } from '@shared/utils/logger';
 
 import { useStore } from '../../store';
 import { parseFilterPayload } from '../../utils/filterPresetSerialization';
+import { getEffectiveUIMode } from '../../utils/uiModeBootstrap';
+import type { UIMode } from '@shared/types';
 import type { ShortcutContext } from './shortcutContext';
 
 const logger = createLogger('Hook:KeyboardShortcuts');
@@ -9,8 +11,14 @@ const logger = createLogger('Hook:KeyboardShortcuts');
 const G_SEQUENCE_WINDOW_MS = 750;
 let pendingGAt: number | null = null;
 
+export function canUsePaneShortcuts(configuredMode?: UIMode): boolean {
+  return getEffectiveUIMode(configuredMode) === 'nerd';
+}
+
 export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext): void {
   const isMod = event.metaKey || event.ctrlKey;
+  const state = useStore.getState();
+  const isSimpleMode = !canUsePaneShortcuts(state.appConfig?.general.uiMode);
 
   // Ctrl+Tab / Ctrl+Shift+Tab: Switch tabs within focused pane (universal shortcut)
   if (event.ctrlKey && event.key === 'Tab') {
@@ -128,7 +136,7 @@ export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext
   if (!isMod) return;
 
   // Cmd+Option+1-4: Focus pane by index
-  if (event.altKey && !event.shiftKey) {
+  if (!isSimpleMode && event.altKey && !event.shiftKey) {
     const numKey = parseInt(event.key);
     if (numKey >= 1 && numKey <= 4) {
       event.preventDefault();
@@ -152,7 +160,7 @@ export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext
   // Cmd+\: Split right with current tab
   if (event.key === '\\' && !event.altKey && !event.shiftKey) {
     event.preventDefault();
-    if (ctx.activeTabId) {
+    if (!isSimpleMode && ctx.activeTabId) {
       ctx.splitPane(ctx.paneLayout.focusedPaneId, ctx.activeTabId, 'right');
     }
     return;
@@ -161,7 +169,8 @@ export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext
   // Cmd+T: New tab (Dashboard)
   if (event.key === 't') {
     event.preventDefault();
-    ctx.openDashboard();
+    if (isSimpleMode) ctx.setActiveActivity('projects');
+    else ctx.openDashboard();
     return;
   }
 
@@ -260,10 +269,10 @@ export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext
     return;
   }
 
-  // Cmd+Shift+F: Open advanced search view
+  // Cmd+Shift+F: Focus shell-global search
   if (event.key === 'f' && event.shiftKey) {
     event.preventDefault();
-    ctx.setActiveActivity('search');
+    document.getElementById('shell-search-input')?.focus();
     return;
   }
 
@@ -301,6 +310,6 @@ export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext
   // Cmd+B: Toggle sidebar
   if (event.key === 'b') {
     event.preventDefault();
-    ctx.toggleSidebar();
+    if (!isSimpleMode) ctx.toggleSidebar();
   }
 }

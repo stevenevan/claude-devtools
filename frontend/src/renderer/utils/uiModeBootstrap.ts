@@ -23,6 +23,10 @@ export function readCachedUIMode(storage = getBrowserStorage()): UIMode {
   }
 }
 
+export function getEffectiveUIMode(configuredMode?: UIMode): UIMode {
+  return configuredMode ?? readCachedUIMode();
+}
+
 export function cacheConfirmedUIMode<T extends { general: { uiMode: UIMode } }>(
   config: T,
   storage = getBrowserStorage()

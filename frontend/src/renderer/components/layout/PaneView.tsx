@@ -1,5 +1,6 @@
 import { JSX } from 'react';
 import { useDndContext } from '@dnd-kit/core';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { MAX_PANES } from '@renderer/types/panes';
@@ -14,6 +15,7 @@ interface PaneViewProps {
 }
 
 export const PaneView = ({ paneId }: PaneViewProps): JSX.Element => {
+  const mode = useUIMode();
   const { pane, isFocused, paneCount, focusPane } = useStore(
     useShallow((s) => ({
       pane: s.paneLayout.panes.find((p) => p.id === paneId),
@@ -26,7 +28,7 @@ export const PaneView = ({ paneId }: PaneViewProps): JSX.Element => {
   // Check if a drag is active to show/hide edge drop zones
   const { active } = useDndContext();
   const isDragging = active !== null;
-  const canSplit = paneCount < MAX_PANES;
+  const canSplit = mode === 'nerd' && paneCount < MAX_PANES;
   const showSplitZones = isDragging && canSplit;
 
   if (!pane) return <div />;
@@ -40,21 +42,21 @@ export const PaneView = ({ paneId }: PaneViewProps): JSX.Element => {
   return (
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- pane focus management requires mousedown
     <div
-      className="relative flex min-w-0 flex-col"
-      style={{
-        width: `${pane.widthFraction * 100}%`,
-      }}
+      className={cn('relative flex min-w-0 flex-col', mode === 'simple' && 'w-full')}
+      style={mode === 'nerd' ? { width: `${pane.widthFraction * 100}%` } : undefined}
       onMouseDown={handleMouseDown}
     >
       {/* Focus indicator - accent border on top of focused pane's TabBar */}
-      <div
-        className={cn(
-          'border-t-2',
-          isFocused && paneCount > 1 ? 'border-indigo-500' : 'border-transparent'
-        )}
-      >
-        <TabBar paneId={paneId} />
-      </div>
+      {mode === 'nerd' && (
+        <div
+          className={cn(
+            'border-t-2',
+            isFocused && paneCount > 1 ? 'border-indigo-500' : 'border-transparent'
+          )}
+        >
+          <TabBar paneId={paneId} />
+        </div>
+      )}
 
       <PaneContent pane={pane} />
 
@@ -63,7 +65,7 @@ export const PaneView = ({ paneId }: PaneViewProps): JSX.Element => {
       <PaneSplitDropZone paneId={paneId} side="right" isActive={showSplitZones} />
 
       {/* Max pane indicator - shown during drag when at limit */}
-      {isDragging && !canSplit && (
+      {mode === 'nerd' && isDragging && !canSplit && (
         <div className="pointer-events-none absolute inset-x-0 bottom-3 z-40 flex justify-center">
           <div className="border-border bg-popover text-muted-foreground rounded-md border px-3 py-1.5 text-xs font-medium">
             Maximum {MAX_PANES} panes reached

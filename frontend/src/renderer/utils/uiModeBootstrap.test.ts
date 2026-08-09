@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 
 import {
   cacheConfirmedUIMode,
+  getEffectiveUIMode,
   readCachedUIMode,
   UI_MODE_CACHE_KEY,
 } from './uiModeBootstrap';
@@ -35,6 +36,11 @@ describe('UI mode bootstrap cache', () => {
 
   test('uses a valid cached mode before config loads', () => {
     expect(readCachedUIMode(createStorage('simple').storage)).toBe('simple');
+  });
+
+  test('prefers configured mode for authoritative guards', () => {
+    expect(getEffectiveUIMode('simple')).toBe('simple');
+    expect(getEffectiveUIMode('nerd')).toBe('nerd');
   });
 
   test('reconciles stale cache with Rust-confirmed config', () => {

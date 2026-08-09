@@ -22,6 +22,9 @@ export interface UISlice {
   commandPaletteOpen: boolean;
   sidebarCollapsed: boolean;
   activeActivity: ActivityView;
+  previousActivity: ActivityView;
+  isActivityViewActive: boolean;
+  shellSearchQuery: string;
   shortcutCheatSheetOpen: boolean;
   helpPanelOpen: boolean;
   contextHeatmapVisible: boolean;
@@ -35,6 +38,8 @@ export interface UISlice {
   closeCommandPalette: () => void;
   toggleSidebar: () => void;
   setActiveActivity: (activity: ActivityView) => void;
+  setShellSearchQuery: (query: string) => void;
+  restorePreviousActivity: () => void;
   toggleShortcutCheatSheet: () => void;
   setHelpPanelOpen: (open: boolean) => void;
   toggleContextHeatmap: () => void;
@@ -65,10 +70,13 @@ function persistContextHeatmapVisible(visible: boolean): void {
   }
 }
 
-export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => ({
+export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set, get) => ({
   commandPaletteOpen: false,
   sidebarCollapsed: false,
   activeActivity: 'projects',
+  previousActivity: 'projects',
+  isActivityViewActive: false,
+  shellSearchQuery: '',
   shortcutCheatSheetOpen: false,
   helpPanelOpen: false,
   contextHeatmapVisible: loadContextHeatmapVisible(),
@@ -100,7 +108,42 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set) => (
 
   // Activity bar actions
   setActiveActivity: (activity) => {
-    set({ activeActivity: activity });
+    const state = get();
+    set({
+      activeActivity: activity,
+      previousActivity:
+        activity === 'search'
+          ? state.activeActivity === 'search'
+            ? state.previousActivity
+            : state.activeActivity
+          : activity,
+      isActivityViewActive: true,
+      shellSearchQuery: activity === 'search' ? state.shellSearchQuery : '',
+    });
+  },
+
+  setShellSearchQuery: (query) => {
+    const state = get();
+    if (!query.trim()) {
+      set({
+        shellSearchQuery: '',
+        activeActivity: state.previousActivity,
+        isActivityViewActive: true,
+      });
+      return;
+    }
+
+    set({
+      shellSearchQuery: query,
+      activeActivity: 'search',
+      previousActivity: state.activeActivity === 'search' ? state.previousActivity : state.activeActivity,
+      isActivityViewActive: true,
+    });
+  },
+
+  restorePreviousActivity: () => {
+    const { previousActivity } = get();
+    set({ activeActivity: previousActivity, isActivityViewActive: true, shellSearchQuery: '' });
   },
 
   toggleShortcutCheatSheet: () => {

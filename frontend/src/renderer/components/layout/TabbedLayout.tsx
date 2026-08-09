@@ -2,6 +2,7 @@ import { CSSProperties, JSX } from 'react';
 import { isDesktopMode } from '@renderer/api';
 import { getTrafficLightPaddingForZoom } from '@renderer/constants/layout';
 import { useKeyboardShortcuts } from '@renderer/hooks/useKeyboardShortcuts';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useZoomFactor } from '@renderer/hooks/useZoomFactor';
 
 import { UpdateBanner } from '../common/UpdateBanner';
@@ -13,11 +14,13 @@ import { CommandPalette } from '../search/CommandPalette';
 import { ActivityBar } from './ActivityBar';
 import { CustomTitleBar } from './CustomTitleBar';
 import { PaneContainer } from './PaneContainer';
+import { ShellSearchField } from './ShellSearchField';
 import { Sidebar } from './Sidebar';
 import { SshStatusIndicator } from './SshStatusIndicator';
 
 export const TabbedLayout = (): JSX.Element => {
   useKeyboardShortcuts();
+  const mode = useUIMode();
   const zoomFactor = useZoomFactor();
   const trafficLightPadding = isDesktopMode() ? getTrafficLightPaddingForZoom(zoomFactor) : 0;
 
@@ -36,10 +39,11 @@ export const TabbedLayout = (): JSX.Element => {
       </a>
       <CustomTitleBar />
       <UpdateBanner />
+      <ShellSearchField />
       <div className="flex flex-1 overflow-hidden">
         <CommandPalette />
         <ActivityBar />
-        <Sidebar />
+        {mode === 'nerd' && <Sidebar />}
         <PaneContainer />
       </div>
       <UpdateDialog />
