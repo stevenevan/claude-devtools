@@ -52,3 +52,7 @@ stats.html
 # Tauri frontend output
 frontend/dist/
 frontend/node_modules/
+
+graphify-out
+
+graphify-out
