@@ -1,4 +1,5 @@
 /// Session listing with pagination — list sessions for a project with metadata.
+use std::collections::HashSet;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
@@ -165,6 +166,73 @@ pub fn list_sessions_paginated(
         has_more,
         total_count,
     })
+}
+
+pub(crate) fn read_sessions_by_ids(
+    projects_dir: &Path,
+    claude_dir: &Path,
+    project_id: &str,
+    session_ids: &[String],
+) -> Result<Vec<Session>, String> {
+    let base_dir = extract_base_dir(project_id);
+    let project_dir = projects_dir.join(base_dir);
+    let decoded_path = decode_path(base_dir);
+    let mut seen = HashSet::new();
+    let mut sessions = Vec::new();
+
+    for session_id in session_ids {
+        if !seen.insert(session_id.as_str()) {
+            continue;
+        }
+
+        let file_path = project_dir.join(format!("{session_id}.jsonl"));
+        let metadata = match file_path.metadata() {
+            Ok(metadata) => metadata,
+            Err(_) => continue,
+        };
+        let created_at = metadata
+            .modified()
+            .ok()
+            .and_then(|time| time.duration_since(std::time::UNIX_EPOCH).ok())
+            .map(|duration| duration.as_secs_f64() * 1000.0)
+            .unwrap_or(0.0);
+        let preview = extract_session_preview(&file_path);
+
+        sessions.push(Session {
+            id: session_id.clone(),
+            project_id: project_id.to_string(),
+            project_path: decoded_path.clone(),
+            todo_data: load_todo_data(claude_dir, session_id),
+            created_at,
+            first_message: preview
+                .first_message
+                .as_ref()
+                .map(|message| message.text.clone()),
+            message_timestamp: preview
+                .first_message
+                .as_ref()
+                .map(|message| message.timestamp.clone()),
+            has_subagents: has_subagents(projects_dir, project_id, session_id),
+            message_count: 0,
+            cost_usd: None,
+            is_ongoing: detect_ongoing(&file_path),
+            git_branch: None,
+            metadata_level: Some("light".to_string()),
+            context_consumption: None,
+            compaction_count: None,
+            phase_breakdown: None,
+            custom_title: preview.custom_title,
+            agent_name: preview.agent_name,
+        });
+    }
+
+    sessions.sort_by(|left, right| {
+        right
+            .created_at
+            .partial_cmp(&left.created_at)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    Ok(sessions)
 }
 
 #[derive(Debug)]
@@ -637,5 +705,55 @@ mod tests {
             decode_global_cursor(&cursor),
             Some((1_234.5, "project".to_string(), "session".to_string()))
         );
+    }
+
+    #[test]
+    fn reads_requested_session_beyond_generic_listing_limit() {
+        use std::time::{Duration, SystemTime};
+
+        let _guard = GLOBAL_LIST_TEST_LOCK.lock().expect("lock tests");
+        let temp = TempDir::new("direct-by-id");
+        let root = temp.path();
+        let project_id = "-tmp-alpha";
+        let project_dir = root.join(project_id);
+        std::fs::create_dir_all(&project_dir).expect("create project");
+        let fixture = r#"{"type":"user","timestamp":"2026-01-01T00:00:00Z","message":{"role":"user","content":"hello"}}"#;
+        let mut session_ids = Vec::new();
+
+        for index in 0_u64..11 {
+            let session_id = format!("00000000-0000-0000-0000-{index:012x}");
+            let path = project_dir.join(format!("{session_id}.jsonl"));
+            std::fs::write(&path, fixture).expect("write session");
+            std::fs::File::open(&path)
+                .expect("open session")
+                .set_modified(SystemTime::UNIX_EPOCH + Duration::from_secs(index + 1))
+                .expect("set session mtime");
+            session_ids.push(session_id);
+        }
+
+        let page = list_sessions_paginated(
+            root,
+            root,
+            project_id,
+            None,
+            10,
+            &SessionsPaginationOptions {
+                prefilter_all: false,
+                ..SessionsPaginationOptions::default()
+            },
+            &SubprojectRegistry::new(),
+        )
+        .expect("list sessions");
+        assert_eq!(page.sessions.len(), 10);
+        assert!(!page
+            .sessions
+            .iter()
+            .any(|session| session.id == session_ids[0]));
+
+        let requested = read_sessions_by_ids(root, root, project_id, &[session_ids[0].clone()])
+            .expect("read requested session");
+        assert_eq!(requested.len(), 1);
+        assert_eq!(requested[0].id, session_ids[0]);
+        assert_eq!(requested[0].first_message.as_deref(), Some("hello"));
     }
 }

@@ -1,6 +1,7 @@
 import { JSX, RefObject, useEffect, useMemo, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Button } from '@renderer/components/ui/button';
+import { conversationSubjectKey, useConversationSubjects } from '@renderer/hooks/useConversationSubjects';
 import { useStore } from '@renderer/store';
 import { Loader2 } from 'lucide-react';
 
@@ -12,7 +13,6 @@ import {
 import {
   formatApproximateConversationCost,
   formatConversationMessageCount,
-  formatConversationSubject,
   formatConversationTime,
 } from './dashboardFormatters';
 
@@ -25,6 +25,7 @@ const VIRTUAL_OVERSCAN = 5;
 interface ConversationListItemViewProps {
   item: ConversationListItem;
   isLoadingMore: boolean;
+  conversationSubjects: ReadonlyMap<string, string>;
   onOpenConversation: (projectId: string, sessionId: string) => void;
   endSentinelRef: RefObject<HTMLDivElement | null>;
 }
@@ -32,6 +33,7 @@ interface ConversationListItemViewProps {
 const ConversationListItemView = ({
   item,
   isLoadingMore,
+  conversationSubjects,
   onOpenConversation,
   endSentinelRef,
 }: Readonly<ConversationListItemViewProps>): JSX.Element => {
@@ -63,7 +65,10 @@ const ConversationListItemView = ({
   }
 
   const { session } = item;
-  const subject = formatConversationSubject(session);
+  const subject =
+    conversationSubjects.get(
+      conversationSubjectKey({ projectId: session.projectId, sessionId: session.id })
+    ) ?? 'Untitled conversation';
   const relativeTime = formatConversationTime(session.createdAt);
   const messageCount = formatConversationMessageCount(session.messageCount);
   const cost = formatApproximateConversationCost(session.costUsd);
@@ -101,6 +106,15 @@ export const ConversationList = (): JSX.Element => {
   const navigateToSession = useStore((state) => state.navigateToSession);
   const parentRef = useRef<HTMLDivElement>(null);
   const endSentinelRef = useRef<HTMLDivElement>(null);
+  const conversationSubjectIdentities = useMemo(
+    () =>
+      conversationFeedRows.map(({ projectId, id }) => ({
+        projectId,
+        sessionId: id,
+      })),
+    [conversationFeedRows]
+  );
+  const conversationSubjects = useConversationSubjects(conversationSubjectIdentities);
 
   useEffect(() => {
     void fetchConversationFeed();
@@ -197,6 +211,7 @@ export const ConversationList = (): JSX.Element => {
     <ConversationListItemView
       item={item}
       isLoadingMore={conversationFeedLoadingMore}
+      conversationSubjects={conversationSubjects}
       onOpenConversation={openConversation}
       endSentinelRef={endSentinelRef}
     />

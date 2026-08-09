@@ -12,6 +12,7 @@ import {
   formatApproximateConversationCost,
   formatConversationMessageCount,
   formatConversationSubject,
+  formatCost,
 } from './dashboardFormatters';
 
 import type { GlobalSession } from '@shared/types';
@@ -102,6 +103,9 @@ test('formats conversation metadata for list and reader reuse', () => {
   expect(formatConversationSubject(session({ customTitle: 'Custom title' }))).toBe('Custom title');
   expect(formatConversationMessageCount(1)).toBe('1 message');
   expect(formatConversationMessageCount(2)).toBe('2 messages');
-  expect(formatApproximateConversationCost(0.4)).toBe('about $0.400');
+  expect(formatCost(0)).toBe('$0.00');
+  expect(formatCost(0.4)).toBe('$0.40');
+  expect(formatCost(0.004)).toBe('$0.0040');
+  expect(formatApproximateConversationCost(0.4)).toBe('about $0.40');
   expect(formatApproximateConversationCost()).toBe('Cost unavailable');
 });

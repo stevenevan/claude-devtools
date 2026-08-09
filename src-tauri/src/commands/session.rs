@@ -169,11 +169,21 @@ pub fn get_sessions_by_ids(
     project_id: String,
     session_ids: Vec<String>,
 ) -> Result<Vec<Session>, String> {
-    let wanted: std::collections::HashSet<_> = session_ids.into_iter().collect();
-    Ok(get_sessions(project_id)?
-        .into_iter()
-        .filter(|session| wanted.contains(&session.id))
-        .collect())
+    if !path_decoder::is_valid_project_id(&project_id) {
+        return Err("invalid project ID".to_string());
+    }
+    for session_id in &session_ids {
+        if !path_decoder::is_valid_session_id(session_id) {
+            return Err("invalid session ID".to_string());
+        }
+    }
+
+    session_lister::read_sessions_by_ids(
+        &projects_dir()?,
+        &claude_dir()?,
+        &project_id,
+        &session_ids,
+    )
 }
 
 #[tauri::command(rename_all = "camelCase")]
@@ -438,4 +448,22 @@ pub fn session_scroll_to_line(session_id: String, _line_number: u32) -> Result<(
         return Err("invalid session scroll target".to_string());
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn get_sessions_by_ids_rejects_unsafe_session_ids_at_command_boundary() {
+        let result = get_sessions_by_ids(
+            "-Users-example-project".to_string(),
+            vec!["../../etc/passwd".to_string()],
+        );
+
+        assert_eq!(
+            result.expect_err("unsafe ID should be rejected"),
+            "invalid session ID"
+        );
+    }
 }

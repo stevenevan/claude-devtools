@@ -31,8 +31,6 @@ export function formatDuration(ms: number): string {
 }
 
 export function formatCost(usd: number): string {
-  if (usd >= 100) return `$${usd.toFixed(0)}`;
-  if (usd >= 1) return `$${usd.toFixed(2)}`;
-  if (usd >= 0.01) return `$${usd.toFixed(3)}`;
-  return `$${usd.toFixed(4)}`;
+  const usesSubCentPrecision = usd !== 0 && Math.abs(usd) < 0.01;
+  return `$${usd.toFixed(usesSubCentPrecision ? 4 : 2)}`;
 }
