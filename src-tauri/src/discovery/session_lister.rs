@@ -567,17 +567,15 @@ fn parse_cursor(cursor: &str, sessions: &[(String, f64, u64)]) -> Option<usize> 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::maintenance::category::maint_test_support::TempDir;
 
     static GLOBAL_LIST_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
     #[test]
     fn global_lister_pages_across_projects_without_duplicates() {
         let _guard = GLOBAL_LIST_TEST_LOCK.lock().expect("lock tests");
-        let unique = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("clock")
-            .as_nanos();
-        let root = std::env::temp_dir().join(format!("claude-devtools-global-list-{unique}"));
+        let temp = TempDir::new("global-list");
+        let root = temp.path();
         let fixture = r#"{"type":"assistant","timestamp":"2026-01-01T00:00:00Z","message":{"role":"assistant","model":"claude-sonnet-4","usage":{"input_tokens":1}}}"#;
         for (project, session) in [("-tmp-alpha", "a"), ("-tmp-beta", "b")] {
             let project_dir = root.join(project);
@@ -586,10 +584,9 @@ mod tests {
                 .expect("write session");
         }
 
-        let first = list_global_sessions_paginated(&root, None, 1).expect("first page");
-        let second = list_global_sessions_paginated(&root, first.next_cursor.as_deref(), 1)
+        let first = list_global_sessions_paginated(root, None, 1).expect("first page");
+        let second = list_global_sessions_paginated(root, first.next_cursor.as_deref(), 1)
             .expect("second page");
-        std::fs::remove_dir_all(root).expect("remove fixture");
 
         assert_eq!(first.sessions.len(), 1);
         assert!(first.has_more);
@@ -601,11 +598,8 @@ mod tests {
     #[test]
     fn global_lister_enriches_only_current_page() {
         let _guard = GLOBAL_LIST_TEST_LOCK.lock().expect("lock tests");
-        let unique = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("clock")
-            .as_nanos();
-        let root = std::env::temp_dir().join(format!("claude-devtools-page-scan-{unique}"));
+        let temp = TempDir::new("page-scan");
+        let root = temp.path();
         let project_dir = root.join("-tmp-alpha");
         std::fs::create_dir_all(&project_dir).expect("create project");
         let fixture = r#"{"type":"user","message":{"role":"user","content":"hello"}}"#;
@@ -615,9 +609,8 @@ mod tests {
         }
 
         crate::analytics::reset_light_scan_count();
-        let page = list_global_sessions_paginated(&root, None, 1).expect("page");
+        let page = list_global_sessions_paginated(root, None, 1).expect("page");
         let scan_count = crate::analytics::light_scan_count();
-        std::fs::remove_dir_all(root).expect("remove fixture");
 
         assert_eq!(page.sessions.len(), 1);
         assert_eq!(scan_count, 1);
