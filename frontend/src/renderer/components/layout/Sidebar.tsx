@@ -1,5 +1,6 @@
 import { JSX, MouseEvent as ReactMouseEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useDefaultFilterPreset } from '@renderer/hooks/useDefaultFilterPreset';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { useShallow } from 'zustand/react/shallow';
@@ -16,6 +17,14 @@ const MAX_WIDTH = 500;
 const DEFAULT_WIDTH = 280;
 
 export const Sidebar = (): JSX.Element | null => {
+  const mode = useUIMode();
+
+  if (mode === 'simple') return null;
+
+  return <NerdSidebar />;
+};
+
+const NerdSidebar = (): JSX.Element | null => {
   const {
     projects,
     projectsLoading,
