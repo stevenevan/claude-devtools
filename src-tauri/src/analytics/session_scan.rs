@@ -61,6 +61,13 @@ pub struct LightSessionSummary {
     pub message_count: u32,
     pub cost_usd: Option<f64>,
     pub cost_diagnostic: Option<String>,
+    pub(crate) assistant_usage: Vec<DeduplicatedAssistantUsage>,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct DeduplicatedAssistantUsage {
+    pub(crate) event_timestamp_ms: Option<f64>,
+    pub(crate) priced_usage_usd: Option<f64>,
 }
 
 #[derive(Deserialize)]
@@ -153,6 +160,52 @@ struct RetainedAssistantUsage {
     timestamp_ms: Option<f64>,
     usage: LightUsage,
     is_visible: bool,
+    arrival_index: usize,
+}
+
+fn usage_token_total(usage: &LightUsage) -> u128 {
+    u128::from(usage.input_tokens)
+        + u128::from(usage.output_tokens)
+        + u128::from(usage.cache_read_input_tokens)
+        + u128::from(usage.cache_creation_input_tokens)
+}
+
+/// Select one streaming record deterministically: valid event timestamps win over missing
+/// timestamps, then later event timestamps, larger retained usage, visible content, model name,
+/// and finally later file arrival. This keeps month assignment independent of JSONL arrival order
+/// when records carry different event timestamps or usage totals.
+fn should_replace_duplicate(
+    previous: &RetainedAssistantUsage,
+    candidate: &RetainedAssistantUsage,
+) -> bool {
+    match (previous.timestamp_ms, candidate.timestamp_ms) {
+        (Some(previous), Some(candidate)) => match candidate.total_cmp(&previous) {
+            std::cmp::Ordering::Greater => return true,
+            std::cmp::Ordering::Less => return false,
+            std::cmp::Ordering::Equal => {}
+        },
+        (None, Some(_)) => return true,
+        (Some(_), None) => return false,
+        (None, None) => {}
+    }
+
+    match usage_token_total(&candidate.usage).cmp(&usage_token_total(&previous.usage)) {
+        std::cmp::Ordering::Greater => return true,
+        std::cmp::Ordering::Less => return false,
+        std::cmp::Ordering::Equal => {}
+    }
+
+    match candidate.is_visible.cmp(&previous.is_visible) {
+        std::cmp::Ordering::Greater => return true,
+        std::cmp::Ordering::Less => return false,
+        std::cmp::Ordering::Equal => {}
+    }
+
+    match candidate.model.as_deref().cmp(&previous.model.as_deref()) {
+        std::cmp::Ordering::Greater => return true,
+        std::cmp::Ordering::Less => return false,
+        std::cmp::Ordering::Equal => candidate.arrival_index > previous.arrival_index,
+    }
 }
 
 /// Scan a JSONL file extracting only metrics-relevant fields.
@@ -474,6 +527,7 @@ pub fn scan_session_light(file_path: &Path) -> Option<LightSessionSummary> {
     let mut user_message_count = 0;
     let mut cost_diagnostic = None;
     let mut record = Vec::new();
+    let mut arrival_index = 0;
 
     loop {
         match read_bounded_record(&mut reader, &mut record) {
@@ -557,23 +611,33 @@ pub fn scan_session_light(file_path: &Path) -> Option<LightSessionSummary> {
                 .filter(|timestamp| chrono::DateTime::parse_from_rfc3339(timestamp).is_ok())
                 .map(|timestamp| bounded_text(timestamp, LIGHT_METADATA_MAX_CHARS));
         }
+        arrival_index += 1;
         let retained = RetainedAssistantUsage {
             model: message.model.clone(),
             timestamp_ms,
             usage: message.usage.clone().unwrap_or_default(),
             is_visible,
+            arrival_index,
         };
         if let Some(request_id) = entry.request_id.filter(|request_id| !request_id.is_empty()) {
-            let was_visible = assistant_by_request
-                .get(&request_id)
-                .is_some_and(|previous: &RetainedAssistantUsage| previous.is_visible);
-            assistant_by_request.insert(
-                request_id,
-                RetainedAssistantUsage {
-                    is_visible: was_visible || is_visible,
-                    ..retained
-                },
-            );
+            if let Some(previous) = assistant_by_request.get(&request_id) {
+                if should_replace_duplicate(previous, &retained) {
+                    let was_visible = previous.is_visible;
+                    assistant_by_request.insert(
+                        request_id,
+                        RetainedAssistantUsage {
+                            is_visible: was_visible || is_visible,
+                            ..retained
+                        },
+                    );
+                } else if is_visible && !previous.is_visible {
+                    let mut retained_previous = previous.clone();
+                    retained_previous.is_visible = true;
+                    assistant_by_request.insert(request_id, retained_previous);
+                }
+            } else {
+                assistant_by_request.insert(request_id, retained);
+            }
         } else if is_visible {
             independent_assistants.push(retained);
         }
@@ -595,6 +659,7 @@ pub fn scan_session_light(file_path: &Path) -> Option<LightSessionSummary> {
 
     let mut cost_buckets: HashMap<(Option<String>, bool), (LightUsage, Option<f64>)> =
         HashMap::new();
+    let mut assistant_usage = Vec::with_capacity(retained_assistants.len());
     for assistant in retained_assistants {
         if let Some(model) = assistant
             .model
@@ -617,6 +682,32 @@ pub fn scan_session_light(file_path: &Path) -> Option<LightSessionSummary> {
         if !checked_usage_add(&mut bucket.0, &assistant.usage) {
             set_cost_failure(&mut cost_diagnostic, "assistant token usage overflowed");
         }
+
+        let priced_usage_usd = if usage_token_total(&assistant.usage) == 0 {
+            None
+        } else {
+            let cost = super::cost::estimate_cost_at(
+                assistant.model.as_deref(),
+                assistant.usage.input_tokens,
+                assistant.usage.output_tokens,
+                assistant.usage.cache_read_input_tokens,
+                assistant.usage.cache_creation_input_tokens,
+                assistant.timestamp_ms,
+            );
+            if cost.is_finite() {
+                Some(cost)
+            } else {
+                set_cost_failure(
+                    &mut cost_diagnostic,
+                    "estimated assistant cost was non-finite",
+                );
+                None
+            }
+        };
+        assistant_usage.push(DeduplicatedAssistantUsage {
+            event_timestamp_ms: assistant.timestamp_ms,
+            priced_usage_usd,
+        });
     }
 
     let model = model_counts
@@ -669,6 +760,7 @@ pub fn scan_session_light(file_path: &Path) -> Option<LightSessionSummary> {
         message_count,
         cost_usd,
         cost_diagnostic,
+        assistant_usage,
     })
 }
 

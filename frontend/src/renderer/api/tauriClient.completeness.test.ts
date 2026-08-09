@@ -69,6 +69,7 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['plugins.list', (a) => a.plugins.list()],
   // W8: flat analytics + backend-observability methods.
   ['getAnalytics', (a) => a.getAnalytics(30)],
+  ['getSimpleCostSummary', (a) => a.getSimpleCostSummary()],
   ['getCostForecast', (a) => a.getCostForecast(14)],
   ['getProductivityMetrics', (a) => a.getProductivityMetrics(30)],
   ['getSessionDurationStats', (a) => a.getSessionDurationStats(30)],

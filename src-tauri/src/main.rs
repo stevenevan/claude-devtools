@@ -8,8 +8,9 @@ use tauri::State;
 
 use claude_devtools_lib::analytics::{
     compute_analytics, compute_cost_forecast, compute_model_comparison,
-    compute_productivity_metrics, compute_session_duration_stats, AnalyticsResponse, CostForecast,
-    ModelComparisonResponse, ProductivityMetrics, SessionDurationResponse,
+    compute_productivity_metrics, compute_session_duration_stats, compute_simple_cost_summary,
+    AnalyticsResponse, CostForecast, ModelComparisonResponse, ProductivityMetrics,
+    SessionDurationResponse, SimpleCostSummary,
 };
 use claude_devtools_lib::cache::SessionCache;
 use claude_devtools_lib::commands::notify::NotifyState;
@@ -92,6 +93,11 @@ fn get_session_detail(project_id: String, session_id: String) -> Result<Option<S
 #[tauri::command(rename_all = "camelCase")]
 fn get_analytics(days: u32) -> Result<AnalyticsResponse, String> {
     compute_analytics(days)
+}
+
+#[tauri::command(rename_all = "camelCase")]
+fn get_simple_cost_summary() -> Result<SimpleCostSummary, String> {
+    compute_simple_cost_summary()
 }
 
 #[tauri::command(rename_all = "camelCase")]
@@ -531,6 +537,7 @@ fn main() {
             session_cmds::session_scroll_to_line,
             claude_devtools_lib::nl_query::parse_nl_query,
             get_analytics,
+            get_simple_cost_summary,
             get_cost_forecast,
             get_productivity_metrics,
             get_session_duration_stats,

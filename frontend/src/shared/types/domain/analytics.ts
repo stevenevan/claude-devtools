@@ -136,6 +136,38 @@ export interface AnalyticsResponse {
   toolSummary?: ToolAnalyticsResponse;
 }
 
+export interface SimpleCostSummary {
+  currentMonth: SimpleCostPeriod;
+  previousMonth: SimpleCostPeriod;
+  currentMonthDailyPoints: SimpleCostDailyPoint[];
+  currentMonthProjectTotals: SimpleCostProjectTotal[];
+  currentMonthActivityCount: number;
+}
+
+export interface SimpleCostPeriod {
+  month: string;
+  approximateCostUsd: number;
+  completeness: SimpleCostCompleteness;
+}
+
+export interface SimpleCostCompleteness {
+  isComplete: boolean;
+  activityCount: number;
+  priceableActivityCount: number;
+  unpriceableActivityCount: number;
+  diagnostics: string[];
+}
+
+export interface SimpleCostDailyPoint {
+  date: string;
+  approximateCostUsd: number;
+}
+
+export interface SimpleCostProjectTotal {
+  projectName: string;
+  approximateCostUsd: number;
+}
+
 export interface CostForecast {
   projectedDailyCostUsd: number;
   projectedWeeklyCostUsd: number;

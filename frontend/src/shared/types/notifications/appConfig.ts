@@ -100,6 +100,7 @@ export interface AppConfig {
   dashboard?: {
     widgetOrder?: string[];
     hiddenWidgets?: string[];
+    monthlyBudgetCents: number | null;
   };
 
   shortcuts?: {

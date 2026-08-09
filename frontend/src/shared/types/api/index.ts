@@ -21,6 +21,7 @@ import type {
   Session,
   SessionDurationResponse,
   SessionMetrics,
+  SimpleCostSummary,
   SessionsByIdsOptions,
   SessionsPaginationOptions,
   ToolAnalyticsResponse,
@@ -164,6 +165,7 @@ export interface DesktopAPI {
   ) => Promise<SessionDetail | null>;
   getSessionMetrics: (projectId: string, sessionId: string) => Promise<SessionMetrics | null>;
   getAnalytics: (days: number) => Promise<AnalyticsResponse>;
+  getSimpleCostSummary: () => Promise<SimpleCostSummary>;
   getCostForecast: (windowDays: number) => Promise<CostForecast>;
   getProductivityMetrics: (days: number) => Promise<ProductivityMetrics>;
   getSessionDurationStats: (days: number) => Promise<SessionDurationResponse>;

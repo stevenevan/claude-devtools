@@ -331,7 +331,12 @@ fn validate_ssh(data: &Value) -> Result<Value, String> {
 
 // ─── dashboard ────────────────────────────────────────────────────────────────
 
-const ALLOWED_DASHBOARD_KEYS: [&str; 2] = ["widgetOrder", "hiddenWidgets"];
+const ALLOWED_DASHBOARD_KEYS: [&str; 3] = [
+    "widgetOrder",
+    "hiddenWidgets",
+    "monthlyBudgetCents",
+];
+const MAX_MONTHLY_BUDGET_CENTS: u64 = 100_000_000;
 
 fn validate_dashboard(data: &Value) -> Result<Value, String> {
     let obj = parse_obj(data, "dashboard")?;
@@ -344,6 +349,19 @@ fn validate_dashboard(data: &Value) -> Result<Value, String> {
         if let Some(v) = obj.get(key) {
             if !is_string_array(v) {
                 return Err(format!("{key} entries must be strings"));
+            }
+        }
+    }
+    if let Some(value) = obj.get("monthlyBudgetCents") {
+        if !value.is_null() {
+            let cents = value.as_u64().ok_or_else(|| {
+                "monthlyBudgetCents must be an integer between 1 and 100000000 or null".to_string()
+            })?;
+            if !(1..=MAX_MONTHLY_BUDGET_CENTS).contains(&cents) {
+                return Err(
+                    "monthlyBudgetCents must be an integer between 1 and 100000000 or null"
+                        .to_string(),
+                );
             }
         }
     }
@@ -647,5 +665,40 @@ mod tests {
         let merged = merge_retention_with_defaults(zero, RetentionPolicy::default());
         assert_eq!(merged.schedule_interval, "off");
         assert_eq!(normalize_schedule_interval(""), "off");
+    }
+
+    #[test]
+    fn monthly_budget_validation_accepts_bounds_and_null() {
+        for value in [1, 100_000_000] {
+            assert!(validate_config_update(
+                "dashboard",
+                &serde_json::json!({"monthlyBudgetCents": value})
+            )
+            .is_ok());
+        }
+        assert!(validate_config_update(
+            "dashboard",
+            &serde_json::json!({"monthlyBudgetCents": null})
+        )
+        .is_ok());
+    }
+
+    #[test]
+    fn monthly_budget_validation_rejects_non_integer_and_out_of_range() {
+        for value in [
+            serde_json::json!(0),
+            serde_json::json!(-1),
+            serde_json::json!(100_000_001),
+            serde_json::json!(1.5),
+        ] {
+            assert!(
+                validate_config_update(
+                    "dashboard",
+                    &serde_json::json!({"monthlyBudgetCents": value})
+                )
+                .is_err(),
+                "{value}"
+            );
+        }
     }
 }

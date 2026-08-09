@@ -1260,6 +1260,9 @@ fn apply_dashboard(cfg: &mut AppConfig, obj: &Map<String, Value>) {
             cfg.dashboard.hidden_widgets = arr;
         }
     }
+    if let Some(v) = obj.get("monthlyBudgetCents") {
+        cfg.dashboard.monthly_budget_cents = if v.is_null() { None } else { v.as_u64() };
+    }
 }
 
 fn apply_shortcuts(cfg: &mut AppConfig, obj: &Map<String, Value>) {
@@ -1460,6 +1463,40 @@ mod tests {
             .update_config("general", serde_json::json!({"uiMode": "nerd"}))
             .unwrap();
         assert_eq!(updated.general.ui_mode, UiMode::Nerd);
+    }
+
+    #[test]
+    fn dashboard_budget_merges_independently_and_clears() {
+        let (config_state, _path) = temp_config();
+        let initial = config_state
+            .update_config(
+                "dashboard",
+                serde_json::json!({
+                    "widgetOrder": ["cost"],
+                    "hiddenWidgets": ["tokens"]
+                }),
+            )
+            .unwrap();
+        assert_eq!(initial.dashboard.monthly_budget_cents, None);
+
+        let with_budget = config_state
+            .update_config("dashboard", serde_json::json!({"monthlyBudgetCents": 2500}))
+            .unwrap();
+        assert_eq!(with_budget.dashboard.monthly_budget_cents, Some(2500));
+        assert_eq!(with_budget.dashboard.widget_order, vec!["cost"]);
+        assert_eq!(with_budget.dashboard.hidden_widgets, vec!["tokens"]);
+
+        let with_new_widgets = config_state
+            .update_config("dashboard", serde_json::json!({"widgetOrder": ["budget"]}))
+            .unwrap();
+        assert_eq!(with_new_widgets.dashboard.monthly_budget_cents, Some(2500));
+        assert_eq!(with_new_widgets.dashboard.widget_order, vec!["budget"]);
+
+        let cleared = config_state
+            .update_config("dashboard", serde_json::json!({"monthlyBudgetCents": null}))
+            .unwrap();
+        assert_eq!(cleared.dashboard.monthly_budget_cents, None);
+        assert_eq!(cleared.dashboard.widget_order, vec!["budget"]);
     }
 
     #[test]

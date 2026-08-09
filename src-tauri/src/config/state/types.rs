@@ -298,6 +298,7 @@ impl Default for HttpServerConfig {
 pub struct DashboardConfig {
     pub widget_order: Vec<String>,
     pub hidden_widgets: Vec<String>,
+    pub monthly_budget_cents: Option<u64>,
 }
 
 // ── App (themes, shortcuts, plugins) ─────────────────────────────────────────

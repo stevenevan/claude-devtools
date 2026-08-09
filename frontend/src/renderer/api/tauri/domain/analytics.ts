@@ -4,6 +4,7 @@ import type {
   ModelComparisonResponse,
   ProductivityMetrics,
   SessionDurationResponse,
+  SimpleCostSummary,
 } from '@shared/types';
 
 import { call } from '../invoke';
@@ -16,6 +17,8 @@ import { call } from '../invoke';
 export const analyticsCommands = {
   getAnalytics: (days: number): Promise<AnalyticsResponse> =>
     call<AnalyticsResponse>('get_analytics', { days }),
+  getSimpleCostSummary: (): Promise<SimpleCostSummary> =>
+    call<SimpleCostSummary>('get_simple_cost_summary'),
   getCostForecast: (windowDays: number): Promise<CostForecast> =>
     call<CostForecast>('get_cost_forecast', { windowDays }),
   getProductivityMetrics: (days: number): Promise<ProductivityMetrics> =>
