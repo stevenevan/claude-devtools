@@ -29,7 +29,8 @@ export function syncSidebarForSessionTab(get: Get, set: Set, tab: Tab, tabId: st
   const state = get();
   const sessionId = tab.sessionId;
   const projectId = tab.projectId;
-  const sessionChanged = state.selectedSessionId !== sessionId;
+  const targetChanged =
+    state.selectedProjectId !== projectId || state.selectedSessionId !== sessionId;
 
   const cachedTabData = state.tabSessionData[tabId];
   const hasCachedData = cachedTabData?.conversation != null;
@@ -54,39 +55,30 @@ export function syncSidebarForSessionTab(get: Get, set: Set, tab: Tab, tabId: st
       selectedRepositoryId: foundRepo,
       selectedWorktreeId: foundWorktree,
       selectedSessionId: sessionId,
-      activeProjectId: foundWorktree,
-      selectedProjectId: foundWorktree,
+      activeProjectId: projectId,
+      selectedProjectId: projectId,
     });
     if (worktreeChanged) {
-      void get().fetchSessionsInitial(foundWorktree);
+      void get().fetchSessionsInitial(projectId);
     }
-    if (sessionChanged) {
-      if (hasCachedData) {
-        applyCachedTabData(set, cachedTabData);
-      } else {
-        void get().fetchSessionDetail(foundWorktree, sessionId, tabId);
-      }
-    }
-    return;
-  }
-
-  const project = state.projects.find((p) => p.id === projectId || p.sessions.includes(sessionId));
-  if (project) {
-    const projectChanged = state.selectedProjectId !== project.id;
+  } else {
+    const project = state.projects.find((candidate) => candidate.id === projectId);
+    const projectChanged = state.selectedProjectId !== projectId;
     set({
-      activeProjectId: project.id,
-      selectedProjectId: project.id,
+      activeProjectId: projectId,
+      selectedProjectId: projectId,
       selectedSessionId: sessionId,
     });
-    if (projectChanged) {
-      void get().fetchSessionsInitial(project.id);
+    if (project && projectChanged) {
+      void get().fetchSessionsInitial(projectId);
     }
-    if (sessionChanged) {
-      if (hasCachedData) {
-        applyCachedTabData(set, cachedTabData);
-      } else {
-        void get().fetchSessionDetail(project.id, sessionId, tabId);
-      }
+  }
+
+  if (hasCachedData) {
+    if (targetChanged) {
+      applyCachedTabData(set, cachedTabData);
     }
+  } else if (!cachedTabData?.sessionDetailLoading) {
+    void get().fetchSessionDetail(projectId, sessionId, tabId);
   }
 }

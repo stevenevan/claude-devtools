@@ -34,6 +34,34 @@ pub struct SessionSummary {
 /// Cap applied to consecutive timestamp gaps when computing active time.
 /// Anything longer than this counts as idle.
 pub const ACTIVE_GAP_CAP_MS: f64 = 5.0 * 60.0 * 1000.0;
+pub const LIGHT_SCAN_MAX_RECORD_BYTES: usize = 1024 * 1024;
+const LIGHT_TEXT_MAX_CHARS: usize = 500;
+const LIGHT_METADATA_MAX_CHARS: usize = 500;
+const LIGHT_DIAGNOSTIC_MAX_CHARS: usize = 200;
+#[cfg(test)]
+static LIGHT_SCAN_COUNT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+
+#[cfg(test)]
+pub(crate) fn reset_light_scan_count() {
+    LIGHT_SCAN_COUNT.store(0, std::sync::atomic::Ordering::Relaxed);
+}
+
+#[cfg(test)]
+pub(crate) fn light_scan_count() -> usize {
+    LIGHT_SCAN_COUNT.load(std::sync::atomic::Ordering::Relaxed)
+}
+
+#[derive(Debug)]
+pub struct LightSessionSummary {
+    pub model: Option<String>,
+    pub first_timestamp: Option<String>,
+    pub first_user_text: Option<String>,
+    pub custom_title: Option<String>,
+    pub agent_name: Option<String>,
+    pub message_count: u32,
+    pub cost_usd: Option<f64>,
+    pub cost_diagnostic: Option<String>,
+}
 
 #[derive(Deserialize)]
 struct QuickEntry {
@@ -64,6 +92,67 @@ struct QuickMessage {
     model: Option<String>,
     usage: Option<QuickUsage>,
     content: Option<serde_json::Value>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct LightEntry {
+    #[serde(rename = "type")]
+    entry_type: Option<String>,
+    timestamp: Option<String>,
+    request_id: Option<String>,
+    #[serde(default)]
+    is_sidechain: bool,
+    #[serde(default)]
+    is_meta: bool,
+    #[serde(default)]
+    is_compact_summary: bool,
+    custom_title: Option<String>,
+    agent_name: Option<String>,
+    message: Option<LightMessage>,
+}
+
+#[derive(Deserialize)]
+struct LightMessage {
+    role: Option<String>,
+    model: Option<String>,
+    usage: Option<LightUsage>,
+    content: Option<LightContent>,
+}
+
+#[derive(Clone, Default, Deserialize)]
+struct LightUsage {
+    #[serde(default)]
+    input_tokens: u64,
+    #[serde(default)]
+    output_tokens: u64,
+    #[serde(default)]
+    cache_read_input_tokens: u64,
+    #[serde(default)]
+    cache_creation_input_tokens: u64,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum LightContent {
+    Text(String),
+    Blocks(Vec<LightContentBlock>),
+    Other(serde::de::IgnoredAny),
+}
+
+#[derive(Deserialize)]
+struct LightContentBlock {
+    #[serde(rename = "type")]
+    block_type: Option<String>,
+    text: Option<String>,
+}
+
+#[derive(Clone)]
+struct RetainedAssistantUsage {
+    model: Option<String>,
+    timestamp_ms: Option<f64>,
+    usage: LightUsage,
+    is_visible: bool,
 }
 
 /// Scan a JSONL file extracting only metrics-relevant fields.
@@ -253,6 +342,336 @@ pub fn scan_session_fast(file_path: &Path) -> Option<SessionSummary> {
     })
 }
 
+enum BoundedRecord {
+    End,
+    Valid,
+    Oversized,
+}
+
+fn read_bounded_record(
+    reader: &mut impl BufRead,
+    record: &mut Vec<u8>,
+) -> std::io::Result<BoundedRecord> {
+    record.clear();
+    let mut is_oversized = false;
+    loop {
+        let buffer = reader.fill_buf()?;
+        if buffer.is_empty() {
+            return if is_oversized {
+                Ok(BoundedRecord::Oversized)
+            } else if record.is_empty() {
+                Ok(BoundedRecord::End)
+            } else {
+                Ok(BoundedRecord::Valid)
+            };
+        }
+        let newline = buffer.iter().position(|byte| *byte == b'\n');
+        let consumed = newline.map_or(buffer.len(), |index| index + 1);
+        let content_len = newline.unwrap_or(buffer.len());
+        if !is_oversized {
+            if record.len().saturating_add(content_len) <= LIGHT_SCAN_MAX_RECORD_BYTES {
+                record.extend_from_slice(&buffer[..content_len]);
+            } else {
+                is_oversized = true;
+                record.clear();
+            }
+        }
+        reader.consume(consumed);
+        if newline.is_some() {
+            return if is_oversized {
+                Ok(BoundedRecord::Oversized)
+            } else {
+                Ok(BoundedRecord::Valid)
+            };
+        }
+    }
+}
+
+fn bounded_text(value: &str, max_chars: usize) -> String {
+    value.chars().take(max_chars).collect()
+}
+
+fn visible_text(content: Option<&LightContent>) -> Option<&str> {
+    match content {
+        Some(LightContent::Text(text)) => Some(text),
+        Some(LightContent::Blocks(blocks)) => blocks.iter().find_map(|block| {
+            (block.block_type.as_deref() == Some("text"))
+                .then_some(block.text.as_deref())
+                .flatten()
+        }),
+        Some(LightContent::Other(_)) | None => None,
+    }
+}
+
+fn has_visible_text(content: Option<&LightContent>) -> bool {
+    visible_text(content).is_some_and(|text| !text.trim().is_empty())
+}
+
+fn is_visible_user_text(content: Option<&LightContent>) -> bool {
+    visible_text(content).is_some_and(|text| {
+        let text = text.trim();
+        !text.is_empty()
+            && !text.starts_with("<local-command")
+            && !text.starts_with("<system-reminder>")
+            && !text.starts_with("<command-name>")
+            && !text.starts_with("[Request interrupted by user")
+    })
+}
+
+fn set_cost_failure(diagnostic: &mut Option<String>, message: &str) {
+    if diagnostic.is_none() {
+        *diagnostic = Some(bounded_text(message, LIGHT_DIAGNOSTIC_MAX_CHARS));
+    }
+}
+
+fn checked_message_count(message_count: &mut u32, diagnostic: &mut Option<String>) {
+    if let Some(next) = message_count.checked_add(1) {
+        *message_count = next;
+    } else {
+        set_cost_failure(diagnostic, "visible message count overflowed");
+    }
+}
+
+fn checked_usage_add(total: &mut LightUsage, usage: &LightUsage) -> bool {
+    let Some(input_tokens) = total.input_tokens.checked_add(usage.input_tokens) else {
+        return false;
+    };
+    let Some(output_tokens) = total.output_tokens.checked_add(usage.output_tokens) else {
+        return false;
+    };
+    let Some(cache_read_input_tokens) = total
+        .cache_read_input_tokens
+        .checked_add(usage.cache_read_input_tokens)
+    else {
+        return false;
+    };
+    let Some(cache_creation_input_tokens) = total
+        .cache_creation_input_tokens
+        .checked_add(usage.cache_creation_input_tokens)
+    else {
+        return false;
+    };
+    total.input_tokens = input_tokens;
+    total.output_tokens = output_tokens;
+    total.cache_read_input_tokens = cache_read_input_tokens;
+    total.cache_creation_input_tokens = cache_creation_input_tokens;
+    true
+}
+
+pub fn scan_session_light(file_path: &Path) -> Option<LightSessionSummary> {
+    #[cfg(test)]
+    LIGHT_SCAN_COUNT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let file = std::fs::File::open(file_path).ok()?;
+    let mut reader = BufReader::with_capacity(64 * 1024, file);
+    let mut assistant_by_request = HashMap::new();
+    let mut independent_assistants = Vec::new();
+    let mut model_counts: HashMap<String, u32> = HashMap::new();
+    let mut first_timestamp = None;
+    let mut first_assistant_timestamp = None;
+    let mut first_user_text = None;
+    let mut custom_title = None;
+    let mut agent_name = None;
+    let mut user_message_count = 0;
+    let mut cost_diagnostic = None;
+    let mut record = Vec::new();
+
+    loop {
+        match read_bounded_record(&mut reader, &mut record) {
+            Ok(BoundedRecord::End) => break,
+            Ok(BoundedRecord::Oversized) => {
+                set_cost_failure(&mut cost_diagnostic, "oversized JSONL record skipped");
+                continue;
+            }
+            Ok(BoundedRecord::Valid) => {}
+            Err(error) => {
+                set_cost_failure(
+                    &mut cost_diagnostic,
+                    &format!("failed reading JSONL record: {error}"),
+                );
+                break;
+            }
+        }
+        if record.is_empty() {
+            continue;
+        }
+        let entry = match serde_json::from_slice::<LightEntry>(&record) {
+            Ok(entry) => entry,
+            Err(_) => {
+                set_cost_failure(&mut cost_diagnostic, "malformed JSONL record skipped");
+                continue;
+            }
+        };
+
+        if custom_title.is_none() {
+            custom_title = entry
+                .custom_title
+                .as_deref()
+                .map(|title| bounded_text(title, LIGHT_METADATA_MAX_CHARS));
+        }
+        if agent_name.is_none() {
+            agent_name = entry
+                .agent_name
+                .as_deref()
+                .map(|name| bounded_text(name, LIGHT_METADATA_MAX_CHARS));
+        }
+        if entry.is_sidechain || entry.is_compact_summary {
+            continue;
+        }
+
+        let Some(message) = entry.message.as_ref() else {
+            continue;
+        };
+        let role = message.role.as_deref();
+        if role == Some("user")
+            && entry.entry_type.as_deref() == Some("user")
+            && !entry.is_meta
+            && is_visible_user_text(message.content.as_ref())
+        {
+            checked_message_count(&mut user_message_count, &mut cost_diagnostic);
+            if first_user_text.is_none() {
+                first_user_text = visible_text(message.content.as_ref())
+                    .map(str::trim)
+                    .map(|text| bounded_text(text, LIGHT_TEXT_MAX_CHARS));
+                first_timestamp = entry
+                    .timestamp
+                    .as_deref()
+                    .filter(|timestamp| chrono::DateTime::parse_from_rfc3339(timestamp).is_ok())
+                    .map(|timestamp| bounded_text(timestamp, LIGHT_METADATA_MAX_CHARS));
+            }
+            continue;
+        }
+        if role != Some("assistant") || entry.entry_type.as_deref() != Some("assistant") {
+            continue;
+        }
+
+        let timestamp_ms = entry.timestamp.as_deref().and_then(|timestamp| {
+            chrono::DateTime::parse_from_rfc3339(timestamp)
+                .ok()
+                .map(|parsed| parsed.timestamp_millis() as f64)
+        });
+        let is_visible = has_visible_text(message.content.as_ref());
+        if is_visible && first_assistant_timestamp.is_none() {
+            first_assistant_timestamp = entry
+                .timestamp
+                .as_deref()
+                .filter(|timestamp| chrono::DateTime::parse_from_rfc3339(timestamp).is_ok())
+                .map(|timestamp| bounded_text(timestamp, LIGHT_METADATA_MAX_CHARS));
+        }
+        let retained = RetainedAssistantUsage {
+            model: message.model.clone(),
+            timestamp_ms,
+            usage: message.usage.clone().unwrap_or_default(),
+            is_visible,
+        };
+        if let Some(request_id) = entry.request_id.filter(|request_id| !request_id.is_empty()) {
+            let was_visible = assistant_by_request
+                .get(&request_id)
+                .is_some_and(|previous: &RetainedAssistantUsage| previous.is_visible);
+            assistant_by_request.insert(
+                request_id,
+                RetainedAssistantUsage {
+                    is_visible: was_visible || is_visible,
+                    ..retained
+                },
+            );
+        } else if is_visible {
+            independent_assistants.push(retained);
+        }
+    }
+
+    let retained_assistants: Vec<_> = assistant_by_request
+        .into_values()
+        .filter(|assistant| assistant.is_visible)
+        .chain(independent_assistants)
+        .collect();
+    let message_count = usize::try_from(user_message_count)
+        .ok()
+        .and_then(|users| users.checked_add(retained_assistants.len()))
+        .and_then(|count| u32::try_from(count).ok())
+        .unwrap_or_else(|| {
+            set_cost_failure(&mut cost_diagnostic, "visible message count overflowed");
+            u32::MAX
+        });
+
+    let mut cost_buckets: HashMap<(Option<String>, bool), (LightUsage, Option<f64>)> =
+        HashMap::new();
+    for assistant in retained_assistants {
+        if let Some(model) = assistant
+            .model
+            .as_ref()
+            .filter(|model| !model.is_empty() && model.as_str() != "<synthetic>")
+        {
+            *model_counts.entry(model.clone()).or_insert(0) += 1;
+        }
+        let is_sonnet_5_promo = assistant
+            .model
+            .as_deref()
+            .is_some_and(|model| model.to_ascii_lowercase().contains("sonnet-5"))
+            && assistant
+                .timestamp_ms
+                .is_some_and(|timestamp| timestamp < 1_788_220_800_000.0);
+        let key = (assistant.model.clone(), is_sonnet_5_promo);
+        let bucket = cost_buckets
+            .entry(key)
+            .or_insert_with(|| (LightUsage::default(), assistant.timestamp_ms));
+        if !checked_usage_add(&mut bucket.0, &assistant.usage) {
+            set_cost_failure(&mut cost_diagnostic, "assistant token usage overflowed");
+        }
+    }
+
+    let model = model_counts
+        .into_iter()
+        .max_by(|(left_model, left_count), (right_model, right_count)| {
+            left_count
+                .cmp(right_count)
+                .then_with(|| right_model.cmp(left_model))
+        })
+        .map(|(model, _)| model);
+    let has_tokens = cost_buckets.values().any(|(usage, _)| {
+        usage.input_tokens > 0
+            || usage.output_tokens > 0
+            || usage.cache_read_input_tokens > 0
+            || usage.cache_creation_input_tokens > 0
+    });
+    let cost_usd = if cost_diagnostic.is_some() || !has_tokens {
+        None
+    } else {
+        let cost = cost_buckets
+            .into_iter()
+            .map(|((model, _), (usage, timestamp_ms))| {
+                super::cost::estimate_cost_at(
+                    model.as_deref(),
+                    usage.input_tokens,
+                    usage.output_tokens,
+                    usage.cache_read_input_tokens,
+                    usage.cache_creation_input_tokens,
+                    timestamp_ms,
+                )
+            })
+            .sum::<f64>();
+        if cost.is_finite() {
+            Some(cost)
+        } else {
+            set_cost_failure(
+                &mut cost_diagnostic,
+                "estimated session cost was non-finite",
+            );
+            None
+        }
+    };
+
+    Some(LightSessionSummary {
+        model,
+        first_timestamp: first_timestamp.or(first_assistant_timestamp),
+        first_user_text,
+        custom_title,
+        agent_name,
+        message_count,
+        cost_usd,
+        cost_diagnostic,
+    })
+}
+
 /// Compute gap-adjusted active milliseconds across a sorted timestamp list.
 /// Consecutive gaps longer than `ACTIVE_GAP_CAP_MS` are treated as idle.
 pub fn active_ms_from_sorted(timestamps_ms: &[f64]) -> f64 {
@@ -286,8 +705,12 @@ mod tests {
     #[test]
     fn active_ms_caps_long_idle_gap() {
         // Gap 1hr is capped at ACTIVE_GAP_CAP_MS (5min), small gap counts fully.
-        let stamps = [0.0, 1000.0, 1000.0 + 3600_000.0];
+        let stamps = [0.0, 1000.0, 1000.0 + 3_600_000.0];
         let got = active_ms_from_sorted(&stamps);
         assert!((got - (1000.0 + ACTIVE_GAP_CAP_MS)).abs() < 1e-9);
     }
 }
+
+#[cfg(test)]
+#[path = "session_scan_light_tests.rs"]
+mod light_tests;

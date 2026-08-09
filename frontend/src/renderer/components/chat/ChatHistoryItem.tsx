@@ -12,13 +12,18 @@ import {
 import { AIChatGroup } from './AIChatGroup';
 import { CompactBoundary } from './CompactBoundary';
 import { EventMarker } from './EventMarker';
+import { SimpleAIChatGroup } from './SimpleAIChatGroup';
+import { SimpleCompactionStatus } from './SimpleCompactionStatus';
+import { SimpleUserChatGroup } from './SimpleUserChatGroup';
 import { SystemChatGroup } from './SystemChatGroup';
 import { UserChatGroup } from './UserChatGroup';
+import { isSimpleChatItem } from '@renderer/types/simpleChat';
 
+import type { SimpleChatItem } from '@renderer/types/simpleChat';
 import type { ChatItem } from '@renderer/types/groups';
 
 interface ChatHistoryItemProps {
-  readonly item: ChatItem;
+  readonly item: ChatItem | SimpleChatItem;
   readonly highlightedGroupId: string | null;
   readonly highlightToolUseId?: string;
   readonly isSearchHighlight: boolean;
@@ -55,6 +60,36 @@ const ChatHistoryItemInner = ({
   registerAIGroupRef,
   registerToolRef,
 }: ChatHistoryItemProps): JSX.Element | null => {
+  if (isSimpleChatItem(item)) {
+    const isHighlighted = highlightedGroupId === item.group.id;
+    const hl = getHighlight(isHighlighted, isSearchHighlight, isNavigationHighlight, highlightColor);
+
+    switch (item.type) {
+      case 'user':
+        return (
+          <div
+            ref={registerChatItemRef(item.group.id)}
+            className={cn('rounded-lg transition-all duration-[3000ms] ease-out', hl.className)}
+            style={hl.style}
+          >
+            <SimpleUserChatGroup item={item} />
+          </div>
+        );
+      case 'ai':
+        return (
+          <div
+            ref={registerAIGroupRef(item.group.id)}
+            className={cn('rounded-lg transition-all duration-[3000ms] ease-out', hl.className)}
+            style={hl.style}
+          >
+            <SimpleAIChatGroup item={item} />
+          </div>
+        );
+      case 'compact':
+        return <SimpleCompactionStatus content={item.content} />;
+    }
+  }
+
   switch (item.type) {
     case 'user': {
       const isHighlighted = highlightedGroupId === item.group.id;

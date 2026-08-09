@@ -6,13 +6,15 @@ import { useStore } from '@renderer/store';
 import { ChevronDown, ChevronUp, Regex, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
+import type { SearchableConversation } from '@renderer/types/simpleChat';
+
 const SEARCH_DEBOUNCE_MS = 300;
 
 interface SearchBarProps {
-  tabId?: string;
+  conversation: SearchableConversation | null;
 }
 
-export const SearchBar = ({ tabId }: SearchBarProps): JSX.Element | null => {
+export const SearchBar = ({ conversation }: SearchBarProps): JSX.Element | null => {
   const {
     searchQuery,
     searchVisible,
@@ -20,7 +22,6 @@ export const SearchBar = ({ tabId }: SearchBarProps): JSX.Element | null => {
     currentSearchIndex,
     searchResultsCapped,
     searchIsRegex,
-    conversation,
     setSearchQuery,
     setSearchIsRegex,
     hideSearch,
@@ -34,9 +35,6 @@ export const SearchBar = ({ tabId }: SearchBarProps): JSX.Element | null => {
       currentSearchIndex: s.currentSearchIndex,
       searchResultsCapped: s.searchResultsCapped,
       searchIsRegex: s.searchIsRegex,
-      conversation: tabId
-        ? (s.tabSessionData[tabId]?.conversation ?? s.conversation)
-        : s.conversation,
       setSearchQuery: s.setSearchQuery,
       setSearchIsRegex: s.setSearchIsRegex,
       hideSearch: s.hideSearch,
@@ -117,7 +115,7 @@ export const SearchBar = ({ tabId }: SearchBarProps): JSX.Element | null => {
       <Button
         variant="ghost"
         size="icon-xs"
-        onClick={() => setSearchIsRegex(!searchIsRegex)}
+        onClick={() => setSearchIsRegex(!searchIsRegex, conversation)}
         className={searchIsRegex ? 'bg-accent text-accent-foreground' : ''}
         title="Toggle regex search"
       >

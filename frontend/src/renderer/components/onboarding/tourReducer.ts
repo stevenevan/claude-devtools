@@ -1,3 +1,5 @@
+import type { UIMode } from '@shared/types';
+
 export interface TourStep {
   id: string;
   title: string;
@@ -30,6 +32,11 @@ export const TOUR_STEPS: readonly TourStep[] = [
     title: 'Settings & shortcuts',
     body: 'Cmd+, opens settings. Customise themes, plugins, notification rules, and keyboard shortcuts. The Help panel (?) replays this tour anytime.',
   },
+  {
+    id: 'mode',
+    title: 'Choose your interface',
+    body: 'Simple keeps everyday tools prominent. Nerd keeps every workspace control visible. You can switch modes later in General Settings.',
+  },
 ];
 
 export type TourPhase = 'inactive' | 'running' | 'done';
@@ -37,37 +44,46 @@ export type TourPhase = 'inactive' | 'running' | 'done';
 export interface TourState {
   phase: TourPhase;
   index: number;
+  selectedMode: UIMode | null;
 }
 
 export type TourAction =
   | { type: 'start' }
   | { type: 'next' }
   | { type: 'prev' }
+  | { type: 'selectMode'; mode: UIMode }
   | { type: 'skip' }
   | { type: 'restart' }
   | { type: 'finish' };
 
-export const initialTourState: TourState = { phase: 'inactive', index: 0 };
+export const initialTourState: TourState = {
+  phase: 'inactive',
+  index: 0,
+  selectedMode: null,
+};
 
 export function tourReducer(state: TourState, action: TourAction): TourState {
   switch (action.type) {
     case 'start':
     case 'restart':
-      return { phase: 'running', index: 0 };
+      return { phase: 'running', index: 0, selectedMode: null };
     case 'next': {
       if (state.phase !== 'running') return state;
       const nextIndex = state.index + 1;
-      if (nextIndex >= TOUR_STEPS.length) {
-        return { phase: 'done', index: TOUR_STEPS.length - 1 };
-      }
-      return { phase: 'running', index: nextIndex };
+      if (nextIndex >= TOUR_STEPS.length) return state;
+      return { ...state, index: nextIndex };
     }
     case 'prev':
       if (state.phase !== 'running') return state;
-      return { phase: 'running', index: Math.max(0, state.index - 1) };
+      return { ...state, index: Math.max(0, state.index - 1) };
+    case 'selectMode':
+      if (state.phase !== 'running') return state;
+      return { ...state, selectedMode: action.mode };
     case 'skip':
+      return { phase: 'done', index: state.index, selectedMode: 'nerd' };
     case 'finish':
-      return { phase: 'done', index: state.index };
+      if (!state.selectedMode) return state;
+      return { ...state, phase: 'done' };
     default:
       return state;
   }

@@ -1,4 +1,5 @@
 import { MAX_PANES } from '@renderer/types/panes';
+import { getEffectiveUIMode } from '@renderer/utils/uiModeBootstrap';
 
 import {
   createEmptyPane,
@@ -87,6 +88,7 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
     const state = get();
     const { paneLayout } = state;
 
+    if (getEffectiveUIMode(state.appConfig?.general.uiMode) === 'simple') return;
     if (paneLayout.panes.length >= MAX_PANES) return;
 
     const sourcePane = findPane(paneLayout, sourcePaneId);
@@ -221,6 +223,7 @@ export const createPaneSlice: StateCreator<AppState, [], [], PaneSlice> = (set, 
     const state = get();
     const { paneLayout } = state;
 
+    if (getEffectiveUIMode(state.appConfig?.general.uiMode) === 'simple') return;
     if (paneLayout.panes.length >= MAX_PANES) return;
 
     const sourcePane = findPane(paneLayout, sourcePaneId);

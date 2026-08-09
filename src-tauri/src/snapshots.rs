@@ -79,7 +79,9 @@ pub fn create_snapshot(label: &str, detail: &SessionDetail) -> Result<SnapshotMe
     encoder
         .write_all(&json)
         .map_err(|e| format!("Compress failed: {e}"))?;
-    let compressed = encoder.finish().map_err(|e| format!("Finish failed: {e}"))?;
+    let compressed = encoder
+        .finish()
+        .map_err(|e| format!("Finish failed: {e}"))?;
 
     let payload = payload_path(&dir, &id);
     fs::write(&payload, &compressed).map_err(|e| format!("Write payload failed: {e}"))?;
@@ -173,6 +175,7 @@ mod tests {
                 message_timestamp: None,
                 has_subagents: false,
                 message_count: 0,
+                cost_usd: None,
                 is_ongoing: Some(false),
                 git_branch: None,
                 metadata_level: None,
@@ -195,10 +198,16 @@ mod tests {
         std::env::set_var("CLAUDE_DEVTOOLS_SNAPSHOTS_DIR", &tmp);
         let detail = fixture_detail();
         let meta = create_snapshot("Test snapshot", &detail).expect("create");
-        assert!(meta.size_bytes > 0, "compressed payload should be non-empty");
+        assert!(
+            meta.size_bytes > 0,
+            "compressed payload should be non-empty"
+        );
 
         let listed = list_snapshots().expect("list");
-        assert!(listed.iter().any(|m| m.id == meta.id), "should appear in list");
+        assert!(
+            listed.iter().any(|m| m.id == meta.id),
+            "should appear in list"
+        );
 
         let restored = open_snapshot(&meta.id).expect("open");
         assert_eq!(restored.session.id, detail.session.id);
@@ -227,7 +236,10 @@ mod tests {
                 validate_snapshot_id(bad).is_err(),
                 "id {bad:?} must be rejected"
             );
-            assert!(open_snapshot(bad).is_err(), "open({bad:?}) must be rejected");
+            assert!(
+                open_snapshot(bad).is_err(),
+                "open({bad:?}) must be rejected"
+            );
             assert!(
                 delete_snapshot(bad).is_err(),
                 "delete({bad:?}) must be rejected"

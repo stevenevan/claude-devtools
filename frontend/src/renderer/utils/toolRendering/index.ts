@@ -4,5 +4,5 @@ export {
   hasSkillInstructions,
   hasWriteContent,
 } from './toolContentChecks';
-export { getToolSummary } from './toolSummaryHelpers';
+export { getSimpleToolSummary, getToolSummary } from './toolSummaryHelpers';
 export { getToolContextTokens, getToolStatus } from './toolTokens';

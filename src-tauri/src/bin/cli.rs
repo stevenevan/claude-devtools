@@ -28,9 +28,9 @@ use claude_devtools_lib::analytics;
 use claude_devtools_lib::discovery::path_decoder;
 use claude_devtools_lib::discovery::project_scanner;
 use claude_devtools_lib::discovery::session_lister;
+use claude_devtools_lib::discovery::subproject_registry::SubprojectRegistry;
 use claude_devtools_lib::discovery::{ongoing_detector, subagent_resolver};
 use claude_devtools_lib::insights;
-use claude_devtools_lib::discovery::subproject_registry::SubprojectRegistry;
 use claude_devtools_lib::parsing::session_parser;
 use claude_devtools_lib::types::domain::{Session, SessionsPaginationOptions};
 
@@ -178,6 +178,7 @@ fn cmd_show_session(project_id: &str, session_id: &str, format: &str) -> Result<
         message_timestamp: None,
         has_subagents: false,
         message_count: parsed.messages.len() as u32,
+        cost_usd: None,
         is_ongoing: Some(false),
         git_branch: None,
         metadata_level: Some("deep".to_string()),
@@ -239,6 +240,7 @@ fn cmd_dump_detail(project_id: &str, session_id: &str) -> Result<(), String> {
         message_timestamp: None,
         has_subagents: !subagents.is_empty(),
         message_count: parsed.messages.len() as u32,
+        cost_usd: None,
         is_ongoing: ongoing_detector::detect_ongoing(&path),
         git_branch: None,
         metadata_level: Some("deep".to_string()),
@@ -286,8 +288,7 @@ fn cmd_tail(project_id: &str, session_id: &str) -> Result<(), String> {
                 std::thread::sleep(Duration::from_secs_f64(nap.min(1.0)));
             }
         }
-        lock.write_all(line.as_bytes())
-            .map_err(|e| e.to_string())?;
+        lock.write_all(line.as_bytes()).map_err(|e| e.to_string())?;
         lock.write_all(b"\n").map_err(|e| e.to_string())?;
         bytes_written += bytes;
         lines_written += 1;
@@ -416,16 +417,22 @@ fn run(args: Vec<String>) -> Result<(), String> {
             _ => Err("dump-tool-analytics requires <project_id> <days>".to_string()),
         },
         "dump-tool-heatmap" => match (positional.get(1), positional.get(2)) {
-            (Some(p), Some(d)) => cmd_dump_tool_heatmap(p, d, positional.get(3).copied().unwrap_or("")),
+            (Some(p), Some(d)) => {
+                cmd_dump_tool_heatmap(p, d, positional.get(3).copied().unwrap_or(""))
+            }
             _ => Err("dump-tool-heatmap requires <project_id> <days> [toolFilter]".to_string()),
         },
         "dump-error-hotspots" => match (positional.get(1), positional.get(2), positional.get(3)) {
             (Some(p), Some(d), Some(m)) => cmd_dump_error_hotspots(p, d, m),
-            _ => Err("dump-error-hotspots requires <project_id> <days> <minOccurrences>".to_string()),
+            _ => {
+                Err("dump-error-hotspots requires <project_id> <days> <minOccurrences>".to_string())
+            }
         },
         "dump-error-clusters" => match (positional.get(1), positional.get(2), positional.get(3)) {
             (Some(p), Some(d), Some(m)) => cmd_dump_error_clusters(p, d, m),
-            _ => Err("dump-error-clusters requires <project_id> <days> <minClusterSize>".to_string()),
+            _ => {
+                Err("dump-error-clusters requires <project_id> <days> <minClusterSize>".to_string())
+            }
         },
         "dump-file-graph" => match (positional.get(1), positional.get(2)) {
             (Some(p), Some(s)) => cmd_dump_file_graph(p, s),
@@ -461,11 +468,15 @@ fn cmd_dump_analytics(days_arg: &str) -> Result<(), String> {
 }
 
 fn cmd_dump_productivity(days_arg: &str) -> Result<(), String> {
-    emit_json(&analytics::compute_productivity_metrics(parse_days(days_arg)?)?)
+    emit_json(&analytics::compute_productivity_metrics(parse_days(
+        days_arg,
+    )?)?)
 }
 
 fn cmd_dump_duration(days_arg: &str) -> Result<(), String> {
-    emit_json(&analytics::compute_session_duration_stats(parse_days(days_arg)?)?)
+    emit_json(&analytics::compute_session_duration_stats(parse_days(
+        days_arg,
+    )?)?)
 }
 
 fn cmd_dump_model_comparison(days_arg: &str) -> Result<(), String> {
@@ -489,7 +500,11 @@ fn cmd_dump_tool_analytics(project_id: &str, days_arg: &str) -> Result<(), Strin
     )?)
 }
 
-fn cmd_dump_tool_heatmap(project_id: &str, days_arg: &str, tool_filter: &str) -> Result<(), String> {
+fn cmd_dump_tool_heatmap(
+    project_id: &str,
+    days_arg: &str,
+    tool_filter: &str,
+) -> Result<(), String> {
     validate_id("project_id", project_id)?;
     let filter = if tool_filter.is_empty() {
         None

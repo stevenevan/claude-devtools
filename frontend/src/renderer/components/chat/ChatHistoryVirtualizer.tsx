@@ -3,12 +3,14 @@ import { cn } from '@renderer/lib/utils';
 import { type Virtualizer } from '@tanstack/react-virtual';
 
 import { ChatHistoryItem } from './ChatHistoryItem';
+import { isSimpleChatItem } from '@renderer/types/simpleChat';
 
+import type { SimpleChatItem } from '@renderer/types/simpleChat';
 import type { ChatItem } from '@renderer/types/groups';
 import type { TriggerColor } from '@shared/constants/triggerColors';
 
 interface ChatHistoryVirtualizerProps {
-  items: ChatItem[];
+  items: Array<ChatItem | SimpleChatItem>;
   shouldVirtualize: boolean;
   rowVirtualizer: Virtualizer<HTMLDivElement, Element>;
   replayMode: string;
@@ -21,6 +23,10 @@ interface ChatHistoryVirtualizerProps {
   registerChatItemRef: (groupId: string) => (el: HTMLElement | null) => void;
   registerAIGroupRef: (groupId: string) => (el: HTMLElement | null) => void;
   registerToolRef: (toolId: string, el: HTMLElement | null) => void;
+}
+
+export function getChatItemKey(item: ChatItem | SimpleChatItem): string {
+  return isSimpleChatItem(item) ? item.id : item.group.id;
 }
 
 export const ChatHistoryVirtualizer = ({
@@ -53,7 +59,7 @@ export const ChatHistoryVirtualizer = ({
           const fadedByReplay = replayMode !== 'off' && virtualRow.index > replayCursorIndex;
           return (
             <div
-              key={virtualRow.key}
+              key={getChatItemKey(item)}
               ref={rowVirtualizer.measureElement}
               data-index={virtualRow.index}
               className={cn('pb-6', fadedByReplay && 'pointer-events-none opacity-25')}
@@ -89,7 +95,7 @@ export const ChatHistoryVirtualizer = ({
         const fadedByReplay = replayMode !== 'off' && index > replayCursorIndex;
         return (
           <div
-            key={item.group.id}
+            key={getChatItemKey(item)}
             className={cn(fadedByReplay && 'pointer-events-none opacity-25')}
           >
             <ChatHistoryItem

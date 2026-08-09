@@ -62,8 +62,9 @@ fn is_finite_number(raw: &Value) -> bool {
 
 // ─── general ─────────────────────────────────────────────────────────────────
 
-const ALLOWED_GENERAL_KEYS: [&str; 6] = [
+const ALLOWED_GENERAL_KEYS: [&str; 7] = [
     "launchAtLogin",
+    "uiMode",
     "theme",
     "defaultTab",
     "claudeRootPath",
@@ -71,6 +72,7 @@ const ALLOWED_GENERAL_KEYS: [&str; 6] = [
     "useNativeTitleBar",
 ];
 const BOOL_GENERAL_KEYS: [&str; 3] = ["launchAtLogin", "autoExpandAIGroups", "useNativeTitleBar"];
+const VALID_UI_MODES: [&str; 2] = ["simple", "nerd"];
 const VALID_THEMES: [&str; 3] = ["dark", "light", "system"];
 const VALID_DEFAULT_TABS: [&str; 2] = ["dashboard", "last-session"];
 
@@ -84,6 +86,12 @@ fn validate_general(data: &Value) -> Result<Value, String> {
         if BOOL_GENERAL_KEYS.contains(&k.as_str()) {
             if !v.is_boolean() {
                 return Err(format!("general.{k} must be a boolean"));
+            }
+            result.insert(k.clone(), v.clone());
+        } else if k == "uiMode" {
+            match v.as_str() {
+                Some(s) if VALID_UI_MODES.contains(&s) => {}
+                _ => return Err("general.uiMode must be one of: simple, nerd".to_string()),
             }
             result.insert(k.clone(), v.clone());
         } else if k == "theme" {
@@ -540,6 +548,23 @@ mod tests {
     fn valid_general_update() {
         let data = serde_json::json!({"theme": "light", "launchAtLogin": true});
         assert!(validate_config_update("general", &data).is_ok());
+    }
+
+    #[test]
+    fn valid_ui_modes() {
+        for mode in ["simple", "nerd"] {
+            let data = serde_json::json!({"uiMode": mode});
+            assert!(validate_config_update("general", &data).is_ok());
+        }
+    }
+
+    #[test]
+    fn reject_invalid_ui_mode() {
+        let data = serde_json::json!({"uiMode": "expert"});
+        assert_eq!(
+            validate_config_update("general", &data),
+            Err("general.uiMode must be one of: simple, nerd".to_string())
+        );
     }
 
     #[test]

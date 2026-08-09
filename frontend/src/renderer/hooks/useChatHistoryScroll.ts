@@ -2,13 +2,11 @@ import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { isNearBottom, useAutoScrollBottom } from '@renderer/hooks/useAutoScrollBottom';
 import { useStore } from '@renderer/store';
 
-import type { ChatItem } from '@renderer/types/groups';
-
 const SCROLL_THRESHOLD = 300;
 
 interface UseChatHistoryScrollOptions {
   scrollContainerRef: RefObject<HTMLDivElement | null>;
-  conversation: { items: ChatItem[] } | null;
+  conversation: { items: { group: { id: string } }[] } | null;
   conversationLoading: boolean;
   isThisTabActive: boolean;
   effectiveTabId: string | null | undefined;

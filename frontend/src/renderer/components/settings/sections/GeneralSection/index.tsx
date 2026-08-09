@@ -1,6 +1,7 @@
 import { JSX } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
+import { Button } from '@renderer/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -17,13 +18,14 @@ import { ServerSubsection } from './ServerSubsection';
 import { CODE_BLOCK_THEME_OPTIONS, THEME_OPTIONS } from './constants';
 
 import type { SafeConfig } from '../../hooks/useSettingsConfig';
-import type { AppConfig } from '@shared/types/notifications';
+import type { AppConfig, UIMode } from '@shared/types/notifications';
 
 interface GeneralSectionProps {
   readonly safeConfig: SafeConfig;
   readonly saving: boolean;
   readonly onGeneralToggle: (key: keyof AppConfig['general'], value: boolean) => void;
   readonly onThemeChange: (value: 'dark' | 'light' | 'system') => void;
+  readonly onUIModeChange: (value: UIMode) => void;
   readonly onDisplayToggle: (key: keyof AppConfig['display'], value: boolean) => void;
   readonly onCodeBlockThemeChange: (value: string) => void;
 }
@@ -33,6 +35,7 @@ export const GeneralSection = ({
   saving,
   onGeneralToggle,
   onThemeChange,
+  onUIModeChange,
   onDisplayToggle,
   onCodeBlockThemeChange,
 }: GeneralSectionProps): JSX.Element => {
@@ -52,6 +55,29 @@ export const GeneralSection = ({
           </SettingRow>
         </>
       )}
+
+      <SettingsSectionHeader title="Interface" />
+      <SettingRow
+        label="Interface mode"
+        description="Simple keeps everyday tools prominent. Nerd keeps every workspace control visible."
+      >
+        <div role="radiogroup" aria-label="Interface mode" className="flex gap-1">
+          {(['simple', 'nerd'] as const).map((mode) => (
+            <Button
+              key={mode}
+              type="button"
+              role="radio"
+              aria-checked={safeConfig.general.uiMode === mode}
+              variant={safeConfig.general.uiMode === mode ? 'secondary' : 'outline'}
+              size="sm"
+              onClick={() => onUIModeChange(mode)}
+              disabled={saving}
+            >
+              {mode === 'simple' ? 'Simple' : 'Nerd'}
+            </Button>
+          ))}
+        </div>
+      </SettingRow>
 
       <SettingsSectionHeader title="Appearance" />
       <SettingRow label="Theme" description="Choose your preferred color theme">

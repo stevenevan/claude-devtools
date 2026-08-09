@@ -1,6 +1,8 @@
 import { JSX, memo, MouseEvent, useMemo } from 'react';
+import { Button } from '@renderer/components/ui/button';
 import { ContextMenu, ContextMenuTrigger } from '@renderer/components/ui/context-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/ui/tooltip';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { countPendingTodos } from '@renderer/types/todos';
@@ -101,6 +103,7 @@ export const SessionItem = memo(function SessionItem({
   isSelected,
   onToggleSelect,
 }: Readonly<SessionItemProps>): JSX.Element {
+  const mode = useUIMode();
   const {
     openTab,
     activeProjectId,
@@ -157,6 +160,11 @@ export const SessionItem = memo(function SessionItem({
   };
 
   const sessionLabel = session.customTitle ?? session.firstMessage?.slice(0, 50) ?? 'Session';
+  const sessionTime = formatShortTime(new Date(session.createdAt));
+  const outlierLabel = mode === 'nerd' && isDurationOutlier ? ' Unusually long session.' : '';
+  const accessibleSessionLabel = `Open ${sessionLabel}. ${session.messageCount} ${
+    session.messageCount === 1 ? 'message' : 'messages'
+  }. ${sessionTime} ago.${outlierLabel}`;
 
   const handleOpenInCurrentPane = () => {
     if (!activeProjectId) return;
@@ -222,11 +230,15 @@ export const SessionItem = memo(function SessionItem({
     <ContextMenu>
       <ContextMenuTrigger
         render={
-          <button
+          <Button
+            type="button"
+            variant="ghost"
             onClick={handleClick}
             aria-current={isActive ? 'true' : undefined}
+            aria-label={accessibleSessionLabel}
+            title={accessibleSessionLabel}
             className={cn(
-              'h-[48px] w-full overflow-hidden border-b border-border py-2 text-left transition-all duration-150 border-l-2 focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:ring-inset',
+              'h-[48px] w-full flex-col items-stretch justify-start gap-0 overflow-hidden rounded-none border-b border-border py-2 pr-2 text-left whitespace-normal transition-all duration-150 border-l-2 focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:ring-inset',
               isActive
                 ? 'bg-card border-l-indigo-500 pl-[10px]'
                 : 'bg-transparent border-l-transparent pl-3 hover:bg-white/[0.03]',
@@ -248,9 +260,10 @@ export const SessionItem = memo(function SessionItem({
           {session.isOngoing && <OngoingIndicator />}
           {isPinned && <Pin className="size-2.5 shrink-0 text-blue-400" />}
           {isHidden && <EyeOff className="size-2.5 shrink-0 text-zinc-500" />}
-          {isDurationOutlier && (
-            <span title="Duration outlier: wall time exceeds p95 × 1.5" className="text-amber-400">
-              <AlertTriangle className="size-2.5 shrink-0" />
+          {mode === 'nerd' && isDurationOutlier && (
+            <span className="flex shrink-0 items-center gap-0.5 text-[10px] text-amber-400">
+              <AlertTriangle className="size-2.5" />
+              Long
             </span>
           )}
           <span
@@ -270,9 +283,9 @@ export const SessionItem = memo(function SessionItem({
           </span>
           <span className="opacity-50">·</span>
           <span className="text-muted-foreground tabular-nums">
-            {formatShortTime(new Date(session.createdAt))}
+            {sessionTime}
           </span>
-          {session.contextConsumption != null && session.contextConsumption > 0 && (
+          {mode === 'nerd' && session.contextConsumption != null && session.contextConsumption > 0 && (
             <>
               <span className="opacity-50">·</span>
               <ConsumptionBadge

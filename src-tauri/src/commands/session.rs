@@ -14,7 +14,8 @@ use crate::parsing::session_parser;
 use crate::pipeline;
 use crate::types::chunks::SessionDetail;
 use crate::types::domain::{
-    PaginatedSessionsResult, Project, Session, SessionMetrics, SessionsPaginationOptions,
+    PaginatedGlobalSessionsResult, PaginatedSessionsResult, Project, Session, SessionMetrics,
+    SessionsPaginationOptions,
 };
 use crate::types::search::ContentSearchResult;
 
@@ -149,6 +150,21 @@ pub fn get_sessions_paginated(
 }
 
 #[tauri::command(rename_all = "camelCase")]
+pub fn get_global_sessions_paginated(
+    cursor: Option<String>,
+    limit: Option<usize>,
+) -> Result<PaginatedGlobalSessionsResult, String> {
+    let limit = limit.unwrap_or(50);
+    if !(1..=100).contains(&limit) {
+        return Err("global sessions limit must be between 1 and 100".to_string());
+    }
+    if cursor.as_deref().is_some_and(str::is_empty) {
+        return Err("global sessions cursor must not be empty".to_string());
+    }
+    session_lister::list_global_sessions_paginated(&projects_dir()?, cursor.as_deref(), limit)
+}
+
+#[tauri::command(rename_all = "camelCase")]
 pub fn get_sessions_by_ids(
     project_id: String,
     session_ids: Vec<String>,
@@ -222,6 +238,7 @@ pub fn get_subagent_detail(
         message_timestamp: None,
         has_subagents: false,
         message_count: parsed.messages.len() as u32,
+        cost_usd: None,
         is_ongoing: Some(false),
         git_branch: None,
         metadata_level: Some("deep".to_string()),

@@ -1,5 +1,4 @@
 /// Domain/business entity types — projects, sessions, metrics, pagination.
-
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -44,6 +43,8 @@ pub struct Session {
     pub message_timestamp: Option<String>,
     pub has_subagents: bool,
     pub message_count: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cost_usd: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_ongoing: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -116,6 +117,37 @@ pub struct PaginatedSessionsResult {
     pub next_cursor: Option<String>,
     pub has_more: bool,
     pub total_count: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GlobalSession {
+    pub id: String,
+    pub project_id: String,
+    pub project_path: String,
+    pub project_name: String,
+    pub created_at: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub first_message: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub message_timestamp: Option<String>,
+    pub message_count: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub custom_title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub agent_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cost_usd: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PaginatedGlobalSessionsResult {
+    pub sessions: Vec<GlobalSession>,
+    pub next_cursor: Option<String>,
+    pub has_more: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

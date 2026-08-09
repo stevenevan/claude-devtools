@@ -1,7 +1,9 @@
 import { findLastOutput } from '@renderer/utils/lastOutputDetector';
 
 import type { SearchMatch } from '../../types';
-import type { SessionConversation } from '@renderer/types/groups';
+import { isSimpleConversation } from '@renderer/types/simpleChat';
+
+import type { SearchableConversation } from '@renderer/types/simpleChat';
 import type { ContentSearchMatch } from '@shared/types';
 
 export const MAX_SEARCH_MATCHES = 500;
@@ -41,7 +43,7 @@ export function mapRustMatchesToStoreMatches(rustMatches: ContentSearchMatch[]):
 
 export function performJsSearch(
   query: string,
-  conversation: SessionConversation,
+  conversation: SearchableConversation,
   isRegex: boolean,
   set: (partial: {
     searchQuery: string;
@@ -119,18 +121,29 @@ export function performJsSearch(
     }
   };
 
-  for (const item of conversation.items) {
-    if (capped) break;
-    if (item.type === 'user') {
-      const text = item.group.content.rawText ?? item.group.content.text ?? '';
-      addMatches(text, item.group.id, 'user');
-    } else if (item.type === 'ai') {
-      const aiGroup = item.group;
-      const itemId = aiGroup.id;
-      const lastOutput = findLastOutput(aiGroup.steps, aiGroup.isOngoing ?? false);
+  if (isSimpleConversation(conversation)) {
+    for (const item of conversation.items) {
+      if (capped) break;
+      if (item.type === 'user') {
+        addMatches(item.content, item.group.id, 'user');
+      } else if (item.type === 'ai') {
+        addMatches(item.content, item.group.id, 'ai', 'lastOutput');
+      }
+    }
+  } else {
+    for (const item of conversation.items) {
+      if (capped) break;
+      if (item.type === 'user') {
+        const text = item.group.content.rawText ?? item.group.content.text ?? '';
+        addMatches(text, item.group.id, 'user');
+      } else if (item.type === 'ai') {
+        const aiGroup = item.group;
+        const itemId = aiGroup.id;
+        const lastOutput = findLastOutput(aiGroup.steps, aiGroup.isOngoing ?? false);
 
-      if (lastOutput?.type === 'text' && lastOutput.text) {
-        addMatches(lastOutput.text, itemId, 'ai', 'lastOutput');
+        if (lastOutput?.type === 'text' && lastOutput.text) {
+          addMatches(lastOutput.text, itemId, 'ai', 'lastOutput');
+        }
       }
     }
   }

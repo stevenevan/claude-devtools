@@ -68,15 +68,18 @@ Problems for a non-technical reader:
 Rules:
 
 - **Two speakers, in order.** "You" and "Claude". Nothing else is a top-level element.
-- **Tool calls collapse into one summary line per turn** — "What Claude did (4 steps)" — expanding
-  to plain descriptions ("read `LoginForm.tsx`", "changed 2 lines"), never raw arguments.
+- **One `StepSummary` appears per assistant turn** — "What Claude did (4 steps)" — aggregating
+  tools, helpers, slash commands, teammate messages, metrics, traces, and other technical children
+  into plain descriptions ("read `LoginForm.tsx`", "changed 2 lines"). Raw arguments never appear;
+  Bash summaries never reveal command text.
 - **Thinking is hidden**, not collapsed-but-visible. It reappears in Nerd mode.
 - **No flame graph, team tree, file graph, or heatmap.** Not even as toggles.
 - Compaction reads as a sentence, in the flow, in muted text.
 - File names, not absolute paths. A path is shown as `LoginForm.tsx` with the full path on hover in
   Nerd mode only.
-- The header carries the same three facts as the conversation row in sprint 02, so the transition
-  is continuous.
+- The header carries the same light-path metadata as the conversation row in sprint 02: subject,
+  relative time, visible message count, and approximate cost when available. An unavailable cost
+  leaves the conversation readable and the other facts intact.
 
 ## 4. Nerd view
 
@@ -84,12 +87,12 @@ Today's page, unchanged: `SearchBar`, `SessionSummaryBar`, all four analysis sur
 toggles, thinking blocks inline, `LinkedToolItem` with names and arguments, `MetricsPill`,
 `ExecutionTrace`, `CompactBoundary` markers, side panels.
 
-Additions rather than removals:
+Addition rather than removal:
 
 - Toggle buttons for the four analysis surfaces get visible labels or an `aria-label`, not
   `title`-only.
-- The tool summary line from Simple mode is available here too, collapsed by default in reverse:
-  expanded, with a "collapse all steps" affordance.
+- Nerd gains no summary-control or collapse-all control; its existing technical rendering remains
+  unchanged.
 
 ## 5. Words
 
@@ -100,7 +103,7 @@ Additions rather than removals:
 | Thinking | — (hidden) | Thinking |
 | Tool call `Read` + args | "read `LoginForm.tsx`" | `Read` + arguments |
 | Tool call `Edit` + diff | "changed 2 lines in `LoginForm.tsx`" | `Edit` + diff |
-| Tool call `Bash` + command | "ran a command" (command on expand) | `Bash` + command |
+| Tool call `Bash` + command | "ran a command" (command never shown) | `Bash` + command |
 | Subagent | Helper | Subagent |
 | Compaction boundary | "Older messages were summarised to save space" | Compaction boundary |
 | `1.2M tokens`, cache reads | — (hidden) | as today |
@@ -130,44 +133,52 @@ exactly this purpose.
 0. **Load the `impeccable` skill.**
 1. Read `utils/toolRendering/toolSummaryHelpers.ts` and `utils/displaySummary.ts` and establish
    what plain-language summary already exists. Extend rather than duplicate.
-2. `StepSummary.tsx` — one line per assistant turn, expanding to plain step descriptions.
-3. Gate `ThinkingItem`, `MetricsPill` and `ExecutionTrace` to Nerd mode.
-4. `LinkedToolItem` — mode-conditional rendering: summary in Simple, today's output in Nerd.
+2. Extend summaries for Read, Edit, Write, Bash, Grep, Glob, and Task. Simple Bash never exposes
+   command text; unknown tools read "used a tool".
+3. Add a pure Simple transformation before `ChatHistoryVirtualizer` receives its items. It produces
+   only You, Claude, compaction separators, and one aggregate `StepSummary` per assistant turn;
+   derive stable IDs once and pass that canonical transformed array unchanged through descendants.
+4. Omit thinking and technical children from Simple display data. Unmount its analysis surfaces,
+   `ThinkingItem`, raw linked tools, `MetricsPill`, `ExecutionTrace`, and side panels rather than
+   CSS-hiding them. Preserve today's Nerd rendering.
 5. `CompactBoundary` — sentence form in Simple.
 6. `MiddlePanel` — the four analysis surfaces are Nerd-only; their toggles disappear in Simple
    rather than becoming no-ops.
-7. Simple header in `SessionTabContent`, mirroring sprint 02's row.
+7. Simple header in `SessionTabContent`, mirroring sprint 02's row metadata from the light session
+   path and providing a Conversations back action.
 8. Path shortening in Simple, full paths in Nerd. Use `utils/pathDisplay.ts` if it already covers
    this.
-9. Visible labels for the Nerd toggle buttons.
+9. Visible labels and `aria-pressed` for Nerd analysis toggles. Do not add collapse-all behavior.
 
 ## 8. Verification / acceptance
 
-- `bun run typecheck && bun run test && bun run qa`
-- `bun run test -- ChunkBuilder` and the semantic-step tests, since step summarisation touches
-  display item construction.
+- `bun run typecheck`
+- `bun run test` — Bun-native pure tests cover Simple transformation, tool summaries, hidden-item
+  handling, basename redaction, compaction separators, and virtual-list input stability.
+- `bun run qa`
 
-Simple mode:
+Manual Tauri verification, Simple mode:
 
-- No thinking block, no flame graph, no heatmap, no execution trace, no token figure, no absolute
-  path.
-- Every assistant turn with tool activity shows one summary line; expanding it yields sentences,
-  not JSON.
+- No thinking block, flame graph, heatmap, execution trace, token figure, model ID, absolute path,
+  raw Bash command, or technical child item appears.
+- Every assistant turn has at most one `StepSummary`; turns with technical activity show one, and
+  expanding it yields plain sentences, never JSON.
 - A compacted session reads as a sentence in the flow.
-- Scroll position and auto-scroll-to-bottom still behave (this page uses
-  `useAutoScrollBottom`).
+- Session find, scroll restoration, auto-scroll-to-bottom, and long-output keyboard scrolling still
+  behave.
 
-Nerd mode:
+Manual Tauri verification, Nerd mode:
 
-- Identical to today apart from labelled toggles and the collapse-all affordance.
-- Search within the session, side panels, and all four analysis surfaces still work.
+- Identical to today apart from labelled toggles.
+- Search within the session, side panels, and all four analysis surfaces still work. No
+  collapse-all control is added.
 
 ## 9. Accessibility
 
 - Turns are a list; each turn has an accessible name naming the speaker.
 - The step summary is a real `<button>` with `aria-expanded`, and its expanded region is
   associated with it.
-- Analysis-surface toggles carry `aria-pressed` and an accessible name in both modes.
+- Nerd analysis-surface toggles carry `aria-pressed` and an accessible name; Simple unmounts them.
 - Long output regions are keyboard-scrollable and not focus traps.
 - Code blocks keep a text alternative for their language label.
 
@@ -183,7 +194,8 @@ mirrors, and the cost formatter chosen there).
 - Plain-language tool summaries are a per-tool mapping. There are many tools, and the tail is
   long. Cover the common ones (`Read`, `Edit`, `Write`, `Bash`, `Grep`, `Glob`, `Task`) and fall
   back to "used a tool" for the rest — a generic fallback is correct here, not lazy.
-- Hiding thinking blocks changes what "18 messages" counts. Keep the count consistent with what
-  Simple mode actually shows, or it reads as a bug.
+- Light metadata counts visible main-thread turns and excludes thinking, tool-result-only users,
+  sidechains, compaction, and technical records, keeping the Simple header consistent with its
+  reading surface.
 - `ExecutionTrace` and the analysis surfaces may hold state that assumes they are mounted. Gating
   them must unmount cleanly, not just hide them with CSS.

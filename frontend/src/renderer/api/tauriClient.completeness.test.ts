@@ -48,6 +48,7 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['notifications.onClicked', (a) => a.notifications.onClicked(() => {})],
   // Session/search parity.
   ['getProjects', (a) => a.getProjects()],
+  ['getGlobalSessionsPaginated', (a) => a.getGlobalSessionsPaginated(null)],
   ['getSessions', (a) => a.getSessions('p')],
   ['getSessionsPaginated', (a) => a.getSessionsPaginated('p', null)],
   ['searchSessions', (a) => a.searchSessions('p', 'query')],
@@ -293,10 +294,15 @@ test('every DesktopAPI method resolves through Tauri', async () => {
 test('session commands preserve command names and argument shapes', async () => {
   invocations.length = 0;
   const api = createTauriClient();
+  await api.getGlobalSessionsPaginated('global-cursor', 25);
   await api.getSessionsPaginated('project', 'cursor', 50, { prefilterAll: false });
   await api.searchSessionContent('project', 'session', 'needle');
   await api.getSubagentDetail('project', 'session', 'agent');
   expect(invocations).toEqual([
+    {
+      command: 'get_global_sessions_paginated',
+      args: { cursor: 'global-cursor', limit: 25 },
+    },
     {
       command: 'get_sessions_paginated',
       args: {

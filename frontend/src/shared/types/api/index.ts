@@ -11,6 +11,7 @@ import type {
   FileGraphResponse,
   FilteredSearchResponse,
   ModelComparisonResponse,
+  PaginatedGlobalSessionsResult,
   PaginatedSessionsResult,
   ProductivityMetrics,
   Project,
@@ -123,6 +124,10 @@ export interface SourcesView {
 export interface DesktopAPI {
   getAppVersion: () => Promise<string>;
   getProjects: () => Promise<Project[]>;
+  getGlobalSessionsPaginated: (
+    cursor: string | null,
+    limit?: number
+  ) => Promise<PaginatedGlobalSessionsResult>;
   getSessions: (projectId: string) => Promise<Session[]>;
   getSessionsPaginated: (
     projectId: string,

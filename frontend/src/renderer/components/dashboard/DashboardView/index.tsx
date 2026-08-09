@@ -1,14 +1,15 @@
-
-
 import { JSX, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
 import { Settings } from 'lucide-react';
+
+import { ConversationList } from '../ConversationList';
 
 import { CommandSearch } from './CommandSearch';
 import { ProjectsGrid } from './ProjectsGrid';
 
-export const DashboardView = (): JSX.Element => {
+const NerdDashboardView = (): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState('');
   const openSettingsTab = useStore((s) => s.openSettingsTab);
 
@@ -60,4 +61,10 @@ export const DashboardView = (): JSX.Element => {
       </div>
     </div>
   );
+};
+
+export const DashboardView = (): JSX.Element => {
+  const mode = useUIMode();
+
+  return mode === 'simple' ? <ConversationList /> : <NerdDashboardView />;
 };

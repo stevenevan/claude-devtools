@@ -25,7 +25,7 @@ use super::triggers::{
 use super::types::{
     AnnotationEntry, AnnotationExportBundle, AppConfig, BookmarkEntry, CustomTheme, FilterPreset,
     HiddenSession, ImportReport, NotificationConfig, NotificationTrigger, PinnedSession,
-    RetentionCategory, RetentionPolicy, SshLastConnection, WebhookEndpoint,
+    RetentionCategory, RetentionPolicy, SshLastConnection, UiMode, WebhookEndpoint,
 };
 use super::validation::validate_config_update;
 use crate::config::root::{claude_dir, get_claude_root_info, normalize_claude_root_path, ClaudeRootInfo};
@@ -170,7 +170,12 @@ fn merge_config_with_defaults(raw: Map<String, Value>) -> AppConfig {
     }
 
     if let Some(v) = raw.get("general") {
-        if let Some(parsed) = overlay_deserialize(&defaults.general, v) {
+        if let Some(mut parsed) = overlay_deserialize(&defaults.general, v) {
+            if v.as_object()
+                .is_some_and(|general| !general.contains_key("uiMode"))
+            {
+                parsed.ui_mode = UiMode::Nerd;
+            }
             cfg.general = parsed;
         }
     }
@@ -1186,6 +1191,11 @@ fn merge_into_general(g: &mut super::types::GeneralConfig, obj: &Map<String, Val
     if let Some(b) = obj.get("launchAtLogin").and_then(Value::as_bool) {
         g.launch_at_login = b;
     }
+    if let Some(v) = obj.get("uiMode") {
+        if let Ok(mode) = serde_json::from_value::<UiMode>(v.clone()) {
+            g.ui_mode = mode;
+        }
+    }
     if let Some(s) = obj.get("theme").and_then(Value::as_str) {
         g.theme = s.to_string();
     }
@@ -1396,6 +1406,60 @@ mod tests {
         let path = unique_temp_dir().join("config.json");
         let cs = ConfigState::with_path_for_test(path.clone(), AppConfig::default(), true);
         (cs, path)
+    }
+
+    #[test]
+    fn missing_ui_mode_migrates_to_nerd() {
+        let raw = serde_json::json!({
+            "general": {
+                "theme": "light"
+            }
+        })
+        .as_object()
+        .cloned()
+        .unwrap();
+
+        let config = merge_config_with_defaults(raw);
+
+        assert_eq!(config.general.ui_mode, UiMode::Nerd);
+        assert_eq!(config.general.theme, "light");
+    }
+
+    #[test]
+    fn explicit_ui_modes_survive_config_merge() {
+        for (raw_mode, expected) in [("simple", UiMode::Simple), ("nerd", UiMode::Nerd)] {
+            let raw = serde_json::json!({
+                "general": {
+                    "uiMode": raw_mode
+                }
+            })
+            .as_object()
+            .cloned()
+            .unwrap();
+
+            let config = merge_config_with_defaults(raw);
+
+            assert_eq!(config.general.ui_mode, expected);
+        }
+    }
+
+    #[test]
+    fn general_section_update_persists_ui_mode() {
+        let (config_state, path) = temp_config();
+
+        let updated = config_state
+            .update_config("general", serde_json::json!({"uiMode": "simple"}))
+            .unwrap();
+        assert_eq!(updated.general.ui_mode, UiMode::Simple);
+        assert!(!updated.general.launch_at_login);
+
+        let reloaded = ConfigState::with_path_for_test(path, AppConfig::default(), false);
+        assert_eq!(reloaded.get_config().general.ui_mode, UiMode::Simple);
+
+        let updated = reloaded
+            .update_config("general", serde_json::json!({"uiMode": "nerd"}))
+            .unwrap();
+        assert_eq!(updated.general.ui_mode, UiMode::Nerd);
     }
 
     #[test]

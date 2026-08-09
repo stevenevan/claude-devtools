@@ -3,14 +3,14 @@ import { useEffect, useRef } from 'react';
 import type { MutableRefObject } from 'react';
 
 import type { SearchMatch } from '@renderer/store/types';
-import type { SessionConversation } from '@renderer/types/groups';
+import type { SearchableConversation } from '@renderer/types/simpleChat';
 
 const EMPTY_RENDER_RETRIES = 3;
 
 export function useSearchMatchSync(args: {
   isThisTabActive: boolean;
   isSearchActive: boolean;
-  conversation: SessionConversation | null;
+  conversation: SearchableConversation | null;
   shouldVirtualize: boolean;
   scrollContainerRef: MutableRefObject<HTMLDivElement | null>;
   currentSearchIndex: number;

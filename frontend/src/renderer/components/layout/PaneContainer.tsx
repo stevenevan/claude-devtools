@@ -7,6 +7,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
 
 import { PaneResizeHandle } from './PaneResizeHandle';
@@ -17,7 +18,11 @@ import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import type { Tab } from '@renderer/types/tabs';
 
 export const PaneContainer = (): JSX.Element => {
-  const panes = useStore((s) => s.paneLayout.panes);
+  const paneLayout = useStore((s) => s.paneLayout);
+  const mode = useUIMode();
+  const panes = mode === 'simple'
+    ? paneLayout.panes.filter((pane) => pane.id === paneLayout.focusedPaneId)
+    : paneLayout.panes;
 
   const [activeTab, setActiveTab] = useState<Tab | null>(null);
 
@@ -51,7 +56,7 @@ export const PaneContainer = (): JSX.Element => {
 
     setActiveTab(null);
 
-    if (!over || !active.data.current) return;
+    if (mode === 'simple' || !over || !active.data.current) return;
 
     const activeData = active.data.current;
     const overData = over.data.current;

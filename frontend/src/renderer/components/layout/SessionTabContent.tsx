@@ -1,4 +1,6 @@
 import { JSX, useEffect } from 'react';
+import { Button } from '@renderer/components/ui/button';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -6,6 +8,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { SubagentDetailPanel } from '../chat/SubagentDetailPanel';
 
 import { MiddlePanel } from './MiddlePanel';
+import { SimpleSessionHeader } from './SimpleSessionHeader';
 
 import type { Tab } from '@renderer/types/tabs';
 
@@ -13,21 +16,28 @@ export const SessionTabContent = ({
   tab,
   isActive,
 }: Readonly<{ tab: Tab; isActive: boolean }>): JSX.Element => {
-  const { fetchSessionDetail, closeTab, initTabUIState } = useStore(
+  const mode = useUIMode();
+  const { fetchSessionDetail, closeTab, initTabUIState, setActiveActivity } = useStore(
     useShallow((s) => ({
       fetchSessionDetail: s.fetchSessionDetail,
       closeTab: s.closeTab,
       initTabUIState: s.initTabUIState,
+      setActiveActivity: s.setActiveActivity,
     }))
   );
 
   // Read loading/error from per-tab data, falling back to global state
-  const { sessionDetailError, sessionDetailLoading } = useStore(
+  const { sessionDetailError, sessionDetailLoading, session } = useStore(
     useShallow((s) => {
       const td = s.tabSessionData[tab.id];
+      const sessionDetail = td?.sessionDetail ?? s.sessionDetail;
+      const session = sessionDetail?.session;
+      const matchingSession =
+        session && session.id === tab.sessionId && session.projectId === tab.projectId ? session : null;
       return {
         sessionDetailError: td?.sessionDetailError ?? s.sessionDetailError,
         sessionDetailLoading: td?.sessionDetailLoading ?? s.sessionDetailLoading,
+        session: matchingSession,
       };
     })
   );
@@ -52,25 +62,26 @@ export const SessionTabContent = ({
         <div className="p-8 text-center">
           <AlertCircle className="mx-auto mb-4 size-12 text-red-500/70" />
           <h3 className="text-foreground mb-2 text-lg font-medium">Failed to load session</h3>
-          <p className="text-foreground-secondary mb-4 max-w-md text-sm">{sessionDetailError}</p>
+          <p className="text-foreground-secondary mb-4 max-w-md text-sm">
+            {mode === 'simple' ? 'Try loading this conversation again.' : sessionDetailError}
+          </p>
           <div className="flex justify-center gap-3">
-            <button
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => {
                 if (tab.projectId && tab.sessionId) {
                   void fetchSessionDetail(tab.projectId, tab.sessionId, tab.id);
                 }
               }}
-              className="border-border bg-background hover:bg-card flex items-center gap-2 rounded-md border px-4 py-2 text-sm transition-colors"
+              className="gap-2"
             >
               <RefreshCw className="size-4" />
               Retry
-            </button>
-            <button
-              onClick={() => closeTab(tab.id)}
-              className="text-foreground-secondary hover:text-foreground px-4 py-2 text-sm transition-colors"
-            >
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => closeTab(tab.id)}>
               Close tab
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -90,8 +101,11 @@ export const SessionTabContent = ({
 
   return (
     <div className="bg-background relative flex min-w-0 flex-1 flex-col overflow-hidden">
+      {mode === 'simple' && session && (
+        <SimpleSessionHeader session={session} onBack={() => setActiveActivity('projects')} />
+      )}
       <MiddlePanel tabId={tab.id} />
-      <SubagentDetailPanel />
+      {mode === 'nerd' && <SubagentDetailPanel />}
     </div>
   );
 };

@@ -1,7 +1,7 @@
 
 import { api } from '@renderer/api';
 import { asEnhancedChunkArray } from '@renderer/types/data';
-import { findTabBySession, truncateLabel } from '@renderer/types/tabs';
+import { findTabBySessionAndProject, truncateLabel } from '@renderer/types/tabs';
 import { processSessionClaudeMd } from '@renderer/utils/claudeMd';
 import { processSessionContextWithPhases } from '@renderer/utils/contextTracker';
 import { transformChunksToConversation } from '@renderer/utils/groupTransformer';
@@ -194,7 +194,11 @@ export async function fetchSessionDetailAction(
       return;
     }
 
-    const existingTab = findTabBySession(currentState.openTabs, sessionId);
+    const existingTab = findTabBySessionAndProject(
+      currentState.openTabs,
+      sessionId,
+      projectId
+    );
     if (existingTab && detail) {
       const newLabel = detail.session.customTitle
         ? truncateLabel(detail.session.customTitle)

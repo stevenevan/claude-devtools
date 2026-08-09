@@ -12,7 +12,9 @@ import {
 } from './searchInternals';
 
 import type { AppState, SearchMatch } from '../../types';
-import type { SessionConversation } from '@renderer/types/groups';
+import { isSimpleConversation } from '@renderer/types/simpleChat';
+
+import type { SearchableConversation } from '@renderer/types/simpleChat';
 
 type Get = () => AppState;
 type Set = (partial: Partial<AppState> | ((state: AppState) => Partial<AppState>)) => void;
@@ -21,9 +23,10 @@ export function runSetSearchQuery(
   get: Get,
   set: Set,
   query: string,
-  conversationOverride?: SessionConversation | null
+  conversationOverride?: SearchableConversation | null
 ): void {
   const conversation = conversationOverride ?? get().conversation;
+  const requestId = bumpSearchId();
 
   if (!query.trim() || !conversation) {
     if (isSearchDebugEnabled()) {
@@ -44,7 +47,8 @@ export function runSetSearchQuery(
 
   const { searchIsRegex } = get();
 
-  const shouldUseRust = conversation.items.length > RUST_SEARCH_THRESHOLD;
+  const shouldUseRust =
+    !isSimpleConversation(conversation) && conversation.items.length > RUST_SEARCH_THRESHOLD;
 
   if (shouldUseRust) {
     const state = get();
@@ -57,8 +61,6 @@ export function runSetSearchQuery(
     }
 
     set({ searchQuery: query });
-
-    const requestId = bumpSearchId();
 
     api
       .searchSessionContent(
@@ -108,11 +110,16 @@ export function runSetSearchQuery(
   performJsSearch(query, conversation, searchIsRegex, set);
 }
 
-export function runSetSearchIsRegex(get: Get, set: Set, isRegex: boolean): void {
+export function runSetSearchIsRegex(
+  get: Get,
+  set: Set,
+  isRegex: boolean,
+  conversationOverride?: SearchableConversation | null
+): void {
   set({ searchIsRegex: isRegex });
   const state = get();
   if (state.searchQuery.trim()) {
-    state.setSearchQuery(state.searchQuery);
+    state.setSearchQuery(state.searchQuery, conversationOverride);
   }
 }
 
