@@ -1,5 +1,6 @@
 import { cloneElement, JSX, ReactElement, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
 import { formatShortcut } from '@renderer/utils/stringUtils';
 import { Command, Search } from 'lucide-react';
@@ -15,7 +16,9 @@ export const GlobalContentView = ({
 }: Readonly<GlobalContentViewProps>): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const mode = useUIMode();
   const openCommandPalette = useStore((s) => s.openCommandPalette);
+  const effectiveSearchQuery = mode === 'simple' ? '' : searchQuery;
 
   return (
     <div className="bg-background relative flex-1 overflow-auto">
@@ -25,46 +28,48 @@ export const GlobalContentView = ({
       />
 
       <div className="relative mx-auto max-w-5xl px-8 py-12">
-        <div className="relative mx-auto mb-8 w-full max-w-xl">
-          <div
-            className={`bg-card relative flex items-center gap-3 rounded-xs border px-4 py-3 transition-all duration-200 ${
-              isFocused
-                ? 'border-zinc-500 shadow-[0_0_20px_rgba(255,255,255,0.04)] ring-1 ring-zinc-600/30'
-                : 'border-border hover:border-zinc-600'
-            }`}
-          >
-            <Search className="text-muted-foreground size-4 shrink-0" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={`Search ${title.toLowerCase()}...`}
-              className="text-foreground placeholder:text-muted-foreground flex-1 bg-transparent text-sm outline-hidden"
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-            />
-            <Button
-              variant="ghost"
-              size="xs"
-              onClick={() => openCommandPalette()}
-              title={`Open command palette (${formatShortcut('K')})`}
-              className="shrink-0 gap-1"
+        {mode !== 'simple' && (
+          <div className="relative mx-auto mb-8 w-full max-w-xl">
+            <div
+              className={`bg-card relative flex items-center gap-3 rounded-xs border px-4 py-3 transition-all duration-200 ${
+                isFocused
+                  ? 'border-zinc-500 shadow-[0_0_20px_rgba(255,255,255,0.04)] ring-1 ring-zinc-600/30'
+                  : 'border-border hover:border-zinc-600'
+              }`}
             >
-              <kbd className="border-border bg-popover text-muted-foreground flex h-5 items-center justify-center rounded-sm border px-1.5 text-[10px] font-medium">
-                <Command className="size-2.5" />
-              </kbd>
-              <kbd className="border-border bg-popover text-muted-foreground flex size-5 items-center justify-center rounded-sm border text-[10px] font-medium">
-                K
-              </kbd>
-            </Button>
+              <Search className="text-muted-foreground size-4 shrink-0" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={`Search ${title.toLowerCase()}...`}
+                className="text-foreground placeholder:text-muted-foreground flex-1 bg-transparent text-sm outline-hidden"
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+              />
+              <Button
+                variant="ghost"
+                size="xs"
+                onClick={() => openCommandPalette()}
+                title={`Open command palette (${formatShortcut('K')})`}
+                className="shrink-0 gap-1"
+              >
+                <kbd className="border-border bg-popover text-muted-foreground flex h-5 items-center justify-center rounded-sm border px-1.5 text-[10px] font-medium">
+                  <Command className="size-2.5" />
+                </kbd>
+                <kbd className="border-border bg-popover text-muted-foreground flex size-5 items-center justify-center rounded-sm border text-[10px] font-medium">
+                  K
+                </kbd>
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
-            {searchQuery.trim() ? 'Search Results' : title}
+            {effectiveSearchQuery.trim() ? 'Search Results' : title}
           </h2>
-          {searchQuery.trim() && (
+          {effectiveSearchQuery.trim() && (
             <Button
               variant="ghost"
               size="xs"
@@ -76,7 +81,7 @@ export const GlobalContentView = ({
           )}
         </div>
 
-        {cloneElement(children, { searchQuery })}
+        {cloneElement(children, { searchQuery: effectiveSearchQuery })}
       </div>
     </div>
   );
