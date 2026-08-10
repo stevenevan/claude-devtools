@@ -10,19 +10,32 @@ import {
   SelectValue,
 } from '@renderer/components/ui/select';
 import { cn } from '@renderer/lib/utils';
+import { useUIMode } from '@renderer/hooks/useUIMode';
+import { useStore } from '@renderer/store';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { formatDistanceToNowStrict } from 'date-fns';
 import { History as HistoryIcon, Loader2, RefreshCw, Search } from 'lucide-react';
 
+import {
+  flattenHistoryEntries,
+  getHistoryProjectLabel,
+  getHistoryProjectOptions,
+} from './historyBrowserHelpers';
+
 import type { HistoryEntry } from '@shared/types/api';
+import type { HistoryListItem } from './historyBrowserHelpers';
+import type { Project } from '@renderer/types/data';
 
 const PAGE_SIZE = 100;
 const ROW_HEIGHT = 52;
+const HEADING_HEIGHT = 32;
 const OVERSCAN = 8;
 const SEARCH_DEBOUNCE_MS = 300;
 const LOAD_MORE_THRESHOLD = 3;
 const ALL_PROJECTS = '__all__';
 
-const estimateRowSize = (): number => ROW_HEIGHT;
+const estimateRowSize = (item: HistoryListItem | undefined): number =>
+  item?.type === 'heading' ? HEADING_HEIGHT : ROW_HEIGHT;
 
 function errText(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
@@ -34,6 +47,8 @@ function errText(err: unknown): string {
 // Search re-queries the backend; the project filter only narrows the
 // already-loaded window. This panel writes nothing.
 export const HistoryBrowser = (): JSX.Element => {
+  const mode = useUIMode();
+  const projects = useStore((state) => state.projects);
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [totalMatched, setTotalMatched] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -101,21 +116,24 @@ export const HistoryBrowser = (): JSX.Element => {
     void loadPage(null, searchInput.trim() || undefined, true);
   };
 
-  const projectOptions = useMemo(() => {
-    const set = new Set<string>();
-    for (const entry of entries) set.add(entry.project);
-    return Array.from(set).sort();
-  }, [entries]);
+  const projectOptions = useMemo(
+    () => getHistoryProjectOptions(entries, projects, mode),
+    [entries, mode, projects]
+  );
 
   const filteredEntries = useMemo(() => {
     if (projectFilter === ALL_PROJECTS) return entries;
     return entries.filter((entry) => entry.project === projectFilter);
   }, [entries, projectFilter]);
 
+  const historyItems = useMemo(() => flattenHistoryEntries(filteredEntries), [filteredEntries]);
+
   const rowVirtualizer = useVirtualizer({
-    count: filteredEntries.length,
+    count: historyItems.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: estimateRowSize,
+    estimateSize: (index) => estimateRowSize(historyItems[index]),
+    getItemKey: (index) => historyItems[index]?.id ?? index,
+    measureElement: (element) => element.getBoundingClientRect().height,
     overscan: OVERSCAN,
   });
 
@@ -125,7 +143,7 @@ export const HistoryBrowser = (): JSX.Element => {
   useEffect(() => {
     if (virtualRowsLength === 0 || !hasMore || loading || loadingMore) return;
     const lastRow = virtualRows[virtualRowsLength - 1];
-    if (!lastRow || lastRow.index < filteredEntries.length - LOAD_MORE_THRESHOLD) return;
+    if (!lastRow || lastRow.index < historyItems.length - LOAD_MORE_THRESHOLD) return;
     const oldestLoaded = entries[entries.length - 1];
     if (!oldestLoaded) return;
 
@@ -134,7 +152,7 @@ export const HistoryBrowser = (): JSX.Element => {
   }, [
     virtualRows,
     virtualRowsLength,
-    filteredEntries.length,
+    historyItems.length,
     hasMore,
     loading,
     loadingMore,
@@ -146,10 +164,13 @@ export const HistoryBrowser = (): JSX.Element => {
     <div className="flex h-full flex-col overflow-hidden">
       <div className="border-border/50 flex shrink-0 items-start justify-between gap-2 border-b px-4 py-3">
         <div>
-          <p className="text-foreground text-sm font-medium">History</p>
+          <p className="text-foreground text-sm font-medium">
+            {mode === 'simple' ? 'Things you asked' : 'History'}
+          </p>
           <p className="text-muted-foreground mt-0.5 text-xs">
-            Read-only view of prompt and command history captured under ~/.claude/history.jsonl.
-            Nothing here writes.
+            {mode === 'simple'
+              ? 'Prompts you have written are saved here for reuse.'
+              : 'Read-only view of prompt and command history captured under ~/.claude/history.jsonl. Nothing here writes.'}
           </p>
         </div>
         <Button variant="outline" size="sm" disabled={loading} onClick={refresh}>
@@ -166,20 +187,22 @@ export const HistoryBrowser = (): JSX.Element => {
             aria-label="Search prompts and projects"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search prompts and projects..."
+            placeholder={mode === 'simple' ? 'Search what you asked...' : 'Search prompts and projects...'}
             className="border-border bg-card text-foreground placeholder:text-muted-foreground focus:ring-ring/30 w-full rounded-md border py-1.5 pr-2 pl-8 text-xs outline-none focus:ring-1"
           />
         </div>
 
         <Select value={projectFilter} onValueChange={(value) => setProjectFilter(value ?? ALL_PROJECTS)}>
           <SelectTrigger size="sm" className="min-w-40">
-            <SelectValue placeholder="All projects" />
+            <SelectValue placeholder={mode === 'simple' ? 'All folders' : 'All projects'} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL_PROJECTS}>All projects</SelectItem>
+            <SelectItem value={ALL_PROJECTS}>
+              {mode === 'simple' ? 'All folders' : 'All projects'}
+            </SelectItem>
             {projectOptions.map((project) => (
-              <SelectItem key={project} value={project}>
-                {project}
+              <SelectItem key={project.value} value={project.value}>
+                {project.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -214,29 +237,40 @@ export const HistoryBrowser = (): JSX.Element => {
               <HistoryIcon className="text-muted-foreground size-6 opacity-50" />
               <p className="text-muted-foreground text-xs">
                 {entries.length === 0
-                  ? 'No history entries found.'
-                  : 'No entries match this project filter.'}
+                  ? mode === 'simple'
+                    ? 'Nothing here yet. Use Claude Code to create history entries.'
+                    : 'No history entries found.'
+                  : mode === 'simple'
+                    ? 'Nothing found. Try a different word, or clear the folder filter.'
+                    : 'No entries match this project filter.'}
               </p>
             </div>
           ) : (
             <div className="relative w-full" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
               {virtualRows.map((virtualRow) => {
-                const entry = filteredEntries[virtualRow.index];
-                if (!entry) return null;
+                const item = historyItems[virtualRow.index];
+                if (!item) return null;
                 return (
                   <div
                     key={virtualRow.key}
+                    ref={rowVirtualizer.measureElement}
+                    data-index={virtualRow.index}
                     className="absolute top-0 left-0 w-full"
                     style={{
-                      height: `${virtualRow.size}px`,
                       transform: `translateY(${virtualRow.start}px)`,
                     }}
                   >
-                    <HistoryRow
-                      entry={entry}
-                      selected={selected === entry}
-                      onSelect={() => setSelected(entry)}
-                    />
+                    {item.type === 'heading' ? (
+                      <HistoryHeading label={item.label} />
+                    ) : (
+                      <HistoryRow
+                        entry={item.entry}
+                        mode={mode}
+                        projects={projects}
+                        selected={selected === item.entry}
+                        onSelect={() => setSelected(item.entry)}
+                      />
+                    )}
                   </div>
                 );
               })}
@@ -254,7 +288,7 @@ export const HistoryBrowser = (): JSX.Element => {
         </div>
 
         <div className="w-96 shrink-0">
-          <HistoryDetail entry={selected} />
+          <HistoryDetail entry={selected} mode={mode} projects={projects} />
         </div>
       </div>
     </div>
@@ -263,12 +297,33 @@ export const HistoryBrowser = (): JSX.Element => {
 
 interface HistoryRowProps {
   entry: HistoryEntry;
+  mode: 'simple' | 'nerd';
+  projects: readonly Project[];
   selected: boolean;
   onSelect: () => void;
 }
 
-const HistoryRow = ({ entry, selected, onSelect }: Readonly<HistoryRowProps>): JSX.Element => {
+const HistoryHeading = ({ label }: Readonly<{ label: string }>): JSX.Element => (
+  <h2 className="text-muted-foreground flex h-8 items-center border-b border-border/40 px-4 text-[10px] font-medium uppercase tracking-wider">
+    {label}
+  </h2>
+);
+
+const HistoryRow = ({
+  entry,
+  mode,
+  projects,
+  selected,
+  onSelect,
+}: Readonly<HistoryRowProps>): JSX.Element => {
   const preview = entry.display.replace(/\s+/g, ' ').trim();
+  const projectLabel = getHistoryProjectLabel(entry.project, projects, mode);
+  const dateLabel =
+    mode === 'simple'
+      ? formatDistanceToNowStrict(new Date(entry.timestamp), { addSuffix: true })
+      : new Date(entry.timestamp).toLocaleString();
+  const copyLabel = `Copy prompt: ${preview || 'empty prompt'}`;
+
   return (
     <div
       role="button"
@@ -282,29 +337,42 @@ const HistoryRow = ({ entry, selected, onSelect }: Readonly<HistoryRowProps>): J
         }
       }}
       className={cn(
-        'group border-border/40 flex h-full w-full min-w-0 cursor-pointer items-center gap-2 border-b px-4 py-2 text-left transition-colors',
+        'group border-border/40 flex min-h-[52px] w-full min-w-0 cursor-pointer items-center gap-2 border-b px-4 py-2 text-left transition-colors',
         selected ? 'bg-card/60' : 'hover:bg-card/30'
       )}
     >
       <div className="min-w-0 flex-1">
         <p className="text-foreground truncate text-xs">{preview || '(empty prompt)'}</p>
         <p className="text-muted-foreground mt-0.5 truncate text-[10px]">
-          {entry.project} · {new Date(entry.timestamp).toLocaleString()}
+          {projectLabel} · {dateLabel}
           {entry.pastedCount > 0 &&
             ` · ${entry.pastedCount} paste${entry.pastedCount === 1 ? '' : 's'}`}
         </p>
       </div>
       <div
-        className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+        className={cn(
+          'shrink-0 transition-opacity',
+          mode === 'nerd'
+            ? 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
+            : 'opacity-100'
+        )}
         onClick={(e) => e.stopPropagation()}
       >
-        <CopyButton text={entry.display} inline />
+        <CopyButton text={entry.display} label={copyLabel} inline />
       </div>
     </div>
   );
 };
 
-const HistoryDetail = ({ entry }: Readonly<{ entry: HistoryEntry | null }>): JSX.Element => {
+const HistoryDetail = ({
+  entry,
+  mode,
+  projects,
+}: Readonly<{
+  entry: HistoryEntry | null;
+  mode: 'simple' | 'nerd';
+  projects: readonly Project[];
+}>): JSX.Element => {
   if (!entry) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
@@ -313,18 +381,25 @@ const HistoryDetail = ({ entry }: Readonly<{ entry: HistoryEntry | null }>): JSX
       </div>
     );
   }
+  const projectLabel = getHistoryProjectLabel(entry.project, projects, mode);
+  const dateLabel =
+    mode === 'simple'
+      ? formatDistanceToNowStrict(new Date(entry.timestamp), { addSuffix: true })
+      : new Date(entry.timestamp).toLocaleString();
+  const copyLabel = `Copy prompt: ${entry.display.replace(/\s+/g, ' ').trim() || 'empty prompt'}`;
+
   return (
     <div className="flex h-full flex-col overflow-y-auto p-4">
       <div className="mb-3 flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-foreground truncate text-xs font-medium">{entry.project}</p>
+          <p className="text-foreground truncate text-xs font-medium">{projectLabel}</p>
           <p className="text-muted-foreground mt-0.5 text-[10px]">
-            {new Date(entry.timestamp).toLocaleString()}
+            {dateLabel}
             {entry.pastedCount > 0 &&
               ` · ${entry.pastedCount} paste${entry.pastedCount === 1 ? '' : 's'}`}
           </p>
         </div>
-        <CopyButton text={entry.display} inline />
+        <CopyButton text={entry.display} label={copyLabel} inline />
       </div>
       <pre className="text-foreground border-border bg-card/40 flex-1 overflow-auto rounded-md border p-3 text-xs whitespace-pre-wrap break-words">
         {entry.display}
