@@ -1,4 +1,7 @@
-import { JSX, useEffect, useMemo } from 'react';
+import { JSX, useEffect, useMemo, useState } from 'react';
+import { api, isDesktopMode } from '@renderer/api';
+import { Button } from '@renderer/components/ui/button';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { Skeleton } from '@renderer/components/ui/skeleton';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -6,6 +9,8 @@ import { Puzzle, Search } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import type { GlobalPlugin } from '@shared/types/api';
+
+import { InstallableList } from './InstallableList';
 
 function formatPluginName(name: string): string {
   return name
@@ -72,8 +77,12 @@ const PluginCard = ({ plugin, isHighlighted }: Readonly<PluginCardProps>): JSX.E
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {plugin.version && (
-          <span className="text-muted-foreground text-[10px]">
-            v{formatVersion(plugin.version)}
+          <span
+            className="text-muted-foreground text-[10px]"
+            title={`Full version: ${plugin.version}`}
+            aria-label={`Version ${plugin.version}`}
+          >
+            Version {formatVersion(plugin.version)}
           </span>
         )}
         {plugin.lastUpdated && (
@@ -124,19 +133,47 @@ interface PluginsGridProps {
 }
 
 export const PluginsGrid = ({ searchQuery }: Readonly<PluginsGridProps>): JSX.Element => {
-  const { globalPlugins, globalPluginsLoading, fetchGlobalPlugins } = useStore(
+  const mode = useUIMode();
+  const {
+    globalPlugins,
+    globalPluginsLoading,
+    globalPluginsError,
+    connectionMode,
+    fetchGlobalPlugins,
+    setActiveActivity,
+  } = useStore(
     useShallow((s) => ({
       globalPlugins: s.globalPlugins,
       globalPluginsLoading: s.globalPluginsLoading,
+      globalPluginsError: s.globalPluginsError,
+      connectionMode: s.connectionMode,
       fetchGlobalPlugins: s.fetchGlobalPlugins,
+      setActiveActivity: s.setActiveActivity,
     }))
   );
+  const canAct = isDesktopMode() && connectionMode === 'local';
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (globalPlugins.length === 0 && !globalPluginsLoading) {
       void fetchGlobalPlugins();
     }
   }, [globalPlugins.length, globalPluginsLoading, fetchGlobalPlugins]);
+
+  const handleToggle = async (plugin: GlobalPlugin): Promise<void> => {
+    if (!canAct || togglingId) return;
+    setTogglingId(plugin.id);
+    setActionError(null);
+    try {
+      await api.setPluginEnabled(plugin.id, !plugin.enabled);
+      await fetchGlobalPlugins();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to update plugin state');
+    } finally {
+      setTogglingId(null);
+    }
+  };
 
   const filtered = useMemo(() => {
     if (!searchQuery.trim()) return globalPlugins;
@@ -147,6 +184,73 @@ export const PluginsGrid = ({ searchQuery }: Readonly<PluginsGridProps>): JSX.El
   }, [globalPlugins, searchQuery]);
 
   if (globalPluginsLoading) return <PluginsGridSkeleton />;
+
+  if (mode === 'simple') {
+    if (globalPlugins.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-border px-8 py-16 text-center">
+          {(globalPluginsError || actionError) && (
+            <p role="alert" className="text-destructive mb-3 text-xs">
+              {actionError ?? globalPluginsError}
+            </p>
+          )}
+          <Puzzle className="text-muted-foreground mb-3 size-6" />
+          <p className="text-muted-foreground text-sm">No add-ons are installed yet.</p>
+          <p className="text-muted-foreground mt-1 text-xs">
+            Find add-ons in the Marketplace.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-4"
+            onClick={() => setActiveActivity('marketplace')}
+          >
+            Find more add-ons
+          </Button>
+        </div>
+      );
+    }
+
+    const simpleItems = filtered.map((plugin) => ({
+      id: plugin.id,
+      name: formatPluginName(plugin.name),
+      source: plugin.marketplace || 'Unknown marketplace',
+      stateLabel: plugin.enabled ? 'On' : 'Off',
+      action: canAct
+        ? {
+            label: plugin.enabled ? 'Turn off' : 'Turn on',
+            ariaLabel: `${plugin.enabled ? 'Turn off' : 'Turn on'} ${formatPluginName(plugin.name)}`,
+            disabled: togglingId === plugin.id,
+            onClick: () => void handleToggle(plugin),
+          }
+        : undefined,
+    }));
+
+    return (
+      <div className="flex flex-col gap-3">
+        {(globalPluginsError || actionError) && (
+          <p role="alert" className="text-destructive text-xs">
+            {actionError ?? globalPluginsError}
+          </p>
+        )}
+        {!canAct && (
+          <p className="text-muted-foreground text-xs">
+            Add-on controls are available only on this local desktop.
+          </p>
+        )}
+        {filtered.length === 0 ? (
+          <p className="text-muted-foreground text-sm">No add-ons match this search.</p>
+        ) : (
+          <InstallableList
+            items={simpleItems}
+            ariaLabel="Installed add-ons"
+            emptyMessage="No add-ons found."
+          />
+        )}
+      </div>
+    );
+  }
 
   if (filtered.length === 0 && searchQuery.trim()) {
     return (
@@ -163,6 +267,11 @@ export const PluginsGrid = ({ searchQuery }: Readonly<PluginsGridProps>): JSX.El
   if (globalPlugins.length === 0) {
     return (
       <div className="border-border flex flex-col items-center justify-center rounded-xs border border-dashed px-8 py-16">
+        {(globalPluginsError || actionError) && (
+          <p role="alert" className="text-destructive mb-3 text-xs">
+            {actionError ?? globalPluginsError}
+          </p>
+        )}
         <div className="border-border bg-card mb-4 flex size-12 items-center justify-center rounded-xs border">
           <Puzzle className="text-muted-foreground size-6" />
         </div>
@@ -173,10 +282,17 @@ export const PluginsGrid = ({ searchQuery }: Readonly<PluginsGridProps>): JSX.El
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
-      {filtered.map((plugin) => (
-        <PluginCard key={plugin.id} plugin={plugin} isHighlighted={!!searchQuery.trim()} />
-      ))}
+    <div className="flex flex-col gap-3">
+      {(globalPluginsError || actionError) && (
+        <p role="alert" className="text-destructive text-xs">
+          {actionError ?? globalPluginsError}
+        </p>
+      )}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-4">
+        {filtered.map((plugin) => (
+          <PluginCard key={plugin.id} plugin={plugin} isHighlighted={!!searchQuery.trim()} />
+        ))}
+      </div>
     </div>
   );
 };
