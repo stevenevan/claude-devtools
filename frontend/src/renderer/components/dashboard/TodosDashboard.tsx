@@ -1,5 +1,7 @@
 import { JSX, useEffect, useMemo, useState } from 'react';
 import { api } from '@renderer/api';
+import { Button } from '@renderer/components/ui/button';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { parseTodoData } from '@renderer/types/todos';
@@ -7,6 +9,8 @@ import { createLogger } from '@shared/utils/logger';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { CheckCircle2, Circle, ListTodo, Loader2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
+
+import { TaskList } from './TaskList';
 
 import type { AggregatedSessionTodos } from '@shared/types';
 
@@ -22,7 +26,7 @@ interface ProjectGroup {
   completedItems: number;
 }
 
-export const TodosDashboard = (): JSX.Element => {
+const useTodosDashboardData = () => {
   const { projects, repositoryGroups, navigateToSession } = useStore(
     useShallow((s) => ({
       projects: s.projects,
@@ -30,11 +34,9 @@ export const TodosDashboard = (): JSX.Element => {
       navigateToSession: s.navigateToSession,
     }))
   );
-
   const [todos, setTodos] = useState<AggregatedSessionTodos[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   const projectIds = useMemo(() => projects.map((p) => p.id), [projects]);
 
@@ -67,13 +69,61 @@ export const TodosDashboard = (): JSX.Element => {
 
   const projectNameById = useMemo(() => {
     const map = new Map<string, string>();
+    for (const project of projects) {
+      map.set(project.id, project.name);
+    }
     for (const group of repositoryGroups) {
       for (const worktree of group.worktrees) {
         map.set(worktree.id, group.name);
       }
     }
     return map;
-  }, [repositoryGroups]);
+  }, [projects, repositoryGroups]);
+
+  return { todos, loading, error, projectNameById, navigateToSession };
+};
+
+export const TodosDashboard = (): JSX.Element => {
+  const mode = useUIMode();
+  const { todos, loading, error, projectNameById, navigateToSession } = useTodosDashboardData();
+
+  if (mode === 'simple') {
+    return (
+      <TaskList
+        todos={todos}
+        loading={loading}
+        error={error}
+        projectNames={projectNameById}
+        onOpenConversation={navigateToSession}
+      />
+    );
+  }
+
+  return (
+    <NerdTodosDashboard
+      todos={todos}
+      loading={loading}
+      error={error}
+      projectNameById={projectNameById}
+      onOpenConversation={(projectId, sessionId) => navigateToSession(projectId, sessionId)}
+    />
+  );
+};
+
+const NerdTodosDashboard = ({
+  todos,
+  loading,
+  error,
+  projectNameById,
+  onOpenConversation,
+}: Readonly<{
+  todos: readonly AggregatedSessionTodos[];
+  loading: boolean;
+  error: string | null;
+  projectNameById: ReadonlyMap<string, string>;
+  onOpenConversation: (projectId: string, sessionId: string) => void;
+}>): JSX.Element => {
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   const grouped: ProjectGroup[] = useMemo(() => {
     const groups = new Map<string, ProjectGroup>();
@@ -113,12 +163,13 @@ export const TodosDashboard = (): JSX.Element => {
 
       <div className="mb-4 flex items-center gap-2">
         {(['all', 'pending', 'in_progress', 'completed'] as StatusFilter[]).map((filter) => (
-          <button
+          <Button
             key={filter}
             type="button"
+            variant="ghost"
             onClick={() => setStatusFilter(filter)}
             className={cn(
-              'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
+              'h-auto rounded-full border px-3 py-1 text-xs font-medium transition-colors',
               statusFilter === filter
                 ? 'border-primary bg-primary/10 text-primary'
                 : 'border-border bg-background text-muted-foreground hover:bg-surface-raised'
@@ -127,20 +178,20 @@ export const TodosDashboard = (): JSX.Element => {
             {filter === 'in_progress'
               ? 'In progress'
               : filter.charAt(0).toUpperCase() + filter.slice(1)}
-          </button>
+          </Button>
         ))}
-        {loading && <Loader2 className="text-muted-foreground ml-2 size-4 animate-spin" />}
+        {loading && <Loader2 aria-hidden="true" className="text-muted-foreground ml-2 size-4 animate-spin" />}
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2">
+        <div className="mb-4 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2" role="alert">
           <p className="text-xs text-red-400">{error}</p>
         </div>
       )}
 
       {!loading && grouped.length === 0 && (
         <div className="flex flex-1 flex-col items-center justify-center">
-          <ListTodo className="text-muted-foreground mb-2 size-6" />
+          <ListTodo aria-hidden="true" className="text-muted-foreground mb-2 size-6" />
           <p className="text-muted-foreground text-xs">No todos match this filter.</p>
         </div>
       )}
@@ -150,7 +201,7 @@ export const TodosDashboard = (): JSX.Element => {
           <ProjectSection
             key={group.projectId}
             group={group}
-            onOpenSession={(sessionId) => navigateToSession(group.projectId, sessionId)}
+            onOpenSession={(sessionId) => onOpenConversation(group.projectId, sessionId)}
           />
         ))}
       </div>
@@ -208,26 +259,27 @@ const SessionTodoCard = ({
   const updated = formatDistanceToNowStrict(new Date(session.updatedAt), { addSuffix: true });
 
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
       onClick={onOpen}
-      className="border-border/60 bg-card hover:border-border-emphasis rounded-md border p-3 text-left transition-colors"
+      className="border-border/60 bg-card hover:border-border-emphasis flex h-auto w-full flex-col items-stretch justify-start rounded-md border p-3 text-left transition-colors"
     >
-      <div className="mb-1.5 flex items-center justify-between gap-2">
+      <div className="mb-1.5 flex w-full items-center justify-between gap-2">
         <span className="text-muted-foreground font-mono text-[11px]">
           {session.sessionId.slice(0, 12)}
         </span>
         <span className="text-muted-foreground text-[10px]">{updated}</span>
       </div>
-      <ul className="flex flex-col gap-1">
+      <ul className="flex w-full flex-col gap-1">
         {items.map((item, idx) => (
           <li key={idx} className="flex items-start gap-2 text-xs">
             {item.status === 'completed' ? (
-              <CheckCircle2 className="mt-0.5 size-3 shrink-0 text-emerald-400" />
+              <CheckCircle2 aria-hidden="true" className="mt-0.5 size-3 shrink-0 text-emerald-400" />
             ) : item.status === 'in_progress' ? (
-              <Loader2 className="mt-0.5 size-3 shrink-0 animate-spin text-blue-400" />
+              <Loader2 aria-hidden="true" className="mt-0.5 size-3 shrink-0 animate-spin text-blue-400" />
             ) : (
-              <Circle className="text-muted-foreground mt-0.5 size-3 shrink-0" />
+              <Circle aria-hidden="true" className="text-muted-foreground mt-0.5 size-3 shrink-0" />
             )}
             <span
               className={cn(
@@ -242,6 +294,6 @@ const SessionTodoCard = ({
           </li>
         ))}
       </ul>
-    </button>
+    </Button>
   );
 };
