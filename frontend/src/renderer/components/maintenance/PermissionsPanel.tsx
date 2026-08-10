@@ -1,6 +1,15 @@
 import { JSX, useEffect, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from '@renderer/components/ui/combobox';
+import { Field, FieldDescription, FieldLabel } from '@renderer/components/ui/field';
 import { Input } from '@renderer/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
 import { useStore } from '@renderer/store';
@@ -46,6 +55,7 @@ export const PermissionsPanel = (): JSX.Element => {
     useShallow((s) => ({
       projects: s.projects,
       projectsLoading: s.projectsLoading,
+      projectsError: s.projectsError,
       connectionMode: s.connectionMode,
       fetchProjects: s.fetchProjects,
     }))
@@ -166,21 +176,54 @@ export const PermissionsPanel = (): JSX.Element => {
       )}
 
       <div className="border-border/50 flex flex-wrap items-center gap-3 border-b px-4 py-3">
-        <label className="text-muted-foreground flex items-center gap-1 text-xs">
-          Project
-          <NativeSelect
-            size="sm"
-            value={projectPath}
-            onChange={(e) => setProjectPath(e.target.value)}
-            className="min-w-40"
+        <Field className="flex-row items-center gap-1">
+          <FieldLabel htmlFor="permissions-project" className="text-muted-foreground text-xs">
+            Project
+          </FieldLabel>
+          <Combobox
+            items={projects.map((project) => project.path)}
+            value={projectPath || null}
+            itemToStringLabel={(path) =>
+              projects.find((project) => project.path === path)?.name ?? path
+            }
+            onValueChange={(value) => {
+              if (value) setProjectPath(value);
+            }}
+            autoHighlight
           >
-            {projects.map((p) => (
-              <NativeSelectOption key={p.id} value={p.path}>
-                {p.name}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
-        </label>
+            <div className="min-w-40">
+              <ComboboxInput
+                id="permissions-project"
+                aria-label="Project"
+                aria-describedby="permissions-project-description"
+                placeholder={projectsLoading ? 'Loading projects…' : 'Select project...'}
+                className="h-6 min-w-40"
+              />
+            </div>
+            <ComboboxContent align="start" className="w-(--anchor-width)">
+              <ComboboxList>
+                {projects.map((project) => (
+                  <ComboboxItem key={project.id} value={project.path}>
+                    <span className="truncate">{project.name}</span>
+                    <span className="text-muted-foreground ml-2 truncate text-[10px]">
+                      {project.path}
+                    </span>
+                  </ComboboxItem>
+                ))}
+                <ComboboxEmpty>
+                  {projectsLoading
+                    ? 'Loading projects…'
+                    : projects.length === 0
+                      ? (projectsError ?? 'No projects available')
+                      : 'No matching projects'}
+                </ComboboxEmpty>
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+          <FieldDescription id="permissions-project-description" className="sr-only">
+            Choose the project whose permission rules are shown.
+          </FieldDescription>
+        </Field>
         <label className="text-muted-foreground flex items-center gap-1 text-xs">
           List
           <NativeSelect

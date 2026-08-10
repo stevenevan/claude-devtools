@@ -102,7 +102,7 @@ function ComboboxItem({ className, children, ...props }: ComboboxPrimitive.Item.
       )}
       {...props}
     >
-      <span className="flex min-w-0 flex-1">{children}</span>
+      <div className="min-w-0 flex-1">{children}</div>
       <ComboboxPrimitive.ItemIndicator
         render={<span className="pointer-events-none flex items-center justify-center" />}
       >
