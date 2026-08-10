@@ -2,17 +2,21 @@ import { JSX, useEffect, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { Button } from '@renderer/components/ui/button';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
 import { formatBytes } from '@renderer/utils/formatters';
 
 import { DryRunConfirmDialog } from '../maintenance/DryRunConfirmDialog';
 
+import { InstallableList } from './InstallableList';
 import { SkillDetail } from './SkillDetail';
 
 import type { SkillInventoryEntry } from '@shared/types/api';
 
 export const SkillsManager = (): JSX.Element => {
+  const mode = useUIMode();
   const connectionMode = useStore((s) => s.connectionMode);
+  const setActiveActivity = useStore((s) => s.setActiveActivity);
   const canAct = isDesktopMode() && connectionMode === 'local';
 
   const [skills, setSkills] = useState<SkillInventoryEntry[]>([]);
@@ -46,9 +50,9 @@ export const SkillsManager = (): JSX.Element => {
   }, []);
 
   useEffect(() => {
-    if (selectedName || skills.length === 0) return;
+    if (mode === 'simple' || selectedName || skills.length === 0) return;
     setSelectedName(skills[0].name);
-  }, [skills, selectedName]);
+  }, [mode, skills, selectedName]);
 
   const selectSkill = async (name: string): Promise<void> => {
     if (editorDirty) {
@@ -99,6 +103,54 @@ export const SkillsManager = (): JSX.Element => {
   };
 
   const selectedSkill = skills.find((s) => s.name === selectedName) ?? null;
+  const simpleSkillItems = skills.map((skill) => ({
+    id: skill.name,
+    name: skill.name,
+    description: skill.description || 'No description provided.',
+    stateLabel: 'Available',
+  }));
+
+  if (mode === 'simple') {
+    return (
+      <div className="bg-background flex flex-1 flex-col overflow-y-auto">
+        <div className="border-border/50 border-b px-6 py-5">
+          <p className="text-foreground text-lg font-medium">What Claude can do</p>
+          <p className="text-muted-foreground mt-1 max-w-2xl text-sm">
+            Skills give Claude extra ways to help. They are ready to use when they are available.
+          </p>
+        </div>
+
+        {error && (
+          <div className="border-border/50 bg-destructive/10 text-destructive border-b px-6 py-3 text-sm">
+            {error}
+          </div>
+        )}
+
+        <div className="flex flex-1 flex-col gap-5 px-6 py-6">
+          {loading ? (
+            <p className="text-muted-foreground text-sm">Loading skills…</p>
+          ) : (
+            <InstallableList
+              items={simpleSkillItems}
+              ariaLabel="Available skills"
+              emptyMessage="No skills are available yet."
+            />
+          )}
+
+          {!loading && (
+            <Button
+              type="button"
+              variant="outline"
+              className="self-start"
+              onClick={() => setActiveActivity('marketplace')}
+            >
+              Find more skills
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background flex flex-1 flex-col overflow-hidden">
@@ -196,6 +248,9 @@ export const SkillsManager = (): JSX.Element => {
           paths={[pendingRemoveLink.resolvedPath]}
           totalBytes={pendingRemoveLink.bytes}
           fileCount={1}
+          title="Unlink from source"
+          consequence="The link is removed. Source files stay where they are."
+          actionLabel="Unlink"
           busy={mutating}
           error={mutateError}
           onMoveToTrash={() => void handleRemoveLink()}
@@ -211,6 +266,9 @@ export const SkillsManager = (): JSX.Element => {
           paths={[pendingDelete.resolvedPath]}
           totalBytes={pendingDelete.bytes}
           fileCount={1}
+          title="Delete files"
+          consequence="The skill files are moved to app trash first."
+          actionLabel="Delete files"
           busy={mutating}
           error={mutateError}
           onMoveToTrash={() => void handleDelete()}

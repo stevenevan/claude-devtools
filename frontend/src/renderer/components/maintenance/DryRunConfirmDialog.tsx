@@ -28,6 +28,10 @@ interface DryRunConfirmDialogProps {
   onClear?: () => void;
   // Swaps the trash-copy reassurance copy for the plain-delete warning.
   plain?: boolean;
+  // Optional copy for callers whose action has a more specific consequence.
+  title?: string;
+  consequence?: string;
+  actionLabel?: string;
 }
 
 // Reusable dry-run confirm dialog: every consumer week that surfaces its own
@@ -45,12 +49,15 @@ export const DryRunConfirmDialog = ({
   onDeletePermanently,
   onClear,
   plain = false,
+  title = 'Confirm',
+  consequence,
+  actionLabel = 'Move to trash',
 }: Readonly<DryRunConfirmDialogProps>): JSX.Element => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Confirm</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
             {fileCount} {fileCount === 1 ? 'item' : 'items'} - {formatBytes(totalBytes)}
           </DialogDescription>
@@ -66,8 +73,8 @@ export const DryRunConfirmDialog = ({
 
         {onMoveToTrash && (
           <p className="text-xs text-muted-foreground">
-            Moved to the app&apos;s trash, not erased — restore anytime from Maintenance &gt;
-            Trash.
+            {consequence ??
+              "Moved to the app's trash, not erased — restore anytime from Maintenance > Trash."}
           </p>
         )}
         {plain && (
@@ -91,7 +98,7 @@ export const DryRunConfirmDialog = ({
           {onMoveToTrash && (
             <Button variant="default" size="sm" disabled={busy} onClick={onMoveToTrash}>
               {busy && <Loader2 className="size-3.5 animate-spin" />}
-              Move to trash
+              {actionLabel}
             </Button>
           )}
           {onClear && (
