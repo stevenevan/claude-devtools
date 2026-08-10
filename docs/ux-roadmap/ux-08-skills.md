@@ -10,10 +10,10 @@ unmistakable.
 
 ## 2. Establishes the pattern for sprints 09, 10 and 13
 
-Skills, Agents, Plugins and Marketplace are all "installable thing with a name, a description, an
-on/off state and a source". This sprint sets the card shape, the empty state, the enable/disable
-affordance and the delete confirmation that those three then reuse. Deviating later needs a reason
-recorded in that sprint's file.
+Skills, Agents, Plugins and Marketplace share an installable-item list shape. This sprint sets the
+presentation component, empty state, and destructive-action copy; each consumer supplies only the
+state or action that its real data supports. Deviating later needs a reason recorded in that
+sprint's file.
 
 ## 3. Today
 
@@ -61,7 +61,7 @@ Problems for a non-technical reader:
 Rules:
 
 - **One sentence explaining skills, above the list.** Not a tooltip, not a help link.
-- Each row: friendly name, one-line description, an on/off switch. Nothing else.
+- Each row: friendly name, one-line description, and a labelled availability state. Nothing else.
 - **No delete in Simple mode.** Turning a skill off achieves what a non-technical user wants;
   deleting files does not. Delete stays in Nerd mode.
 - No frontmatter, no tool permissions, no file paths.
@@ -94,6 +94,7 @@ neither is the default focus of its dialog.
 - `frontend/src/renderer/components/dashboard/SkillDetail.tsx`
 - `frontend/src/renderer/components/dashboard/InstallableList.tsx` **(new)** — the shared card/list
   shape sprints 09, 10 and 13 reuse
+- `frontend/src/renderer/components/maintenance/DryRunConfirmDialog.tsx` — consequence-aware copy
 
 ## 8. Tasks (ordered)
 
@@ -110,16 +111,16 @@ neither is the default focus of its dialog.
 
 - `bun run typecheck && bun run test && bun run qa`
 
-Simple mode: an explanatory sentence is present; each row has a working on/off switch; no delete
-action exists; no file path or frontmatter appears; nothing is auto-selected.
+Simple mode: an explanatory sentence is present; each row has a truthful availability state; no
+delete action exists; no file path or frontmatter appears; nothing is auto-selected.
 
 Nerd mode: matches today; the unlink and delete dialogs state different consequences and neither
 button is the default focus.
 
 ## 10. Accessibility
 
-- The list is a real list; each on/off control is a labelled switch whose accessible name includes
-  the skill name — not a bare "on".
+- The list is a real list; availability is text rather than a fake switch because Skills has no
+  enabled state in its data contract.
 - Destructive dialogs move focus to the dialog and return it on close; the destructive button is
   never the initially focused element.
 - The explanatory sentence is part of the page's heading structure, not a floating paragraph.
@@ -139,3 +140,10 @@ Sprint 01.
 - Whether a skill can actually be turned "off" needs confirming. If skills have no enabled state
   and the only actions are link/unlink/delete, the Simple switch is dishonest — in that case Simple
   mode shows a read-only list with "Find more skills", and this file records that.
+
+## 13. Shipped status
+
+UX-08 shipped in the grouped UX-07–10 delivery. Simple mode now explains Skills, shows a
+read-only availability list, and routes “Find more skills” to Marketplace; presence is the only
+backend state, so no switch is fabricated. Nerd keeps editing and both existing actions, with
+unlink/delete consequence copy supplied by the shared confirmation dialog.

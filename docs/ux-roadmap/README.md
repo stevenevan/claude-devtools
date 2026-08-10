@@ -4,6 +4,8 @@ Fifteen sprint-weeks that rebuild this app's interface around two audiences inst
 UX-01–03 were the first grouped delivery, shipped together as one dependency-complete group.
 UX-04–06 are the second grouped delivery: Cost, Tasks, and Alerts share their foundations while
 retaining page-level boundaries.
+UX-07–10 are the third grouped delivery: Settings, Skills, Agents, and Plugins share the
+Simple-mode curation and installable-list pattern.
 
 ## 1. What this roadmap is
 
@@ -206,6 +208,11 @@ Two shared files deserve care even though they are frozen: `PaneContent.tsx` rou
 and `GlobalContentView.tsx` supplies the page title and search field for both Plugins and
 Annotations — a change there hits both.
 
+UX-01 shipped without suppressing `GlobalContentView.tsx`'s page-local search in Simple mode.
+The UX-07–10 grouped delivery owns this one-time repair and documents it as an explicit exception
+to the freeze before changing the shared file. No later page sprint may edit the file again for
+this issue.
+
 ## 12. Ownership note
 
 Sprint 01 builds the mode control in Settings → General. Sprint 07 restyles the Settings page and
@@ -249,10 +256,10 @@ Every `ux-NN-*.md` has the same core sections; completed grouped deliveries may 
 | 04 | [Cost](ux-04-cost.md) | Analytics | `dashboard/AnalyticsDashboard/` | simple-rail | 01 | done (grouped) |
 | 05 | [Tasks](ux-05-tasks.md) | Todos | `dashboard/TodosDashboard.tsx` | simple-rail | 01 | done (grouped) |
 | 06 | [Alerts](ux-06-alerts.md) | Notifications | `notifications/NotificationsView.tsx` | simple-rail | 01 | done (grouped) |
-| 07 | [Settings](ux-07-settings.md) | Settings | `settings/SettingsView.tsx` | simple-rail | 01 | planned |
-| 08 | [Skills](ux-08-skills.md) | Skills | `dashboard/SkillsManager.tsx` | behind-More | 01 | planned |
-| 09 | [Agents](ux-09-agents.md) | Agents | `dashboard/AgentsManager.tsx` | behind-More | 01, 08 | planned |
-| 10 | [Plugins](ux-10-plugins.md) | Plugins | `dashboard/PluginsGrid.tsx` | behind-More | 01, 08 | planned |
+| 07 | [Settings](ux-07-settings.md) | Settings | `settings/SettingsView.tsx` | simple-rail | 01 | done (grouped) |
+| 08 | [Skills](ux-08-skills.md) | Skills | `dashboard/SkillsManager.tsx` | behind-More | 01 | done (grouped) |
+| 09 | [Agents](ux-09-agents.md) | Agents | `dashboard/AgentsManager.tsx` | behind-More | 01, 08 | done (grouped) |
+| 10 | [Plugins](ux-10-plugins.md) | Plugins | `dashboard/PluginsGrid.tsx` | behind-More | 01, 08 | done (grouped) |
 | 11 | [Annotations](ux-11-annotations.md) | Annotations | `sidebar/AnnotationList.tsx` | behind-More | 01, 03 | planned |
 | 12 | [History](ux-12-history.md) | History | `dashboard/HistoryBrowser.tsx` | behind-More | 01 | planned |
 | 13 | [Marketplace](ux-13-marketplace.md) | Marketplace | `dashboard/MarketplaceBrowser.tsx` | behind-More | 01, 10 | planned |

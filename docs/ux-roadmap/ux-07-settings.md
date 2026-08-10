@@ -65,12 +65,14 @@ Problems for a non-technical reader:
 Rules:
 
 - **One scrolling page, four or five labelled groups.** No tabs.
-- **The mode switch is first**, phrased as a question about detail rather than as a jargon toggle.
-  "Simple" and "Detailed" are the user-facing labels; `simple` and `nerd` remain the stored values.
-- Only settings a non-technical user would plausibly change: theme, text size, notifications on/off
-  and sound, launch at login, which page opens first, and the Claude data folder.
-- **The data-folder path is the one absolute path Simple mode shows.** It is the exception to the
-  vocabulary rule in [README.md](README.md) §7, because the setting is meaningless without it.
+- **The mode switch is first**, phrased as a choice about detail rather than as a jargon toggle.
+  "Simple" and "Nerd" are the user-facing labels; `simple` and `nerd` remain the stored values.
+- Only settings a non-technical user would plausibly change: theme, notifications on/off and
+  sound, launch at login, which page opens first, and the Claude data folder.
+- Text size is omitted because the existing zoom hook has no writable setting path; a control that
+  cannot persist would be misleading.
+- The data-folder path is not shown in Simple mode. The folder selector uses plain-language state
+  labels while Nerd retains the existing resolved and default paths.
 - "Show all settings" switches to the full tabbed view for one visit **without changing the mode**
   — a user should be able to reach a setting without committing to a different app.
 - No Connection, Workspaces, Claude Code, Shortcuts, Plugins, Advanced, or debug panel.
@@ -109,6 +111,9 @@ Today's nine tabs, unchanged, including `BackendDebugPanel`. Additions:
 - `frontend/src/renderer/components/settings/SettingsView.tsx`
 - `frontend/src/renderer/components/settings/SettingsTabs.tsx` — Nerd only
 - `frontend/src/renderer/components/settings/SimpleSettings.tsx` **(new)** — the Simple page
+- `frontend/src/renderer/components/settings/SettingsSearch.tsx` **(new)** — Nerd search UI
+- `frontend/src/renderer/components/settings/settingsSearchRegistry.ts` **(new)** — search targets
+- `frontend/src/renderer/components/settings/settingsSearch.test.ts` **(new)**
 - `frontend/src/renderer/components/settings/sections/GeneralSection/` — the mode control's home
 - `frontend/src/renderer/components/settings/components/` — reuse `SettingRow`, `SettingsToggle`
   and the rest rather than writing new controls
@@ -176,3 +181,11 @@ and restyles it; it does not redesign what it does.
 - The Simple page is a curation decision. Every setting omitted is one a user might need; the
   escape hatch is "Show all settings", and it must be easy to find, not buried at the bottom in
   muted text.
+
+## 12. Shipped status
+
+UX-07 shipped in the grouped UX-07–10 delivery. Simple Settings is one scrollable page with
+mode, appearance, alerts, startup, and local Claude-folder controls; text size remains omitted
+because no writable persistence exists. Nerd retains its nine tabs and gains cross-tab settings
+search with stable focus targets. “Show all settings” is view-only and does not persist a mode
+change.

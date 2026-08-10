@@ -93,6 +93,7 @@ truthful: read-only, read-and-change, and runs-commands. Do not enumerate.
   [ux-08](ux-08-skills.md)
 - `frontend/src/renderer/components/dashboard/agentCapability.ts` **(new)** — the tool-list →
   sentence mapping
+- `frontend/src/renderer/components/dashboard/agentCapability.test.ts` **(new)**
 
 ## 7. Tasks (ordered)
 
@@ -137,3 +138,10 @@ Sprint 01, and sprint 08 for `InstallableList`.
   it is a real limitation — record it here rather than softening it later with a half-editor.
 - Agents may have no description. Fall back to the capability line alone; do not synthesise a
   description from the system prompt.
+
+## 12. Shipped status
+
+UX-09 shipped in the grouped UX-07–10 delivery. Simple mode presents helpers through the shared
+list with plain-language capability sentences and no write controls. Empty or unknown tool lists
+are treated conservatively. Nerd retains the editor and adds the lowercase/dash name rule with
+actionable, screen-reader-associated validation.

@@ -70,10 +70,9 @@ Today's grid, unchanged: the badge, the marketplace line, the truncated version.
 version gets a label so it reads as a version rather than as noise, and full-hash-on-hover.
 
 Note that `GlobalContentView.tsx` is frozen by sprint 01 and shared with Annotations
-([ux-11](ux-11-annotations.md)). Suppressing its search field in Simple mode is a change to a
-frozen, shared file — so it belongs to **sprint 01**, not here. This sprint assumes sprint 01 did
-it and verifies it; if sprint 01 did not, this sprint stops and amends the roadmap per
-[README.md](README.md) §11.
+([ux-11](ux-11-annotations.md)). UX-01 shipped without suppressing its page-local search in Simple
+mode. The UX-07–10 grouped delivery owns the one-time frozen-file repair, as amended in
+[README.md](README.md) §11, and verifies that no later page-local search is added.
 
 ## 5. Words
 
@@ -90,6 +89,7 @@ it and verifies it; if sprint 01 did not, this sprint stops and amends the roadm
 - `frontend/src/renderer/components/dashboard/PluginsGrid.tsx`
 - `frontend/src/renderer/components/dashboard/InstallableList.tsx` — reused from
   [ux-08](ux-08-skills.md)
+- `frontend/src/renderer/components/layout/GlobalContentView.tsx` — one-time grouped freeze repair
 
 ## 7. Tasks (ordered)
 
@@ -101,8 +101,8 @@ it and verifies it; if sprint 01 did not, this sprint stops and amends the roadm
    render a labelled state, not a switch that does nothing.
 3. Simple view via `InstallableList`, with the source line.
 4. Branch `PluginsGrid.tsx` on `useUIMode()`.
-5. Verify sprint 01 suppressed `GlobalContentView`'s search field in Simple mode. If it did not,
-   stop and amend the roadmap.
+5. Apply and verify the grouped delivery's amended `GlobalContentView` search suppression in Simple
+   mode; keep the shell search as the only Simple search field.
 6. Nerd mode: label the version, full hash on hover.
 7. Empty state: no plugins installed, pointing at Marketplace.
 
@@ -125,16 +125,22 @@ Nerd mode: matches today, with a labelled version and full hash on hover.
 
 ## 10. Dependencies
 
-Sprint 01 (`useUIMode()`, and the `GlobalContentView` search suppression), sprint 08
-(`InstallableList`).
+Sprint 01 (`useUIMode()`), the UX-07–10 grouped shell repair, and sprint 08 (`InstallableList`).
 
 ## 11. Risks / open questions
 
 - **Descriptions may not exist in plugin metadata.** This sprint's main improvement depends on it.
   Settle in task 1; if absent, the honest outcome is a smaller improvement, not a fabricated
   description.
-- The `GlobalContentView` suppression genuinely belongs to sprint 01 because the file is frozen and
-  shared with Annotations. Getting this wrong means two sprints editing the same frozen file —
-  exactly what the freeze exists to prevent.
+- The grouped shell repair is deliberately recorded as a one-time exception because the file is
+  frozen and shared with Annotations. Later page sprints must not reopen this contract.
 - Truncating a hash to seven characters is conventional for git but arbitrary to everyone else.
   Keeping it Nerd-only sidesteps the question rather than answering it, which is correct here.
+
+## 12. Shipped status
+
+UX-10 shipped in the grouped UX-07–10 delivery. Installed-plugin records contain no descriptions,
+so Simple mode shows readable name, marketplace source, and text state only. Local desktop users
+get a real enable/disable action through direct API handling with visible failures; remote or
+restricted views never show a nonfunctional switch. Nerd keeps the grid and now labels version
+metadata while retaining the full value on hover.
