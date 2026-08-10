@@ -277,7 +277,7 @@ export const WorkspaceSection = (): JSX.Element => {
 
   return (
     <div className="space-y-6">
-      <SettingsSectionHeader title="Workspace Profiles" />
+      <SettingsSectionHeader title="Workspace Profiles" anchorId="settings-workspace-profiles" />
       <p className="text-muted-foreground text-sm">
         Save SSH connection profiles for quick reconnection
       </p>

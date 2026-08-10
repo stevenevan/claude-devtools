@@ -91,7 +91,10 @@ export const AdvancedSection = ({
 
   return (
     <div>
-      <SettingsSectionHeader title="Configuration" />
+      <p className="border-border/50 bg-card/50 text-muted-foreground rounded-md border px-3 py-2 text-xs">
+        These controls affect claude-devtools, not Claude Code&apos;s settings.
+      </p>
+      <SettingsSectionHeader title="Configuration" anchorId="settings-configuration" />
       <div className="space-y-2 py-2">
         <Button variant="outline" className="w-full" disabled={saving} onClick={onResetToDefaults}>
           <RefreshCw className="size-4" />
@@ -113,10 +116,10 @@ export const AdvancedSection = ({
         )}
       </div>
 
-      <SettingsSectionHeader title="Debug" />
+      <SettingsSectionHeader title="Debug" anchorId="settings-debug" />
       <BackendDebugPanel />
 
-      <SettingsSectionHeader title="About" />
+      <SettingsSectionHeader title="About" anchorId="settings-about" />
       <div className="flex items-start gap-4 py-3">
         <img src={appIcon} alt="App Icon" className="size-10 rounded-lg" />
         <div>

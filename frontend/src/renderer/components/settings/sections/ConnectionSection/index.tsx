@@ -49,7 +49,7 @@ export const ConnectionSection = (): JSX.Element => {
 
   return (
     <div className="space-y-6">
-      <SettingsSectionHeader title="Remote Connection" />
+      <SettingsSectionHeader title="Remote Connection" anchorId="settings-remote-connection" />
       <p className="text-muted-foreground text-sm">
         Connect to a remote machine to view Claude Code sessions running there
       </p>

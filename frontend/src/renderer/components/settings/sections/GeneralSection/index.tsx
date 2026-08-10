@@ -46,7 +46,11 @@ export const GeneralSection = ({
       {isDesktop && (
         <>
           <SettingsSectionHeader title="Startup" />
-          <SettingRow label="Launch at login" description="Automatically start the app when you log in">
+          <SettingRow
+            anchorId="settings-launch-at-login"
+            label="Launch at login"
+            description="Automatically start the app when you log in"
+          >
             <Switch
               checked={safeConfig.general.launchAtLogin}
               onCheckedChange={(v) => onGeneralToggle('launchAtLogin', v)}
@@ -58,6 +62,7 @@ export const GeneralSection = ({
 
       <SettingsSectionHeader title="Interface" />
       <SettingRow
+        anchorId="settings-interface-mode"
         label="Interface mode"
         description="Simple keeps everyday tools prominent. Nerd keeps every workspace control visible."
       >
@@ -80,7 +85,11 @@ export const GeneralSection = ({
       </SettingRow>
 
       <SettingsSectionHeader title="Appearance" />
-      <SettingRow label="Theme" description="Choose your preferred color theme">
+      <SettingRow
+        anchorId="settings-theme"
+        label="Theme"
+        description="Choose your preferred color theme"
+      >
         <Select
           value={safeConfig.general.theme}
           onValueChange={(v) => {
@@ -101,6 +110,7 @@ export const GeneralSection = ({
         </Select>
       </SettingRow>
       <SettingRow
+        anchorId="settings-expand-ai-responses"
         label="Expand AI responses by default"
         description="Automatically expand each response turn when opening a transcript or receiving a new message"
       >
@@ -136,7 +146,11 @@ export const GeneralSection = ({
       )}
 
       <SettingsSectionHeader title="Code Blocks" />
-      <SettingRow label="Theme" description="Color scheme for code block backgrounds">
+      <SettingRow
+        anchorId="settings-code-block-theme"
+        label="Code block theme"
+        description="Color scheme for code block backgrounds"
+      >
         <Select
           value={safeConfig.display.codeBlockTheme}
           onValueChange={(v) => {
@@ -157,6 +171,7 @@ export const GeneralSection = ({
         </Select>
       </SettingRow>
       <SettingRow
+        anchorId="settings-show-line-numbers"
         label="Show line numbers"
         description="Display line numbers in the gutter of code blocks"
       >
@@ -166,7 +181,11 @@ export const GeneralSection = ({
           disabled={saving}
         />
       </SettingRow>
-      <SettingRow label="Word wrap" description="Wrap long lines instead of horizontal scrolling">
+      <SettingRow
+        anchorId="settings-word-wrap"
+        label="Word wrap"
+        description="Wrap long lines instead of horizontal scrolling"
+      >
         <Switch
           checked={safeConfig.display.wordWrap}
           onCheckedChange={(v) => onDisplayToggle('wordWrap', v)}
@@ -174,7 +193,7 @@ export const GeneralSection = ({
         />
       </SettingRow>
 
-      {isDesktop && <ClaudeRootSubsection />}
+      {isDesktop && <ClaudeRootSubsection anchorId="settings-claude-root" />}
 
       <ServerSubsection saving={saving} isDesktop={isDesktop} />
     </div>

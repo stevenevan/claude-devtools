@@ -1,9 +1,12 @@
-import { JSX, useState } from 'react';
+import { JSX, useEffect, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
 import { Loader2 } from 'lucide-react';
 
 import { useSettingsConfig, useSettingsHandlers } from './hooks';
+import { SimpleSettings } from './SimpleSettings';
+import { SettingsSearch } from './SettingsSearch';
 import {
   AdvancedSection,
   ClaudeCodeSection,
@@ -19,6 +22,12 @@ import { type SettingsSection, SettingsTabContent, SettingsTabs } from './Settin
 
 export const SettingsView = (): JSX.Element | null => {
   const [activeSection, setActiveSection] = useState<SettingsSection>('general');
+  const [showAllSettings, setShowAllSettings] = useState(false);
+  const [searchTarget, setSearchTarget] = useState<{
+    section: SettingsSection;
+    anchorId: string;
+  } | null>(null);
+  const mode = useUIMode();
   const pendingSettingsSection = useStore((s) => s.pendingSettingsSection);
   const clearPendingSettingsSection = useStore((s) => s.clearPendingSettingsSection);
 
@@ -57,6 +66,22 @@ export const SettingsView = (): JSX.Element | null => {
     updateConfig,
   });
 
+  useEffect(() => {
+    if (!searchTarget || searchTarget.section !== activeSection) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const target = document.getElementById(searchTarget.anchorId);
+      if (!target) return;
+      target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      if (target instanceof HTMLElement) {
+        target.focus({ preventScroll: true });
+      }
+      setSearchTarget(null);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeSection, searchTarget]);
+
   if (loading) {
     return (
       <div className="bg-background flex flex-1 items-center justify-center">
@@ -83,18 +108,59 @@ export const SettingsView = (): JSX.Element | null => {
 
   if (!config) return null;
 
+  const handleSettingsSearchNavigate = (section: SettingsSection, anchorId: string): void => {
+    setSearchTarget({ section, anchorId });
+    setActiveSection(section);
+  };
+
+  const settingsHeader = (
+    <div className="mb-6">
+      <h1 className="text-foreground text-lg font-medium">Settings</h1>
+      <p className="text-muted-foreground text-sm">Manage your app preferences</p>
+      {error && (
+        <div className="mt-4 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2">
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
+    </div>
+  );
+
+  if (mode === 'simple' && !showAllSettings) {
+    return (
+      <div className="bg-background flex-1 overflow-auto">
+        <div className="mx-auto max-w-2xl px-6 py-8">
+          {settingsHeader}
+          <SimpleSettings
+            safeConfig={safeConfig}
+            saving={saving}
+            error={error}
+            onGeneralToggle={handlers.handleGeneralToggle}
+            onThemeChange={handlers.handleThemeChange}
+            onDefaultTabChange={handlers.handleDefaultTabChange}
+            onUIModeChange={handlers.handleUIModeChange}
+            onNotificationToggle={handlers.handleNotificationToggle}
+          />
+          <div className="border-border/50 mt-8 border-t pt-4">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground"
+              onClick={() => setShowAllSettings(true)}
+            >
+              Show all settings
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-background flex-1 overflow-auto">
       <div className="mx-auto max-w-2xl px-6 py-8">
-        <div className="mb-6">
-          <h1 className="text-foreground text-lg font-medium">Settings</h1>
-          <p className="text-muted-foreground text-sm">Manage your app preferences</p>
-          {error && (
-            <div className="mt-4 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2">
-              <p className="text-sm text-red-400">{error}</p>
-            </div>
-          )}
-        </div>
+        {settingsHeader}
+        {mode === 'nerd' && <SettingsSearch onNavigate={handleSettingsSearchNavigate} />}
 
         <SettingsTabs activeSection={activeSection} onSectionChange={setActiveSection}>
           <SettingsTabContent value="general" className="mt-4">

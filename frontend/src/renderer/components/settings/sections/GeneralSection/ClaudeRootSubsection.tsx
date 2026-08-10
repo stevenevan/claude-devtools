@@ -19,7 +19,15 @@ import { SettingRow, SettingsSectionHeader } from '../../components';
 
 import type { ClaudeRootInfo, WslClaudeRootCandidate } from '@shared/types';
 
-export const ClaudeRootSubsection = (): JSX.Element => {
+interface ClaudeRootSubsectionProps {
+  readonly simple?: boolean;
+  readonly anchorId?: string;
+}
+
+export const ClaudeRootSubsection = ({
+  simple = false,
+  anchorId,
+}: ClaudeRootSubsectionProps): JSX.Element => {
   const connectionMode = useStore((s) => s.connectionMode);
   const fetchProjects = useStore((s) => s.fetchProjects);
   const fetchRepositoryGroups = useStore((s) => s.fetchRepositoryGroups);
@@ -200,6 +208,58 @@ export const ClaudeRootSubsection = (): JSX.Element => {
   const isWindowsStyleDefaultPath =
     /^[a-zA-Z]:\\/.test(defaultClaudeRootPath) || defaultClaudeRootPath.startsWith('\\\\');
 
+  if (simple) {
+    return (
+      <div>
+        <SettingsSectionHeader title="Claude data folder" anchorId={anchorId} />
+        <p className="text-muted-foreground mb-4 text-sm">
+          Choose the local folder where Claude keeps its data.
+        </p>
+
+        <div className="border-border/50 flex flex-wrap items-center justify-between gap-3 border-b py-3">
+          <div>
+            <div className="text-foreground text-sm font-medium">Current folder</div>
+            <div className="text-muted-foreground text-xs">
+              {isCustomClaudeRoot ? 'Custom folder selected' : 'Using the default folder'}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => void handleSelectClaudeRootFolder()}
+              disabled={updatingClaudeRoot}
+            >
+              {updatingClaudeRoot ? (
+                <Loader2 className="size-3 animate-spin" />
+              ) : (
+                <FolderOpen className="size-3" />
+              )}
+              Select Folder
+            </Button>
+            {isCustomClaudeRoot && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void handleResetClaudeRoot()}
+                disabled={updatingClaudeRoot}
+              >
+                <RotateCcw className="size-3" />
+                Use Default
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {claudeRootError && (
+          <Alert className="mt-3" variant="destructive">
+            <AlertDescription>{claudeRootError}</AlertDescription>
+          </Alert>
+        )}
+      </div>
+    );
+  }
+
   return (
     <>
       <SettingsSectionHeader title="Local Claude Root" />
@@ -208,6 +268,7 @@ export const ClaudeRootSubsection = (): JSX.Element => {
       </p>
 
       <SettingRow
+        anchorId={anchorId}
         label="Current Local Root"
         description={isCustomClaudeRoot ? 'Using custom path' : 'Using auto-detected path'}
       >

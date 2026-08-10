@@ -153,7 +153,7 @@ export const ThemeEditor = (): JSX.Element => {
 
   return (
     <div>
-      <SettingsSectionHeader title="Theme Editor" />
+      <SettingsSectionHeader title="Theme Editor" anchorId="settings-theme-editor" />
       <p className="text-muted-foreground mb-4 text-sm">
         Customize CSS variables to create your own theme. Active theme persists across restarts.
       </p>

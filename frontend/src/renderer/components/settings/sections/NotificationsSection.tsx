@@ -80,13 +80,16 @@ export const NotificationsSection = ({
         onRemoveTrigger={onRemoveTrigger}
       />
 
-      <SettingsSectionHeader title="Notification Rules" />
+      <SettingsSectionHeader title="Notification Rules" anchorId="settings-notification-rules" />
       <RulesEditor />
 
-      <SettingsSectionHeader title="Webhook Endpoints" />
+      <SettingsSectionHeader title="Webhook Endpoints" anchorId="settings-webhook-endpoints" />
       <WebhookSettings />
 
-      <SettingsSectionHeader title="Notification Settings" />
+      <SettingsSectionHeader
+        title="Notification Settings"
+        anchorId="settings-notification-settings"
+      />
       <SettingRow
         label="Enable System Notifications"
         description="Show system notifications for errors and events"
@@ -152,7 +155,10 @@ export const NotificationsSection = ({
         </div>
       </SettingRow>
 
-      <SettingsSectionHeader title="Notification Storage" />
+      <SettingsSectionHeader
+        title="Notification Storage"
+        anchorId="settings-notification-storage"
+      />
       <SettingRow
         label="Keep notifications for (days)"
         description="Older notifications are auto-pruned. 0 = unbounded."
@@ -192,7 +198,10 @@ export const NotificationsSection = ({
         />
       </SettingRow>
 
-      <SettingsSectionHeader title="Ignored Repositories" />
+      <SettingsSectionHeader
+        title="Ignored Repositories"
+        anchorId="settings-ignored-repositories"
+      />
       <p className="text-muted-foreground mb-3 text-xs">
         Notifications from these repositories will be ignored
       </p>

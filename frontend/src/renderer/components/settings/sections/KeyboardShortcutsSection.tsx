@@ -70,7 +70,7 @@ export const KeyboardShortcutsSection = (): JSX.Element => {
 
   return (
     <div>
-      <SettingsSectionHeader title="Keyboard Shortcuts" />
+      <SettingsSectionHeader title="Keyboard Shortcuts" anchorId="settings-keyboard-shortcuts" />
       <p className="text-muted-foreground mb-4 text-sm">
         Click a shortcut to rebind. Press Escape to cancel. Conflicts (highlighted in red) are
         rejected.

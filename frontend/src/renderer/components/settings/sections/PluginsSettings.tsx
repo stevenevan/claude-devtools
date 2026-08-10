@@ -44,7 +44,12 @@ export const PluginsSettings = (): JSX.Element => {
   const enabledSet = new Set(enabledIds);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div
+      id="settings-plugins"
+      tabIndex={-1}
+      aria-label="Plugins"
+      className="flex flex-col gap-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+    >
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-text inline-flex items-center gap-2 text-base font-semibold">

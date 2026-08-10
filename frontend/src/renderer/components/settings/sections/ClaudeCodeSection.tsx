@@ -181,14 +181,20 @@ export const ClaudeCodeSection = (): JSX.Element | null => {
 
   return (
     <div>
+      <p className="border-border/50 bg-card/50 text-muted-foreground rounded-md border px-3 py-2 text-xs">
+        These settings edit Claude Code&apos;s local configuration.
+      </p>
       <p className="text-text-muted text-xs">
         Edits <code>~/.claude/settings.json</code>. Unrecognized keys are preserved untouched.
       </p>
 
-      <SettingsSectionHeader title="Environment Variables" />
+      <SettingsSectionHeader
+        title="Environment Variables"
+        anchorId="settings-environment-variables"
+      />
       <EnvFlagsPanel env={env} onChange={setEnv} disabled={saving} />
 
-      <SettingsSectionHeader title="Permissions" />
+      <SettingsSectionHeader title="Permissions" anchorId="settings-permissions" />
       <div className="flex flex-col gap-4">
         <PermissionListEditor label="Allow" items={allow} onChange={setAllow} disabled={saving} />
         <PermissionListEditor label="Deny" items={deny} onChange={setDeny} disabled={saving} />
