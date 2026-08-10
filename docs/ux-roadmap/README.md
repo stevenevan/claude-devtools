@@ -1,6 +1,6 @@
 # UI/UX Roadmap — Simple and Nerd Modes
 
-Fifteen sprint-weeks that rebuild this app's interface around two audiences instead of one.
+Sixteen sprint-weeks that rebuild this app's interface around two audiences instead of one.
 UX-01–03 were the first grouped delivery, shipped together as one dependency-complete group.
 UX-04–06 are the second grouped delivery: Cost, Tasks, and Alerts share their foundations while
 retaining page-level boundaries.
@@ -8,6 +8,8 @@ UX-07–10 are the third grouped delivery: Settings, Skills, Agents, and Plugins
 Simple-mode curation and installable-list pattern.
 UX-11–12 are the fourth grouped delivery: Annotations and History share mode-aware labels, safe
 authored-data actions, date grouping, and copy feedback.
+UX-12.5 is a one-week cross-cutting follow-up that standardizes missing shadcn primitives before
+the next page delivery; it is not a new grouped delivery.
 
 ## 1. What this roadmap is
 
@@ -90,10 +92,9 @@ file.
 
 Sprint 01 ships with the fresh-config default at **`nerd`**, not `simple`.
 
-The one-line flip to `simple` is the **final task of sprint 15**, gated on rows 1–14 of the sprint
-index reading `done` and sprint 15's own preceding tasks being complete. (Gating on every row
-including its own would be self-referential — sprint 15 cannot read `done` while its last task
-runs.)
+The one-line flip to `simple` is the **final task of sprint 15**, gated on every prior sprint row
+reading `done` and sprint 15's own preceding tasks being complete. (Gating on every row including
+its own would be self-referential — sprint 15 cannot read `done` while its last task runs.)
 
 Without this gate, weeks 1 through 14 hand a fresh install the restricted navigation with none of
 the simplified pages behind it: a seven-control rail leading to raw UUIDs and token counts, with
@@ -164,8 +165,8 @@ They may **not** introduce a new palette, font, or component library.
 
 - Colours come from the CSS variables in `frontend/src/renderer/index.css`. See
   `.claude/rules/tailwind.md` for the variable catalogue and the theme-aware class conventions.
-- Components come from the nineteen already in `frontend/src/renderer/components/ui/`. Use the
-  `Button` component, never a bare `<button>`.
+- Components come from `frontend/src/renderer/components/ui/`; new wrappers are added only through
+  the approved shadcn/Base UI parity process. Use the `Button` component, never a bare `<button>`.
 - **Icons come from `lucide-react`.** `components.json` declares `"iconLibrary": "remixicon"` and
   that is stale — the only icon dependency in `frontend/package.json` is `lucide-react`, which is
   what the app imports. Do not run the shadcn CLI without overriding it, or future component
@@ -237,7 +238,7 @@ rather than rediscovered.
 
 ## 13. How to read a sprint file
 
-Every `ux-NN-*.md` has the same core sections; completed grouped deliveries may append a Shipped status section:
+Every `ux-*.md` has the same core sections; completed grouped deliveries may append a Shipped status section:
 
 1. **Goal** — one line.
 2. **Today** — the root component, what it renders, and the concrete problems for a
@@ -268,6 +269,7 @@ Every `ux-NN-*.md` has the same core sections; completed grouped deliveries may 
 | 10 | [Plugins](ux-10-plugins.md) | Plugins | `dashboard/PluginsGrid.tsx` | behind-More | 01, 08 | done (grouped) |
 | 11 | [Annotations](ux-11-annotations.md) | Annotations | `sidebar/AnnotationList.tsx` | behind-More | 01, 03 | done (grouped) |
 | 12 | [History](ux-12-history.md) | History | `dashboard/HistoryBrowser.tsx` | behind-More | 01 | done (grouped) |
+| 12.5 | [shadcn UI parity](ux-12-5-shadcn-ui.md) | UI foundation | `components/ui/` | cross-cutting | 01–12 | planned |
 | 13 | [Marketplace](ux-13-marketplace.md) | Marketplace | `dashboard/MarketplaceBrowser.tsx` | behind-More | 01, 10 | planned |
 | 14 | [Task Graph](ux-14-task-graph.md) | Task Graph | `dashboard/TaskGraphViewer.tsx` | behind-More | 01, 03 | planned |
 | 15 | [Maintenance](ux-15-maintenance.md) | Maintenance | `maintenance/MaintenanceView.tsx` | behind-More | 01, all | planned |
