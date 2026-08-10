@@ -2,6 +2,7 @@ import { JSX, useEffect, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { Button } from '@renderer/components/ui/button';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
 import { formatBytes } from '@renderer/utils/formatters';
 import { Loader2, Plus } from 'lucide-react';
@@ -9,6 +10,8 @@ import { Loader2, Plus } from 'lucide-react';
 import { DryRunConfirmDialog } from '../maintenance/DryRunConfirmDialog';
 
 import { AgentDetailEditor } from './AgentDetailEditor';
+import { AGENT_NAME_RULE, getAgentCapabilityLabel, isValidAgentName } from './agentCapability';
+import { InstallableList } from './InstallableList';
 
 import type { GlobalAgent } from '@shared/types/api';
 
@@ -30,6 +33,7 @@ function toolsSummary(tools: string): string {
 }
 
 export const AgentsManager = (): JSX.Element => {
+  const mode = useUIMode();
   const connectionMode = useStore((s) => s.connectionMode);
   const canAct = isDesktopMode() && connectionMode === 'local';
 
@@ -40,6 +44,7 @@ export const AgentsManager = (): JSX.Element => {
   const [editorDirty, setEditorDirty] = useState(false);
 
   const [showCreate, setShowCreate] = useState(false);
+  const [showAllAgents, setShowAllAgents] = useState(false);
   const [createName, setCreateName] = useState('');
   const [createDescription, setCreateDescription] = useState('');
   const [creating, setCreating] = useState(false);
@@ -69,9 +74,9 @@ export const AgentsManager = (): JSX.Element => {
   }, []);
 
   useEffect(() => {
-    if (selectedFileBase || agents.length === 0) return;
+    if (mode === 'simple' || selectedFileBase || agents.length === 0) return;
     setSelectedFileBase(fileBaseOf(agents[0].filePath));
-  }, [agents, selectedFileBase]);
+  }, [agents, mode, selectedFileBase]);
 
   const selectAgent = async (fileBase: string): Promise<void> => {
     if (editorDirty) {
@@ -90,7 +95,14 @@ export const AgentsManager = (): JSX.Element => {
   const handleCreate = async (): Promise<void> => {
     const name = createName.trim();
     const description = createDescription.trim();
-    if (!name) return;
+    if (!name) {
+      setCreateError('Enter a helper name.');
+      return;
+    }
+    if (!isValidAgentName(name)) {
+      setCreateError(`Invalid helper name. ${AGENT_NAME_RULE}`);
+      return;
+    }
     setCreating(true);
     setCreateError(null);
     try {
@@ -126,6 +138,53 @@ export const AgentsManager = (): JSX.Element => {
   };
 
   const selectedAgent = agents.find((a) => fileBaseOf(a.filePath) === selectedFileBase) ?? null;
+  const simpleAgentItems = agents.map((agent) => ({
+    id: fileBaseOf(agent.filePath),
+    name: agent.name || fileBaseOf(agent.filePath),
+    description: agent.description || 'No description provided.',
+    detail: getAgentCapabilityLabel(agent.tools),
+  }));
+
+  if (mode === 'simple' && !showAllAgents) {
+    return (
+      <div className="bg-background flex flex-1 flex-col overflow-y-auto">
+        <div className="border-border/50 border-b px-6 py-5">
+          <p className="text-foreground text-lg font-medium">Helpers</p>
+          <p className="text-muted-foreground mt-1 max-w-2xl text-sm">
+            Helpers combine skills into focused ways of working. They can read information, change
+            files, or run commands depending on how they are configured.
+          </p>
+        </div>
+
+        {error && (
+          <div className="border-border/50 bg-destructive/10 text-destructive border-b px-6 py-3 text-sm">
+            {error}
+          </div>
+        )}
+
+        <div className="flex flex-1 flex-col gap-5 px-6 py-6">
+          {loading ? (
+            <p className="text-muted-foreground text-sm">Loading helpers…</p>
+          ) : (
+            <InstallableList
+              items={simpleAgentItems}
+              ariaLabel="Available helpers"
+              emptyMessage="No helpers are available yet."
+            />
+          )}
+
+          <Button
+            type="button"
+            variant="ghost"
+            className="self-start text-muted-foreground"
+            onClick={() => setShowAllAgents(true)}
+          >
+            Edit helpers
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background flex flex-1 flex-col overflow-hidden">
@@ -164,14 +223,20 @@ export const AgentsManager = (): JSX.Element => {
       {showCreate && (
         <div className="border-border/50 flex flex-wrap items-end gap-2 border-b px-4 py-3">
           <label className="text-muted-foreground flex flex-col gap-1 text-xs">
-            Name (filename)
+            <span>Name (filename)</span>
             <input
+              id="agent-name"
               value={createName}
               disabled={!canAct}
-              placeholder="my-agent"
+              placeholder="lowercase-with-dashes"
+              aria-describedby="agent-name-rule"
+              aria-invalid={Boolean(createError)}
               onChange={(e) => setCreateName(e.target.value)}
               className="border-border/50 bg-card/50 text-foreground w-48 rounded-sm border px-2 py-1 text-xs"
             />
+            <span id="agent-name-rule" className="text-muted-foreground max-w-48 text-[10px]">
+              {AGENT_NAME_RULE}
+            </span>
           </label>
           <label className="text-muted-foreground flex flex-1 flex-col gap-1 text-xs">
             Description

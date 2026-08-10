@@ -1,10 +1,12 @@
-import { JSX, useEffect, useRef } from 'react';
+import { JSX, useEffect, useRef, useState } from 'react';
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import { Trash2 } from 'lucide-react';
 
 import { ConfigEditorShell } from '../maintenance/ConfigEditorShell';
 import { useFileBackedEditor } from '../maintenance/useFileBackedEditor';
+
+import { AGENT_NAME_RULE, isValidAgentName } from './agentCapability';
 
 import type { AgentPatch } from '@shared/types/api';
 
@@ -132,6 +134,7 @@ export const AgentDetailEditor = ({
   onRequestDelete,
 }: Readonly<AgentDetailEditorProps>): JSX.Element => {
   const baselineRef = useRef<AgentFields>(EMPTY_FIELDS);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const { value, setValue, dirty, error, saving, loading, save, discard } = useFileBackedEditor({
     load: async () => {
@@ -162,6 +165,11 @@ export const AgentDetailEditor = ({
   const modelOptions = modelKnown ? KNOWN_AGENT_MODELS : [...KNOWN_AGENT_MODELS, fields.model];
 
   const handleSave = async (): Promise<void> => {
+    if (!isValidAgentName(fields.name)) {
+      setValidationError(`Invalid helper name. ${AGENT_NAME_RULE}`);
+      return;
+    }
+    setValidationError(null);
     await save();
     onSaved();
   };
@@ -187,11 +195,17 @@ export const AgentDetailEditor = ({
         <label className="flex flex-col gap-1">
           <span className="text-muted-foreground text-xs">name</span>
           <input
+            id="agent-name-editor"
             value={fields.name}
             disabled={!canAct}
+            aria-describedby="agent-name-editor-rule"
+            aria-invalid={Boolean(validationError)}
             onChange={(e) => update({ name: e.target.value })}
             className="border-border/50 bg-card/50 text-foreground rounded-md border px-2 py-1 text-xs"
           />
+          <span id="agent-name-editor-rule" className="text-muted-foreground text-[10px]">
+            {validationError ?? AGENT_NAME_RULE}
+          </span>
         </label>
 
         <label className="flex flex-col gap-1">
