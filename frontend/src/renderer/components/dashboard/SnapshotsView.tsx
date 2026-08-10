@@ -11,6 +11,7 @@ import type { SnapshotMeta } from '@shared/types/api';
 registerDashboardWidget({
   id: 'snapshots-view',
   title: 'Session Snapshots',
+  description: 'Saved session snapshots.',
   category: 'session',
   defaultSize: { cols: 4, rows: 2 },
   minSize: { cols: 2, rows: 1 },

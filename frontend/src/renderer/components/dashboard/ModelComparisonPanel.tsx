@@ -16,6 +16,7 @@ const logger = createLogger('Component:ModelComparisonPanel');
 registerDashboardWidget({
   id: 'model-comparison',
   title: 'Model Comparison',
+  description: 'Compare model cost, speed, tools, and errors.',
   category: 'analytics',
   defaultSize: { cols: 6, rows: 2 },
   minSize: { cols: 4, rows: 2 },

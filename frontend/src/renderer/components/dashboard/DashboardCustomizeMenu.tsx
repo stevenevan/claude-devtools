@@ -1,4 +1,5 @@
 import { JSX, useMemo, useState } from 'react';
+import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { ArrowDown, ArrowUp, EyeOff, RotateCcw, Settings2 } from 'lucide-react';
@@ -33,30 +34,37 @@ export const DashboardCustomizeMenu = (): JSX.Element => {
 
   return (
     <div className="relative">
-      <button
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'text-text-secondary hover:bg-surface-raised flex items-center gap-1 rounded-sm px-2 py-1 text-[11px]',
+          'text-text-secondary hover:bg-surface-raised rounded-sm px-2 py-1 text-[11px]',
           open && 'bg-surface-raised'
         )}
         title="Customize dashboard"
+        aria-label="Customize dashboard"
       >
         <Settings2 className="size-3" />
         Customize
-      </button>
+      </Button>
 
       {open && (
         <div className="bg-surface-overlay border-border/60 absolute right-0 z-20 mt-1 w-72 rounded-xs border p-3 shadow-lg">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-text text-[11px] font-medium">Widgets</span>
-            <button
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
               onClick={() => void persist(layoutReduce(layout, { type: 'reset' }))}
-              className="text-text-muted hover:text-text flex items-center gap-1 text-[10px]"
+              className="text-text-muted hover:text-text h-5 gap-1 px-1 text-[10px]"
               title="Reset to defaults"
             >
               <RotateCcw className="size-2.5" />
               Reset
-            </button>
+            </Button>
           </div>
 
           <ul className="flex flex-col gap-1">
@@ -67,10 +75,20 @@ export const DashboardCustomizeMenu = (): JSX.Element => {
                   key={widget.id}
                   className="border-border/40 bg-background/40 flex items-center gap-2 rounded-sm border px-2 py-1 text-[10px]"
                 >
-                  <span className={cn('flex-1 truncate', isHidden && 'text-text-muted')}>
-                    {widget.title}
-                  </span>
-                  <button
+                  <div className="min-w-0 flex-1">
+                    <span className={cn('block truncate', isHidden && 'text-text-muted')}>
+                      {widget.title}
+                    </span>
+                    {widget.description && (
+                      <span className="text-text-muted block truncate text-[9px]">
+                        {widget.description}
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() =>
                       void persist(
                         layoutReduce(layout, { type: 'move', id: widget.id, direction: 'up' })
@@ -79,10 +97,14 @@ export const DashboardCustomizeMenu = (): JSX.Element => {
                     disabled={idx === 0 || isHidden}
                     className="text-text-muted hover:text-text disabled:opacity-30"
                     title="Move up"
+                    aria-label={`Move ${widget.title} up`}
                   >
                     <ArrowUp className="size-2.5" />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() =>
                       void persist(
                         layoutReduce(layout, { type: 'move', id: widget.id, direction: 'down' })
@@ -91,10 +113,14 @@ export const DashboardCustomizeMenu = (): JSX.Element => {
                     disabled={idx === all.length - 1 || isHidden}
                     className="text-text-muted hover:text-text disabled:opacity-30"
                     title="Move down"
+                    aria-label={`Move ${widget.title} down`}
                   >
                     <ArrowDown className="size-2.5" />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() =>
                       void persist(layoutReduce(layout, { type: 'toggle-hidden', id: widget.id }))
                     }
@@ -103,9 +129,10 @@ export const DashboardCustomizeMenu = (): JSX.Element => {
                       isHidden ? 'text-amber-400' : 'text-text-muted hover:text-text'
                     )}
                     title={isHidden ? 'Show widget' : 'Hide widget'}
+                    aria-label={isHidden ? `Show ${widget.title}` : `Hide ${widget.title}`}
                   >
                     <EyeOff className="size-2.5" />
-                  </button>
+                  </Button>
                 </li>
               );
             })}

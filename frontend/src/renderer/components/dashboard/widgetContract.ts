@@ -9,6 +9,7 @@ export interface DashboardWidgetSize {
 export interface DashboardWidgetMeta {
   id: string;
   title: string;
+  description?: string;
   category: DashboardWidgetCategory;
   defaultSize: DashboardWidgetSize;
   minSize: DashboardWidgetSize;

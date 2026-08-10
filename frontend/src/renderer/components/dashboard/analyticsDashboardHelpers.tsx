@@ -5,7 +5,7 @@ import { MAX_DAYS } from '@renderer/hooks/useAnalyticsData';
 import { cn } from '@renderer/lib/utils';
 import { formatTokensCompact } from '@shared/utils/tokenFormatting';
 
-import { formatDuration } from './dashboardFormatters';
+import { formatCost, formatDuration } from './dashboardFormatters';
 
 import type { TopSessionEntry } from '@shared/types';
 
@@ -98,7 +98,7 @@ export const CustomBarTooltip = ({
           <span className="text-text-secondary">{item.name}:</span>
           <span className="text-text font-medium">
             {item.dataKey === 'costUsd'
-              ? `$${item.value.toFixed(4)}`
+              ? formatCost(item.value)
               : formatTokensCompact(item.value)}
           </span>
         </div>
@@ -129,7 +129,7 @@ export const CustomPieTooltip = ({
           Tokens: <span className="text-text font-medium">{formatTokensCompact(data.value)}</span>
         </p>
         <p className="text-text-secondary">
-          Cost: <span className="text-text font-medium">${data.payload.costUsd.toFixed(2)}</span>
+          Cost: <span className="text-text font-medium">{formatCost(data.payload.costUsd)}</span>
         </p>
         <p className="text-text-secondary">
           Sessions: <span className="text-text font-medium">{data.payload.sessionCount}</span>
@@ -249,7 +249,7 @@ export const TopSessions = ({ sessions }: Readonly<TopSessionsProps>): JSX.Eleme
         </div>
         <div className="flex items-center gap-3 text-[10px]">
           <span className="text-text-secondary">{formatTokensCompact(s.totalTokens)} tokens</span>
-          <span className="text-text-muted">${s.costUsd.toFixed(3)}</span>
+          <span className="text-text-muted">{formatCost(s.costUsd)}</span>
           <span className="text-text-muted">{formatDuration(s.durationMs)}</span>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { cn } from '@renderer/lib/utils';
 import { createLogger } from '@shared/utils/logger';
 import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
 
+import { formatCost } from './dashboardFormatters';
 import { registerDashboardWidget } from './widgetContract';
 
 import type { CostForecast } from '@shared/types';
@@ -15,6 +16,7 @@ const FORECAST_WINDOW_DAYS = 14;
 registerDashboardWidget({
   id: 'budget-panel',
   title: 'Budget & Forecast',
+  description: 'Trailing cost and forecast trend.',
   category: 'analytics',
   defaultSize: { cols: 4, rows: 1 },
   minSize: { cols: 2, rows: 1 },
@@ -22,19 +24,13 @@ registerDashboardWidget({
   defaultVisible: true,
 });
 
-function formatUsd(usd: number): string {
-  if (usd >= 100) return `$${usd.toFixed(0)}`;
-  if (usd >= 1) return `$${usd.toFixed(2)}`;
-  return `$${usd.toFixed(3)}`;
-}
-
 interface TrendIndicatorProps {
   slope: number;
 }
 
 const TrendIndicator = ({ slope }: Readonly<TrendIndicatorProps>): JSX.Element => {
   const absSlope = Math.abs(slope);
-  const label = `${slope >= 0 ? '+' : '-'}${formatUsd(absSlope)}/day`;
+  const label = `${slope >= 0 ? '+' : '-'}${formatCost(absSlope)}/day`;
 
   if (absSlope < 0.005) {
     return (
@@ -125,19 +121,19 @@ export const BudgetPanel = (): JSX.Element => {
         <div>
           <p className="text-text-muted text-[10px]">Current ({FORECAST_WINDOW_DAYS}d)</p>
           <p className="text-text mt-1 text-lg font-medium tabular-nums">
-            {formatUsd(currentSpend)}
+            {formatCost(currentSpend)}
           </p>
         </div>
         <div>
           <p className="text-text-muted text-[10px]">Projected daily</p>
           <p className="text-text mt-1 text-lg font-medium tabular-nums">
-            {formatUsd(projectedDaily)}
+            {formatCost(projectedDaily)}
           </p>
         </div>
         <div>
           <p className="text-text-muted text-[10px]">Projected weekly</p>
           <p className="text-text mt-1 text-lg font-medium tabular-nums">
-            {formatUsd(projectedWeekly)}
+            {formatCost(projectedWeekly)}
           </p>
         </div>
       </div>

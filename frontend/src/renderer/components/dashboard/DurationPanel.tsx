@@ -11,6 +11,7 @@ import type { SessionDurationEntry } from '@shared/types';
 registerDashboardWidget({
   id: 'duration-panel',
   title: 'Session Duration',
+  description: 'Wall-clock duration distribution and outliers.',
   category: 'analytics',
   defaultSize: { cols: 4, rows: 1 },
   minSize: { cols: 2, rows: 1 },

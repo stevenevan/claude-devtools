@@ -7,11 +7,13 @@ import {
   CollapsibleTrigger,
 } from '@renderer/components/ui/collapsible';
 import { useAnalyticsData } from '@renderer/hooks/useAnalyticsData';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { cn } from '@renderer/lib/utils';
 import { ChevronDown, ChevronRight, Wrench } from 'lucide-react';
 
 import { ChartSection, DashboardSkeleton, DayRangeSelector } from '../analyticsDashboardHelpers';
 import { BudgetPanel } from '../BudgetPanel';
+import { CostSummary } from '../CostSummary';
 import { CostTrendChart } from '../CostTrendChart';
 import { DashboardCustomizeMenu } from '../DashboardCustomizeMenu';
 import { DurationPanel } from '../DurationPanel';
@@ -27,6 +29,11 @@ import { StatCardsRow } from './StatCardsRow';
 import { TokenUsageBarChart } from './TokenUsageBarChart';
 
 export const AnalyticsDashboard = (): JSX.Element => {
+  const mode = useUIMode();
+  return mode === 'simple' ? <CostSummary /> : <NerdAnalyticsDashboard />;
+};
+
+const NerdAnalyticsDashboard = (): JSX.Element => {
   const showBudget = useWidgetVisible('budget-panel');
   const showProductivity = useWidgetVisible('productivity-panel');
   const showDuration = useWidgetVisible('duration-panel');

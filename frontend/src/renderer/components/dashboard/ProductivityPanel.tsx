@@ -11,6 +11,7 @@ import type { ProductivityDay } from '@shared/types';
 registerDashboardWidget({
   id: 'productivity-panel',
   title: 'Productivity',
+  description: 'Session activity, active time, tools, and usage percentiles.',
   category: 'analytics',
   defaultSize: { cols: 4, rows: 1 },
   minSize: { cols: 2, rows: 1 },

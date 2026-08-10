@@ -11,6 +11,8 @@ import {
   YAxis,
 } from 'recharts';
 
+import { formatCost } from './dashboardFormatters';
+
 import type { TimeBucketUsage } from '@shared/types';
 
 interface CostTrendChartProps {
@@ -58,7 +60,7 @@ const CustomAreaTooltip = ({
       <div className="font-medium">{bucket.label}</div>
       <div className="mt-1 flex items-center gap-2">
         <span className="text-muted-foreground">Cost</span>
-        <span className="font-mono">${bucket.costUsd.toFixed(4)}</span>
+        <span className="font-mono">{formatCost(bucket.costUsd)}</span>
       </div>
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground">Sessions</span>
@@ -112,8 +114,8 @@ export const CostTrendChart = ({
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-3">
-        <SummaryStat label="This week" value={`$${summary.thisWeekCost.toFixed(2)}`} />
-        <SummaryStat label="Last week" value={`$${summary.lastWeekCost.toFixed(2)}`} />
+        <SummaryStat label="This week" value={formatCost(summary.thisWeekCost)} />
+        <SummaryStat label="Last week" value={formatCost(summary.lastWeekCost)} />
         <SummaryStat
           label="Change"
           value={summary.deltaPct === null ? '—' : `${summary.deltaPct.toFixed(1)}%`}
@@ -121,39 +123,67 @@ export const CostTrendChart = ({
         />
       </div>
 
-      <ResponsiveContainer width="100%" height={220}>
-        <AreaChart data={buckets} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-          <defs>
-            <linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10b981" stopOpacity={0.45} />
-              <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-          <XAxis
-            dataKey="label"
-            tick={{ fontSize: 10, fill: '#71717a' }}
-            axisLine={{ stroke: 'rgba(255,255,255,0.06)' }}
-            tickLine={false}
-            minTickGap={12}
-          />
-          <YAxis
-            tick={{ fontSize: 10, fill: '#71717a' }}
-            axisLine={false}
-            tickLine={false}
-            tickFormatter={(v: number) => `$${v.toFixed(2)}`}
-          />
-          <Tooltip content={<CustomAreaTooltip />} />
-          <Area
-            type="monotone"
-            dataKey="costUsd"
-            name={`Cost per ${bucketNoun}`}
-            stroke="#10b981"
-            strokeWidth={2}
-            fill="url(#costGradient)"
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+      <div
+        role="img"
+        aria-label={`Cost trend chart by ${bucketNoun}`}
+        className="h-[220px]"
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={buckets} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#10b981" stopOpacity={0.45} />
+                <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 10, fill: '#71717a' }}
+              axisLine={{ stroke: 'rgba(255,255,255,0.06)' }}
+              tickLine={false}
+              minTickGap={12}
+            />
+            <YAxis
+              tick={{ fontSize: 10, fill: '#71717a' }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={formatCost}
+            />
+            <Tooltip content={<CustomAreaTooltip />} />
+            <Area
+              type="monotone"
+              dataKey="costUsd"
+              name={`Cost per ${bucketNoun}`}
+              stroke="#10b981"
+              strokeWidth={2}
+              fill="url(#costGradient)"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="sr-only">
+        <p>Cost trend data by {bucketNoun}.</p>
+        <table>
+          <caption>Cost trend data</caption>
+          <thead>
+            <tr>
+              <th scope="col">Period</th>
+              <th scope="col">Cost</th>
+              <th scope="col">Sessions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {buckets.map((bucket) => (
+              <tr key={bucket.key}>
+                <th scope="row">{bucket.label}</th>
+                <td>{formatCost(bucket.costUsd)}</td>
+                <td>{bucket.sessionCount}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
