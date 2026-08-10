@@ -84,6 +84,13 @@ applies in both modes. Nerd mode gets a terser dialog, not no dialog.
 ## 6. Files touched
 
 - `frontend/src/renderer/components/sidebar/AnnotationList.tsx`
+- `frontend/src/renderer/components/layout/GlobalContentView.tsx` and
+  `frontend/src/renderer/components/layout/PaneContent.tsx` — the documented title-only shell
+  exception
+- `frontend/src/renderer/store/slices/annotationSlice.ts` and
+  `frontend/src/renderer/store/slices/annotationSlice.test.ts`
+- `src-tauri/src/config/state/manager.rs` and `src-tauri/src/commands/config.rs` — safe persisted
+  deletion
 
 Reuse `ConfirmDialog` (mounted in `App.tsx:60`) for the delete confirmation.
 
@@ -139,3 +146,12 @@ conversation at a position).
   assuming delete is cheap.
 - This page is the app's only user-authored content. If a future sprint adds bulk delete, it needs
   undo, not just a confirmation — flagged here so it is not added casually.
+
+## 12. Shipped status
+
+UX-11 shipped in the grouped UX-11–12 delivery. Simple mode presents notes with conversation
+subjects, relative times, an Open conversation action, and a confirmed Delete action; Nerd mode
+retains session IDs and absolute timestamps. Failed config writes are surfaced while the note stays
+present in memory. Annotation records carry a session but no position, so opening a note starts at
+the conversation top. The frozen shell received only the documented title-only exception: Simple
+shows “Your notes” while the existing search behavior remains unchanged.

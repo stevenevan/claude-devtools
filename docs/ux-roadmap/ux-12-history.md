@@ -95,7 +95,12 @@ reference.
 ## 6. Files touched
 
 - `frontend/src/renderer/components/dashboard/HistoryBrowser.tsx`
-- `frontend/src/renderer/utils/dateGrouping.ts` — reuse; extend only if it cannot group this shape
+- `frontend/src/renderer/components/dashboard/historyBrowserHelpers.ts` **(new)** — grouping and
+  folder-label helpers
+- `frontend/src/renderer/components/dashboard/historyBrowserHelpers.test.ts` **(new)**
+- `frontend/src/renderer/components/common/CopyButton.tsx` — accessible copy feedback
+- `frontend/src/renderer/utils/dateGrouping.ts` and its tests — reuse; extend only if it cannot
+  group this shape
 
 ## 7. Tasks (ordered)
 
@@ -144,3 +149,12 @@ Sprint 01.
 - This page can be long — every prompt ever typed. Confirm it virtualises; if it does not and the
   list is large, day grouping makes the DOM bigger, not smaller. Use
   `@tanstack/react-virtual` as the repo does elsewhere for lists over ~100 rows.
+
+## 12. Shipped status
+
+UX-12 shipped in the grouped UX-11–12 delivery. Both modes group prompts by local day and provide
+an accessible Copy action on every row with live success feedback. Simple mode uses “Things you
+asked”, folder names, relative dates, and actionable empty states; Nerd mode keeps raw project
+values and absolute timestamps. The existing virtualized list now includes stable day headings.
+History records contain no session reference, so no jump action was added; the detail view remains
+available after selecting a row.

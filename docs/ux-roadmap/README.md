@@ -6,6 +6,8 @@ UX-04–06 are the second grouped delivery: Cost, Tasks, and Alerts share their 
 retaining page-level boundaries.
 UX-07–10 are the third grouped delivery: Settings, Skills, Agents, and Plugins share the
 Simple-mode curation and installable-list pattern.
+UX-11–12 are the fourth grouped delivery: Annotations and History share mode-aware labels, safe
+authored-data actions, date grouping, and copy feedback.
 
 ## 1. What this roadmap is
 
@@ -264,8 +266,8 @@ Every `ux-NN-*.md` has the same core sections; completed grouped deliveries may 
 | 08 | [Skills](ux-08-skills.md) | Skills | `dashboard/SkillsManager.tsx` | behind-More | 01 | done (grouped) |
 | 09 | [Agents](ux-09-agents.md) | Agents | `dashboard/AgentsManager.tsx` | behind-More | 01, 08 | done (grouped) |
 | 10 | [Plugins](ux-10-plugins.md) | Plugins | `dashboard/PluginsGrid.tsx` | behind-More | 01, 08 | done (grouped) |
-| 11 | [Annotations](ux-11-annotations.md) | Annotations | `sidebar/AnnotationList.tsx` | behind-More | 01, 03 | planned |
-| 12 | [History](ux-12-history.md) | History | `dashboard/HistoryBrowser.tsx` | behind-More | 01 | planned |
+| 11 | [Annotations](ux-11-annotations.md) | Annotations | `sidebar/AnnotationList.tsx` | behind-More | 01, 03 | done (grouped) |
+| 12 | [History](ux-12-history.md) | History | `dashboard/HistoryBrowser.tsx` | behind-More | 01 | done (grouped) |
 | 13 | [Marketplace](ux-13-marketplace.md) | Marketplace | `dashboard/MarketplaceBrowser.tsx` | behind-More | 01, 10 | planned |
 | 14 | [Task Graph](ux-14-task-graph.md) | Task Graph | `dashboard/TaskGraphViewer.tsx` | behind-More | 01, 03 | planned |
 | 15 | [Maintenance](ux-15-maintenance.md) | Maintenance | `maintenance/MaintenanceView.tsx` | behind-More | 01, all | planned |
