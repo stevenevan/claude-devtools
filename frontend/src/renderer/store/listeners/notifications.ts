@@ -5,19 +5,43 @@ import { useStore } from '../useStore';
 import type { DetectedError } from '../../types/data';
 import type { ListenerContext } from './types';
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isDetectedError(value: unknown): value is DetectedError {
+  if (!isRecord(value) || !isRecord(value.context)) return false;
+
+  return (
+    typeof value.id === 'string' &&
+    typeof value.timestamp === 'number' &&
+    Number.isFinite(value.timestamp) &&
+    typeof value.sessionId === 'string' &&
+    typeof value.projectId === 'string' &&
+    typeof value.filePath === 'string' &&
+    typeof value.source === 'string' &&
+    typeof value.message === 'string' &&
+    typeof value.isRead === 'boolean' &&
+    typeof value.createdAt === 'number' &&
+    Number.isFinite(value.createdAt) &&
+    typeof value.context.projectName === 'string'
+  );
+}
+
 export function attachNotificationListeners(ctx: ListenerContext): void {
   if (api.notifications?.onNew) {
     const cleanup = api.notifications.onNew((_event: unknown, error: unknown) => {
-      const notification = error as DetectedError;
-      if (notification?.id) {
-        // Keep list in sync immediately; unread count is synced via notification:updated/fetch.
-        useStore.setState((state) => {
-          if (state.notifications.some((n) => n.id === notification.id)) {
-            return {};
-          }
-          return { notifications: [notification, ...state.notifications].slice(0, 200) };
-        });
-      }
+      if (!isDetectedError(error)) return;
+
+      useStore.setState((state) => {
+        if (state.notifications.some((notification) => notification.id === error.id)) {
+          return {};
+        }
+        return {
+          notifications: [error, ...state.notifications],
+          notificationsOffset: state.notificationsOffset + 1,
+        };
+      });
     });
     if (typeof cleanup === 'function') {
       ctx.cleanupFns.push(cleanup);
@@ -39,12 +63,11 @@ export function attachNotificationListeners(ctx: ListenerContext): void {
     }
   }
 
-  // Navigate to error when user clicks a native OS notification
   if (api.notifications?.onClicked) {
     const cleanup = api.notifications.onClicked((_event: unknown, data: unknown) => {
-      const error = data as DetectedError;
-      if (error?.id && error?.sessionId && error?.projectId) {
-        useStore.getState().navigateToError(error);
+      if (!isDetectedError(data)) return;
+      if (data.id && data.sessionId && data.projectId) {
+        useStore.getState().navigateToError(data);
       }
     });
     if (typeof cleanup === 'function') {

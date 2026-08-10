@@ -1,4 +1,5 @@
-import { JSX, MouseEvent, useState } from 'react';
+import { JSX, MouseEvent } from 'react';
+import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { getTriggerColorDef } from '@shared/constants/triggerColors';
 import { formatDistanceToNow } from 'date-fns';
@@ -24,7 +25,6 @@ export const NotificationRow = ({
   onArchive,
   onDelete,
 }: Readonly<NotificationRowProps>): JSX.Element => {
-  const [isHovered, setIsHovered] = useState(false);
   const isUnread = !error.isRead;
   const projectName = error.context?.projectName || 'Unknown Project';
   const relativeTime = formatDistanceToNow(new Date(error.timestamp), {
@@ -34,82 +34,81 @@ export const NotificationRow = ({
   const colorDef = getTriggerColorDef(error.triggerColor);
   const displayName = error.triggerName ?? error.source;
 
-  const handleArchiveClick = (e: MouseEvent): void => {
-    e.stopPropagation();
+  const handleArchiveClick = (event: MouseEvent<HTMLButtonElement>): void => {
+    event.stopPropagation();
     onArchive();
   };
 
-  const handleDeleteClick = (e: MouseEvent): void => {
-    e.stopPropagation();
+  const handleDeleteClick = (event: MouseEvent<HTMLButtonElement>): void => {
+    event.stopPropagation();
     onDelete();
   };
 
-  const handleNavigateClick = (e: MouseEvent): void => {
-    e.stopPropagation();
+  const handleNavigateClick = (event: MouseEvent<HTMLButtonElement>): void => {
+    event.stopPropagation();
     onRowClick();
   };
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={onRowClick}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onRowClick();
-        }
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      role="group"
+      aria-label={`${displayName}, ${projectName}, ${truncatedMessage}`}
       className={cn(
-        'flex h-full cursor-pointer items-center gap-3 border-b border-border px-4 transition-colors',
-        isHovered && 'bg-card',
+        'group relative flex h-full border-b border-border transition-colors',
         !isUnread && 'opacity-50'
       )}
     >
-      <div className="flex w-3 shrink-0 justify-center">
-        <span
-          className={cn('size-2.5 rounded-full', !isUnread && 'opacity-40')}
-          style={{ backgroundColor: colorDef.hex }}
-        />
-      </div>
-
-      <div className="min-w-0 flex-1 py-2">
-        <div className="flex items-center gap-1.5">
+      <Button
+        type="button"
+        variant="ghost"
+        onClick={onRowClick}
+        aria-label={`${displayName}, ${projectName}, ${truncatedMessage}, ${relativeTime}`}
+        className="h-full min-w-0 flex-1 justify-start gap-3 rounded-none px-4 text-left hover:bg-card"
+      >
+        <div className="flex w-3 shrink-0 justify-center">
           <span
-            className={cn(
-              'truncate text-sm font-medium',
-              isUnread ? 'text-foreground' : 'text-muted-foreground'
-            )}
-          >
-            {displayName}
-          </span>
-          <span className="text-muted-foreground">&middot;</span>
-          <span className="text-muted-foreground truncate text-sm">{projectName}</span>
-          {error.subagentId && (
-            <span className="text-muted-foreground border-border bg-card inline-flex shrink-0 items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[10px] font-medium">
-              <Bot className="size-3" />
-              subagent
-            </span>
-          )}
-        </div>
-        <p className="text-muted-foreground mt-0.5 truncate text-xs">{truncatedMessage}</p>
-      </div>
-
-      <div className="flex shrink-0 items-center gap-1">
-        {isHovered ? (
-          <HoverActions
-            isUnread={isUnread}
-            onArchiveClick={handleArchiveClick}
-            onDeleteClick={handleDeleteClick}
-            onNavigateClick={handleNavigateClick}
+            aria-hidden="true"
+            className={cn('size-2.5 rounded-full', !isUnread && 'opacity-40')}
+            style={{ backgroundColor: colorDef.hex }}
           />
-        ) : (
-          <span className="text-muted-foreground text-[11px] whitespace-nowrap">
-            {relativeTime}
-          </span>
-        )}
+        </div>
+
+        <div className="min-w-0 flex-1 py-2">
+          <div className="flex items-center gap-1.5">
+            <span
+              className={cn(
+                'truncate text-sm font-medium',
+                isUnread ? 'text-foreground' : 'text-muted-foreground'
+              )}
+            >
+              {displayName}
+            </span>
+            <span aria-hidden="true" className="text-muted-foreground">
+              &middot;
+            </span>
+            <span className="text-muted-foreground truncate text-sm">{projectName}</span>
+            {error.subagentId && (
+              <span className="text-muted-foreground border-border bg-card inline-flex shrink-0 items-center gap-1 rounded-sm border px-1.5 py-0.5 text-[10px] font-medium">
+                <Bot aria-hidden="true" className="size-3" />
+                subagent
+              </span>
+            )}
+          </div>
+          <p className="text-muted-foreground mt-0.5 truncate text-xs">{truncatedMessage}</p>
+        </div>
+
+        <span className="text-muted-foreground shrink-0 text-[11px] whitespace-nowrap transition-opacity group-hover:opacity-0 group-focus-within:opacity-0">
+          {relativeTime}
+        </span>
+      </Button>
+
+      <div className="absolute top-1/2 right-3 flex -translate-y-1/2 items-center gap-1 opacity-0 transition-opacity pointer-events-none group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100">
+        <HoverActions
+          isUnread={isUnread}
+          onArchiveClick={handleArchiveClick}
+          onDeleteClick={handleDeleteClick}
+          onNavigateClick={handleNavigateClick}
+        />
       </div>
     </div>
   );
@@ -117,9 +116,9 @@ export const NotificationRow = ({
 
 interface HoverActionsProps {
   isUnread: boolean;
-  onArchiveClick: (e: MouseEvent) => void;
-  onDeleteClick: (e: MouseEvent) => void;
-  onNavigateClick: (e: MouseEvent) => void;
+  onArchiveClick: (event: MouseEvent<HTMLButtonElement>) => void;
+  onDeleteClick: (event: MouseEvent<HTMLButtonElement>) => void;
+  onNavigateClick: (event: MouseEvent<HTMLButtonElement>) => void;
 }
 
 const HoverActions = ({
@@ -131,28 +130,38 @@ const HoverActions = ({
   return (
     <>
       {isUnread && (
-        <button
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
           onClick={onArchiveClick}
-          className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-sm p-1.5 transition-colors"
+          aria-label="Mark as read"
           title="Mark as read"
         >
-          <Check className="size-4" />
-        </button>
+          <Check aria-hidden="true" />
+        </Button>
       )}
-      <button
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
         onClick={onDeleteClick}
-        className="text-muted-foreground hover:bg-muted rounded-sm p-1.5 transition-colors hover:text-red-400"
-        title="Delete"
+        aria-label="Delete notification"
+        title="Delete notification"
+        className="hover:text-red-400"
       >
-        <Trash2 className="size-4" />
-      </button>
-      <button
+        <Trash2 aria-hidden="true" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
         onClick={onNavigateClick}
-        className="text-muted-foreground hover:bg-border-emphasis hover:text-foreground rounded-sm p-1.5 transition-colors"
+        aria-label="View in session"
         title="View in session"
       >
-        <ArrowRight className="size-4" />
-      </button>
+        <ArrowRight aria-hidden="true" />
+      </Button>
     </>
   );
 };
