@@ -1,6 +1,7 @@
 import { JSX, useEffect, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
+import { Field, FieldDescription, FieldLabel } from '@renderer/components/ui/field';
 import { useStore } from '@renderer/store';
 import { Plug, Send, Trash2 } from 'lucide-react';
 
@@ -91,25 +92,64 @@ export const WebhookSettings = (): JSX.Element => {
             key={endpoint.id}
             className="border-border bg-surface-raised flex flex-col gap-2 rounded-md border p-3"
           >
-            <input
-              value={endpoint.label}
-              onChange={(e) => updateAt(idx, { label: e.target.value })}
-              placeholder="Label"
-              className="border-border bg-surface text-text rounded-sm border px-2 py-1 text-xs"
-            />
-            <input
-              value={endpoint.url}
-              onChange={(e) => updateAt(idx, { url: e.target.value })}
-              placeholder="https://hooks.slack.com/services/…"
-              className="border-border bg-surface text-text rounded-sm border px-2 py-1 font-mono text-[11px]"
-            />
-            <textarea
-              value={endpoint.template}
-              onChange={(e) => updateAt(idx, { template: e.target.value })}
-              spellCheck={false}
-              rows={3}
-              className="border-border bg-surface text-text rounded-sm border px-2 py-1 font-mono text-[11px]"
-            />
+            <Field className="gap-1">
+              <FieldLabel htmlFor={`webhook-${endpoint.id}-label`} className="text-text-muted text-[10px]">
+                Label
+              </FieldLabel>
+              <input
+                id={`webhook-${endpoint.id}-label`}
+                value={endpoint.label}
+                onChange={(e) => updateAt(idx, { label: e.target.value })}
+                placeholder="Label"
+                aria-describedby={`webhook-${endpoint.id}-label-description`}
+                className="border-border bg-surface text-text rounded-sm border px-2 py-1 text-xs"
+              />
+              <FieldDescription
+                id={`webhook-${endpoint.id}-label-description`}
+                className="sr-only"
+              >
+                Display name for this webhook endpoint.
+              </FieldDescription>
+            </Field>
+            <Field className="gap-1">
+              <FieldLabel htmlFor={`webhook-${endpoint.id}-url`} className="text-text-muted text-[10px]">
+                URL
+              </FieldLabel>
+              <input
+                id={`webhook-${endpoint.id}-url`}
+                value={endpoint.url}
+                onChange={(e) => updateAt(idx, { url: e.target.value })}
+                placeholder="https://hooks.slack.com/services/…"
+                aria-describedby={`webhook-${endpoint.id}-url-description`}
+                className="border-border bg-surface text-text rounded-sm border px-2 py-1 font-mono text-[11px]"
+              />
+              <FieldDescription id={`webhook-${endpoint.id}-url-description`} className="sr-only">
+                Slack or Discord webhook URL.
+              </FieldDescription>
+            </Field>
+            <Field className="gap-1">
+              <FieldLabel
+                htmlFor={`webhook-${endpoint.id}-template`}
+                className="text-text-muted text-[10px]"
+              >
+                Template
+              </FieldLabel>
+              <textarea
+                id={`webhook-${endpoint.id}-template`}
+                value={endpoint.template}
+                onChange={(e) => updateAt(idx, { template: e.target.value })}
+                spellCheck={false}
+                rows={3}
+                aria-describedby={`webhook-${endpoint.id}-template-description`}
+                className="border-border bg-surface text-text rounded-sm border px-2 py-1 font-mono text-[11px]"
+              />
+              <FieldDescription
+                id={`webhook-${endpoint.id}-template-description`}
+                className="sr-only"
+              >
+                Payload template sent to the webhook endpoint.
+              </FieldDescription>
+            </Field>
             <div className="flex gap-2">
               <Button
                 variant="outline"

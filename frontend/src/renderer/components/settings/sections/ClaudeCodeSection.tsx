@@ -1,5 +1,6 @@
 import { JSX, useEffect, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
+import { Field, FieldDescription, FieldLabel } from '@renderer/components/ui/field';
 import { useStore } from '@renderer/store';
 import { CheckCircle, Loader2, Plus, Trash2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -74,26 +75,39 @@ const PermissionListEditor = ({
           </div>
         ))}
       </div>
-      <div className="mt-2 flex gap-2">
-        <input
-          type="text"
-          value={draft}
-          disabled={disabled}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              handleAdd();
-            }
-          }}
-          placeholder="Bash(rm:*)"
-          className={`${inputClass} flex-1 font-mono`}
-        />
-        <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={handleAdd}>
-          <Plus className="size-3" />
-          Add
-        </Button>
-      </div>
+      <Field disabled={disabled} className="mt-2">
+        <FieldLabel htmlFor={`permission-${label.toLowerCase()}-input`} className="sr-only">
+          Add {label.toLowerCase()} permission rule
+        </FieldLabel>
+        <div className="flex gap-2">
+          <input
+            id={`permission-${label.toLowerCase()}-input`}
+            type="text"
+            value={draft}
+            disabled={disabled}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAdd();
+              }
+            }}
+            placeholder="Bash(rm:*)"
+            aria-describedby={`permission-${label.toLowerCase()}-description`}
+            className={`${inputClass} flex-1 font-mono`}
+          />
+          <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={handleAdd}>
+            <Plus className="size-3" />
+            Add
+          </Button>
+        </div>
+        <FieldDescription
+          id={`permission-${label.toLowerCase()}-description`}
+          className="sr-only"
+        >
+          Press Enter or Add to append a {label.toLowerCase()} permission rule.
+        </FieldDescription>
+      </Field>
     </div>
   );
 };

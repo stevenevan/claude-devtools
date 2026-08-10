@@ -1,5 +1,6 @@
 import { ChangeEvent, JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
+import { Field, FieldDescription, FieldLabel } from '@renderer/components/ui/field';
 import { useStore } from '@renderer/store';
 import {
   ALL_THEME_TOKENS,
@@ -229,11 +230,21 @@ export const ThemeEditor = (): JSX.Element => {
       {draft && (
         <div className="border-border bg-background/50 mb-4 rounded-xs border p-3">
           <div className="mb-3 flex items-center justify-between">
-            <input
-              value={draft.name}
-              onChange={(e) => updateDraftName(e.target.value)}
-              className="border-border bg-background text-foreground rounded-sm border px-2 py-1 text-xs"
-            />
+            <Field className="flex-1">
+              <FieldLabel htmlFor="theme-draft-name" className="sr-only">
+                Theme name
+              </FieldLabel>
+              <input
+                id="theme-draft-name"
+                value={draft.name}
+                onChange={(e) => updateDraftName(e.target.value)}
+                aria-describedby="theme-draft-name-description"
+                className="border-border bg-background text-foreground rounded-sm border px-2 py-1 text-xs"
+              />
+              <FieldDescription id="theme-draft-name-description" className="sr-only">
+                Name for the custom theme.
+              </FieldDescription>
+            </Field>
             <div className="flex items-center gap-2">
               <Button size="sm" variant="default" onClick={handleSaveDraft}>
                 Save

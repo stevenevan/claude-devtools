@@ -1,6 +1,7 @@
 import { JSX, useEffect, useRef, useState } from 'react';
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
+import { Field, FieldDescription, FieldLabel } from '@renderer/components/ui/field';
 import { Activity, Database, RefreshCw, Trash2 } from 'lucide-react';
 
 import type { BackendCacheStats, BackendTimingSummary } from '@shared/types/api';
@@ -83,17 +84,24 @@ export const BackendDebugPanel = (): JSX.Element => {
         )}
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <label className="text-text-muted flex items-center gap-2 text-[11px]">
-            Capacity:
+          <Field className="flex-row items-center gap-2">
+            <FieldLabel htmlFor="backend-cache-capacity" className="text-text-muted text-[11px]">
+              Capacity:
+            </FieldLabel>
             <input
+              id="backend-cache-capacity"
               type="number"
               min={1}
               max={2000}
               value={capacityDraft}
               onChange={(e) => setCapacityDraft(Number.parseInt(e.target.value || '0', 10))}
+              aria-describedby="backend-cache-capacity-description"
               className="border-border bg-surface text-text w-24 rounded-sm border px-2 py-1 text-xs"
             />
-          </label>
+            <FieldDescription id="backend-cache-capacity-description" className="sr-only">
+              Maximum number of entries kept in the session cache.
+            </FieldDescription>
+          </Field>
           <Button
             variant="outline"
             size="sm"

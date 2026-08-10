@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@renderer/components/ui/select';
+import { Field, FieldDescription, FieldLabel } from '@renderer/components/ui/field';
 import { cn } from '@renderer/lib/utils';
 import { Loader2, WifiOff } from 'lucide-react';
 
@@ -121,25 +122,29 @@ export const SshConnectionForm = ({
             </div>
           )}
         </div>
-        <div>
-          <label htmlFor="ssh-port" className="text-muted-foreground mb-1 block text-xs">
+        <Field>
+          <FieldLabel htmlFor="ssh-port" className="text-muted-foreground mb-1 block text-xs">
             Port
-          </label>
+          </FieldLabel>
           <input
             id="ssh-port"
             type="text"
             value={port}
             onChange={(e) => setPort(e.target.value)}
             placeholder="22"
+            aria-describedby="ssh-port-description"
             className={inputClass}
           />
-        </div>
+          <FieldDescription id="ssh-port-description" className="sr-only">
+            SSH port for the connection.
+          </FieldDescription>
+        </Field>
       </div>
 
-      <div>
-        <label htmlFor="ssh-username" className="text-muted-foreground mb-1 block text-xs">
+      <Field>
+        <FieldLabel htmlFor="ssh-username" className="text-muted-foreground mb-1 block text-xs">
           Username
-        </label>
+        </FieldLabel>
         <input
           id="ssh-username"
           type="text"
@@ -149,9 +154,13 @@ export const SshConnectionForm = ({
             clearProfileSelection();
           }}
           placeholder="user"
+          aria-describedby="ssh-username-description"
           className={inputClass}
         />
-      </div>
+        <FieldDescription id="ssh-username-description" className="sr-only">
+          Username used for the SSH connection.
+        </FieldDescription>
+      </Field>
 
       <div>
         {/* Select renders its own accessible button; label wraps it semantically. */}
@@ -174,37 +183,45 @@ export const SshConnectionForm = ({
       </div>
 
       {authMethod === 'privateKey' && (
-        <div>
-          <label
+        <Field>
+          <FieldLabel
             htmlFor="ssh-private-key-path"
             className="text-muted-foreground mb-1 block text-xs"
           >
             Private Key Path
-          </label>
+          </FieldLabel>
           <input
             id="ssh-private-key-path"
             type="text"
             value={privateKeyPath}
             onChange={(e) => setPrivateKeyPath(e.target.value)}
             placeholder="~/.ssh/id_rsa"
+            aria-describedby="ssh-private-key-path-description"
             className={inputClass}
           />
-        </div>
+          <FieldDescription id="ssh-private-key-path-description" className="sr-only">
+            Local private key path used for SSH authentication.
+          </FieldDescription>
+        </Field>
       )}
 
       {authMethod === 'password' && (
-        <div>
-          <label htmlFor="ssh-password" className="text-muted-foreground mb-1 block text-xs">
+        <Field>
+          <FieldLabel htmlFor="ssh-password" className="text-muted-foreground mb-1 block text-xs">
             Password
-          </label>
+          </FieldLabel>
           <input
             id="ssh-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            aria-describedby="ssh-password-description"
             className={inputClass}
           />
-        </div>
+          <FieldDescription id="ssh-password-description" className="sr-only">
+            Password used for SSH authentication.
+          </FieldDescription>
+        </Field>
       )}
 
       {/* Test result */}
