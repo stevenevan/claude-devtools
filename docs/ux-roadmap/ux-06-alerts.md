@@ -58,11 +58,12 @@ Problems for a non-technical reader:
 
 Rules:
 
-- **Two groups: Needs attention, then Earlier.** Anything actionable is above anything
-  informational.
+- Existing records carry no reliable severity or actionability metadata, so Simple uses one
+  reverse-chronological list rather than inventing a "Needs attention" group.
 - Each item says what happened in plain language, which conversation it belongs to, and when.
-- **Actionable items carry the action** — "Open conversation" — rather than leaving the user to
-  work out the next step.
+- Items with both project and session IDs carry the action — "Open conversation" — rather than
+  leaving the user to work out the next step. Synthetic records remain readable without a false
+  action.
 - One primary action in the header: "Mark all read", with a visible text label.
 - **"Clear all" is not in Simple mode.** It is irreversible and its only benefit is tidiness;
   marking as read achieves what the user wants. It stays in Nerd mode, with a confirmation.
@@ -94,9 +95,14 @@ in `App.tsx:60`.
 ## 6. Files touched
 
 - `frontend/src/renderer/components/notifications/NotificationsView.tsx`
-- `frontend/src/renderer/components/notifications/AlertList.tsx` **(new)** — the Simple grouping
-- `frontend/src/renderer/components/notifications/` — badge components, for consistency with the
-  rail's unread count
+- `frontend/src/renderer/components/notifications/AlertList.tsx` **(new)** — the Simple list,
+  pagination sentinel, empty states, and live-region announcement
+- `frontend/src/renderer/components/notifications/NotificationRow.tsx`
+- `frontend/src/renderer/components/notifications/alertPresentation.ts` **(new)**
+- `frontend/src/renderer/components/notifications/alertPresentation.test.ts` **(new)**
+- `frontend/src/renderer/store/listeners/notifications.ts`
+- `frontend/src/renderer/store/slices/notificationSlice.ts`
+- `frontend/src/renderer/store/slices/notificationSlice.test.ts` **(new)**
 
 Reuse `ConfirmDialog` (already mounted in `App.tsx:60`) for the Nerd-mode `Clear all`; do not add a
 second dialog implementation.
@@ -107,28 +113,31 @@ second dialog implementation.
 1. Read `NotificationsView.tsx` fully and the notification record shape in
    `frontend/src/shared/types/notifications/`. Establish which records are actionable — that
    distinction drives the whole Simple layout.
-2. Classify: actionable versus informational. If the record type does not already say, derive it
-   from the trigger kind and record the mapping in this file.
-3. `AlertList.tsx` — two groups, plain-language text, inline action on actionable items.
+2. Confirm whether records carry honest severity/actionability metadata. They do not, so use the
+   documented reverse-chronological fallback and expose actions only for records with valid targets.
+3. `AlertList.tsx` — the Simple list, plain-language text, conditional conversation action, and
+   incremental earlier-page loading.
 4. Branch `NotificationsView.tsx` on `useUIMode()`.
 5. Simple header: one labelled "Mark all read" button. No clear action.
 6. Empty state with the two distinct cases, including the "turn them on" path.
 7. Nerd mode: visible filter chips, labelled icon buttons, `Clear all` behind `ConfirmDialog`.
-8. Keep the rail's unread badge consistent with what Simple mode shows — if Simple hides a
-   category, the badge must not count it.
+8. Keep the rail's unread badge consistent with the server unread total shown in Simple mode;
+   loaded-row count is not presented as total history while earlier pages remain available.
 
 ## 8. Verification / acceptance
 
-- `bun run typecheck && bun run test && bun run qa`
-- `bun run test -- notificationSlice` — the store slice has coverage; grouping changes must not
-  break it.
+- Focused Alerts checks: `bun test src/renderer/store/slices/notificationSlice.test.ts src/renderer/components/notifications/alertPresentation.test.ts`
+- Full frontend checks: `bun run test`
+- Repository typecheck: `bun run typecheck` (currently has the pre-existing `markdownTextSearch.ts` dependency/type errors recorded in the grouped handoff)
 
 Simple mode:
 
-- Actionable alerts appear above informational ones, and carry an action button.
+- Alerts render in reverse chronological order; records with valid targets carry an action button,
+  while synthetic records remain readable without one.
 - No "Clear all" or "Clear filtered" anywhere.
-- With notifications disabled, the empty state says so and offers to enable them.
-- The rail badge count matches the number of unread items the page actually shows.
+- With no enabled triggers, the empty state says so and offers notification settings; no-records
+  state remains distinct.
+- The page shows the server unread total, including while earlier history is still loading.
 
 Nerd mode:
 
@@ -139,8 +148,8 @@ Nerd mode:
 
 - New alerts are announced through a polite live region — not an assertive one, which would
   interrupt.
-- Group headings are real headings; the two groups are labelled regions.
-- The `!` marker is decorative (`aria-hidden`); severity is carried in the item's text.
+- The Simple list has a labelled list region; it does not invent severity markers or headings for
+  metadata the records do not carry.
 - Every action button has a visible text label in Simple mode and at minimum an `aria-label` in
   Nerd mode.
 - The unread badge's count is in the rail item's accessible name, which `ActivityBar.tsx:61`
@@ -152,14 +161,19 @@ Sprint 01 (`useUIMode()`, and the rail badge). Uses sprint 02's session-subject 
 
 ## 11. Risks / open questions
 
-- **The actionable/informational split may not exist in the data.** If notification records carry
-  no severity or kind that maps cleanly, this sprint's core grouping is guesswork. Settle it in
-  task 2 by reading the trigger types, and if no honest mapping exists, fall back to a single
-  reverse-chronological list with actions on the items that have a target — do not fake a
-  severity.
+- **Severity/actionability metadata is not present in existing records.** UX-06 therefore ships
+  the documented reverse-chronological fallback and only offers conversation navigation when both
+  target IDs are present. Exact severity grouping remains future data-contract work.
 - Dropping "Clear all" from Simple mode means a user with thousands of read notifications has no
-  way to prune them there. The retention bounds in `AppConfig.notifications`
-  (`retentionDays`, `maxCount`) already auto-prune, which is the honest answer — confirm they are
-  active before relying on it.
-- The rail badge and the page must agree. Two counts that differ by one is the kind of detail that
-  makes an app feel broken.
+  way to prune them there. Existing retention bounds in `AppConfig.notifications`
+  (`retentionDays`, `maxCount`) remain the cleanup path; Simple does not imply all history is loaded.
+- The rail badge and page use the server unread total, while loaded rows remain an explicitly partial
+  view until earlier pages finish loading.
+
+## 12. Shipped status
+
+UX-06 shipped in the grouped UX-04–06 delivery. Notification state now supports deduplicated
+recent-page plus earlier-page loading, live prepends without a 200-record truncation, separate
+initial/append failures, and server-authoritative unread counts. Simple Alerts uses sanitized
+reverse chronology with conditional conversation actions; Nerd retains filters and confirmed
+clear actions.

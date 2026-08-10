@@ -57,13 +57,15 @@ Problems for a non-technical reader:
 
 Rules:
 
-- **Three groups, in this order: Happening now, Waiting, Done today.** Anything finished before
-  today is behind a "show earlier" control — a list that grows forever is a list nobody reads.
-- Each row: what the task is, which conversation it came from **by subject, not by ID**, and when.
-- "Started 4 minutes ago" on in-progress items. That is the signal that separates working from
-  stuck.
-- Clicking a row opens that conversation at the relevant point — the task list is a way in, not a
-  dead end.
+- **Three groups, in this order: Happening now, Waiting, Recently done.** Completed snapshots
+  updated before today are behind a "show earlier" control — a list that grows forever is a list
+  nobody reads.
+- Each row: what the task is, which conversation it came from **by subject, not by ID**, and when
+  the snapshot was updated.
+- The only available time source is snapshot `updatedAt`, so Simple says "updated …" rather than
+  inventing a start or completion time.
+- Clicking a row opens that conversation. Task snapshots do not carry a source turn, so the page does
+  not claim to land on an exact task message.
 - Empty state is a sentence.
 
 ## 4. Nerd view
@@ -78,9 +80,9 @@ subject, exact timestamps on hover, and the raw status value where the Simple la
 | Todos | Tasks | Todos |
 | `in_progress` / In progress | Happening now | In progress (`in_progress`) |
 | `pending` | Waiting | Pending (`pending`) |
-| `completed` | Done | Completed (`completed`) |
+| `completed` | Recently done | Completed (`completed`) |
 | Session `abc123-…` | conversation subject | subject + session ID |
-| (no time shown) | "started 4 minutes ago" | absolute timestamp |
+| (no time shown) | "updated 4 minutes ago" | absolute timestamp |
 
 ## 6. Files touched
 
@@ -106,15 +108,16 @@ second resolver.
 
 ## 8. Verification / acceptance
 
-- `bun run typecheck && bun run test && bun run qa`
-- `bun run test:task-filtering` — this page consumes task data and that suite covers its filtering.
+- Focused Simple Tasks checks: `bun test src/renderer/components/dashboard/TaskList.test.ts src/renderer/store/tabIdentity.test.ts`
+- Full frontend checks: `bun run test`
+- Repository typecheck: `bun run typecheck` (currently has the pre-existing `markdownTextSearch.ts` dependency/type errors recorded in the grouped handoff)
 
 Simple mode:
 
-- Three groups in the stated order; finished-before-today is collapsed behind one control.
+- Three groups in the stated order; completed-before-today is collapsed behind one control.
 - No session ID and no raw status string anywhere.
-- An in-progress task shows how long it has been running.
-- Clicking a row lands in the right conversation.
+- Task rows show snapshot update time without calling it a start or completion time.
+- Clicking a row lands in the right conversation, without claiming an exact task turn.
 - With no tasks, the page says so in a sentence.
 
 Nerd mode:
@@ -135,11 +138,16 @@ Sprint 01 (`useUIMode()`). Uses sprint 02's session-subject resolution.
 
 ## 11. Risks / open questions
 
-- **The session subject may not exist.** Claude Code's todo records may carry only a session ID. If
-  no subject is derivable, Simple mode shows the folder name and the time instead — it does not
-  show the ID, and it does not invent a subject.
-- "Done today" depends on a completion timestamp. If todo records carry no completion time, group
-  by last-modified and say "recently done" rather than implying precision that is not there.
-- Stale in-progress tasks are common — a session that ended mid-task leaves an item that will never
-  complete. Consider showing "started 3 days ago" plainly rather than filtering it out; a stuck task
-  the user can see is better than one silently hidden.
+- **The session subject may not exist.** If no subject is derivable, shipped Simple mode shows the
+  folder name instead — it does not show the ID or invent a subject.
+- Todo snapshots carry no per-item start or completion timestamp. Shipped Simple mode uses snapshot
+  `updatedAt` for grouping and says "updated …" rather than implying completion precision.
+- Stale in-progress tasks remain visible. A session that ended mid-task is better represented as
+  visible work than silently filtered out.
+
+## 12. Shipped status
+
+UX-05 shipped in the grouped UX-04–06 delivery. Simple Tasks flattens snapshots into Happening now,
+Waiting, and Recently done groups, reveals older completed snapshots behind Show earlier, sanitizes
+opaque task text, resolves conversation subjects with folder fallback, and opens the owning
+conversation. It does not claim an exact task turn because snapshots carry no source anchor.

@@ -97,15 +97,19 @@ customisation menu's widget names get one-line descriptions so a new power user 
 ## 6. Files touched
 
 - `frontend/src/renderer/components/dashboard/AnalyticsDashboard/index.tsx`
-- `frontend/src/renderer/components/dashboard/AnalyticsDashboard/StatCardsRow.tsx`
 - `frontend/src/renderer/components/dashboard/CostSummary.tsx` **(new)** — the Simple view
-- `frontend/src/renderer/components/dashboard/BudgetPanel.tsx` — the Simple budget line
-- `frontend/src/renderer/components/dashboard/dashboardFormatters.ts` — the shared cost formatter
-- `frontend/src/renderer/components/dashboard/DashboardCustomizeMenu.tsx` — widget descriptions
-- `frontend/src/renderer/components/dashboard/widgetRegistry.ts` — a `nerdOnly` flag if the
-  registry is the cleanest place to express which widgets Simple mode omits
+- `frontend/src/renderer/components/dashboard/CostSummary.test.ts` **(new)**
+- `frontend/src/renderer/components/dashboard/BudgetPanel.tsx`
+- `frontend/src/renderer/components/dashboard/CostTrendChart.tsx`
+- `frontend/src/renderer/components/dashboard/analyticsDashboardHelpers.tsx`
+- `frontend/src/renderer/components/dashboard/widgetContract.ts`
+- `frontend/src/renderer/components/dashboard/DashboardCustomizeMenu.tsx`
+- `frontend/src/renderer/components/dashboard/ProductivityPanel.tsx`
+- `frontend/src/renderer/components/dashboard/DurationPanel.tsx`
+- `frontend/src/renderer/components/dashboard/ModelComparisonPanel.tsx`
+- `frontend/src/renderer/components/dashboard/SnapshotsView.tsx`
 
-Chart work uses whatever charting library the page already uses. Do not add a second one.
+Chart work reuses Recharts, the library already used by the page. No second chart library was added.
 
 ## 7. Tasks (ordered)
 
@@ -124,7 +128,9 @@ Chart work uses whatever charting library the page already uses. Do not add a se
 
 ## 8. Verification / acceptance
 
-- `bun run typecheck && bun run test && bun run qa`
+- Focused Simple Cost checks: `bun test src/renderer/components/dashboard/CostSummary.test.ts`
+- Full frontend checks: `bun run test`
+- Repository typecheck: `bun run typecheck` (currently has the pre-existing `markdownTextSearch.ts` dependency/type errors recorded in the grouped handoff)
 
 Simple mode:
 
@@ -163,3 +169,10 @@ Sprint 01 (`useUIMode()`). Shares sprint 02's cost formatter.
   code, so two months apart do not produce contradictory phrasing.
 - Hiding widgets in Simple mode must not break `useWidgetVisibility`'s persisted state — a user
   switching to Nerd should find their widget layout as they left it.
+
+## 12. Shipped status
+
+UX-04 shipped in the grouped UX-04–06 delivery. Simple Cost uses the calendar-month summary IPC
+path, approximate currency labels, completeness-aware comparison and budget states, a daily
+single-series chart, and top-folder aggregation. Nerd analytics remains on the existing widget
+path and customization state.

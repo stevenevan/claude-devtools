@@ -1,8 +1,9 @@
 # UI/UX Roadmap — Simple and Nerd Modes
 
 Fifteen sprint-weeks that rebuild this app's interface around two audiences instead of one.
-UX-01–03 are the first grouped delivery, shipped together as one dependency-complete group; each
-later sprint still takes exactly one page.
+UX-01–03 were the first grouped delivery, shipped together as one dependency-complete group.
+UX-04–06 are the second grouped delivery: Cost, Tasks, and Alerts share their foundations while
+retaining page-level boundaries.
 
 ## 1. What this roadmap is
 
@@ -223,7 +224,7 @@ rather than rediscovered.
 
 ## 13. How to read a sprint file
 
-Every `ux-NN-*.md` has the same eleven sections:
+Every `ux-NN-*.md` has the same core sections; completed grouped deliveries may append a Shipped status section:
 
 1. **Goal** — one line.
 2. **Today** — the root component, what it renders, and the concrete problems for a
@@ -245,9 +246,9 @@ Every `ux-NN-*.md` has the same eleven sections:
 | 01 | [Navigation shell](ux-01-navigation.md) | app shell | `layout/TabbedLayout.tsx` | not-on-the-rail | — | done (grouped) |
 | 02 | [Conversations](ux-02-conversations.md) | Projects | `dashboard/DashboardView/` | simple-rail | 01 | done (grouped) |
 | 03 | [Session view](ux-03-session-view.md) | session transcript | `layout/SessionTabContent.tsx` | not-on-the-rail | 01, 02 | done (grouped) |
-| 04 | [Cost](ux-04-cost.md) | Analytics | `dashboard/AnalyticsDashboard/` | simple-rail | 01 | planned |
-| 05 | [Tasks](ux-05-tasks.md) | Todos | `dashboard/TodosDashboard.tsx` | simple-rail | 01 | planned |
-| 06 | [Alerts](ux-06-alerts.md) | Notifications | `notifications/NotificationsView.tsx` | simple-rail | 01 | planned |
+| 04 | [Cost](ux-04-cost.md) | Analytics | `dashboard/AnalyticsDashboard/` | simple-rail | 01 | done (grouped) |
+| 05 | [Tasks](ux-05-tasks.md) | Todos | `dashboard/TodosDashboard.tsx` | simple-rail | 01 | done (grouped) |
+| 06 | [Alerts](ux-06-alerts.md) | Notifications | `notifications/NotificationsView.tsx` | simple-rail | 01 | done (grouped) |
 | 07 | [Settings](ux-07-settings.md) | Settings | `settings/SettingsView.tsx` | simple-rail | 01 | planned |
 | 08 | [Skills](ux-08-skills.md) | Skills | `dashboard/SkillsManager.tsx` | behind-More | 01 | planned |
 | 09 | [Agents](ux-09-agents.md) | Agents | `dashboard/AgentsManager.tsx` | behind-More | 01, 08 | planned |
