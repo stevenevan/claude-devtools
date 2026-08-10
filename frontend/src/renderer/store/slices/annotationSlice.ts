@@ -94,9 +94,14 @@ export const createAnnotationSlice: StateCreator<AppState, [], [], AnnotationSli
       await api.config.removeAnnotation(annotationId);
       set({
         annotations: get().annotations.filter((a) => a.id !== annotationId),
+        annotationsError: null,
       });
     } catch (error) {
       logger.error('Failed to remove annotation:', error);
+      set({
+        annotationsError:
+          error instanceof Error ? error.message : 'Failed to remove annotation',
+      });
     }
   },
 });

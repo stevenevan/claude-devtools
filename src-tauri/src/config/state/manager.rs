@@ -809,15 +809,17 @@ impl ConfigState {
         found
     }
 
-    pub fn remove_annotation(&self, annotation_id: &str) {
+    pub fn remove_annotation(&self, annotation_id: &str) -> Result<(), String> {
         let mut inner = self.lock();
         inner.ensure_loaded();
-        inner
-            .config
+        let mut updated_config = inner.config.clone();
+        updated_config
             .sessions
             .annotations
             .retain(|a| a.id != annotation_id);
-        let _ = inner.save();
+        save_config(&updated_config, &inner.config_path)?;
+        inner.config = updated_config;
+        Ok(())
     }
 
     pub fn get_annotations(&self) -> Vec<AnnotationEntry> {
@@ -1501,7 +1503,7 @@ mod tests {
 
     #[test]
     fn annotation_crud_roundtrip() {
-        let (cs, _p) = temp_config();
+        let (cs, path) = temp_config();
         assert_eq!(cs.get_annotations().len(), 0);
 
         cs.add_annotation(AnnotationEntry {
@@ -1526,8 +1528,39 @@ mod tests {
 
         assert!(!cs.update_annotation("missing", Some("x"), None, 3.0));
 
-        cs.remove_annotation("a1");
+        cs.remove_annotation("a1").unwrap();
         assert_eq!(cs.get_annotations().len(), 0);
+
+        let reloaded = ConfigState::with_path_for_test(path, AppConfig::default(), false);
+        assert_eq!(reloaded.get_annotations().len(), 0);
+    }
+
+    #[test]
+    fn annotation_remove_preserves_state_when_save_fails() {
+        let path = unique_temp_dir();
+        let mut config = AppConfig::default();
+        config.sessions.annotations.push(AnnotationEntry {
+            id: "a1".into(),
+            session_id: "s1".into(),
+            project_id: "p1".into(),
+            target_id: "t1".into(),
+            text: "first".into(),
+            color: "blue".into(),
+            created_at: 1.0,
+            updated_at: 1.0,
+        });
+        let cs = ConfigState::with_path_for_test(path, config, true);
+
+        let error = cs.remove_annotation("a1").expect_err("save should fail");
+
+        assert!(error.contains("config: rename failed"));
+        assert_eq!(
+            cs.get_annotations()
+                .iter()
+                .map(|a| a.id.as_str())
+                .collect::<Vec<_>>(),
+            ["a1"]
+        );
     }
 
     #[test]

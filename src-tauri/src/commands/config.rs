@@ -260,8 +260,7 @@ pub fn config_update_annotation(
 
 #[tauri::command(rename_all = "camelCase")]
 pub fn config_remove_annotation(annotation_id: String, state: Cfg) -> Result<(), String> {
-    state.remove_annotation(&annotation_id);
-    Ok(())
+    state.remove_annotation(&annotation_id)
 }
 
 #[tauri::command(rename_all = "camelCase")]
