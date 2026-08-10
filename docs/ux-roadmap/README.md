@@ -213,6 +213,10 @@ The UX-07–10 grouped delivery owns this one-time repair and documents it as an
 to the freeze before changing the shared file. No later page sprint may edit the file again for
 this issue.
 
+UX-11 adds one separate, title-only exception: `GlobalContentView.tsx` may accept an optional
+Simple-mode title so Annotations can display `Your notes` while Nerd mode remains `Annotations`.
+This exception does not alter search suppression or any other page title.
+
 ## 12. Ownership note
 
 Sprint 01 builds the mode control in Settings → General. Sprint 07 restyles the Settings page and

@@ -7,11 +7,13 @@ import { Command, Search } from 'lucide-react';
 
 interface GlobalContentViewProps {
   title: string;
+  simpleTitle?: string;
   children: ReactElement<{ searchQuery: string }>;
 }
 
 export const GlobalContentView = ({
   title,
+  simpleTitle,
   children,
 }: Readonly<GlobalContentViewProps>): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,6 +21,7 @@ export const GlobalContentView = ({
   const mode = useUIMode();
   const openCommandPalette = useStore((s) => s.openCommandPalette);
   const effectiveSearchQuery = mode === 'simple' ? '' : searchQuery;
+  const effectiveTitle = mode === 'simple' ? (simpleTitle ?? title) : title;
 
   return (
     <div className="bg-background relative flex-1 overflow-auto">
@@ -67,7 +70,7 @@ export const GlobalContentView = ({
 
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
-            {effectiveSearchQuery.trim() ? 'Search Results' : title}
+            {effectiveSearchQuery.trim() ? 'Search Results' : effectiveTitle}
           </h2>
           {effectiveSearchQuery.trim() && (
             <Button

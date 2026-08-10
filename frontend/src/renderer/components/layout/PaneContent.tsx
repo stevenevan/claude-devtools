@@ -120,7 +120,7 @@ export const PaneContent = ({ pane }: PaneContentProps): JSX.Element => {
                 </GlobalContentView>
               )}
               {activeActivity === 'annotations' && (
-                <GlobalContentView title="Annotations">
+                <GlobalContentView title="Annotations" simpleTitle="Your notes">
                   <AnnotationList />
                 </GlobalContentView>
               )}
