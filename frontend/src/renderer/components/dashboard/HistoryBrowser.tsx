@@ -2,6 +2,7 @@ import { JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '@renderer/api';
 import { CopyButton } from '@renderer/components/common/CopyButton';
 import { Button } from '@renderer/components/ui/button';
+import { Input } from '@renderer/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -182,7 +183,7 @@ export const HistoryBrowser = (): JSX.Element => {
       <div className="border-border/50 flex shrink-0 flex-wrap items-center gap-2 border-b px-4 py-2.5">
         <div className="relative w-64">
           <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
-          <input
+          <Input
             type="text"
             aria-label="Search prompts and projects"
             value={searchInput}

@@ -2,6 +2,10 @@ import { JSX, useEffect, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { Button } from '@renderer/components/ui/button';
+import { Checkbox } from '@renderer/components/ui/checkbox';
+import { Input } from '@renderer/components/ui/input';
+import { Label } from '@renderer/components/ui/label';
+import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
 import { useStore } from '@renderer/store';
 import {
   getDriftAlertClaudeJson,
@@ -265,7 +269,7 @@ export const RetentionPolicyPanel = (): JSX.Element => {
           {retention && (
             <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
               Empty trash older than
-              <input
+              <Input
                 type="number"
                 min={1}
                 max={36500}
@@ -293,16 +297,17 @@ export const RetentionPolicyPanel = (): JSX.Element => {
           </div>
           <label className="text-muted-foreground flex items-center gap-2 text-xs">
             Run this policy automatically
-            <select
+            <NativeSelect
+              size="sm"
               value={retention.scheduleInterval ?? 'off'}
               disabled={!canAct || busy}
               onChange={(e) => handleScheduleInterval(e.target.value as ScheduleInterval)}
-              className="border-border/50 bg-card/50 text-foreground rounded-sm border px-1.5 py-0.5 text-xs"
+              className="min-w-20"
             >
-              <option value="off">Off</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
+              <NativeSelectOption value="off">Off</NativeSelectOption>
+              <NativeSelectOption value="weekly">Weekly</NativeSelectOption>
+              <NativeSelectOption value="monthly">Monthly</NativeSelectOption>
+            </NativeSelect>
           </label>
           <p className="text-muted-foreground mt-2 text-xs">
             Scheduled cleanup runs only while this app is open; a missed schedule runs on next
@@ -314,24 +319,24 @@ export const RetentionPolicyPanel = (): JSX.Element => {
           </p>
 
           <p className="text-muted-foreground mt-3 mb-1 text-xs font-medium">Config-drift alerts</p>
-          <label className="text-muted-foreground flex items-center gap-2 text-xs">
-            <input
-              type="checkbox"
+          <Label htmlFor="retention-drift-settings" className="text-muted-foreground text-xs">
+            <Checkbox
+              id="retention-drift-settings"
               checked={driftSettings}
               disabled={!canAct}
-              onChange={(e) => handleDriftSettings(e.target.checked)}
+              onCheckedChange={(checked) => handleDriftSettings(checked === true)}
             />
             Alert when settings.json changes outside this app
-          </label>
-          <label className="text-muted-foreground mt-1 flex items-center gap-2 text-xs">
-            <input
-              type="checkbox"
+          </Label>
+          <Label htmlFor="retention-drift-claude-json" className="text-muted-foreground mt-1 text-xs">
+            <Checkbox
+              id="retention-drift-claude-json"
               checked={driftClaudeJson}
               disabled={!canAct}
-              onChange={(e) => handleDriftClaudeJson(e.target.checked)}
+              onCheckedChange={(checked) => handleDriftClaudeJson(checked === true)}
             />
             Alert when ~/.claude.json changes outside this app
-          </label>
+          </Label>
         </div>
       )}
 
@@ -422,33 +427,34 @@ const CategoryRow = ({
   onScan,
 }: Readonly<CategoryRowProps>): JSX.Element => (
   <div className="hover:bg-card/50 flex items-center justify-between gap-3 px-4 py-2">
-    <label className="flex min-w-0 items-center gap-2 text-sm">
-      <input
-        type="checkbox"
+    <Label htmlFor={`retention-category-${id}`} className="flex min-w-0 items-center gap-2 text-sm">
+      <Checkbox
+        id={`retention-category-${id}`}
         checked={enabled}
         disabled={!canAct || busy}
-        onChange={(e) => onToggle(e.target.checked)}
+        onCheckedChange={(checked) => onToggle(checked === true)}
       />
       <span className="text-foreground truncate">{labelFor(id)}</span>
-    </label>
+    </Label>
 
     <div className="flex shrink-0 items-center gap-3">
-      <label
+      <Label
+        htmlFor={`retention-auto-approve-${id}`}
         className="text-muted-foreground flex items-center gap-1 text-xs"
         title="Run this category unattended on the schedule (only when enabled)."
       >
-        <input
-          type="checkbox"
+        <Checkbox
+          id={`retention-auto-approve-${id}`}
           checked={autoApproved}
           disabled={!canAct || busy || !enabled}
-          onChange={(e) => onAutoApprove(e.target.checked)}
+          onCheckedChange={(checked) => onAutoApprove(checked === true)}
         />
         Auto-approve
-      </label>
+      </Label>
 
       <label className="text-muted-foreground flex items-center gap-1 text-xs">
         Older than
-        <input
+        <Input
           type="number"
           min={1}
           max={36500}

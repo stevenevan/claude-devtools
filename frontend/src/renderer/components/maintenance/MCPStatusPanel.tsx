@@ -2,6 +2,9 @@ import { JSX, useEffect, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { Button } from '@renderer/components/ui/button';
+import { Input } from '@renderer/components/ui/input';
+import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
+import { Textarea } from '@renderer/components/ui/textarea';
 import { useClipboard } from '@renderer/hooks/mantine';
 import { useStore } from '@renderer/store';
 import { Check, Copy, KeyRound, Loader2, Plus, RefreshCw } from 'lucide-react';
@@ -229,7 +232,7 @@ const AddServerForm = ({ canAct, onAdded }: Readonly<AddServerFormProps>): JSX.E
       <div className="flex flex-wrap items-end gap-2">
         <label className="text-muted-foreground flex flex-col gap-1 text-xs">
           Name
-          <input
+          <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. filesystem"
@@ -238,21 +241,22 @@ const AddServerForm = ({ canAct, onAdded }: Readonly<AddServerFormProps>): JSX.E
         </label>
         <label className="text-muted-foreground flex flex-col gap-1 text-xs">
           Type
-          <select
+          <NativeSelect
+            size="sm"
             value={type}
             onChange={(e) => setType(e.target.value as TransportType)}
-            className="border-border/50 bg-card/50 text-foreground rounded-sm border px-2 py-1 text-xs"
+            className="min-w-24"
           >
             {TRANSPORT_TYPES.map((t) => (
-              <option key={t} value={t}>
+              <NativeSelectOption key={t} value={t}>
                 {t}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         <label className="text-muted-foreground flex min-w-48 flex-1 flex-col gap-1 text-xs">
           {isUrlTransport ? 'URL' : 'Command'}
-          <input
+          <Input
             value={commandOrUrl}
             onChange={(e) => setCommandOrUrl(e.target.value)}
             placeholder={isUrlTransport ? 'https://…' : 'npx'}
@@ -262,7 +266,7 @@ const AddServerForm = ({ canAct, onAdded }: Readonly<AddServerFormProps>): JSX.E
       </div>
       <label className="text-muted-foreground flex flex-col gap-1 text-xs">
         Args (comma or newline separated)
-        <textarea
+        <Textarea
           value={argsText}
           onChange={(e) => setArgsText(e.target.value)}
           placeholder={'-y\n@modelcontextprotocol/server-filesystem'}
@@ -272,7 +276,7 @@ const AddServerForm = ({ canAct, onAdded }: Readonly<AddServerFormProps>): JSX.E
       </label>
       <label className="text-muted-foreground flex flex-col gap-1 text-xs">
         Env (KEY=value per line)
-        <textarea
+        <Textarea
           value={envText}
           onChange={(e) => setEnvText(e.target.value)}
           placeholder="API_KEY=…"
@@ -486,21 +490,22 @@ const EditServerForm = ({
       <div className="flex flex-wrap items-end gap-2">
         <label className="text-muted-foreground flex flex-col gap-1 text-[11px]">
           Type
-          <select
+          <NativeSelect
+            size="sm"
             value={type}
             onChange={(e) => setType(e.target.value as TransportType)}
-            className="border-border/50 bg-card/50 text-foreground rounded-sm border px-1.5 py-0.5 text-[11px]"
+            className="min-w-24"
           >
             {TRANSPORT_TYPES.map((t) => (
-              <option key={t} value={t}>
+              <NativeSelectOption key={t} value={t}>
                 {t}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         <label className="text-muted-foreground flex min-w-48 flex-1 flex-col gap-1 text-[11px]">
           {isUrlTransport ? 'URL' : 'Command'}
-          <input
+          <Input
             value={commandOrUrl}
             onChange={(e) => setCommandOrUrl(e.target.value)}
             placeholder="leave blank to keep current"
@@ -510,7 +515,7 @@ const EditServerForm = ({
       </div>
       <label className="text-muted-foreground flex flex-col gap-1 text-[11px]">
         Args (comma or newline separated)
-        <textarea
+        <Textarea
           value={argsText}
           onChange={(e) => setArgsText(e.target.value)}
           placeholder="leave blank to keep current"
@@ -520,7 +525,7 @@ const EditServerForm = ({
       </label>
       <label className="text-muted-foreground flex flex-col gap-1 text-[11px]">
         Env (KEY=value per line)
-        <textarea
+        <Textarea
           value={envText}
           onChange={(e) => setEnvText(e.target.value)}
           placeholder="leave blank to keep current"

@@ -1,7 +1,9 @@
 import { JSX } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
-import { Button } from '@renderer/components/ui/button';
+import { buttonVariants } from '@renderer/components/ui/button';
+import { Label } from '@renderer/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@renderer/components/ui/radio-group';
 import {
   Select,
   SelectContent,
@@ -9,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@renderer/components/ui/select';
+import { cn } from '@renderer/lib/utils';
 import { Switch } from '@renderer/components/ui/switch';
 
 import { SettingRow, SettingsSectionHeader } from '../../components';
@@ -66,22 +69,37 @@ export const GeneralSection = ({
         label="Interface mode"
         description="Simple keeps everyday tools prominent. Nerd keeps every workspace control visible."
       >
-        <div role="radiogroup" aria-label="Interface mode" className="flex gap-1">
+        <RadioGroup
+          value={safeConfig.general.uiMode}
+          onValueChange={(value) => {
+            if (value === 'simple' || value === 'nerd') onUIModeChange(value);
+          }}
+          disabled={saving}
+          aria-label="Interface mode"
+          className="flex w-auto gap-1"
+        >
           {(['simple', 'nerd'] as const).map((mode) => (
-            <Button
-              key={mode}
-              type="button"
-              role="radio"
-              aria-checked={safeConfig.general.uiMode === mode}
-              variant={safeConfig.general.uiMode === mode ? 'secondary' : 'outline'}
-              size="sm"
-              onClick={() => onUIModeChange(mode)}
-              disabled={saving}
-            >
-              {mode === 'simple' ? 'Simple' : 'Nerd'}
-            </Button>
+            <div key={mode} className="flex items-center gap-1">
+              <RadioGroupItem
+                id={`general-settings-interface-mode-${mode}`}
+                value={mode}
+                className="peer sr-only"
+              />
+              <Label
+                htmlFor={`general-settings-interface-mode-${mode}`}
+                className={cn(
+                  buttonVariants({
+                    variant: safeConfig.general.uiMode === mode ? 'secondary' : 'outline',
+                    size: 'sm',
+                  }),
+                  'cursor-pointer peer-focus-visible:border-ring peer-focus-visible:ring-2 peer-focus-visible:ring-ring/30'
+                )}
+              >
+                {mode === 'simple' ? 'Simple' : 'Nerd'}
+              </Label>
+            </div>
           ))}
-        </div>
+        </RadioGroup>
       </SettingRow>
 
       <SettingsSectionHeader title="Appearance" />

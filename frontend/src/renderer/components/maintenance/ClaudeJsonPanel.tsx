@@ -1,6 +1,8 @@
 import { JSX, useEffect, useRef, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
+import { Checkbox } from '@renderer/components/ui/checkbox';
+import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
 import { useStore } from '@renderer/store';
 import { formatBytes } from '@renderer/utils/formatters';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
@@ -231,10 +233,9 @@ const ProjectSection = ({
           >
             <div className="flex min-w-0 items-center gap-2">
               {canAct && project.triage === 'stale' && (
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={selected.includes(project.path)}
-                  onChange={() => onToggleSelect(project.path)}
+                  onCheckedChange={() => onToggleSelect(project.path)}
                   aria-label={`Select ${project.path} for purge`}
                   className="accent-destructive size-3.5 shrink-0"
                 />
@@ -360,32 +361,34 @@ const BackupsSection = ({
         <div className="mb-2 flex flex-wrap items-center gap-3">
           <label className="text-muted-foreground flex items-center gap-1 text-xs">
             Left
-            <select
+            <NativeSelect
+              size="sm"
               value={diffLeft}
               onChange={(e) => onSelectLeft(e.target.value)}
-              className="border-border/50 bg-card/50 text-foreground rounded-sm border px-2 py-1 text-xs"
+              className="min-w-32"
             >
-              <option value="live">Live (masked)</option>
+              <NativeSelectOption value="live">Live (masked)</NativeSelectOption>
               {backups.map((backup) => (
-                <option key={backup.name} value={backup.name}>
+                <NativeSelectOption key={backup.name} value={backup.name}>
                   {backup.name}
-                </option>
+                </NativeSelectOption>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           <label className="text-muted-foreground flex items-center gap-1 text-xs">
             Right
-            <select
+            <NativeSelect
+              size="sm"
               value={diffRight}
               onChange={(e) => onSelectRight(e.target.value)}
-              className="border-border/50 bg-card/50 text-foreground rounded-sm border px-2 py-1 text-xs"
+              className="min-w-32"
             >
               {backups.map((backup) => (
-                <option key={backup.name} value={backup.name}>
+                <NativeSelectOption key={backup.name} value={backup.name}>
                   {backup.name}
-                </option>
+                </NativeSelectOption>
               ))}
-            </select>
+            </NativeSelect>
           </label>
         </div>
 

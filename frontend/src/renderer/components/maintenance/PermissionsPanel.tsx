@@ -1,6 +1,8 @@
 import { JSX, useEffect, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
+import { Input } from '@renderer/components/ui/input';
+import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
 import { useStore } from '@renderer/store';
 import { Loader2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -166,32 +168,34 @@ export const PermissionsPanel = (): JSX.Element => {
       <div className="border-border/50 flex flex-wrap items-center gap-3 border-b px-4 py-3">
         <label className="text-muted-foreground flex items-center gap-1 text-xs">
           Project
-          <select
+          <NativeSelect
+            size="sm"
             value={projectPath}
             onChange={(e) => setProjectPath(e.target.value)}
-            className="border-border/50 bg-card/50 text-foreground rounded-sm border px-2 py-1 text-xs"
+            className="min-w-40"
           >
             {projects.map((p) => (
-              <option key={p.id} value={p.path}>
+              <NativeSelectOption key={p.id} value={p.path}>
                 {p.name}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         <label className="text-muted-foreground flex items-center gap-1 text-xs">
           List
-          <select
+          <NativeSelect
+            size="sm"
             value={listFilter}
             onChange={(e) => setListFilter(e.target.value as 'all' | ListKey)}
-            className="border-border/50 bg-card/50 text-foreground rounded-sm border px-2 py-1 text-xs"
+            className="min-w-20"
           >
-            <option value="all">all</option>
+            <NativeSelectOption value="all">all</NativeSelectOption>
             {LISTS.map((l) => (
-              <option key={l} value={l}>
+              <NativeSelectOption key={l} value={l}>
                 {l}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
         </label>
       </div>
 
@@ -263,32 +267,34 @@ const AddRuleForm = (props: Readonly<AddRuleFormProps>): JSX.Element => {
     <div className="border-border/50 flex flex-wrap items-end gap-2 border-b px-4 py-3">
       <label className="text-muted-foreground flex items-center gap-1 text-xs">
         File
-        <select
+        <NativeSelect
+          size="sm"
           value={scope}
           disabled={!canAct}
           onChange={(e) => onScope(e.target.value as ScopeKind)}
-          className="border-border/50 bg-card/50 text-foreground rounded-sm border px-2 py-1 text-xs"
+          className="min-w-44"
         >
-          <option value="global">Global settings.json</option>
-          <option value="project-local">Project settings.local.json</option>
-        </select>
+          <NativeSelectOption value="global">Global settings.json</NativeSelectOption>
+          <NativeSelectOption value="project-local">Project settings.local.json</NativeSelectOption>
+        </NativeSelect>
       </label>
       <label className="text-muted-foreground flex items-center gap-1 text-xs">
         List
-        <select
+        <NativeSelect
+          size="sm"
           value={list}
           disabled={!canAct}
           onChange={(e) => onList(e.target.value as ListKey)}
-          className="border-border/50 bg-card/50 text-foreground rounded-sm border px-2 py-1 text-xs"
+          className="min-w-20"
         >
           {LISTS.map((l) => (
-            <option key={l} value={l}>
+            <NativeSelectOption key={l} value={l}>
               {l}
-            </option>
+            </NativeSelectOption>
           ))}
-        </select>
+        </NativeSelect>
       </label>
-      <input
+      <Input
         value={rule}
         disabled={!canAct}
         placeholder="e.g. Bash(rm:*)"
@@ -386,25 +392,27 @@ interface MovePickerProps {
 const MovePicker = (props: Readonly<MovePickerProps>): JSX.Element => (
   <div className="border-border/50 mt-2 flex flex-wrap items-center gap-2 border-t pt-2">
     <span className="text-muted-foreground text-[10px]">Move to</span>
-    <select
+    <NativeSelect
+      size="sm"
       value={props.targetKind}
       onChange={(e) => props.onTargetKind(e.target.value as ScopeKind)}
-      className="border-border/50 bg-card/50 text-foreground rounded-sm border px-1.5 py-0.5 text-[11px]"
+      className="min-w-44"
     >
-      <option value="global">Global settings.json</option>
-      <option value="project-local">Project settings.local.json</option>
-    </select>
-    <select
+      <NativeSelectOption value="global">Global settings.json</NativeSelectOption>
+      <NativeSelectOption value="project-local">Project settings.local.json</NativeSelectOption>
+    </NativeSelect>
+    <NativeSelect
+      size="sm"
       value={props.targetList}
       onChange={(e) => props.onTargetList(e.target.value as ListKey)}
-      className="border-border/50 bg-card/50 text-foreground rounded-sm border px-1.5 py-0.5 text-[11px]"
+      className="min-w-20"
     >
       {LISTS.map((l) => (
-        <option key={l} value={l}>
+        <NativeSelectOption key={l} value={l}>
           {l}
-        </option>
+        </NativeSelectOption>
       ))}
-    </select>
+    </NativeSelect>
     <Button variant="default" size="sm" disabled={props.busy} onClick={props.onConfirm}>
       {props.busy && <Loader2 className="size-3.5 animate-spin" />}
       Confirm

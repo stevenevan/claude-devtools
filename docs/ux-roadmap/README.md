@@ -167,10 +167,9 @@ They may **not** introduce a new palette, font, or component library.
   `.claude/rules/tailwind.md` for the variable catalogue and the theme-aware class conventions.
 - Components come from `frontend/src/renderer/components/ui/`; new wrappers are added only through
   the approved shadcn/Base UI parity process. Use the `Button` component, never a bare `<button>`.
-- **Icons come from `lucide-react`.** `components.json` declares `"iconLibrary": "remixicon"` and
-  that is stale — the only icon dependency in `frontend/package.json` is `lucide-react`, which is
-  what the app imports. Do not run the shadcn CLI without overriding it, or future component
-  installs will pull in a second icon library.
+- **Icons come from `lucide-react`.** `frontend/components.json` declares
+  `"iconLibrary": "lucide"`; the only icon dependency in `frontend/package.json` is
+  `lucide-react`, which is what the app imports. Keep future shadcn installs on that library.
 - No inline `style` props. Tailwind classes only.
 - No JSDoc, no `useCallback`, no `React.memo` unless profiling proves a measurable problem.
 

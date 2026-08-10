@@ -14,7 +14,7 @@ not a visual redesign.
 
 The repo has nineteen files under `frontend/src/renderer/components/ui/`. Interactive wrappers such
 as Button, AlertDialog, Collapsible, ContextMenu, Dialog, HoverCard, Input, Popover, Select,
-Separator, Switch, Tabs, and Tooltip import `@base-ui/react` directly. `components.json` already
+Separator, Switch, Tabs, and Tooltip import `@base-ui/react` directly. `frontend/components.json` already
 points at the `base-mira` style and the renderer aliases.
 
 The gap is below that layer:
@@ -26,7 +26,7 @@ The gap is below that layer:
   elements even when the existing Input, Textarea, Select, or NativeSelect wrapper is appropriate.
 - `CopyButton` has a bare overlay button, and several form surfaces have locally styled action
   buttons.
-- The `iconLibrary` value in `components.json` is stale (`remixicon`); the installed and used icon
+- The `iconLibrary` value in `frontend/components.json` is stale (`remixicon`); the installed and used icon
   library is `lucide-react`. This sprint must not introduce a second icon library.
 
 ## 3. One-week outcome
@@ -53,7 +53,7 @@ The first migration slice is:
 
 ## 4. Base UI contract
 
-- Run shadcn CLI from the repository's existing `components.json`; do not scaffold a separate
+- Run shadcn CLI from `frontend/components.json`; do not scaffold a separate
   component library or copy Radix examples into the app.
 - Generated wrappers must import `@base-ui/react/*` and live under
   `frontend/src/renderer/components/ui/`.
@@ -73,9 +73,14 @@ Do not bulk-import every component in the shadcn registry. Do not rewrite CSS or
 information hierarchy. Any remaining raw control in the audited surfaces needs a documented reason
 and a follow-up issue, not a silent exception.
 
+This slice leaves the dense native selects in `maintenance/MemoryPanel.tsx` and
+`maintenance/SettingsDiffPanel.tsx`, notification-trigger configuration controls, and custom
+chat/sidebar/window interactions for follow-up. They use domain-specific or dense native behavior
+outside the named migration surfaces.
+
 ## 6. Files touched
 
-- `components.json` — set the stale `iconLibrary` value to `lucide` before running the CLI; keep
+- `frontend/components.json` — set the stale `iconLibrary` value to `lucide` before running the CLI; keep
   the existing `base-mira` style and aliases
 - `frontend/src/renderer/components/ui/checkbox.tsx` **(new)**
 - `frontend/src/renderer/components/ui/radio-group.tsx` **(new)**
@@ -96,11 +101,11 @@ and a follow-up issue, not a silent exception.
 
 ## 7. Tasks (ordered)
 
-0. Confirm the `impeccable` skill and read the current `components.json` plus every incumbent UI
+0. Confirm the `impeccable` skill and read the current `frontend/components.json` plus every incumbent UI
    wrapper involved in the migration.
 1. Inventory raw inputs, selects, textareas, buttons, checkbox inputs, radio roles, and manual menu
    assemblies. Classify each as migratable, intentionally native, or domain-specific.
-2. Correct `components.json`'s stale icon-library value, then import only the approved missing
+2. Correct `frontend/components.json`'s stale icon-library value, then import only the approved missing
    shadcn wrappers with the existing Base UI configuration. Verify generated imports before wiring
    any call site.
 3. Migrate the named menu, mode-selector, form, search, history, and copy call sites. Preserve
@@ -112,9 +117,8 @@ and a follow-up issue, not a silent exception.
 
 ## 8. Verification / acceptance
 
-- Set `components.json` `iconLibrary` to `lucide`, then run
-  `bunx shadcn@latest add checkbox radio-group dropdown-menu field` — use only the components
-  approved by the inventory; omit `field` if no call site needs it.
+- Set `frontend/components.json` `iconLibrary` to `lucide`, then run
+  `bunx shadcn@latest add checkbox radio-group dropdown-menu label` from `frontend/`.
 - `bun run typecheck`
 - `bun run test`
 - `bun run qa`

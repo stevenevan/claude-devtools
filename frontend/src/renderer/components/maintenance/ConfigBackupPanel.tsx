@@ -2,6 +2,7 @@ import { JSX, useEffect, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { Button } from '@renderer/components/ui/button';
+import { Checkbox } from '@renderer/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -11,6 +12,8 @@ import {
   DialogTitle,
 } from '@renderer/components/ui/dialog';
 import { useStore } from '@renderer/store';
+import { Input } from '@renderer/components/ui/input';
+import { Label } from '@renderer/components/ui/label';
 import { AlertTriangle, Download, Loader2, RotateCcw, Trash2, Upload } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -161,7 +164,7 @@ export const ConfigBackupPanel = (): JSX.Element => {
       <div className="border-border/50 flex flex-wrap items-end gap-2 border-b px-4 py-3">
         <label className="text-muted-foreground flex flex-col gap-1 text-xs">
           Label (optional)
-          <input
+          <Input
             value={captureLabel}
             disabled={!canAct || busy}
             placeholder="e.g. before-experiment"
@@ -245,15 +248,18 @@ export const ConfigBackupPanel = (): JSX.Element => {
 
               {exportingId === backup.id && (
                 <div className="border-border/50 flex flex-wrap items-center gap-3 border-t pt-2">
-                  <label className="text-muted-foreground flex items-center gap-2 text-xs">
-                    <input
-                      type="checkbox"
+                  <Label
+                    htmlFor="config-backup-export-secrets"
+                    className="text-muted-foreground flex items-center gap-2 text-xs"
+                  >
+                    <Checkbox
+                      id="config-backup-export-secrets"
                       checked={exportSecrets}
-                      onChange={(e) => setExportSecrets(e.target.checked)}
+                      onCheckedChange={(checked) => setExportSecrets(checked === true)}
                       className="accent-destructive size-3.5 shrink-0"
                     />
                     Include secrets (danger — ships live credentials verbatim)
-                  </label>
+                  </Label>
                   <Button
                     variant="default"
                     size="sm"
@@ -389,18 +395,19 @@ const ImportReviewDialog = ({
           ) : (
             <div className="flex flex-col gap-1">
               {preview.categories.map((category) => (
-                <label
+                <Label
                   key={category}
+                  htmlFor={`config-backup-category-${category}`}
                   className="border-border/50 flex items-center gap-2 rounded-md border px-2 py-1.5 text-xs"
                 >
-                  <input
-                    type="checkbox"
+                  <Checkbox
+                    id={`config-backup-category-${category}`}
                     checked={checked.includes(category)}
-                    onChange={() => onToggle(category)}
+                    onCheckedChange={() => onToggle(category)}
                     className="accent-primary size-3.5 shrink-0"
                   />
                   <span className="text-foreground font-mono">{category}</span>
-                </label>
+                </Label>
               ))}
             </div>
           )}

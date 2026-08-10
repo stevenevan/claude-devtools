@@ -1,6 +1,11 @@
 import { JSX, useEffect, useMemo, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@renderer/components/ui/dropdown-menu';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { ChevronDown, FolderOpen, GitBranch, X } from 'lucide-react';
@@ -57,8 +62,8 @@ export const RepositoryDropdown = ({
   const isEmpty = availableItems.length === 0;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
+    <DropdownMenu open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger
         render={
           <Button
             variant="outline"
@@ -74,8 +79,8 @@ export const RepositoryDropdown = ({
         <ChevronDown
           className={cn('size-4 transition-transform duration-200', open && 'rotate-180')}
         />
-      </PopoverTrigger>
-      <PopoverContent
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
         side={dropUp ? 'top' : 'bottom'}
         className="max-h-64 w-(--anchor-width) overflow-y-auto p-1"
       >
@@ -86,8 +91,8 @@ export const RepositoryDropdown = ({
             onSelect={() => handleSelect(item)}
           />
         ))}
-      </PopoverContent>
-    </Popover>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
@@ -99,8 +104,7 @@ const RepositoryDropdownItemComponentInner = ({
   onSelect: () => void;
 }>): JSX.Element => {
   return (
-    <button
-      type="button"
+    <DropdownMenuItem
       onClick={onSelect}
       className="hover:bg-accent flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors"
     >
@@ -120,7 +124,7 @@ const RepositoryDropdownItemComponentInner = ({
         </div>
         <span className="text-muted-foreground block truncate text-[10px]">{item.path}</span>
       </div>
-    </button>
+    </DropdownMenuItem>
   );
 };
 

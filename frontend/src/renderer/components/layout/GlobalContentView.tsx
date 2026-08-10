@@ -1,5 +1,6 @@
 import { cloneElement, JSX, ReactElement, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
+import { Input } from '@renderer/components/ui/input';
 import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
 import { formatShortcut } from '@renderer/utils/stringUtils';
@@ -41,12 +42,12 @@ export const GlobalContentView = ({
               }`}
             >
               <Search className="text-muted-foreground size-4 shrink-0" />
-              <input
+              <Input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={`Search ${title.toLowerCase()}...`}
-                className="text-foreground placeholder:text-muted-foreground flex-1 bg-transparent text-sm outline-hidden"
+                className="text-foreground placeholder:text-muted-foreground h-auto flex-1 border-0 bg-transparent px-0 py-0 text-sm shadow-none outline-hidden focus-visible:border-0 focus-visible:ring-0"
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
               />

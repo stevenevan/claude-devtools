@@ -1,6 +1,8 @@
 import { JSX, ReactNode, useEffect, useMemo, useState } from 'react';
 import { isDesktopMode } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
+import { Checkbox } from '@renderer/components/ui/checkbox';
+import { Input } from '@renderer/components/ui/input';
 import { useStore } from '@renderer/store';
 import { formatBytes } from '@renderer/utils/formatters';
 import { Loader2 } from 'lucide-react';
@@ -302,7 +304,7 @@ const FamilySection = ({
           {family.supportsCutoff && (
             <label className="text-muted-foreground flex shrink-0 items-center gap-1 text-xs">
               Older than
-              <input
+              <Input
                 type="number"
                 min={1}
                 max={36500}
@@ -334,27 +336,27 @@ const FamilySection = ({
           return (
             <div key={groupKey || family.id}>
               {groupKey && (
-                <label className="text-muted-foreground bg-card/30 flex items-center gap-2 px-4 py-1 text-xs font-medium">
-                  <input
-                    type="checkbox"
+                <div className="text-muted-foreground bg-card/30 flex items-center gap-2 px-4 py-1 text-xs font-medium">
+                  <Checkbox
                     checked={allOn}
                     disabled={!canAct || bulkPaths.length === 0}
-                    onChange={(e) => onToggleMany(bulkPaths, e.target.checked)}
+                    aria-label={`Select all ${groupLabel ? groupLabel(groupKey) : groupKey}`}
+                    onCheckedChange={(checked) => onToggleMany(bulkPaths, checked === true)}
                   />
                   {groupLabel ? groupLabel(groupKey) : groupKey}
                   <span className="text-muted-foreground/70">({groupItems.length})</span>
-                </label>
+                </div>
               )}
               <table className="w-full border-collapse text-sm">
                 <tbody>
                   {groupItems.map((c) => (
                     <tr key={c.path} className="border-border/50 hover:bg-card/50 border-b">
                       <td className="w-6 px-4 py-1.5">
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={selected.has(c.path)}
                           disabled={!canAct}
-                          onChange={() => onToggle(c.path)}
+                          aria-label={`Select ${c.path}`}
+                          onCheckedChange={() => onToggle(c.path)}
                         />
                       </td>
                       {columns.map((col) => (

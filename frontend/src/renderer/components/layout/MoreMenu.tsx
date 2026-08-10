@@ -1,7 +1,12 @@
 import { ComponentType, JSX, useState } from 'react';
 import { isDesktopMode } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@renderer/components/ui/dropdown-menu';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import {
@@ -48,8 +53,8 @@ export const MoreMenu = (): JSX.Element => {
   const hasActiveItem = items.some(({ activity }) => activity === activeActivity);
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger
         render={
           <Button
             variant="ghost"
@@ -65,13 +70,11 @@ export const MoreMenu = (): JSX.Element => {
         {hasActiveItem && <span className="absolute top-1 bottom-1 left-0 w-0.5 rounded-r-full bg-indigo-500" />}
         <Ellipsis className="size-5" />
         <span>More</span>
-      </PopoverTrigger>
-      <PopoverContent role="menu" side="right" align="start" className="w-56 gap-1 p-1.5">
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="right" align="start" className="w-56 gap-1 p-1.5">
         {items.map(({ activity, label, icon: Icon }) => (
-          <Button
+          <DropdownMenuItem
             key={activity}
-            variant="ghost"
-            role="menuitem"
             className={cn(
               'h-8 w-full justify-start gap-2 px-2',
               activeActivity === activity && 'bg-muted text-foreground'
@@ -83,9 +86,9 @@ export const MoreMenu = (): JSX.Element => {
           >
             <Icon className="size-4" />
             <span>{label}</span>
-          </Button>
+          </DropdownMenuItem>
         ))}
-      </PopoverContent>
-    </Popover>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };

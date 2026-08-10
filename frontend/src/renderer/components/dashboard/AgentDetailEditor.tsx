@@ -1,6 +1,9 @@
 import { JSX, useEffect, useRef, useState } from 'react';
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
+import { Input } from '@renderer/components/ui/input';
+import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
+import { Textarea } from '@renderer/components/ui/textarea';
 import { Trash2 } from 'lucide-react';
 
 import { ConfigEditorShell } from '../maintenance/ConfigEditorShell';
@@ -194,7 +197,7 @@ export const AgentDetailEditor = ({
 
         <label className="flex flex-col gap-1">
           <span className="text-muted-foreground text-xs">name</span>
-          <input
+          <Input
             id="agent-name-editor"
             value={fields.name}
             disabled={!canAct}
@@ -210,7 +213,7 @@ export const AgentDetailEditor = ({
 
         <label className="flex flex-col gap-1">
           <span className="text-muted-foreground text-xs">description</span>
-          <input
+          <Input
             value={fields.description}
             disabled={!canAct}
             onChange={(e) => update({ description: e.target.value })}
@@ -222,7 +225,7 @@ export const AgentDetailEditor = ({
           <span className="text-muted-foreground text-xs">
             tools <span className="text-muted-foreground/70">(comma-separated, blank = unset)</span>
           </span>
-          <input
+          <Input
             value={fields.tools}
             disabled={!canAct}
             placeholder="unset"
@@ -233,19 +236,20 @@ export const AgentDetailEditor = ({
 
         <label className="flex flex-col gap-1">
           <span className="text-muted-foreground text-xs">model</span>
-          <select
+          <NativeSelect
             value={fields.model}
             disabled={!canAct}
             onChange={(e) => update({ model: e.target.value })}
-            className="border-border/50 bg-card/50 text-foreground rounded-md border px-2 py-1 text-xs"
+            size="sm"
+            className="w-full"
           >
-            <option value="">unset</option>
+            <NativeSelectOption value="">unset</NativeSelectOption>
             {modelOptions.map((m) => (
-              <option key={m} value={m}>
+              <NativeSelectOption key={m} value={m}>
                 {m}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
           {!modelKnown && (
             <span className="text-[11px] text-amber-500">
               Unknown model &quot;{fields.model}&quot; — saved as-is; verify it is a valid Claude
@@ -256,7 +260,7 @@ export const AgentDetailEditor = ({
 
         <label className="flex flex-col gap-1">
           <span className="text-muted-foreground text-xs">system prompt (body)</span>
-          <textarea
+          <Textarea
             value={fields.body}
             disabled={!canAct}
             spellCheck={false}

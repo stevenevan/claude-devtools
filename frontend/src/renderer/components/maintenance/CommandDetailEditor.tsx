@@ -1,6 +1,10 @@
 import { JSX, useEffect, useState } from 'react';
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
+import { Checkbox } from '@renderer/components/ui/checkbox';
+import { Input } from '@renderer/components/ui/input';
+import { Label } from '@renderer/components/ui/label';
+import { Textarea } from '@renderer/components/ui/textarea';
 import { Trash2 } from 'lucide-react';
 
 import { ConfigEditorShell } from './ConfigEditorShell';
@@ -91,7 +95,7 @@ export const CommandDetailEditor = ({
         </div>
 
         {raw ? (
-          <textarea
+          <Textarea
             value={value}
             onChange={(e) => setValue(e.target.value)}
             disabled={!canAct}
@@ -102,7 +106,7 @@ export const CommandDetailEditor = ({
           <>
             <label className="flex flex-col gap-1">
               <span className="text-muted-foreground text-xs">description</span>
-              <input
+              <Input
                 value={fields.description ?? ''}
                 disabled={!canAct}
                 onChange={(e) => update({ description: e.target.value })}
@@ -112,7 +116,7 @@ export const CommandDetailEditor = ({
 
             <label className="flex flex-col gap-1">
               <span className="text-muted-foreground text-xs">argument-hint</span>
-              <input
+              <Input
                 value={fields.argumentHint ?? ''}
                 disabled={!canAct}
                 placeholder="unset"
@@ -126,7 +130,7 @@ export const CommandDetailEditor = ({
                 allowed-tools{' '}
                 <span className="text-muted-foreground/70">(comma/space-separated, blank = unset)</span>
               </span>
-              <input
+              <Input
                 value={fields.allowedToolsIsComplex ? '' : (fields.allowedTools ?? '')}
                 disabled={!canAct || fields.allowedToolsIsComplex === true}
                 placeholder={fields.allowedToolsIsComplex ? 'YAML list — edit in Raw mode' : 'unset'}
@@ -142,7 +146,7 @@ export const CommandDetailEditor = ({
 
             <label className="flex flex-col gap-1">
               <span className="text-muted-foreground text-xs">model</span>
-              <input
+              <Input
                 value={fields.model ?? ''}
                 disabled={!canAct}
                 placeholder="unset"
@@ -151,29 +155,29 @@ export const CommandDetailEditor = ({
               />
             </label>
 
-            <label className="text-muted-foreground flex items-center gap-2 text-xs">
-              <input
-                type="checkbox"
+            <Label htmlFor="command-disable-model-invocation" className="text-muted-foreground text-xs">
+              <Checkbox
+                id="command-disable-model-invocation"
                 checked={fields.disableModelInvocation ?? false}
                 disabled={!canAct}
-                onChange={(e) => update({ disableModelInvocation: e.target.checked })}
+                onCheckedChange={(checked) => update({ disableModelInvocation: checked === true })}
               />
               disable-model-invocation
-            </label>
+            </Label>
 
-            <label className="text-muted-foreground flex items-center gap-2 text-xs">
-              <input
-                type="checkbox"
+            <Label htmlFor="command-user-invocable" className="text-muted-foreground text-xs">
+              <Checkbox
+                id="command-user-invocable"
                 checked={fields.userInvocable ?? true}
                 disabled={!canAct}
-                onChange={(e) => update({ userInvocable: e.target.checked })}
+                onCheckedChange={(checked) => update({ userInvocable: checked === true })}
               />
               user-invocable
-            </label>
+            </Label>
 
             <label className="flex flex-col gap-1">
               <span className="text-muted-foreground text-xs">body</span>
-              <textarea
+              <Textarea
                 value={body}
                 disabled={!canAct}
                 spellCheck={false}

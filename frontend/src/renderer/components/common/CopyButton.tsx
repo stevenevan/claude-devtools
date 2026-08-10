@@ -57,15 +57,17 @@ export const CopyButton: FC<CopyButtonProps> = ({
         style={{ background: `linear-gradient(to right, transparent, ${bgColor})` }}
       />
       <div className="rounded-bl-lg p-1.5" style={{ backgroundColor: bgColor }}>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-sm"
           onClick={() => copy(text)}
           className="pointer-events-auto rounded-sm p-1.5"
           aria-label={copyLabel}
           title={copyLabel}
         >
           {icon}
-        </button>
+        </Button>
       </div>
       {copied && (
         <span role="status" aria-live="polite" className="sr-only">

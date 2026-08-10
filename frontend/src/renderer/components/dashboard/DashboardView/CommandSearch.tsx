@@ -1,4 +1,6 @@
 import { JSX, useEffect, useState } from 'react';
+import { Button } from '@renderer/components/ui/button';
+import { Input } from '@renderer/components/ui/input';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { formatShortcut } from '@renderer/utils/stringUtils';
@@ -49,19 +51,22 @@ export const CommandSearch = ({
         )}
       >
         <Search className="text-muted-foreground size-4 shrink-0" />
-        <input
+        <Input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="text-foreground placeholder:text-muted-foreground flex-1 bg-transparent text-sm outline-hidden"
+          className="text-foreground placeholder:text-muted-foreground h-auto flex-1 border-0 bg-transparent px-0 py-0 text-sm shadow-none outline-hidden focus-visible:border-0 focus-visible:ring-0"
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />
         {/* Keyboard shortcut badge - opens full command palette */}
-        <button
+        <Button
+          type="button"
+          variant="ghost"
+          size="xs"
           onClick={() => openCommandPalette()}
-          className="flex shrink-0 items-center gap-1 transition-opacity hover:opacity-80"
+          className="shrink-0 gap-1 p-0 transition-opacity hover:opacity-80"
           title={
             selectedProjectId
               ? `Search in sessions (${formatShortcut('K')})`
@@ -74,7 +79,7 @@ export const CommandSearch = ({
           <kbd className="border-border bg-popover text-muted-foreground flex size-5 items-center justify-center rounded-sm border text-[10px] font-medium">
             K
           </kbd>
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { JSX, useEffect, useState } from 'react';
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
+import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
 import { useStore } from '@renderer/store';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -101,17 +102,18 @@ export const ProjectSettingsPanel = (): JSX.Element => {
       <div className="border-border/50 flex items-center gap-2 border-b px-4 py-3">
         <label className="text-muted-foreground flex items-center gap-1 text-xs">
           Project
-          <select
+          <NativeSelect
+            size="sm"
             value={projectPath}
             onChange={(e) => setProjectPath(e.target.value)}
-            className="border-border/50 bg-card/50 text-foreground rounded-sm border px-2 py-1 text-xs"
+            className="min-w-40"
           >
             {projects.map((p) => (
-              <option key={p.id} value={p.path}>
+              <NativeSelectOption key={p.id} value={p.path}>
                 {p.name}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
+          </NativeSelect>
         </label>
       </div>
 
@@ -159,32 +161,34 @@ export const ProjectSettingsPanel = (): JSX.Element => {
             <div className="mb-2 flex flex-wrap items-center gap-3">
               <label className="text-muted-foreground flex items-center gap-1 text-xs">
                 Left
-                <select
+                <NativeSelect
+                  size="sm"
                   value={diffLeftPath}
                   onChange={(e) => setDiffLeftPath(e.target.value)}
-                  className="border-border/50 bg-card/50 text-foreground rounded-sm border px-2 py-1 text-xs"
+                  className="min-w-40"
                 >
                   {view.sources.map((s) => (
-                    <option key={s.path} value={s.path}>
+                    <NativeSelectOption key={s.path} value={s.path}>
                       {kindLabel(s.kind)}
-                    </option>
+                    </NativeSelectOption>
                   ))}
-                </select>
+                </NativeSelect>
               </label>
 
               <label className="text-muted-foreground flex items-center gap-1 text-xs">
                 Right
-                <select
+                <NativeSelect
+                  size="sm"
                   value={diffRightPath}
                   onChange={(e) => setDiffRightPath(e.target.value)}
-                  className="border-border/50 bg-card/50 text-foreground rounded-sm border px-2 py-1 text-xs"
+                  className="min-w-40"
                 >
                   {view.sources.map((s) => (
-                    <option key={s.path} value={s.path}>
+                    <NativeSelectOption key={s.path} value={s.path}>
                       {kindLabel(s.kind)}
-                    </option>
+                    </NativeSelectOption>
                   ))}
-                </select>
+                </NativeSelect>
               </label>
             </div>
 
