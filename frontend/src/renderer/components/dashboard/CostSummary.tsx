@@ -1,5 +1,6 @@
 import { JSX, type FormEvent, type ReactNode, useEffect, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
+import { Field, FieldDescription, FieldError, FieldLabel } from '@renderer/components/ui/field';
 import { api } from '@renderer/api';
 import { useStore } from '@renderer/store';
 import { createLogger } from '@shared/utils/logger';
@@ -365,10 +366,10 @@ const MonthlyLimitControl = ({ currentPeriod }: Readonly<MonthlyLimitControlProp
         </div>
       ) : setupState === 'form' ? (
         <form className="flex flex-col gap-3" onSubmit={(event) => void handleSave(event)}>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="monthly-limit-input" className="text-text-secondary text-xs">
+          <Field invalid={Boolean(limitError)} className="gap-1">
+            <FieldLabel htmlFor="monthly-limit-input" className="text-text-secondary text-xs">
               Monthly limit in USD
-            </label>
+            </FieldLabel>
             <input
               id="monthly-limit-input"
               name="monthlyLimit"
@@ -383,15 +384,20 @@ const MonthlyLimitControl = ({ currentPeriod }: Readonly<MonthlyLimitControlProp
                 setLimitError(null);
               }}
               placeholder="100.00"
-              aria-describedby="monthly-limit-help"
+              aria-describedby={`monthly-limit-help${limitError ? ' monthly-limit-error' : ''}`}
               aria-invalid={limitError !== null}
               disabled={isSaving}
               className="border-border bg-surface-raised text-text placeholder:text-text-muted h-8 w-full max-w-48 rounded-xs border px-2 text-xs outline-hidden focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
             />
-            <span id="monthly-limit-help" className="text-text-muted text-[10px]">
+            <FieldDescription id="monthly-limit-help" className="text-text-muted text-[10px]">
               Use up to two decimal places.
-            </span>
-          </div>
+            </FieldDescription>
+            {limitError && (
+              <FieldError id="monthly-limit-error" match role="alert" className="text-[10px]">
+                {limitError}
+              </FieldError>
+            )}
+          </Field>
           <div className="flex items-center gap-2">
             <Button type="submit" size="sm" disabled={isSaving}>
               {isSaving ? 'Saving...' : 'Save limit'}
@@ -423,11 +429,6 @@ const MonthlyLimitControl = ({ currentPeriod }: Readonly<MonthlyLimitControlProp
         </Button>
       )}
 
-      {limitError && (
-        <p className="text-destructive mt-2 text-[10px]" role="alert">
-          {limitError}
-        </p>
-      )}
     </section>
   );
 };

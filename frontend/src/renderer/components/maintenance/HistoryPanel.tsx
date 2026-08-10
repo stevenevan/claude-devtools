@@ -2,6 +2,7 @@ import { JSX, useEffect, useState } from 'react';
 import { isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { Button } from '@renderer/components/ui/button';
+import { Field, FieldDescription, FieldLabel } from '@renderer/components/ui/field';
 import { useStore } from '@renderer/store';
 import { formatBytes } from '@renderer/utils/formatters';
 import { Loader2 } from 'lucide-react';
@@ -69,9 +70,12 @@ export const HistoryPanel = (): JSX.Element => {
       )}
 
       <div className="flex items-center justify-between px-4 py-2">
-        <label className="text-muted-foreground flex items-center gap-1 text-xs">
+        <Field className="flex-row items-center gap-1">
+          <FieldLabel htmlFor="history-cutoff-days" className="text-muted-foreground text-xs">
           Older than
+          </FieldLabel>
           <input
+            id="history-cutoff-days"
             type="number"
             min={1}
             max={36500}
@@ -81,10 +85,14 @@ export const HistoryPanel = (): JSX.Element => {
               const value = Number(e.target.value);
               if (Number.isFinite(value) && value >= 1) setDays(value);
             }}
+            aria-describedby="history-cutoff-days-description"
             className="border-border/50 bg-card/50 text-foreground w-16 rounded-sm border px-1 py-0.5 text-right text-xs"
           />
-          days
-        </label>
+          <span className="text-muted-foreground text-xs">days</span>
+          <FieldDescription id="history-cutoff-days-description" className="sr-only">
+            Entries older than this many days are eligible for pruning.
+          </FieldDescription>
+        </Field>
       </div>
 
       {!historyStats || historyStats.months.length === 0 ? (
