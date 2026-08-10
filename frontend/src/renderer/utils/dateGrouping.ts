@@ -1,4 +1,4 @@
-import { differenceInDays, isToday, isYesterday } from 'date-fns';
+import { differenceInCalendarDays, differenceInDays, format, isToday, isYesterday } from 'date-fns';
 
 import { DATE_CATEGORY_ORDER } from '../types/tabs';
 
@@ -30,6 +30,15 @@ export function groupSessionsByDate(sessions: Session[]): DateGroupedSessions {
 
 export function getNonEmptyCategories(grouped: DateGroupedSessions): DateCategory[] {
   return DATE_CATEGORY_ORDER.filter((category) => grouped[category].length > 0);
+}
+
+export function getDateGroupLabel(timestamp: number, now: Date = new Date()): string {
+  const date = new Date(timestamp);
+  const calendarDaysAgo = differenceInCalendarDays(now, date);
+
+  if (calendarDaysAgo === 0) return 'Today';
+  if (calendarDaysAgo === 1) return 'Yesterday';
+  return format(date, 'd MMMM');
 }
 
 // pinnedSessionIds is ordered most-recently-pinned first; that order is preserved for pinned output
