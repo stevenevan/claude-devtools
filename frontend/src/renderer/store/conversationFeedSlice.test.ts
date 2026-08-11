@@ -1,5 +1,10 @@
 import { afterAll, beforeAll, beforeEach, expect, mock, test } from 'bun:test';
 
+import {
+  api as actualApi,
+  initializeApi as actualInitializeApi,
+  isDesktopMode as actualIsDesktopMode,
+} from '@renderer/api';
 import { createTauriClient } from '@renderer/api/tauriClient';
 
 import type { PaginatedGlobalSessionsResult } from '@shared/types';
@@ -38,9 +43,8 @@ let responses: PendingResponse[] = [firstPage];
 let failure: Error | null = null;
 const cursors: Array<string | null> = [];
 
-const actualApi = createTauriClient();
 const testApi = {
-  ...actualApi,
+  ...createTauriClient(),
   getGlobalSessionsPaginated: async (cursor: string | null) => {
     cursors.push(cursor);
     if (failure) throw failure;
@@ -56,6 +60,8 @@ mock.module('@shared/utils/logger', () => ({
 
 mock.module('@renderer/api', () => ({
   api: testApi,
+  initializeApi: actualInitializeApi,
+  isDesktopMode: actualIsDesktopMode,
 }));
 
 let useStore: typeof import('./useStore').useStore;
@@ -92,7 +98,11 @@ beforeEach(() => {
 });
 
 afterAll(() => {
-  mock.module('@renderer/api', () => ({ api: actualApi }));
+  mock.module('@renderer/api', () => ({
+    api: actualApi,
+    initializeApi: actualInitializeApi,
+    isDesktopMode: actualIsDesktopMode,
+  }));
 });
 
 test('loads and caches feed independently of selected project', async () => {
