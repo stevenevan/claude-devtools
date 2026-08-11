@@ -671,6 +671,8 @@ fn main() {
             // ── W13 maintenance: service.go ──
             maintenance_cmds::scan_claude_dir,
             maintenance_cmds::scan_category,
+            maintenance_cmds::preview_simple_cleanup,
+            maintenance_cmds::run_simple_cleanup,
             maintenance_cmds::get_maintenance_cutoff,
             maintenance_cmds::set_maintenance_cutoff,
             maintenance_cmds::read_plan_file,

@@ -25,6 +25,7 @@ use crate::cache::SessionCache;
 use crate::config::root::app_data_dir;
 use crate::config::state::ConfigState;
 use crate::maintenance::category::cutoff_default;
+use crate::maintenance::simple_cleanup::SimpleCleanupCandidate;
 use crate::maintenance::trash::{self, TrashReceipt};
 use crate::ssh;
 
@@ -46,6 +47,7 @@ pub(crate) const ERR_UNSAFE_ROOT: &str =
 /// Bounds how often `maintenance:scan-progress` is emitted (projects/ alone can
 /// hold 900+ files). Mirrors `progressThrottle`.
 pub(crate) const PROGRESS_THROTTLE: StdDuration = StdDuration::from_millis(150);
+pub(crate) const SIMPLE_PREVIEW_TTL: StdDuration = StdDuration::from_secs(60);
 
 /// Go `nowMS() = time.Now().UnixNano() / 1e6`.
 pub(crate) fn now_ms() -> f64 {
@@ -69,9 +71,18 @@ pub struct MaintenanceState {
     pub(crate) cache: SharedCache,
     pub(crate) ssh: Arc<ssh::State>,
     pub(crate) raise_pending: RaisePending,
+    /// One short-lived, backend-only Simple cleanup snapshot. Filesystem paths
+    /// never cross the Tauri response boundary.
+    simple_cleanup_preview: Mutex<Option<PendingSimpleCleanup>>,
     /// Stops the scheduler thread on shutdown (currently never set — the app runs
     /// to process exit; kept so a future shutdown wire can join cleanly).
     pub(crate) sched_stop: Arc<AtomicBool>,
+}
+
+struct PendingSimpleCleanup {
+    token: String,
+    created_at: SystemTime,
+    candidates: Vec<SimpleCleanupCandidate>,
 }
 
 impl MaintenanceState {
@@ -89,6 +100,7 @@ impl MaintenanceState {
             cache,
             ssh,
             raise_pending,
+            simple_cleanup_preview: Mutex::new(None),
             sched_stop: Arc::new(AtomicBool::new(false)),
         }
     }
@@ -96,6 +108,53 @@ impl MaintenanceState {
     /// Poison-free lock of `op` (no invariant is held across a panic).
     pub(crate) fn lock_op(&self) -> MutexGuard<'_, ()> {
         self.op.lock().unwrap_or_else(|e| e.into_inner())
+    }
+
+    pub(crate) fn store_simple_cleanup_preview(
+        &self,
+        candidates: Vec<SimpleCleanupCandidate>,
+    ) -> String {
+        let token = uuid::Uuid::new_v4().to_string();
+        let pending = PendingSimpleCleanup {
+            token: token.clone(),
+            created_at: SystemTime::now(),
+            candidates,
+        };
+        *self
+            .simple_cleanup_preview
+            .lock()
+            .unwrap_or_else(|e| e.into_inner()) = Some(pending);
+        token
+    }
+
+    pub(crate) fn simple_cleanup_snapshot(
+        &self,
+        token: &str,
+    ) -> Result<Vec<SimpleCleanupCandidate>, String> {
+        let mut pending = self
+            .simple_cleanup_preview
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        let Some(snapshot) = pending.as_ref() else {
+            return Err("maintenance: preview changed; refresh".to_string());
+        };
+        let fresh = snapshot
+            .created_at
+            .elapsed()
+            .map(|age| age <= SIMPLE_PREVIEW_TTL)
+            .unwrap_or(false);
+        if snapshot.token != token || !fresh {
+            *pending = None;
+            return Err("maintenance: preview changed; refresh".to_string());
+        }
+        Ok(snapshot.candidates.clone())
+    }
+
+    pub(crate) fn clear_simple_cleanup_preview(&self) {
+        *self
+            .simple_cleanup_preview
+            .lock()
+            .unwrap_or_else(|e| e.into_inner()) = None;
     }
 
     /// SEC-server-gate: refuse a mutation while an SSH session is active. Mirrors
@@ -257,6 +316,37 @@ impl MuteGuard {
 impl Drop for MuteGuard {
     fn drop(&mut self) {
         let _ = self.app.emit("maintenance:mute-watcher", json!({ "muted": false }));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::cache::SessionCache;
+    use crate::config::state::ConfigState;
+    use crate::maintenance::simple_cleanup::SimpleCleanupCandidate;
+
+    fn state() -> MaintenanceState {
+        MaintenanceState::new(
+            Arc::new(ConfigState::new()),
+            Arc::new(Mutex::new(SessionCache::new(1, StdDuration::from_secs(1)))),
+            Arc::new(ssh::State::new()),
+            Box::new(|_, _| Ok(())),
+        )
+    }
+
+    #[test]
+    fn simple_preview_rejects_a_wrong_token_and_clears_it() {
+        let state = state();
+        state.store_simple_cleanup_preview(Vec::<SimpleCleanupCandidate>::new());
+        assert!(state.simple_cleanup_snapshot("wrong-token").is_err());
+        assert!(state.simple_cleanup_snapshot("wrong-token").is_err());
+    }
+
+    #[test]
+    fn maintenance_ssh_gate_allows_only_disconnected_state() {
+        let state = state();
+        assert!(state.ssh_gate().is_ok());
     }
 }
 

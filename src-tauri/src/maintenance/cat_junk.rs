@@ -79,6 +79,139 @@ where
     Ok(())
 }
 
+/// The result of the one-pass junk walk used by Simple cleanup. Keeping the
+/// family on the backend avoids making the renderer infer which matcher found a
+/// path.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum SimpleJunkKind {
+    DsStore,
+    Tmp,
+    EmptyDir,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct SimpleJunkCandidate {
+    pub(crate) kind: SimpleJunkKind,
+    pub(crate) candidate: Candidate,
+}
+
+/// Scans `.DS_Store`, stale `*.tmp`, and collapsible empty directories in one
+/// bounded post-order traversal. The existing individual matchers remain for
+/// the Nerd category panels; Simple cleanup uses this shared walk so the same
+/// directory tree is not visited three times.
+pub(crate) fn scan_simple_junk(spec: &CategorySpec) -> Result<Vec<SimpleJunkCandidate>, String> {
+    let mut out = Vec::new();
+    let root = Path::new(&spec.root);
+    simple_junk_dir(spec, root, 0, &mut out)?;
+    Ok(out)
+}
+
+fn simple_junk_dir(
+    spec: &CategorySpec,
+    dir: &Path,
+    depth: usize,
+    out: &mut Vec<SimpleJunkCandidate>,
+) -> Result<bool, String> {
+    let (entries, ok) = open_dir_no_symlink(dir)?;
+    if !ok {
+        return Ok(false);
+    }
+
+    let mut empty = true;
+    let mut pending_empty: Vec<PathBuf> = Vec::new();
+    for entry in entries {
+        let path = entry.path();
+        if !spec.app_data.is_empty() && same_path(&path, Path::new(&spec.app_data)) {
+            empty = false;
+            continue;
+        }
+
+        let file_type = match entry.file_type() {
+            Ok(file_type) => file_type,
+            Err(_) => {
+                empty = false;
+                continue;
+            }
+        };
+        if file_type.is_symlink() {
+            empty = false;
+            continue;
+        }
+
+        if file_type.is_dir() {
+            if is_protected_junk_dir(spec, dir, &path) || depth >= MAX_SCAN_DEPTH {
+                empty = false;
+                continue;
+            }
+            if simple_junk_dir(spec, &path, depth + 1, out)? {
+                pending_empty.push(path);
+            } else {
+                empty = false;
+            }
+            continue;
+        }
+
+        let Ok(meta) = entry.metadata() else {
+            empty = false;
+            continue;
+        };
+        let name = base_name(&path);
+        if name == ".DS_Store" {
+            out.push(SimpleJunkCandidate {
+                kind: SimpleJunkKind::DsStore,
+                candidate: Candidate {
+                    path: path.to_string_lossy().into_owned(),
+                    bytes: meta.len() as i64,
+                    files: 1,
+                    mod_time: mtime_utc(&meta),
+                    reason: "macOS metadata file".to_string(),
+                    group: String::new(),
+                    meta: BTreeMap::new(),
+                },
+            });
+        } else {
+            empty = false;
+        }
+        if go_ext(name) == ".tmp" {
+            let mtime = mtime_utc(&meta);
+            if older_than(mtime, spec) {
+                out.push(SimpleJunkCandidate {
+                    kind: SimpleJunkKind::Tmp,
+                    candidate: Candidate {
+                        path: path.to_string_lossy().into_owned(),
+                        bytes: meta.len() as i64,
+                        files: 1,
+                        mod_time: mtime,
+                        reason: "stale temp file".to_string(),
+                        group: String::new(),
+                        meta: BTreeMap::new(),
+                    },
+                });
+            }
+        }
+    }
+
+    if empty {
+        return Ok(true);
+    }
+    for path in pending_empty {
+        let (bytes, files, newest) = subtree_stats(&path);
+        out.push(SimpleJunkCandidate {
+            kind: SimpleJunkKind::EmptyDir,
+            candidate: Candidate {
+                path: path.to_string_lossy().into_owned(),
+                bytes,
+                files,
+                mod_time: newest,
+                reason: "empty directory".to_string(),
+                group: String::new(),
+                meta: BTreeMap::new(),
+            },
+        });
+    }
+    Ok(false)
+}
+
 /// Separator count of `path` relative to `root` (Go's `strings.Count(rel, sep)`).
 fn rel_depth(root: &Path, path: &Path) -> usize {
     match path.strip_prefix(root) {
