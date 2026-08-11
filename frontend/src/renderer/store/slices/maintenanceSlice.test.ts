@@ -1,6 +1,9 @@
-import { beforeEach, expect, mock, test } from 'bun:test';
+import { afterAll, beforeEach, expect, mock, test } from 'bun:test';
+import { api } from '@renderer/api';
 
 import type { SimpleCleanupPreview } from '@shared/types';
+
+import { createMaintenanceSlice } from './maintenanceSlice';
 
 const previewSimpleCleanup = mock(async (): Promise<SimpleCleanupPreview> => ({
   token: 'fresh-token',
@@ -15,20 +18,16 @@ const runSimpleCleanup = mock(async () => ({
 }));
 const scanClaudeDir = mock(async () => []);
 
-mock.module('@shared/utils/logger', () => ({
-  createLogger: () => ({ error: () => {} }),
-}));
-mock.module('@renderer/api', () => ({
-  api: {
-    maintenance: { previewSimpleCleanup, runSimpleCleanup, scanClaudeDir },
-  },
-}));
-
-const { createMaintenanceSlice } = await import('./maintenanceSlice');
+const originalPreviewSimpleCleanup = api.maintenance.previewSimpleCleanup;
+const originalRunSimpleCleanup = api.maintenance.runSimpleCleanup;
+const originalScanClaudeDir = api.maintenance.scanClaudeDir;
 
 let state: Record<string, unknown>;
 
 beforeEach(() => {
+  api.maintenance.previewSimpleCleanup = previewSimpleCleanup;
+  api.maintenance.runSimpleCleanup = runSimpleCleanup;
+  api.maintenance.scanClaudeDir = scanClaudeDir;
   previewSimpleCleanup.mockReset();
   previewSimpleCleanup.mockResolvedValue({
     token: 'fresh-token',
@@ -52,6 +51,12 @@ beforeEach(() => {
   const get = (): unknown => state;
   const slice = createMaintenanceSlice(set as never, get as never, undefined as never);
   state = { ...slice, connectionMode: 'local' };
+});
+
+afterAll(() => {
+  api.maintenance.previewSimpleCleanup = originalPreviewSimpleCleanup;
+  api.maintenance.runSimpleCleanup = originalRunSimpleCleanup;
+  api.maintenance.scanClaudeDir = originalScanClaudeDir;
 });
 
 test('clears an old preview before a fresh preview starts', async () => {
