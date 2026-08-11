@@ -84,9 +84,66 @@ fn parses_plugins_with_installed_cross_ref_and_source() {
     let pdf = marketplace.plugins.iter().find(|p| p.name == "pdf").unwrap();
     assert_eq!(pdf.description.as_deref(), Some("PDF skill"));
     assert!(pdf.installed, "pdf@anthropic-agent-skills is in installed_plugins.json");
+    assert_eq!(
+        pdf.install_command.as_deref(),
+        Some("claude plugin install pdf@anthropic-agent-skills")
+    );
 
     let xlsx = marketplace.plugins.iter().find(|p| p.name == "xlsx").unwrap();
     assert!(!xlsx.installed, "xlsx@anthropic-agent-skills is not installed");
+}
+
+#[test]
+fn unsafe_plugin_or_marketplace_name_has_no_copyable_command() {
+    let root = make_temp_root();
+    write_known_marketplaces(
+        &root,
+        r#"{
+            "safe-marketplace": {"source": "local"},
+            "unsafe;marketplace": {"source": "local"}
+        }"#,
+    );
+    write_marketplace_manifest(
+        &root,
+        "safe-marketplace",
+        r#"{"plugins": [
+            {"name": "safe-plugin", "description": "safe"},
+            {"name": "bad;$(touch /tmp/pwned)", "description": "unsafe"},
+            {"name": "-leading-option", "description": "unsafe"},
+            {"name": "line\nfeed", "description": "unsafe"}
+        ]}"#,
+    );
+    write_marketplace_manifest(
+        &root,
+        "unsafe;marketplace",
+        r#"{"plugins": [{"name": "safe-plugin", "description": "unsafe marketplace"}]}"#,
+    );
+
+    let catalog = read_marketplace_catalog(&root.to_string_lossy()).expect("read catalog");
+    let safe = catalog
+        .marketplaces
+        .iter()
+        .find(|marketplace| marketplace.name == "safe-marketplace")
+        .expect("safe marketplace");
+    assert_eq!(
+        safe.plugins
+            .iter()
+            .find(|plugin| plugin.name == "safe-plugin")
+            .and_then(|plugin| plugin.install_command.as_deref()),
+        Some("claude plugin install safe-plugin@safe-marketplace")
+    );
+    assert!(safe
+        .plugins
+        .iter()
+        .filter(|plugin| plugin.name != "safe-plugin")
+        .all(|plugin| plugin.install_command.is_none()));
+
+    let unsafe_marketplace = catalog
+        .marketplaces
+        .iter()
+        .find(|marketplace| marketplace.name == "unsafe;marketplace")
+        .expect("unsafe marketplace remains visible");
+    assert!(unsafe_marketplace.plugins[0].install_command.is_none());
 }
 
 #[test]
