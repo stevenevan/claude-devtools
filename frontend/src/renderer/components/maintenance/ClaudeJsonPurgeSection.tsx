@@ -3,6 +3,7 @@ import { api } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { CopyButton } from '@renderer/components/common/CopyButton';
 import { Button } from '@renderer/components/ui/button';
+import { Field, FieldDescription, FieldLabel } from '@renderer/components/ui/field';
 import { formatBytes } from '@renderer/utils/formatters';
 import { AlertTriangle, Loader2, RotateCcw } from 'lucide-react';
 
@@ -150,12 +151,17 @@ export const ClaudeJsonPurgeSection = ({
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <Field className="flex-row items-center gap-2">
+            <FieldLabel htmlFor="claude-json-purge-confirmation" className="sr-only">
+              Purge confirmation
+            </FieldLabel>
             <input
+              id="claude-json-purge-confirmation"
               type="text"
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
               placeholder={requiredPhrase}
+              aria-describedby="claude-json-purge-confirmation-description"
               className="border-border/50 bg-card/50 text-foreground min-w-0 flex-1 rounded-sm border px-2 py-1 font-mono text-xs"
             />
             <Button
@@ -167,7 +173,13 @@ export const ClaudeJsonPurgeSection = ({
               {purging && <Loader2 className="size-3.5 animate-spin" />}
               Purge
             </Button>
-          </div>
+            <FieldDescription
+              id="claude-json-purge-confirmation-description"
+              className="sr-only"
+            >
+              Type {requiredPhrase} to confirm this purge.
+            </FieldDescription>
+          </Field>
         </div>
       )}
 

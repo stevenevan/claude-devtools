@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@renderer/components/ui/select';
+import { Field, FieldDescription, FieldLabel } from '@renderer/components/ui/field';
 import { useDisclosure } from '@renderer/hooks/mantine';
 import { logger } from '@renderer/lib/logger';
 import { useStore } from '@renderer/store';
@@ -153,61 +154,80 @@ export const WorkspaceSection = (): JSX.Element => {
   const renderForm = (onSave: () => Promise<void>, onCancel: () => void): JSX.Element => (
     <div className="border-border bg-card space-y-3 rounded-md border p-4">
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label htmlFor="ws-profile-name" className="text-muted-foreground mb-1 block text-xs">
+        <Field>
+          <FieldLabel htmlFor="ws-profile-name" className="text-muted-foreground mb-1 block text-xs">
             Name
-          </label>
+          </FieldLabel>
           <input
             id="ws-profile-name"
             type="text"
             value={formName}
             onChange={(e) => setFormName(e.target.value)}
             placeholder="My Server"
+            aria-describedby="ws-profile-name-description"
             className={inputClass}
           />
-        </div>
-        <div>
-          <label htmlFor="ws-profile-host" className="text-muted-foreground mb-1 block text-xs">
+          <FieldDescription id="ws-profile-name-description" className="sr-only">
+            Name shown for this saved SSH profile.
+          </FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="ws-profile-host" className="text-muted-foreground mb-1 block text-xs">
             Host
-          </label>
+          </FieldLabel>
           <input
             id="ws-profile-host"
             type="text"
             value={formHost}
             onChange={(e) => setFormHost(e.target.value)}
             placeholder="hostname or IP"
+            aria-describedby="ws-profile-host-description"
             className={inputClass}
           />
-        </div>
+          <FieldDescription id="ws-profile-host-description" className="sr-only">
+            Hostname or IP address for the saved SSH profile.
+          </FieldDescription>
+        </Field>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label htmlFor="ws-profile-port" className="text-muted-foreground mb-1 block text-xs">
+        <Field>
+          <FieldLabel htmlFor="ws-profile-port" className="text-muted-foreground mb-1 block text-xs">
             Port
-          </label>
+          </FieldLabel>
           <input
             id="ws-profile-port"
             type="text"
             value={formPort}
             onChange={(e) => setFormPort(e.target.value)}
             placeholder="22"
+            aria-describedby="ws-profile-port-description"
             className={inputClass}
           />
-        </div>
-        <div>
-          <label htmlFor="ws-profile-username" className="text-muted-foreground mb-1 block text-xs">
+          <FieldDescription id="ws-profile-port-description" className="sr-only">
+            SSH port for the saved profile.
+          </FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel
+            htmlFor="ws-profile-username"
+            className="text-muted-foreground mb-1 block text-xs"
+          >
             Username
-          </label>
+          </FieldLabel>
           <input
             id="ws-profile-username"
             type="text"
             value={formUsername}
             onChange={(e) => setFormUsername(e.target.value)}
             placeholder="user"
+            aria-describedby="ws-profile-username-description"
             className={inputClass}
           />
-        </div>
+          <FieldDescription id="ws-profile-username-description" className="sr-only">
+            Username for the saved SSH profile.
+          </FieldDescription>
+        </Field>
       </div>
 
       <div>
@@ -231,22 +251,26 @@ export const WorkspaceSection = (): JSX.Element => {
       </div>
 
       {formAuthMethod === 'privateKey' && (
-        <div>
-          <label
+        <Field>
+          <FieldLabel
             htmlFor="ws-profile-private-key-path"
             className="text-muted-foreground mb-1 block text-xs"
           >
             Private Key Path
-          </label>
+          </FieldLabel>
           <input
             id="ws-profile-private-key-path"
             type="text"
             value={formPrivateKeyPath}
             onChange={(e) => setFormPrivateKeyPath(e.target.value)}
             placeholder="~/.ssh/id_rsa"
+            aria-describedby="ws-profile-private-key-path-description"
             className={inputClass}
           />
-        </div>
+          <FieldDescription id="ws-profile-private-key-path-description" className="sr-only">
+            Local private key path for the saved SSH profile.
+          </FieldDescription>
+        </Field>
       )}
 
       {formAuthMethod === 'password' && (

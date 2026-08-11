@@ -1,14 +1,16 @@
 import { JSX, useEffect, useMemo, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@renderer/components/ui/dropdown-menu';
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from '@renderer/components/ui/combobox';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
-import { ChevronDown, FolderOpen, GitBranch, X } from 'lucide-react';
+import { FolderOpen, GitBranch, X } from 'lucide-react';
 
 import type { RepositoryDropdownItem } from '@renderer/components/settings/hooks/useSettingsConfig';
 
@@ -32,6 +34,8 @@ export const RepositoryDropdown = ({
   const [open, setOpen] = useState(false);
 
   const repositoryGroups = useStore((state) => state.repositoryGroups);
+  const repositoryGroupsLoading = useStore((state) => state.repositoryGroupsLoading);
+  const repositoryGroupsError = useStore((state) => state.repositoryGroupsError);
   const fetchRepositoryGroups = useStore((state) => state.fetchRepositoryGroups);
 
   useEffect(() => {
@@ -54,59 +58,78 @@ export const RepositoryDropdown = ({
     return allItems.filter((item) => !excludeIds.includes(item.id));
   }, [allItems, excludeIds]);
 
-  const handleSelect = (item: RepositoryDropdownItem): void => {
+  const itemById = useMemo(
+    () => new Map(availableItems.map((item) => [item.id, item] as const)),
+    [availableItems]
+  );
+
+  const handleSelect = (id: string | null): void => {
+    if (!id) return;
+    const item = itemById.get(id);
+    if (!item) return;
     onSelect(item);
     setOpen(false);
   };
 
   const isEmpty = availableItems.length === 0;
+  const inputDisabled =
+    disabled || (isEmpty && !repositoryGroupsLoading && repositoryGroupsError === null);
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger
-        render={
-          <Button
-            variant="outline"
-            disabled={disabled || isEmpty}
-            className={cn('w-full justify-between text-xs', className)}
-          />
-        }
-      >
-        <span className="flex items-center gap-2">
-          <FolderOpen className="size-3" />
-          {isEmpty ? 'No repositories available' : placeholder}
-        </span>
-        <ChevronDown
-          className={cn('size-4 transition-transform duration-200', open && 'rotate-180')}
+    <Combobox
+      items={availableItems.map((item) => item.id)}
+      itemToStringLabel={(id) => itemById.get(id)?.name ?? id}
+      open={open}
+      onOpenChange={setOpen}
+      onValueChange={(id) => handleSelect(id)}
+      disabled={inputDisabled}
+      autoHighlight
+      aria-label={placeholder}
+    >
+      <div className={cn('relative', className)}>
+        <FolderOpen
+          className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 size-3 -translate-y-1/2"
+          aria-hidden="true"
         />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        side={dropUp ? 'top' : 'bottom'}
-        className="max-h-64 w-(--anchor-width) overflow-y-auto p-1"
-      >
-        {availableItems.map((item) => (
-          <RepositoryDropdownItemComponent
-            key={item.id}
-            item={item}
-            onSelect={() => handleSelect(item)}
-          />
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+        <ComboboxInput
+          placeholder={
+            repositoryGroupsLoading
+              ? 'Loading repositories…'
+              : isEmpty
+                ? 'No repositories available'
+                : placeholder
+          }
+          disabled={inputDisabled}
+          className="w-full pl-7"
+        />
+      </div>
+      <ComboboxContent side={dropUp ? 'top' : 'bottom'} align="start" className="w-(--anchor-width)">
+        <ComboboxList>
+          {availableItems.map((item) => (
+            <RepositoryDropdownItemComponent key={item.id} item={item} />
+          ))}
+          <ComboboxEmpty>
+            {repositoryGroupsLoading
+              ? 'Loading repositories…'
+              : isEmpty
+                ? (repositoryGroupsError ?? 'No repositories available')
+                : 'No matching repositories'}
+          </ComboboxEmpty>
+        </ComboboxList>
+      </ComboboxContent>
+    </Combobox>
   );
 };
 
 const RepositoryDropdownItemComponentInner = ({
   item,
-  onSelect,
 }: Readonly<{
   item: RepositoryDropdownItem;
-  onSelect: () => void;
 }>): JSX.Element => {
   return (
-    <DropdownMenuItem
-      onClick={onSelect}
-      className="hover:bg-accent flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors"
+    <ComboboxItem
+      value={item.id}
+      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors"
     >
       <FolderOpen className="size-3 shrink-0 text-indigo-400" />
       <div className="min-w-0 flex-1">
@@ -124,7 +147,7 @@ const RepositoryDropdownItemComponentInner = ({
         </div>
         <span className="text-muted-foreground block truncate text-[10px]">{item.path}</span>
       </div>
-    </DropdownMenuItem>
+    </ComboboxItem>
   );
 };
 
@@ -162,7 +185,7 @@ const SelectedRepositoryItemInner = ({
         onClick={onRemove}
         disabled={disabled}
         className="shrink-0 hover:bg-red-500/10 hover:text-red-400"
-        aria-label="Remove repository"
+        aria-label={`Remove repository ${item.name}`}
       >
         <X className="size-3" />
       </Button>

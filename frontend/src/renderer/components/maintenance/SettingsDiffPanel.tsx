@@ -2,6 +2,8 @@ import { JSX, useEffect, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { Button } from '@renderer/components/ui/button';
+import { Field, FieldDescription, FieldLabel } from '@renderer/components/ui/field';
+import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
 import { useStore } from '@renderer/store';
 import { Loader2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
@@ -157,35 +159,47 @@ export const SettingsDiffPanel = (): JSX.Element => {
       )}
 
       <div className="border-border/50 flex flex-wrap items-center gap-3 border-b px-4 py-3">
-        <label className="text-muted-foreground flex items-center gap-1 text-xs">
-          Left
-          <select
+        <Field className="flex-row items-center gap-1">
+          <FieldLabel htmlFor="settings-diff-left" className="text-muted-foreground text-xs">
+            Left
+          </FieldLabel>
+          <NativeSelect
+            id="settings-diff-left"
             value={leftName}
             onChange={(e) => setLeftName(e.target.value)}
-            className="border-border/50 bg-card/50 text-foreground rounded-sm border px-2 py-1 text-xs"
+            aria-describedby="settings-diff-left-description"
           >
             {settingsGenerations.map((name) => (
-              <option key={name} value={name}>
+              <NativeSelectOption key={name} value={name}>
                 {name}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
-        </label>
+          </NativeSelect>
+          <FieldDescription id="settings-diff-left-description" className="sr-only">
+            Select the settings generation used as the left side of the diff.
+          </FieldDescription>
+        </Field>
 
-        <label className="text-muted-foreground flex items-center gap-1 text-xs">
-          Right
-          <select
+        <Field className="flex-row items-center gap-1">
+          <FieldLabel htmlFor="settings-diff-right" className="text-muted-foreground text-xs">
+            Right
+          </FieldLabel>
+          <NativeSelect
+            id="settings-diff-right"
             value={rightName}
             onChange={(e) => setRightName(e.target.value)}
-            className="border-border/50 bg-card/50 text-foreground rounded-sm border px-2 py-1 text-xs"
+            aria-describedby="settings-diff-right-description"
           >
             {settingsGenerations.map((name) => (
-              <option key={name} value={name}>
+              <NativeSelectOption key={name} value={name}>
                 {name}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
-        </label>
+          </NativeSelect>
+          <FieldDescription id="settings-diff-right-description" className="sr-only">
+            Select the settings generation used as the right side of the diff.
+          </FieldDescription>
+        </Field>
 
         <Button
           variant="destructive"

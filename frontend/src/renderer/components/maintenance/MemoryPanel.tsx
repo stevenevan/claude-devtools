@@ -2,6 +2,8 @@ import { JSX, useEffect, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { Button } from '@renderer/components/ui/button';
+import { Field, FieldDescription, FieldLabel } from '@renderer/components/ui/field';
+import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
 import { useStore } from '@renderer/store';
 
 import { DryRunConfirmDialog } from './DryRunConfirmDialog';
@@ -189,21 +191,27 @@ export const MemoryPanel = (): JSX.Element => {
       )}
 
       <div className="border-border/50 flex flex-wrap items-center gap-3 border-b px-4 py-3">
-        <label className="text-muted-foreground flex items-center gap-1 text-xs">
-          Memory dir
-          <select
+        <Field className="flex-row items-center gap-1">
+          <FieldLabel htmlFor="memory-dir" className="text-muted-foreground text-xs">
+            Memory dir
+          </FieldLabel>
+          <NativeSelect
+            id="memory-dir"
             value={selectedDirId}
             onChange={(e) => void selectDir(e.target.value)}
-            className="border-border/50 bg-card/50 text-foreground rounded-sm border px-2 py-1 text-xs"
+            aria-describedby="memory-dir-description"
           >
-            {dirs.length === 0 && <option value="">No memory dirs</option>}
+            {dirs.length === 0 && <NativeSelectOption value="">No memory dirs</NativeSelectOption>}
             {dirs.map((dir) => (
-              <option key={dir.id} value={dir.id}>
+              <NativeSelectOption key={dir.id} value={dir.id}>
                 {dir.label}
-              </option>
+              </NativeSelectOption>
             ))}
-          </select>
-        </label>
+          </NativeSelect>
+          <FieldDescription id="memory-dir-description" className="sr-only">
+            Select a memory directory to inspect.
+          </FieldDescription>
+        </Field>
         {selectedDir && (
           <span
             className={`rounded-sm px-1.5 py-px text-[10px] font-medium ${KIND_BADGE[selectedDir.kind] ?? 'bg-card/50 text-muted-foreground'}`}

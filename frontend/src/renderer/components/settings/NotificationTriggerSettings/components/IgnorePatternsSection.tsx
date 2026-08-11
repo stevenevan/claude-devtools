@@ -2,6 +2,8 @@ import { JSX } from 'react';
 import { cn } from '@renderer/lib/utils';
 import { X } from 'lucide-react';
 
+import { Field, FieldDescription, FieldLabel } from '@renderer/components/ui/field';
+
 interface IgnorePatternsSectionProps {
   patterns: string[];
   onAdd: (pattern: string) => void;
@@ -43,34 +45,41 @@ export const IgnorePatternsSection = ({
             </button>
           </div>
         ))}
-        <div className="mt-2 flex gap-2">
-          <input
-            type="text"
-            placeholder="Add ignore regex..."
-            disabled={disabled}
-            className={cn(
-              'border-border text-foreground placeholder:text-muted-foreground flex-1 rounded-sm border bg-transparent px-2 py-1 font-mono text-xs focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden',
-              disabled && 'cursor-not-allowed opacity-50'
-            )}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                e.preventDefault();
-                try {
-                  const input = e.currentTarget;
-                  const value = input.value.trim();
-                  new RegExp(value);
-                  onAdd(value);
-                  input.value = '';
-                } catch {
-                  // Invalid regex
+        <Field disabled={disabled} className="mt-2">
+          <div className="flex gap-2">
+            <FieldLabel htmlFor="ignore-pattern-input" className="sr-only">
+              Add ignore pattern
+            </FieldLabel>
+            <input
+              id="ignore-pattern-input"
+              type="text"
+              placeholder="Add ignore regex..."
+              disabled={disabled}
+              aria-describedby="ignore-pattern-description"
+              className={cn(
+                'border-border text-foreground placeholder:text-muted-foreground flex-1 rounded-sm border bg-transparent px-2 py-1 font-mono text-xs focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden',
+                disabled && 'cursor-not-allowed opacity-50'
+              )}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                  e.preventDefault();
+                  try {
+                    const input = e.currentTarget;
+                    const value = input.value.trim();
+                    new RegExp(value);
+                    onAdd(value);
+                    input.value = '';
+                  } catch {
+                    // Invalid regex
+                  }
                 }
-              }
-            }}
-          />
-        </div>
-        <p className="text-muted-foreground mt-1 text-xs">
-          Press Enter to add. Notification is skipped if any pattern matches.
-        </p>
+              }}
+            />
+          </div>
+          <FieldDescription id="ignore-pattern-description" className="mt-1 text-xs">
+            Press Enter to add. Notification is skipped if any pattern matches.
+          </FieldDescription>
+        </Field>
       </div>
     </details>
   );

@@ -11,6 +11,12 @@ import { getAvailableMatchFields } from '../utils/trigger';
 import { ColorPaletteSelector } from './ColorPaletteSelector';
 import { ModeSelector } from './ModeSelector';
 import { SettingsSectionHeader as SectionHeader } from '@renderer/components/settings/components/SettingsSectionHeader';
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from '@renderer/components/ui/field';
 
 import type {
   NotificationTrigger,
@@ -69,18 +75,22 @@ export const TriggerConfiguration = ({
 
         {/* Scope/Tool Name */}
         {(trigger.contentType === 'tool_use' || trigger.contentType === 'tool_result') && (
-          <div className="border-border/50 flex items-center justify-between border-b py-2">
-            <label
+          <Field
+            disabled={saving}
+            className="border-border/50 flex-row items-center justify-between border-b py-2"
+          >
+            <FieldLabel
               htmlFor={`trigger-${trigger.id}-tool-name`}
               className="text-muted-foreground text-sm"
             >
               Scope / Tool Name
-            </label>
+            </FieldLabel>
             <select
               id={`trigger-${trigger.id}-tool-name`}
               value={trigger.toolName ?? ''}
               onChange={(e) => onToolNameChange(e.target.value)}
               disabled={saving}
+              aria-describedby={`trigger-${trigger.id}-tool-name-description`}
               className={cn(
                 SELECT_INPUT_BASE,
                 saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
@@ -92,7 +102,13 @@ export const TriggerConfiguration = ({
                 </option>
               ))}
             </select>
-          </div>
+            <FieldDescription
+              id={`trigger-${trigger.id}-tool-name-description`}
+              className="sr-only"
+            >
+              Limit this trigger to a specific tool.
+            </FieldDescription>
+          </Field>
         )}
       </div>
 
@@ -125,18 +141,22 @@ export const TriggerConfiguration = ({
         {localMode === 'content_match' && (
           <>
             {/* Content Type */}
-            <div className="border-border/50 flex items-center justify-between border-b py-2">
-              <label
+            <Field
+              disabled={saving}
+              className="border-border/50 flex-row items-center justify-between border-b py-2"
+            >
+              <FieldLabel
                 htmlFor={`trigger-${trigger.id}-content-type`}
                 className="text-muted-foreground text-sm"
               >
                 Content Type
-              </label>
+              </FieldLabel>
               <select
                 id={`trigger-${trigger.id}-content-type`}
                 value={trigger.contentType}
                 onChange={(e) => onContentTypeChange(e.target.value as TriggerContentType)}
                 disabled={saving}
+                aria-describedby={`trigger-${trigger.id}-content-type-description`}
                 className={cn(
                   SELECT_INPUT_BASE,
                   saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
@@ -144,11 +164,17 @@ export const TriggerConfiguration = ({
               >
                 {CONTENT_TYPE_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value} className="bg-background">
-                    {option.label}
-                  </option>
-                ))}
+                  {option.label}
+                </option>
+              ))}
               </select>
-            </div>
+              <FieldDescription
+                id={`trigger-${trigger.id}-content-type-description`}
+                className="sr-only"
+              >
+                Select which content type this trigger inspects.
+              </FieldDescription>
+            </Field>
             <ContentMatchConfig
               triggerId={trigger.id}
               matchField={trigger.matchField}
@@ -209,18 +235,22 @@ const ContentMatchConfig = ({
     <div className="space-y-3">
       {/* Match Field */}
       {availableMatchFields.length > 0 && (
-        <div className="border-border/50 flex items-center justify-between border-b py-2">
-          <label
+        <Field
+          disabled={saving}
+          className="border-border/50 flex-row items-center justify-between border-b py-2"
+        >
+          <FieldLabel
             htmlFor={`trigger-${triggerId}-match-field`}
             className="text-muted-foreground text-sm"
           >
             Match Field
-          </label>
+          </FieldLabel>
           <select
             id={`trigger-${triggerId}-match-field`}
             value={matchField ?? availableMatchFields[0]?.value ?? ''}
             onChange={(e) => onMatchFieldChange(e.target.value)}
             disabled={saving}
+            aria-describedby={`trigger-${triggerId}-match-field-description`}
             className={cn(
               SELECT_INPUT_BASE,
               saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
@@ -228,22 +258,32 @@ const ContentMatchConfig = ({
           >
             {availableMatchFields.map((option) => (
               <option key={option.value} value={option.value} className="bg-background">
-                {option.label}
-              </option>
-            ))}
+              {option.label}
+            </option>
+          ))}
           </select>
-        </div>
+          <FieldDescription
+            id={`trigger-${triggerId}-match-field-description`}
+            className="sr-only"
+          >
+            Select the content field used for matching.
+          </FieldDescription>
+        </Field>
       )}
 
       {/* Match Pattern */}
-      <div className="border-border/50 border-b py-2">
+      <Field
+        disabled={saving}
+        invalid={Boolean(patternError)}
+        className="border-border/50 border-b py-2"
+      >
         <div className="mb-2 flex items-center justify-between">
-          <label
+          <FieldLabel
             htmlFor={`trigger-${triggerId}-match-pattern`}
             className="text-muted-foreground text-sm"
           >
             Match Pattern (Regex)
-          </label>
+          </FieldLabel>
         </div>
         <input
           id={`trigger-${triggerId}-match-pattern`}
@@ -253,6 +293,8 @@ const ContentMatchConfig = ({
           onBlur={onPatternBlur}
           placeholder="e.g., error|failed|exception"
           disabled={saving}
+          aria-invalid={patternError ? true : undefined}
+          aria-describedby={`trigger-${triggerId}-match-pattern-description${patternError ? ` trigger-${triggerId}-match-pattern-error` : ''}`}
           className={cn(
             'text-foreground placeholder:text-muted-foreground w-full rounded-sm border bg-transparent px-2 py-1.5 font-mono text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden',
             patternError ? 'border-red-500' : 'border-border',
@@ -260,15 +302,22 @@ const ContentMatchConfig = ({
           )}
         />
         {patternError && (
-          <p className="mt-1 flex items-center gap-1 text-xs text-red-400">
+          <FieldError
+            id={`trigger-${triggerId}-match-pattern-error`}
+            match
+            className="mt-1 flex items-center gap-1 text-xs text-red-400"
+          >
             <AlertCircle className="size-3" />
             {patternError}
-          </p>
+          </FieldError>
         )}
-        <p className="text-muted-foreground mt-1 text-xs">
+        <FieldDescription
+          id={`trigger-${triggerId}-match-pattern-description`}
+          className="mt-1 text-xs"
+        >
           Leave empty to match all content. Uses JavaScript regex syntax.
-        </p>
-      </div>
+        </FieldDescription>
+      </Field>
     </div>
   );
 };
@@ -296,18 +345,22 @@ const TokenThresholdConfig = ({
 }: Readonly<TokenThresholdConfigProps>): JSX.Element => {
   return (
     <div className="space-y-3">
-      <div className="border-border/50 flex items-center justify-between border-b py-2">
-        <label
+      <Field
+        disabled={saving}
+        className="border-border/50 flex-row items-center justify-between border-b py-2"
+      >
+        <FieldLabel
           htmlFor={`trigger-${triggerId}-token-type`}
           className="text-muted-foreground text-sm"
         >
           Token Type
-        </label>
+        </FieldLabel>
         <select
           id={`trigger-${triggerId}-token-type`}
           value={localTokenType}
           onChange={(e) => onTokenTypeChange(e.target.value as TriggerTokenType)}
           disabled={saving}
+          aria-describedby={`trigger-${triggerId}-token-type-description`}
           className={cn(
             SELECT_INPUT_BASE,
             saving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
@@ -323,11 +376,23 @@ const TokenThresholdConfig = ({
             Output Tokens
           </option>
         </select>
-      </div>
-      <div className="border-border/50 flex items-center justify-between border-b py-2">
-        <label htmlFor={`trigger-${triggerId}-threshold`} className="text-muted-foreground text-sm">
+        <FieldDescription
+          id={`trigger-${triggerId}-token-type-description`}
+          className="sr-only"
+        >
+          Select which token count this trigger measures.
+        </FieldDescription>
+      </Field>
+      <Field
+        disabled={saving}
+        className="border-border/50 flex-row items-center justify-between border-b py-2"
+      >
+        <FieldLabel
+          htmlFor={`trigger-${triggerId}-threshold`}
+          className="text-muted-foreground text-sm"
+        >
           Threshold
-        </label>
+        </FieldLabel>
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground text-xs">Alert if &gt;</span>
           <input
@@ -342,6 +407,7 @@ const TokenThresholdConfig = ({
             onBlur={onTokenThresholdBlur}
             placeholder="0"
             disabled={saving}
+            aria-describedby={`trigger-${triggerId}-threshold-description`}
             className={cn(
               'border-border text-foreground w-20 rounded-sm border bg-transparent px-2 py-1 text-right text-sm focus:border-transparent focus:ring-1 focus:ring-indigo-500 focus:outline-hidden',
               saving && 'cursor-not-allowed opacity-50'
@@ -349,7 +415,13 @@ const TokenThresholdConfig = ({
           />
           <span className="text-muted-foreground text-xs">tokens</span>
         </div>
-      </div>
+        <FieldDescription
+          id={`trigger-${triggerId}-threshold-description`}
+          className="sr-only"
+        >
+          Alert when the selected token count exceeds this threshold.
+        </FieldDescription>
+      </Field>
     </div>
   );
 };

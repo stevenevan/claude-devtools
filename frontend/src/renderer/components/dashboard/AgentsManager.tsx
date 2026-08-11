@@ -2,6 +2,7 @@ import { JSX, useEffect, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { Button } from '@renderer/components/ui/button';
+import { Field, FieldDescription, FieldLabel } from '@renderer/components/ui/field';
 import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
 import { formatBytes } from '@renderer/utils/formatters';
@@ -222,14 +223,20 @@ export const AgentsManager = (): JSX.Element => {
 
       {showCreate && (
         <div className="border-border/50 flex flex-wrap items-end gap-2 border-b px-4 py-3">
-          <label className="text-muted-foreground flex flex-col gap-1 text-xs">
-            <span>Name (filename)</span>
+          <Field
+            disabled={!canAct}
+            invalid={Boolean(createError)}
+            className="text-muted-foreground w-48 gap-1 text-xs"
+          >
+            <FieldLabel htmlFor="agent-name" className="text-xs">
+              Name (filename)
+            </FieldLabel>
             <input
               id="agent-name"
               value={createName}
               disabled={!canAct}
               placeholder="lowercase-with-dashes"
-              aria-describedby="agent-name-rule"
+              aria-describedby="agent-name-rule agent-name-description"
               aria-invalid={Boolean(createError)}
               onChange={(e) => setCreateName(e.target.value)}
               className="border-border/50 bg-card/50 text-foreground w-48 rounded-sm border px-2 py-1 text-xs"
@@ -237,17 +244,27 @@ export const AgentsManager = (): JSX.Element => {
             <span id="agent-name-rule" className="text-muted-foreground max-w-48 text-[10px]">
               {AGENT_NAME_RULE}
             </span>
-          </label>
-          <label className="text-muted-foreground flex flex-1 flex-col gap-1 text-xs">
-            Description
+            <FieldDescription id="agent-name-description" className="sr-only">
+              Helper filename must follow the displayed naming rule.
+            </FieldDescription>
+          </Field>
+          <Field disabled={!canAct} className="min-w-48 flex-1 gap-1 text-xs">
+            <FieldLabel htmlFor="agent-description" className="text-muted-foreground text-xs">
+              Description
+            </FieldLabel>
             <input
+              id="agent-description"
               value={createDescription}
               disabled={!canAct}
               placeholder="What this agent does"
+              aria-describedby="agent-description-description"
               onChange={(e) => setCreateDescription(e.target.value)}
               className="border-border/50 bg-card/50 text-foreground min-w-48 rounded-sm border px-2 py-1 text-xs"
             />
-          </label>
+            <FieldDescription id="agent-description-description" className="sr-only">
+              Optional description shown with the helper agent.
+            </FieldDescription>
+          </Field>
           <Button
             variant="default"
             size="sm"
