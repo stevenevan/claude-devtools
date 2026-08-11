@@ -146,3 +146,8 @@ vocabulary).
   wiring a one-click install.
 - Marketplace catalogues are fetched from third parties, so descriptions are untrusted text. Render
   them as text, never as markdown or HTML that could carry a link or a script.
+
+## 12. Shipped status
+
+UX-13 shipped in the grouped UX-13–15 delivery. Simple mode presents local catalog entries with
+honest copy-only install instructions; no in-app install or shell execution was added.

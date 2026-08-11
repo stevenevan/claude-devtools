@@ -141,3 +141,9 @@ labels reuse), sprint 09 (helper vocabulary).
   formats drift, and a hung renderer is a worse failure than a marked anomaly.
 - This is the page most likely to be genuinely empty for most users. Its Simple form must be
   reassuring, not apologetic.
+
+## 12. Shipped status
+
+UX-14 shipped in the grouped UX-13–15 delivery. Task groups are selected by human-readable subject
+and time, with a deterministic accessible outline; the current data shape exposes no conversation
+relation to infer.
