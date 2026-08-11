@@ -8,6 +8,9 @@ import type {
   HealthStatus,
   HistoryStats,
   MaintenanceScanProgress,
+  SimpleCleanupPreview,
+  SimpleCleanupRunReport,
+  SimpleStorageSummary,
   TrashReceipt,
 } from '@shared/types';
 import type { StateCreator } from 'zustand';
@@ -41,10 +44,21 @@ export interface MaintenanceSlice {
   // the diff/restore panel (Week 15).
   settingsGenerations: string[];
 
+  // Simple-mode cleanup is a backend-owned preview/token flow. It never uses
+  // categoryCandidates, which remain the Nerd-panel state.
+  simpleCleanupPreview: SimpleCleanupPreview | null;
+  simpleCleanupScanning: boolean;
+  simpleCleanupRunning: boolean;
+  simpleCleanupError: string | null;
+  simpleStorageSummary: SimpleStorageSummary | null;
+
   scanStorage: () => Promise<void>;
   cancelScan: () => Promise<void>;
   setMaintenanceProgress: (progress: MaintenanceScanProgress) => void;
   scanCategory: (id: string) => Promise<void>;
+  previewSimpleCleanup: () => Promise<void>;
+  runSimpleCleanup: () => Promise<SimpleCleanupRunReport | null>;
+  clearSimpleCleanupPreview: () => void;
   loadCutoff: (id: string) => Promise<void>;
   setCutoff: (id: string, days: number) => Promise<void>;
   loadTrash: () => Promise<void>;
@@ -83,16 +97,22 @@ export const createMaintenanceSlice: StateCreator<AppState, [], [], MaintenanceS
 
   settingsGenerations: [],
 
+  simpleCleanupPreview: null,
+  simpleCleanupScanning: false,
+  simpleCleanupRunning: false,
+  simpleCleanupError: null,
+  simpleStorageSummary: null,
+
   scanStorage: async () => {
     if (get().connectionMode !== 'local') {
       set({ error: 'Storage maintenance operates on this local machine only' });
       return;
     }
 
-    set({ scanning: true, error: null, progress: null });
+    set({ scanning: true, error: null, progress: null, simpleStorageSummary: null });
     try {
       const dirs = await api.maintenance.scanClaudeDir();
-      set({ dirs, scanning: false });
+      set({ dirs, scanning: false, simpleStorageSummary: null });
     } catch (err) {
       logger.error('Failed to scan storage:', err);
       set({ scanning: false, error: err instanceof Error ? err.message : String(err) });
@@ -130,6 +150,66 @@ export const createMaintenanceSlice: StateCreator<AppState, [], [], MaintenanceS
         categoryError: err instanceof Error ? err.message : String(err),
       });
     }
+  },
+
+  previewSimpleCleanup: async () => {
+    if (get().connectionMode !== 'local') {
+      set({
+        simpleCleanupPreview: null,
+        simpleCleanupScanning: false,
+        simpleCleanupError: LOCAL_ONLY_ERROR,
+      });
+      return;
+    }
+
+    // A fresh request invalidates the previous token before it starts.
+    set({ simpleCleanupPreview: null, simpleCleanupScanning: true, simpleCleanupError: null });
+    try {
+      const simpleCleanupPreview = await api.maintenance.previewSimpleCleanup();
+      set({ simpleCleanupPreview, simpleCleanupScanning: false });
+    } catch (err) {
+      logger.error('Failed to preview simple cleanup:', err);
+      set({
+        simpleCleanupPreview: null,
+        simpleCleanupScanning: false,
+        simpleCleanupError: err instanceof Error ? err.message : String(err),
+      });
+    }
+  },
+
+  runSimpleCleanup: async () => {
+    if (get().connectionMode !== 'local') {
+      set({ simpleCleanupPreview: null, simpleCleanupError: LOCAL_ONLY_ERROR });
+      return null;
+    }
+    const token = get().simpleCleanupPreview?.token;
+    if (!token) {
+      set({ simpleCleanupPreview: null, simpleCleanupError: 'Cleanup preview expired; refresh' });
+      return null;
+    }
+
+    set({ simpleCleanupRunning: true, simpleCleanupError: null });
+    try {
+      const report = await api.maintenance.runSimpleCleanup(token);
+      set({
+        simpleCleanupPreview: null,
+        simpleCleanupRunning: false,
+        simpleStorageSummary: report.storage,
+      });
+      return report;
+    } catch (err) {
+      logger.error('Failed to run simple cleanup:', err);
+      set({
+        simpleCleanupPreview: null,
+        simpleCleanupRunning: false,
+        simpleCleanupError: err instanceof Error ? err.message : String(err),
+      });
+      return null;
+    }
+  },
+
+  clearSimpleCleanupPreview: () => {
+    set({ simpleCleanupPreview: null, simpleCleanupError: null });
   },
 
   loadCutoff: async (id) => {

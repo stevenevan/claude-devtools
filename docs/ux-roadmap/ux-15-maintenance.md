@@ -200,6 +200,12 @@ Sprint 01, and **every** sprint 02–14 — task 8 cannot run until their status
   separate work, not a task here.
 - Trash must actually be a recovery path for what the Simple action clears. If any cleanup category
   bypasses trash, the "you can get them back" line is false for it and that category is excluded.
-- Task 8 is a one-line change with the largest blast radius in the roadmap: it changes the default
-  experience for every new install. Do not run it early, and do not run it if any sprint 02–14 row is
-  still `planned`.
+- Task 8 was the one-line change with the largest blast radius in the roadmap: it changed the
+  default experience for every new install only after every sprint 02–14 row was complete.
+
+## 13. Shipped status
+
+UX-15 shipped in the grouped UX-13–15 delivery. Simple mode now uses a backend-owned, tokenized
+trash-only cleanup flow with a conservative allowlist; Nerd mode retains the full maintenance
+registry with grouped tabs. Fresh config defaults to Simple, while missing persisted `uiMode`
+migrates to Nerd.

@@ -1,4 +1,11 @@
-import { beforeAll, beforeEach, expect, mock, test } from 'bun:test';
+import { afterAll, beforeAll, beforeEach, expect, mock, test } from 'bun:test';
+
+import {
+  api as actualApi,
+  initializeApi as actualInitializeApi,
+  isDesktopMode as actualIsDesktopMode,
+} from '@renderer/api';
+import { createTauriClient } from '@renderer/api/tauriClient';
 
 import type { PaginatedGlobalSessionsResult } from '@shared/types';
 
@@ -36,20 +43,25 @@ let responses: PendingResponse[] = [firstPage];
 let failure: Error | null = null;
 const cursors: Array<string | null> = [];
 
+const testApi = {
+  ...createTauriClient(),
+  getGlobalSessionsPaginated: async (cursor: string | null) => {
+    cursors.push(cursor);
+    if (failure) throw failure;
+    const response = responses.shift();
+    if (!response) throw new Error('missing test response');
+    return await response;
+  },
+};
+
 mock.module('@shared/utils/logger', () => ({
   createLogger: () => ({ error: () => {} }),
 }));
 
 mock.module('@renderer/api', () => ({
-  api: {
-    getGlobalSessionsPaginated: async (cursor: string | null) => {
-      cursors.push(cursor);
-      if (failure) throw failure;
-      const response = responses.shift();
-      if (!response) throw new Error('missing test response');
-      return await response;
-    },
-  },
+  api: testApi,
+  initializeApi: actualInitializeApi,
+  isDesktopMode: actualIsDesktopMode,
 }));
 
 let useStore: typeof import('./useStore').useStore;
@@ -83,6 +95,14 @@ beforeEach(() => {
     conversationFeedError: null,
     selectedProjectId: null,
   });
+});
+
+afterAll(() => {
+  mock.module('@renderer/api', () => ({
+    api: actualApi,
+    initializeApi: actualInitializeApi,
+    isDesktopMode: actualIsDesktopMode,
+  }));
 });
 
 test('loads and caches feed independently of selected project', async () => {

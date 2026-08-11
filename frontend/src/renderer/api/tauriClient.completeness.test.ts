@@ -203,6 +203,8 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['maintenance.scanClaudeDir', (a) => a.maintenance.scanClaudeDir()],
   ['maintenance.cancelScan', (a) => a.maintenance.cancelScan()],
   ['maintenance.scanCategory', (a) => a.maintenance.scanCategory('id')],
+  ['maintenance.previewSimpleCleanup', (a) => a.maintenance.previewSimpleCleanup()],
+  ['maintenance.runSimpleCleanup', (a) => a.maintenance.runSimpleCleanup('token')],
   ['maintenance.getCutoff', (a) => a.maintenance.getCutoff('id')],
   ['maintenance.setCutoff', (a) => a.maintenance.setCutoff('id', 30)],
   ['maintenance.readPlanFile', (a) => a.maintenance.readPlanFile('n')],

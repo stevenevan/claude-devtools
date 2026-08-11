@@ -36,7 +36,7 @@ impl Default for GeneralConfig {
     fn default() -> Self {
         Self {
             launch_at_login: false,
-            ui_mode: UiMode::Nerd,
+            ui_mode: UiMode::Simple,
             theme: "dark".to_string(),
             default_tab: "dashboard".to_string(),
             claude_root_path: None,

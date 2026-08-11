@@ -23,6 +23,7 @@ pub struct CatalogPlugin {
     pub name: String,
     pub description: Option<String>,
     pub installed: bool,
+    pub install_command: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -55,6 +56,27 @@ fn format_source(source: &serde_json::Value) -> Option<String> {
         return Some(s.to_string());
     }
     serde_json::to_string(source).ok()
+}
+
+/// Builds the copy-only CLI instruction for identifiers that are safe to place
+/// in one unquoted shell token. Catalog values remain visible when invalid, but
+/// they must not become executable-looking copy actions.
+fn install_command(plugin_name: &str, marketplace_name: &str) -> Option<String> {
+    let is_safe_token = |value: &str| {
+        !value.is_empty()
+            && value.as_bytes().first().is_some_and(|b| b.is_ascii_alphanumeric())
+            && value
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'-'))
+    };
+
+    if !is_safe_token(plugin_name) || !is_safe_token(marketplace_name) {
+        return None;
+    }
+
+    Some(format!(
+        "claude plugin install {plugin_name}@{marketplace_name}"
+    ))
 }
 
 /// Collects the `"{pluginName}@{marketplace}"` keys of
@@ -151,6 +173,7 @@ fn read_marketplace_plugins(
             CatalogPlugin {
                 description: entry["description"].as_str().map(str::to_string),
                 installed: installed.contains(&key),
+                install_command: install_command(&plugin_name, marketplace_name),
                 name: plugin_name,
             }
         })

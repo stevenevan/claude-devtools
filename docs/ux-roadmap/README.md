@@ -10,6 +10,10 @@ UX-11–12 are the fourth grouped delivery: Annotations and History share mode-a
 authored-data actions, date grouping, and copy feedback.
 UX-12.5 is a one-week cross-cutting follow-up that standardizes missing shadcn primitives before
 the next page delivery; it is not a new grouped delivery.
+UX-12.6 is a second one-week cross-cutting follow-up for form semantics, searchable choices, and
+progress semantics; it continues the component foundation work without changing page hierarchy.
+UX-13–15 are the fifth grouped delivery: Marketplace, Task Graph, and Maintenance share the
+post-12.6 interaction foundations and ship together as one dependency-complete group.
 
 ## 1. What this roadmap is
 
@@ -51,9 +55,9 @@ rejected with `general.{k} is not a valid setting`
 - a field on `GeneralConfig` (`src-tauri/src/config/state/types.rs:15-24`)
 - the frontend `AppConfig` type (`frontend/src/shared/types/notifications/appConfig.ts`)
 
-**Defaults and migration.** Until UX-15's release gate, fresh, missing, and reset mode values
-resolve to `nerd`. Existing installs without `uiMode` also resolve to `nerd`, so nobody using the
-app today wakes up to a restricted rail. An explicit Simple or Nerd selection persists unchanged.
+**Defaults and migration.** Fresh config now defaults to `simple` after the UX-13–15 release gate.
+Existing installs without `uiMode` still resolve to `nerd`, so nobody using the app today wakes up
+to a restricted rail. An explicit Simple or Nerd selection persists unchanged.
 
 The migration **must happen in Rust**, in `merge_config_with_defaults`
 (`src-tauri/src/config/state/manager.rs:142`). It cannot be done in the frontend: config load
@@ -90,15 +94,12 @@ file.
 
 ## 5. Release gate
 
-Sprint 01 ships with the fresh-config default at **`nerd`**, not `simple`.
+The UX-13–15 release gate is complete. Fresh config defaults to **`simple`**; existing installs
+without `uiMode` continue migrating to **`nerd`**.
 
-The one-line flip to `simple` is the **final task of sprint 15**, gated on every prior sprint row
-reading `done` and sprint 15's own preceding tasks being complete. (Gating on every row including
-its own would be self-referential — sprint 15 cannot read `done` while its last task runs.)
-
-Without this gate, weeks 1 through 14 hand a fresh install the restricted navigation with none of
-the simplified pages behind it: a seven-control rail leading to raw UUIDs and token counts, with
-the tab bar and split panes removed. That is worse than shipping nothing.
+Before this gate, weeks 1 through 14 would have handed a fresh install the restricted navigation
+with none of the simplified pages behind it. The completed gate keeps existing installs Nerd while
+making the simpler surface the safe new-install starting point.
 
 ## 6. Rail contract
 
@@ -268,10 +269,11 @@ Every `ux-*.md` has the same core sections; completed grouped deliveries may app
 | 10 | [Plugins](ux-10-plugins.md) | Plugins | `dashboard/PluginsGrid.tsx` | behind-More | 01, 08 | done (grouped) |
 | 11 | [Annotations](ux-11-annotations.md) | Annotations | `sidebar/AnnotationList.tsx` | behind-More | 01, 03 | done (grouped) |
 | 12 | [History](ux-12-history.md) | History | `dashboard/HistoryBrowser.tsx` | behind-More | 01 | done (grouped) |
-| 12.5 | [shadcn UI parity](ux-12-5-shadcn-ui.md) | UI foundation | `components/ui/` | cross-cutting | 01–12 | planned |
-| 13 | [Marketplace](ux-13-marketplace.md) | Marketplace | `dashboard/MarketplaceBrowser.tsx` | behind-More | 01, 10 | planned |
-| 14 | [Task Graph](ux-14-task-graph.md) | Task Graph | `dashboard/TaskGraphViewer.tsx` | behind-More | 01, 03 | planned |
-| 15 | [Maintenance](ux-15-maintenance.md) | Maintenance | `maintenance/MaintenanceView.tsx` | behind-More | 01, all | planned |
+| 12.5 | [shadcn UI parity](ux-12-5-shadcn-ui.md) | UI foundation | `components/ui/` | cross-cutting | 01–12 | done (implementation) |
+| 12.6 | [form and interaction primitives](ux-12-6-form-primitives.md) | UI foundation | `components/ui/` | cross-cutting | 12.5 | done (implementation) |
+| 13 | [Marketplace](ux-13-marketplace.md) | Marketplace | `dashboard/MarketplaceBrowser.tsx` | behind-More | 01, 10 | done (grouped) |
+| 14 | [Task Graph](ux-14-task-graph.md) | Task Graph | `dashboard/TaskGraphViewer.tsx` | behind-More | 01, 03 | done (grouped) |
+| 15 | [Maintenance](ux-15-maintenance.md) | Maintenance | `maintenance/MaintenanceView.tsx` | behind-More | 01, all | done (grouped) |
 
 Order rationale: the simple-rail pages come first so the primary audience has a coherent app after
 seven sprints rather than fifteen. `ux-03` is the one exception to rail-first — it is not a rail

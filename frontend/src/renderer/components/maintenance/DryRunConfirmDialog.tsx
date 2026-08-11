@@ -11,12 +11,28 @@ import {
 import { formatBytes } from '@renderer/utils/formatters';
 import { Loader2 } from 'lucide-react';
 
+export interface DryRunSummaryCategory {
+  id: string;
+  label: string;
+  candidates: number;
+  bytes: number;
+}
+
+export interface DryRunSummary {
+  totalCandidates: number;
+  totalBytes: number;
+  categories: DryRunSummaryCategory[];
+}
+
 interface DryRunConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  paths: string[];
-  totalBytes: number;
-  fileCount: number;
+  paths?: string[];
+  totalBytes?: number;
+  fileCount?: number;
+  // Summary mode intentionally has no path input. It is used by Simple mode,
+  // where the backend token owns the candidate set.
+  summary?: DryRunSummary;
   busy?: boolean;
   error?: string | null;
   // Omit to hide the "Move to trash" action (e.g. items already in trash).
@@ -52,23 +68,36 @@ export const DryRunConfirmDialog = ({
   title = 'Confirm',
   consequence,
   actionLabel = 'Move to trash',
+  summary,
 }: Readonly<DryRunConfirmDialogProps>): JSX.Element => {
+  const displayBytes = summary?.totalBytes ?? totalBytes ?? 0;
+  const displayCount = summary?.totalCandidates ?? fileCount ?? paths?.length ?? 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            {fileCount} {fileCount === 1 ? 'item' : 'items'} - {formatBytes(totalBytes)}
+            {displayCount} {displayCount === 1 ? 'item' : 'items'} - {formatBytes(displayBytes)}
           </DialogDescription>
         </DialogHeader>
 
         <div className="max-h-48 overflow-y-auto rounded-md border border-border/50 bg-card/50 p-2">
-          {paths.map((path) => (
-            <p key={path} className="truncate text-xs text-muted-foreground">
-              {path}
-            </p>
-          ))}
+          {summary
+            ? summary.categories.map((category) => (
+                <div key={category.id} className="flex items-center justify-between gap-3 py-1">
+                  <span className="text-xs text-muted-foreground">{category.label}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {category.candidates.toLocaleString()} - {formatBytes(category.bytes)}
+                  </span>
+                </div>
+              ))
+            : (paths ?? []).map((path) => (
+                <p key={path} className="truncate text-xs text-muted-foreground">
+                  {path}
+                </p>
+              ))}
         </div>
 
         {onMoveToTrash && (

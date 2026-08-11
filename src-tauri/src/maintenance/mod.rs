@@ -20,5 +20,6 @@ pub mod history;
 pub mod plaindelete;
 pub mod rollback;
 pub mod scan;
+pub mod simple_cleanup;
 pub mod trash;
 pub mod types;

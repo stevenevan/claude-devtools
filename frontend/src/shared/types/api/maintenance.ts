@@ -33,6 +33,41 @@ export interface Candidate {
   meta?: Record<string, string>;
 }
 
+export interface SimpleCleanupCategorySummary {
+  id: string;
+  label: string;
+  candidates: number;
+  bytes: number;
+}
+
+export interface SimpleCleanupPreview {
+  token: string;
+  totalCandidates: number;
+  totalBytes: number;
+  categories: SimpleCleanupCategorySummary[];
+}
+
+export interface SimpleCleanupRunReport {
+  movedCandidates: number;
+  movedBytes: number;
+  storage: SimpleStorageSummary;
+}
+
+export type SimpleStorageBucketId = 'old-file-versions' | 'logs-and-caches' | 'everything-else';
+
+export interface SimpleStorageBucketSummary {
+  id: SimpleStorageBucketId;
+  label: string;
+  bytes: number;
+  files: number;
+}
+
+export interface SimpleStorageSummary {
+  totalBytes: number;
+  totalFiles: number;
+  buckets: SimpleStorageBucketSummary[];
+}
+
 export interface TrashedItem {
   origPath: string;
   relStore: string;
@@ -112,6 +147,8 @@ export interface MaintenanceAPI {
   cancelScan: () => Promise<void>;
   onScanProgress: (callback: (progress: MaintenanceScanProgress) => void) => () => void;
   scanCategory: (id: string) => Promise<Candidate[]>;
+  previewSimpleCleanup: () => Promise<SimpleCleanupPreview>;
+  runSimpleCleanup: (token: string) => Promise<SimpleCleanupRunReport>;
   getCutoff: (id: string) => Promise<number>;
   setCutoff: (id: string, days: number) => Promise<void>;
   readPlanFile: (name: string) => Promise<string>;

@@ -13,6 +13,8 @@ import type {
   MemoryReport,
   ScheduleStatus,
   SkillInventoryEntry,
+  SimpleCleanupPreview,
+  SimpleCleanupRunReport,
   TrashReceipt,
   DesktopAPI,
 } from '@shared/types';
@@ -47,6 +49,8 @@ type MaintenanceCommands = Pick<
   | 'scanClaudeDir'
   | 'cancelScan'
   | 'scanCategory'
+  | 'previewSimpleCleanup'
+  | 'runSimpleCleanup'
   | 'getCutoff'
   | 'setCutoff'
   | 'readPlanFile'
@@ -100,6 +104,10 @@ export const maintenanceCommands: MaintenanceCommands = {
   cancelScan: () => call<void>('cancel_scan'),
 
   scanCategory: (id) => call<Candidate[]>('scan_category', { id }, { reviveDates: true }),
+
+  previewSimpleCleanup: () => call<SimpleCleanupPreview>('preview_simple_cleanup'),
+
+  runSimpleCleanup: (token) => call<SimpleCleanupRunReport>('run_simple_cleanup', { token }),
 
   getCutoff: (id) => call<number>('get_maintenance_cutoff', { id }),
 

@@ -59,7 +59,56 @@ fn list_task_graphs_counts_populated_dir() {
     assert_eq!(graphs.len(), 1);
     assert_eq!(graphs[0].uuid, "populated-uuid");
     assert_eq!(graphs[0].task_count, 2);
+    assert_eq!(graphs[0].label.as_deref(), Some("first"));
     assert!(graphs[0].latest_mtime > 0, "latest_mtime must be positive");
+}
+
+#[test]
+fn list_task_graphs_uses_lowest_leaf_description_when_subject_is_empty() {
+    let root = make_temp_root();
+    let dir = root.join("tasks").join("description-uuid");
+    fs::create_dir_all(&dir).unwrap();
+    fs::write(
+        dir.join("2.json"),
+        r#"{"id":"2","subject":"later subject","description":"later description"}"#,
+    )
+    .unwrap();
+    fs::write(
+        dir.join("1.json"),
+        r#"{"id":"1","subject":"  ","description":"  first description  "}"#,
+    )
+    .unwrap();
+
+    let graphs = list_task_graphs(&root.to_string_lossy()).expect("list_task_graphs");
+    assert_eq!(graphs[0].label.as_deref(), Some("first description"));
+}
+
+#[test]
+fn list_task_graphs_falls_back_when_lowest_leaf_is_malformed_or_unlabelled() {
+    let root = make_temp_root();
+    let malformed_dir = root.join("tasks").join("malformed-uuid");
+    fs::create_dir_all(&malformed_dir).unwrap();
+    fs::write(malformed_dir.join("1.json"), "not json").unwrap();
+
+    let empty_label_dir = root.join("tasks").join("empty-label-uuid");
+    fs::create_dir_all(&empty_label_dir).unwrap();
+    fs::write(
+        empty_label_dir.join("1.json"),
+        r#"{"id":"1","subject":" ","description":" "}"#,
+    )
+    .unwrap();
+
+    let graphs = list_task_graphs(&root.to_string_lossy()).expect("list_task_graphs");
+    let malformed = graphs
+        .iter()
+        .find(|graph| graph.uuid == "malformed-uuid")
+        .expect("malformed graph");
+    let empty_label = graphs
+        .iter()
+        .find(|graph| graph.uuid == "empty-label-uuid")
+        .expect("empty-label graph");
+    assert_eq!(malformed.label, None);
+    assert_eq!(empty_label.label, None);
 }
 
 #[test]
@@ -123,7 +172,10 @@ fn read_task_graph_partial_leaf_uses_defaults() {
     assert_eq!(nodes.len(), 1);
     assert_eq!(nodes[0].id, "1");
     assert_eq!(nodes[0].subject, "partial");
-    assert_eq!(nodes[0].status, "", "missing field defaults to empty string");
+    assert_eq!(
+        nodes[0].status, "",
+        "missing field defaults to empty string"
+    );
     assert!(nodes[0].blocks.is_empty());
 }
 

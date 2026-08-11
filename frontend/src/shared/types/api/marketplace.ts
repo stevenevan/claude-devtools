@@ -2,6 +2,7 @@ export interface CatalogPlugin {
   name: string;
   description: string | null;
   installed: boolean;
+  installCommand: string | null;
 }
 
 export interface MarketplaceView {

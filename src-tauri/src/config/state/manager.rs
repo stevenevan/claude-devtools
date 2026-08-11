@@ -1414,6 +1414,11 @@ mod tests {
     }
 
     #[test]
+    fn fresh_config_defaults_to_simple() {
+        assert_eq!(AppConfig::default().general.ui_mode, UiMode::Simple);
+    }
+
+    #[test]
     fn missing_ui_mode_migrates_to_nerd() {
         let raw = serde_json::json!({
             "general": {

@@ -27,6 +27,8 @@ use crate::maintenance::history::{analyze_history as analyze_history_fn, prune_h
 use crate::maintenance::plaindelete::clear_files as clear_files_fn;
 use crate::maintenance::rollback::rollback_binary as rollback_binary_fn;
 use crate::maintenance::scan::scan_claude_dir as scan_claude_dir_fn;
+use crate::maintenance::simple_cleanup as simple;
+use crate::maintenance::simple_cleanup::{SimpleCleanupPreview, SimpleCleanupReport};
 use crate::maintenance::trash::{
     self, empty_trash as empty_trash_fn, list_trash as list_trash_fn, restore_trash as restore_trash_fn,
     TrashReceipt,
@@ -87,6 +89,116 @@ pub fn scan_category(id: String, state: Maint) -> Result<Vec<Candidate>, String>
     };
     enrich_spec(state.inner(), &id, &effective, &mut spec);
     scan_category_matcher(&spec)
+}
+
+/// Builds every Simple cleanup spec from the backend-owned allowlist. The
+/// renderer cannot choose these ids or alter their cutoffs.
+fn simple_cleanup_specs(
+    state: &MaintenanceState,
+    effective: &str,
+    app_data: &str,
+) -> Vec<CategorySpec> {
+    let now = Utc::now();
+    simple::SIMPLE_CATEGORIES
+        .iter()
+        .map(|category| {
+            let days = state
+                .config
+                .get_maintenance_cutoff(category.id)
+                .unwrap_or_else(|| cutoff_default(category.id));
+            CategorySpec {
+                id: category.id.to_string(),
+                root: effective.to_string(),
+                app_data: app_data.to_string(),
+                cutoff: (days > 0).then(|| now - Duration::days(days)),
+                now,
+                enabled: Vec::new(),
+                pinned: Vec::new(),
+                active: Vec::new(),
+            }
+        })
+        .collect()
+}
+
+/// Returns aggregate-only cleanup candidates and a short-lived opaque token.
+/// The candidate paths remain in managed backend state for revalidation.
+#[tauri::command(rename_all = "camelCase")]
+pub fn preview_simple_cleanup(state: Maint) -> Result<SimpleCleanupPreview, String> {
+    let _run = state.claim_run("maintenance: a scan is already in progress")?;
+    let _op = state.lock_op();
+    let effective = state.effective_root();
+    refuse_system_root(&effective)?;
+    let app_data = state.app_data()?;
+    let specs = simple_cleanup_specs(state.inner(), &effective, &app_data);
+    let candidates = simple::scan_allowlist(&specs)?;
+    let total_candidates = candidates.len();
+    let total_bytes = simple::total_bytes(&candidates);
+    let categories = simple::summarize(&candidates);
+    let token = state.store_simple_cleanup_preview(candidates);
+    Ok(SimpleCleanupPreview {
+        token,
+        total_candidates,
+        total_bytes,
+        categories,
+    })
+}
+
+/// Revalidates and moves the previously previewed allowlist candidates through
+/// the existing trash engine. No renderer-supplied path is accepted here.
+#[tauri::command(rename_all = "camelCase")]
+pub fn run_simple_cleanup(
+    token: String,
+    app: AppHandle,
+    state: Maint,
+) -> Result<SimpleCleanupReport, String> {
+    let _run = state.claim_run("maintenance: a scan or cleanup is already in progress")?;
+    let _op = state.lock_op();
+    state.ssh_gate()?;
+
+    let expected = state.simple_cleanup_snapshot(&token)?;
+    let effective = state.effective_root();
+    refuse_system_root(&effective)?;
+    let app_data = state.app_data()?;
+    let specs = simple_cleanup_specs(state.inner(), &effective, &app_data);
+    let actual = simple::scan_allowlist(&specs)?;
+    if !simple::same_snapshot(&expected, &actual) {
+        state.clear_simple_cleanup_preview();
+        return Err("maintenance: preview changed; refresh".to_string());
+    }
+
+    let roots = state.resolve_roots()?;
+    let _mute = MuteGuard::new(&app);
+    let mut moved_candidates = 0usize;
+    let mut moved_bytes = 0i64;
+    for (batch_index, batch) in expected.chunks(simple::TRASH_BATCH_SIZE).enumerate() {
+        let paths: Vec<String> = batch
+            .iter()
+            .map(|candidate| candidate.candidate.path.clone())
+            .collect();
+        let receipt = match trash::trash_items(&roots, &app_data, &paths) {
+            Ok(receipt) => receipt,
+            Err(error) => {
+                state.clear_simple_cleanup_preview();
+                return Err(format!(
+                    "maintenance: simple cleanup moved {moved_candidates} of {} candidates before batch {} failed: {error}",
+                    expected.len(),
+                    batch_index + 1
+                ));
+            }
+        };
+        moved_candidates += receipt.items.len();
+        moved_bytes += receipt.items.iter().map(|item| item.bytes).sum::<i64>();
+        state.evict_trashed_projects(&app, &receipt);
+    }
+
+    state.clear_simple_cleanup_preview();
+    let storage_dirs = scan_claude_dir_fn(&roots, None)
+        .map_err(|error| format!("maintenance: simple cleanup storage rescan failed: {error}"))?;
+    Ok(SimpleCleanupReport {
+        moved_candidates,
+        moved_bytes,
+        storage: simple::summarize_storage(&storage_dirs),
+    })
 }
 
 /// Populates the id-specific spec fields (plugins→enabled, projects→pinned,
