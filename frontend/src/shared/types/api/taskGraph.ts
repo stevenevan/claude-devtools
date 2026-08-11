@@ -2,6 +2,7 @@ export interface TaskGraphMeta {
   uuid: string;
   taskCount: number;
   latestMtime: number;
+  label?: string | null;
 }
 
 export interface TaskNode {

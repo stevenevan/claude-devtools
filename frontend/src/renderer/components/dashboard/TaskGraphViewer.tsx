@@ -1,11 +1,15 @@
 import { JSX, useEffect, useState } from 'react';
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { cn } from '@renderer/lib/utils';
+import { sanitizeSimpleText } from '@renderer/utils/simpleTextSanitizer';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { CheckCircle2, Circle, Loader2, RefreshCw, Workflow } from 'lucide-react';
+import { CheckCircle2, Circle, GitBranch, Loader2, RefreshCw, Workflow } from 'lucide-react';
 
 import type { TaskGraphMeta, TaskNode } from '@shared/types/api';
+
+import { TaskOutline } from './TaskOutline';
 
 function errText(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
@@ -18,10 +22,13 @@ function errText(err: unknown): string {
 // detail load shows a friendly message, not a crash. This panel writes
 // nothing.
 export const TaskGraphViewer = (): JSX.Element => {
+  const mode = useUIMode();
+  const simple = mode === 'simple';
   const [graphs, setGraphs] = useState<TaskGraphMeta[]>([]);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
   const [selectedUuid, setSelectedUuid] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'graph' | 'outline'>('graph');
 
   const loadList = async (): Promise<void> => {
     setListLoading(true);
@@ -47,9 +54,13 @@ export const TaskGraphViewer = (): JSX.Element => {
     <div className="flex h-full flex-col overflow-hidden">
       <div className="border-border/50 flex shrink-0 items-start justify-between gap-2 border-b px-4 py-3">
         <div>
-          <p className="text-foreground text-sm font-medium">Task Graph</p>
+          <p className="text-foreground text-sm font-medium">
+            {simple ? 'How tasks connect' : 'Task Graph'}
+          </p>
           <p className="text-muted-foreground mt-0.5 text-xs">
-            Read-only view of background task state under ~/.claude/tasks. Nothing here writes.
+            {simple
+              ? 'When Claude splits work between helpers, this shows what ran and in what order.'
+              : 'Read-only view of background task state under ~/.claude/tasks. Nothing here writes.'}
           </p>
         </div>
         <Button variant="outline" size="sm" disabled={listLoading} onClick={() => void loadList()}>
@@ -69,7 +80,7 @@ export const TaskGraphViewer = (): JSX.Element => {
 
       <div className="flex flex-1 overflow-hidden">
         <div
-          aria-label="Task graphs"
+          aria-label={simple ? 'Task groups' : 'Task graphs'}
           className="border-border/50 w-64 shrink-0 overflow-y-auto border-r"
         >
           {listLoading ? (
@@ -80,7 +91,9 @@ export const TaskGraphViewer = (): JSX.Element => {
             <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
               <Workflow className="text-muted-foreground size-6 opacity-50" />
               <p className="text-muted-foreground text-xs">
-                No active task graphs found under ~/.claude/tasks.
+                {simple
+                  ? 'Nothing to show yet. This is normal when Claude has not handed work to a helper.'
+                  : 'No active task graphs found under ~/.claude/tasks.'}
               </p>
             </div>
           ) : (
@@ -88,15 +101,28 @@ export const TaskGraphViewer = (): JSX.Element => {
               <TaskGraphRow
                 key={graph.uuid}
                 graph={graph}
+                simple={simple}
                 selected={graph.uuid === selectedUuid}
-                onSelect={() => setSelectedUuid(graph.uuid)}
+                onSelect={() => {
+                  setSelectedUuid(graph.uuid);
+                  setViewMode('graph');
+                }}
               />
             ))
           )}
         </div>
 
         <div className="min-w-0 flex-1 overflow-y-auto p-4">
-          {selectedUuid ? <TaskGraphDetail uuid={selectedUuid} /> : <EmptyDetail />}
+          {selectedUuid ? (
+            <TaskGraphDetail
+              uuid={selectedUuid}
+              simple={simple}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+            />
+          ) : (
+            <EmptyDetail simple={simple} />
+          )}
         </div>
       </div>
     </div>
@@ -105,11 +131,12 @@ export const TaskGraphViewer = (): JSX.Element => {
 
 interface TaskGraphRowProps {
   graph: TaskGraphMeta;
+  simple: boolean;
   selected: boolean;
   onSelect: () => void;
 }
 
-const TaskGraphRow = ({ graph, selected, onSelect }: Readonly<TaskGraphRowProps>): JSX.Element => (
+const TaskGraphRow = ({ graph, simple, selected, onSelect }: Readonly<TaskGraphRowProps>): JSX.Element => (
   <Button
     variant="ghost"
     aria-current={selected || undefined}
@@ -119,8 +146,8 @@ const TaskGraphRow = ({ graph, selected, onSelect }: Readonly<TaskGraphRowProps>
       selected ? 'bg-card/60' : 'hover:bg-card/30'
     )}
   >
-    <span className="text-foreground w-full truncate font-mono text-xs font-medium">
-      {graph.uuid.slice(0, 8)}…
+    <span className="text-foreground w-full truncate text-xs font-medium">
+      {simple ? sanitizeSimpleText(graph.label?.trim() || 'Task group') : `${graph.uuid.slice(0, 8)}…`}
     </span>
     <span className="text-muted-foreground w-full truncate text-[10px]">
       {graph.taskCount} task{graph.taskCount === 1 ? '' : 's'} ·{' '}
@@ -129,14 +156,26 @@ const TaskGraphRow = ({ graph, selected, onSelect }: Readonly<TaskGraphRowProps>
   </Button>
 );
 
-const EmptyDetail = (): JSX.Element => (
+const EmptyDetail = ({ simple }: Readonly<{ simple: boolean }>): JSX.Element => (
   <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
     <Workflow className="text-muted-foreground size-6 opacity-50" />
-    <p className="text-muted-foreground text-xs">Select a task graph to view its nodes.</p>
+    <p className="text-muted-foreground text-xs">
+      {simple ? 'Select a task group to view its steps.' : 'Select a task graph to view its nodes.'}
+    </p>
   </div>
 );
 
-const TaskGraphDetail = ({ uuid }: Readonly<{ uuid: string }>): JSX.Element => {
+const TaskGraphDetail = ({
+  uuid,
+  simple,
+  viewMode,
+  onViewModeChange,
+}: Readonly<{
+  uuid: string;
+  simple: boolean;
+  viewMode: 'graph' | 'outline';
+  onViewModeChange: (viewMode: 'graph' | 'outline') => void;
+}>): JSX.Element => {
   const [nodes, setNodes] = useState<TaskNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -183,11 +222,44 @@ const TaskGraphDetail = ({ uuid }: Readonly<{ uuid: string }>): JSX.Element => {
     );
   }
 
+  if (simple || viewMode === 'outline') {
+    return <TaskOutline nodes={nodes} simple={simple} />;
+  }
+
   return (
-    <div className="flex flex-col gap-2">
-      {nodes.map((node) => (
-        <TaskNodeCard key={node.id} node={node} />
-      ))}
+    <div className="flex flex-col gap-3">
+      <div className="border-border/60 bg-card/30 flex items-start gap-2 rounded-md border px-3 py-2">
+        <GitBranch className="text-muted-foreground mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+        <p className="text-muted-foreground text-[10px]">
+          Nodes are work steps. Edges show which steps must happen before another step.
+        </p>
+      </div>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-muted-foreground text-[10px]">{nodes.length} task steps</p>
+        <div role="group" aria-label="Task graph view" className="flex gap-1">
+          <Button
+            type="button"
+            size="xs"
+            variant={viewMode === 'graph' ? 'secondary' : 'outline'}
+            onClick={() => onViewModeChange('graph')}
+          >
+            Graph
+          </Button>
+          <Button
+            type="button"
+            size="xs"
+            variant={viewMode === 'outline' ? 'secondary' : 'outline'}
+            onClick={() => onViewModeChange('outline')}
+          >
+            Outline
+          </Button>
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        {nodes.map((node) => (
+          <TaskNodeCard key={node.id} node={node} />
+        ))}
+      </div>
     </div>
   );
 };

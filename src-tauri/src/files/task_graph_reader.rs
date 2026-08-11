@@ -22,6 +22,7 @@ pub struct TaskGraphMeta {
     pub uuid: String,
     pub task_count: usize,
     pub latest_mtime: i64,
+    pub label: Option<String>,
 }
 
 // confirm-at-impl: each `{N}.json` leaf is assumed to be
@@ -73,13 +74,13 @@ pub fn list_task_graphs(root: &str) -> Result<Vec<TaskGraphMeta>, String> {
             continue;
         };
 
-        let mut task_count = 0usize;
+        let mut leaves: Vec<(u32, String)> = Vec::new();
         let mut latest_mtime = 0i64;
         for leaf_entry in leaf_entries.flatten() {
             let leaf_name = leaf_entry.file_name().to_string_lossy().into_owned();
-            if parse_leaf_number(&leaf_name).is_none() {
+            let Some(leaf_number) = parse_leaf_number(&leaf_name) else {
                 continue;
-            }
+            };
             let Ok(meta) = leaf_entry.metadata() else {
                 continue;
             };
@@ -89,17 +90,31 @@ pub fn list_task_graphs(root: &str) -> Result<Vec<TaskGraphMeta>, String> {
                 .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
                 .map(|d| d.as_millis() as i64)
                 .unwrap_or(0);
-            task_count += 1;
             latest_mtime = latest_mtime.max(mtime);
+            leaves.push((leaf_number, leaf_name));
         }
 
-        if task_count == 0 {
+        if leaves.is_empty() {
             continue;
         }
+        leaves.sort_by_key(|(number, _)| *number);
+        let task_count = leaves.len();
+        let label = leaves.first().and_then(|(_, name)| {
+            let subdir = format!("tasks/{uuid}");
+            let bytes = claude_read::read_confined_file(root, &subdir, name).ok()?;
+            let node = serde_json::from_slice::<TaskNode>(&bytes).ok()?;
+            let subject = node.subject.trim();
+            if !subject.is_empty() {
+                return Some(subject.to_string());
+            }
+            let description = node.description.trim();
+            (!description.is_empty()).then(|| description.to_string())
+        });
         out.push(TaskGraphMeta {
             uuid,
             task_count,
             latest_mtime,
+            label,
         });
     }
 

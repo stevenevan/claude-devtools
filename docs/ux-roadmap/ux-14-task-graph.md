@@ -57,7 +57,9 @@ Rules:
 - Each row: what the work was, in plain language, and its state as a word.
 - **No node IDs, no agent IDs, no edge labels.** If a node's only label is an identifier, show the
   helper's name from [ux-09](ux-09-agents.md)'s vocabulary, or "a helper" — not the ID.
-- The graph selector is a plain list of conversations by subject and time.
+- The graph selector is a plain list of task groups by task subject and time. The current task API
+  has no conversation/session identity or conversation-to-task relation, so the UI must not invent a
+  conversation label or link.
 - Empty state explains the precondition, since an empty task graph is the *normal* case for most
   sessions and must not read as breakage.
 
@@ -84,6 +86,8 @@ and it is also the accessible representation of the graph.
 - `frontend/src/renderer/components/dashboard/TaskGraphViewer.tsx`
 - `frontend/src/renderer/components/dashboard/TaskOutline.tsx` **(new)** — the outline, used by
   Simple mode and by Nerd mode's toggle
+- `frontend/src/renderer/components/dashboard/TaskOutline.test.ts` **(new)** — graph flattening and
+  cycle handling tests
 
 ## 7. Tasks (ordered)
 
@@ -93,7 +97,7 @@ and it is also the accessible representation of the graph.
    honestly.
 2. `TaskOutline.tsx` — flatten the graph to an indented outline. A cycle must not hang the
    renderer: cap depth and mark anything unreachable rather than recursing blindly.
-3. Simple view: explanatory sentence, conversation selector by subject, the outline.
+3. Simple view: explanatory sentence, task-group selector by task subject, the outline.
 4. Branch `TaskGraphViewer.tsx` on `useUIMode()`.
 5. Nerd mode: a legend, and an outline/graph toggle reusing `TaskOutline`.
 6. Empty state framed as the normal case, in both modes.
