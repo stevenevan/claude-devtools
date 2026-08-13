@@ -35,6 +35,16 @@ import type { ClaudeJSONBackup, ClaudeJSONCensus, PurgeResult } from './claudeJs
 import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
 import type { HistoryPage } from './history';
+import type {
+  InspectorEvent,
+  InspectorHistoryEntry,
+  InspectorPage,
+  InspectorSourceStatus,
+  InspectorTaskGraphList,
+  InspectorTaskGraphResult,
+  InspectorTranscriptMeta,
+  SourceKind,
+} from './inspector';
 import type { MaintenanceAPI } from './maintenance';
 import type { MarketplaceCatalog } from './marketplace';
 import type { TranscriptRecord } from './transcripts';
@@ -60,6 +70,7 @@ export type * from './config';
 export type * from './configBackup';
 export type * from './context';
 export type * from './history';
+export type * from './inspector';
 export type * from './maintenance';
 export type * from './marketplace';
 export type * from './mcp';
@@ -320,6 +331,35 @@ export interface DesktopAPI {
   readMarketplaceCatalog: () => Promise<MarketplaceCatalog>;
   listTaskGraphs: () => Promise<TaskGraphMeta[]>;
   readTaskGraph: (uuid: string) => Promise<TaskNode[]>;
+
+  // Source-aware local inspector APIs. These keep Codex and Claude data on a
+  // single typed surface while the legacy Claude methods remain supported.
+  getInspectorSources: () => Promise<InspectorSourceStatus[]>;
+  readSourceHistoryPage: (
+    sourceKind: SourceKind,
+    cursor: string | null,
+    limit: number,
+    query?: string
+  ) => Promise<InspectorPage<InspectorHistoryEntry>>;
+  listSourceTranscripts: (
+    sourceKind: SourceKind,
+    cursor: string | null,
+    limit: number
+  ) => Promise<InspectorPage<InspectorTranscriptMeta>>;
+  readSourceTranscript: (
+    sourceKind: SourceKind,
+    id: string,
+    cursor: string | null,
+    limit: number
+  ) => Promise<InspectorPage<InspectorEvent>>;
+  readSourceSession: (
+    sourceKind: SourceKind,
+    id: string,
+    cursor: string | null,
+    limit: number
+  ) => Promise<InspectorPage<InspectorEvent>>;
+  listSourceTaskGraphs: (sourceKind: SourceKind) => Promise<InspectorTaskGraphList>;
+  readSourceTaskGraph: (sourceKind: SourceKind, id: string) => Promise<InspectorTaskGraphResult>;
 
   // Notifications API
   notifications: NotificationsAPI;

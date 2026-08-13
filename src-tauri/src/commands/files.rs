@@ -6,8 +6,12 @@
 //! name (the snake_case legacy contract) is free to match the Go method exactly.
 
 use std::collections::HashMap;
+use std::fs;
 use std::path::{Path, PathBuf};
 
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+use base64::Engine as _;
+use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use tauri::AppHandle;
 use tauri_plugin_dialog::DialogExt;
@@ -16,6 +20,7 @@ use crate::config::root::{app_data_dir, claude_dir};
 use crate::files::agents_write::{read_agent_configs as read_agent_configs_impl, AgentConfig};
 use crate::files::checkpoint_origin::{self, CheckpointOrigin};
 use crate::files::claude_read::{self, FileMeta};
+use crate::files::codex_reader::{self, InspectorEvent, InspectorHistoryEntry, InspectorPage, InspectorTaskGraphList, InspectorTaskGraphMeta, InspectorTaskGraphResult, InspectorTranscriptMeta};
 use crate::files::filehistory_reader::{self, CheckpointGroup};
 use crate::files::history_reader::{self, HistoryPage};
 use crate::files::marketplace_reader::{self, MarketplaceCatalog};
@@ -58,6 +63,10 @@ use crate::files::settings_write::{
 };
 use crate::files::usage_reader;
 use crate::insights::permissions_analyzer::{analyze_usage, Suggestion};
+use crate::types::source::{
+    Diagnostic, Provenance, SourceCapabilities, SourceKind, SourceState, SourceStatus,
+    TaskGraphCapability, TaskGraphCapabilityState,
+};
 
 #[tauri::command(rename_all = "camelCase")]
 pub fn validate_path(relative_path: String, project_path: String) -> Result<PathResult, String> {
@@ -505,4 +514,443 @@ pub fn list_task_graphs() -> Result<Vec<TaskGraphMeta>, String> {
 pub fn read_task_graph(uuid: String) -> Result<Vec<TaskNode>, String> {
     let root = claude_dir()?;
     task_graph_reader::read_task_graph(&root.to_string_lossy(), &uuid)
+}
+
+// ── source-aware inspector viewers ──
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct SourceCursor {
+    version: u8,
+    source: SourceKind,
+    operation: String,
+    revision: String,
+    offset: usize,
+    before: Option<i64>,
+    id: Option<String>,
+}
+
+#[tauri::command]
+pub fn get_inspector_sources() -> Result<Vec<SourceStatus>, String> {
+    Ok(vec![claude_source_status(), crate::config::root::get_codex_source_status()])
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn read_source_history_page(
+    source_kind: SourceKind,
+    cursor: Option<String>,
+    limit: usize,
+    query: Option<String>,
+) -> Result<InspectorPage<InspectorHistoryEntry>, String> {
+    validate_source_cursor(cursor.as_deref())?;
+    validate_source_query(query.as_deref())?;
+    if source_kind == SourceKind::Codex {
+        return codex_reader::read_history_page(cursor.as_deref(), limit, query.as_deref());
+    }
+    let limit = validate_source_limit(limit)?;
+    let root = claude_dir()?;
+    let revision = crate::config::root::source_revision(&root).unwrap_or_else(|| "unknown".to_string());
+    let cursor = decode_source_cursor(cursor.as_deref(), SourceKind::Claude, "history", &revision, None)?;
+    let page = history_reader::read_history_page(
+        &root.to_string_lossy(),
+        cursor.before,
+        limit,
+        query.as_deref(),
+    )?;
+    let entries = page
+        .entries
+        .into_iter()
+        .enumerate()
+        .map(|(index, entry)| InspectorHistoryEntry {
+            session_id: None,
+            display: entry.display,
+            project: entry.project,
+            timestamp: Some(entry.timestamp),
+            pasted_count: entry.pasted_count,
+            source: SourceKind::Claude,
+            provenance: Provenance {
+                source_file: "history.jsonl".to_string(),
+                line: Some(index + 1),
+                archived: false,
+            },
+        })
+        .collect::<Vec<_>>();
+    let next_cursor = page.has_more.then(|| {
+        let before = entries.last().and_then(|entry| entry.timestamp);
+        encode_source_cursor(&SourceCursor {
+            version: 1,
+            source: SourceKind::Claude,
+            operation: "history".to_string(),
+            revision: revision.clone(),
+            offset: 0,
+            before,
+            id: None,
+        })
+    });
+    Ok(InspectorPage {
+        items: entries,
+        next_cursor,
+        has_more: page.has_more,
+        total_matched: Some(page.total_matched),
+        scan_limited: false,
+        diagnostics: Vec::new(),
+    })
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn list_source_transcripts(
+    source_kind: SourceKind,
+    cursor: Option<String>,
+    limit: usize,
+) -> Result<InspectorPage<InspectorTranscriptMeta>, String> {
+    validate_source_cursor(cursor.as_deref())?;
+    if source_kind == SourceKind::Codex {
+        return codex_reader::list_transcripts(cursor.as_deref(), limit);
+    }
+    let limit = validate_source_limit(limit)?;
+    let root = claude_dir()?;
+    let revision = crate::config::root::source_revision(&root).unwrap_or_else(|| "unknown".to_string());
+    let cursor = decode_source_cursor(cursor.as_deref(), SourceKind::Claude, "transcripts", &revision, None)?;
+    let files = claude_read::list_dir_files(&root.to_string_lossy(), "transcripts", "jsonl")?;
+    let items = files
+        .into_iter()
+        .map(|file| InspectorTranscriptMeta {
+            id: file.name.clone(),
+            label: file.name.clone(),
+            size_bytes: u64::try_from(file.size_bytes).unwrap_or(0),
+            mtime: Some(file.mtime),
+            source: SourceKind::Claude,
+            archived: false,
+            provenance: Provenance {
+                source_file: format!("transcripts/{}", file.name),
+                line: None,
+                archived: false,
+            },
+        })
+        .collect::<Vec<_>>();
+    let page_start = cursor.offset.min(items.len());
+    let page_end = (page_start + limit).min(items.len());
+    let has_more = page_end < items.len();
+    let next_cursor = has_more.then(|| {
+        encode_source_cursor(&SourceCursor {
+            version: 1,
+            source: SourceKind::Claude,
+            operation: "transcripts".to_string(),
+            revision: revision.clone(),
+            offset: page_end,
+            before: None,
+            id: None,
+        })
+    });
+    Ok(InspectorPage {
+        items: items[page_start..page_end].to_vec(),
+        next_cursor,
+        has_more,
+        total_matched: Some(items.len()),
+        scan_limited: false,
+        diagnostics: Vec::new(),
+    })
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn read_source_transcript(
+    source_kind: SourceKind,
+    id: String,
+    cursor: Option<String>,
+    limit: usize,
+) -> Result<InspectorPage<InspectorEvent>, String> {
+    read_source_transcript_impl(source_kind, id, cursor, limit)
+}
+
+fn read_source_transcript_impl(
+    source_kind: SourceKind,
+    id: String,
+    cursor: Option<String>,
+    limit: usize,
+) -> Result<InspectorPage<InspectorEvent>, String> {
+    validate_source_transcript_id(&id)?;
+    validate_source_cursor(cursor.as_deref())?;
+    validate_source_event_limit(limit)?;
+    if source_kind == SourceKind::Codex {
+        return codex_reader::read_transcript(&id, cursor.as_deref(), limit);
+    }
+    let limit = validate_source_limit(limit)?;
+    let root = claude_dir()?;
+    let revision = crate::config::root::source_revision(&root).unwrap_or_else(|| "unknown".to_string());
+    let cursor = decode_source_cursor(cursor.as_deref(), SourceKind::Claude, "transcript", &revision, Some(&id))?;
+    let records = transcripts_reader::read_transcript(&root.to_string_lossy(), &id)?;
+    let events = records
+        .into_iter()
+        .enumerate()
+        .map(|(index, record)| {
+            let is_tool = record.tool_name.is_some();
+            InspectorEvent {
+                kind: record.kind.clone(),
+                timestamp: record.timestamp,
+                role: (record.kind == "user").then_some("user".to_string()),
+                content: record.content,
+                tool_name: record.tool_name,
+                tool_id: None,
+                tool_input_shape: is_tool.then_some("present".to_string()),
+                tool_output_size: record.tool_output.as_ref().map(String::len),
+                tool_status: None,
+                truncated: record.truncated,
+                provenance: Provenance {
+                    source_file: format!("transcripts/{id}"),
+                    line: Some(index + 1),
+                    archived: false,
+                },
+            }
+        })
+        .collect::<Vec<_>>();
+    let page_start = cursor.offset.min(events.len());
+    let page_end = (page_start + limit).min(events.len());
+    let has_more = page_end < events.len();
+    let next_cursor = has_more.then(|| {
+        encode_source_cursor(&SourceCursor {
+            version: 1,
+            source: SourceKind::Claude,
+            operation: "transcript".to_string(),
+            revision: revision.clone(),
+            offset: page_end,
+            before: None,
+            id: Some(id.clone()),
+        })
+    });
+    Ok(InspectorPage {
+        items: events[page_start..page_end].to_vec(),
+        next_cursor,
+        has_more,
+        total_matched: Some(events.len()),
+        scan_limited: false,
+        diagnostics: Vec::new(),
+    })
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn read_source_session(
+    source_kind: SourceKind,
+    id: String,
+    cursor: Option<String>,
+    limit: usize,
+) -> Result<InspectorPage<InspectorEvent>, String> {
+    if source_kind == SourceKind::Codex {
+        validate_source_cursor(cursor.as_deref())?;
+        validate_source_event_limit(limit)?;
+        return codex_reader::read_session(&id, cursor.as_deref(), limit);
+    }
+    read_source_transcript_impl(source_kind, id, cursor, limit)
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn list_source_task_graphs(
+    source_kind: SourceKind,
+) -> Result<InspectorTaskGraphList, String> {
+    if source_kind == SourceKind::Codex {
+        return codex_reader::list_task_graphs();
+    }
+    let root = claude_dir()?;
+    let items = task_graph_reader::list_task_graphs(&root.to_string_lossy())?
+        .into_iter()
+        .map(|graph| InspectorTaskGraphMeta {
+            id: graph.uuid,
+            label: graph.label,
+            task_count: graph.task_count,
+            latest_mtime: graph.latest_mtime,
+            source: SourceKind::Claude,
+        })
+        .collect();
+    Ok(InspectorTaskGraphList {
+        capability: claude_task_graph_capability(),
+        items,
+    })
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn read_source_task_graph(
+    source_kind: SourceKind,
+    id: String,
+) -> Result<InspectorTaskGraphResult, String> {
+    validate_source_task_graph_id(&id)?;
+    if source_kind == SourceKind::Codex {
+        return codex_reader::read_task_graph(&id);
+    }
+    let root = claude_dir()?;
+    let nodes = task_graph_reader::read_task_graph(&root.to_string_lossy(), &id)?
+        .into_iter()
+        .filter_map(|node| serde_json::to_value(node).ok())
+        .collect();
+    Ok(InspectorTaskGraphResult {
+        id,
+        nodes,
+        capability: claude_task_graph_capability(),
+    })
+}
+
+fn validate_source_limit(limit: usize) -> Result<usize, String> {
+    if limit == 0 || limit > codex_reader::MAX_PAGE_SIZE {
+        return Err(format!(
+            "limit must be between 1 and {}",
+            codex_reader::MAX_PAGE_SIZE
+        ));
+    }
+    Ok(limit)
+}
+
+fn validate_source_event_limit(limit: usize) -> Result<usize, String> {
+    if limit == 0 || limit > codex_reader::MAX_EVENT_PAGE {
+        return Err(format!(
+            "limit must be between 1 and {}",
+            codex_reader::MAX_EVENT_PAGE
+        ));
+    }
+    Ok(limit)
+}
+
+fn validate_source_cursor(cursor: Option<&str>) -> Result<(), String> {
+    if cursor.is_some_and(|cursor| cursor.len() > codex_reader::MAX_CURSOR_BYTES) {
+        return Err("cursor is too large".to_string());
+    }
+    Ok(())
+}
+
+fn validate_source_query(query: Option<&str>) -> Result<(), String> {
+    if query.is_some_and(|query| query.len() > codex_reader::MAX_QUERY_BYTES) {
+        return Err("query exceeds the configured byte limit".to_string());
+    }
+    Ok(())
+}
+
+fn validate_source_transcript_id(id: &str) -> Result<(), String> {
+    if id.is_empty() || id.len() > 512 || id.contains('\0') {
+        return Err("source transcript id is invalid".to_string());
+    }
+    let path = Path::new(id);
+    if path.is_absolute()
+        || path
+            .components()
+            .any(|component| !matches!(component, std::path::Component::Normal(_)))
+    {
+        return Err("source transcript id must be a relative path".to_string());
+    }
+    Ok(())
+}
+
+fn validate_source_task_graph_id(id: &str) -> Result<(), String> {
+    if id.is_empty()
+        || id.len() > 512
+        || id.contains('/')
+        || id.contains('\\')
+        || id.contains('\0')
+    {
+        return Err("source task graph id is invalid".to_string());
+    }
+    Ok(())
+}
+
+fn encode_source_cursor(cursor: &SourceCursor) -> String {
+    URL_SAFE_NO_PAD.encode(serde_json::to_vec(cursor).expect("source cursor serialization"))
+}
+
+fn decode_source_cursor(
+    encoded: Option<&str>,
+    source: SourceKind,
+    operation: &str,
+    revision: &str,
+    id: Option<&str>,
+) -> Result<SourceCursor, String> {
+    let Some(encoded) = encoded else {
+        return Ok(SourceCursor {
+            version: 1,
+            source,
+            operation: operation.to_string(),
+            revision: revision.to_string(),
+            offset: 0,
+            before: None,
+            id: id.map(str::to_string),
+        });
+    };
+    if encoded.len() > codex_reader::MAX_CURSOR_BYTES {
+        return Err("cursor is too large".to_string());
+    }
+    let bytes = URL_SAFE_NO_PAD
+        .decode(encoded)
+        .map_err(|_| "cursor is invalid".to_string())?;
+    let cursor: SourceCursor = serde_json::from_slice(&bytes)
+        .map_err(|_| "cursor is invalid".to_string())?;
+    if cursor.version != 1
+        || cursor.source != source
+        || cursor.operation != operation
+        || cursor.revision != revision
+        || cursor.id.as_deref() != id
+    {
+        return Err("cursor is stale; reload the source".to_string());
+    }
+    Ok(cursor)
+}
+
+fn claude_source_status() -> SourceStatus {
+    let root = match claude_dir() {
+        Ok(root) => root,
+        Err(reason) => {
+            return SourceStatus {
+                source_kind: SourceKind::Claude,
+                state: SourceState::Invalid,
+                label: "~/.claude".to_string(),
+                revision: None,
+                reason: Some(reason),
+                capabilities: claude_capabilities(),
+            }
+        }
+    };
+    match fs::metadata(&root) {
+        Ok(metadata) if metadata.is_dir() => SourceStatus {
+            source_kind: SourceKind::Claude,
+            state: SourceState::Available,
+            label: "~/.claude".to_string(),
+            revision: crate::config::root::source_revision(&root),
+            reason: None,
+            capabilities: claude_capabilities(),
+        },
+        Ok(_) => SourceStatus {
+            source_kind: SourceKind::Claude,
+            state: SourceState::Invalid,
+            label: "~/.claude".to_string(),
+            revision: None,
+            reason: Some("Claude data root is not a directory".to_string()),
+            capabilities: claude_capabilities(),
+        },
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => SourceStatus {
+            source_kind: SourceKind::Claude,
+            state: SourceState::NotFound,
+            label: "~/.claude".to_string(),
+            revision: None,
+            reason: Some("Claude data directory was not found".to_string()),
+            capabilities: claude_capabilities(),
+        },
+        Err(error) => SourceStatus {
+            source_kind: SourceKind::Claude,
+            state: SourceState::Unreadable,
+            label: "~/.claude".to_string(),
+            revision: None,
+            reason: Some(format!("cannot inspect Claude data directory: {error}")),
+            capabilities: claude_capabilities(),
+        },
+    }
+}
+
+fn claude_capabilities() -> SourceCapabilities {
+    SourceCapabilities {
+        sessions: true,
+        transcripts: true,
+        task_graph: claude_task_graph_capability(),
+    }
+}
+
+fn claude_task_graph_capability() -> TaskGraphCapability {
+    TaskGraphCapability {
+        state: TaskGraphCapabilityState::Available,
+        reason: "Claude Task Graph files are available".to_string(),
+        diagnostics: Vec::<Diagnostic>::new(),
+    }
 }

@@ -668,6 +668,13 @@ fn main() {
             files_cmds::read_marketplace_catalog,
             files_cmds::list_task_graphs,
             files_cmds::read_task_graph,
+            files_cmds::get_inspector_sources,
+            files_cmds::read_source_history_page,
+            files_cmds::list_source_transcripts,
+            files_cmds::read_source_transcript,
+            files_cmds::read_source_session,
+            files_cmds::list_source_task_graphs,
+            files_cmds::read_source_task_graph,
             // ── W13 maintenance: service.go ──
             maintenance_cmds::scan_claude_dir,
             maintenance_cmds::scan_category,

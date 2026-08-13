@@ -199,6 +199,13 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['readMarketplaceCatalog', (a) => a.readMarketplaceCatalog()],
   ['listTaskGraphs', (a) => a.listTaskGraphs()],
   ['readTaskGraph', (a) => a.readTaskGraph('u')],
+  ['getInspectorSources', (a) => a.getInspectorSources()],
+  ['readSourceHistoryPage', (a) => a.readSourceHistoryPage('claude', null, 50)],
+  ['listSourceTranscripts', (a) => a.listSourceTranscripts('claude', null, 50)],
+  ['readSourceTranscript', (a) => a.readSourceTranscript('claude', 'x', null, 50)],
+  ['readSourceSession', (a) => a.readSourceSession('claude', 'x', null, 50)],
+  ['listSourceTaskGraphs', (a) => a.listSourceTaskGraphs('claude')],
+  ['readSourceTaskGraph', (a) => a.readSourceTaskGraph('claude', 'u')],
   // W13: maintenance slice data methods (41). Config-backup methods stay notPorted (W14).
   ['maintenance.scanClaudeDir', (a) => a.maintenance.scanClaudeDir()],
   ['maintenance.cancelScan', (a) => a.maintenance.cancelScan()],

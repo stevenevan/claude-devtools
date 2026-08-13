@@ -3,6 +3,7 @@ import { claudeFilesCommands } from './tauri/domain/claudeFiles';
 import { configApi, notificationEvents, notificationsApi, webhookApi } from './tauri/domain/config';
 import { filesCommands } from './tauri/domain/files';
 import { insightsCommands } from './tauri/domain/insights';
+import { inspectorCommands } from './tauri/domain/inspector';
 import { maintenanceCommands, maintenanceEvents } from './tauri/domain/maintenance';
 import { pluginsApi, sessionApi, sessionCommands } from './tauri/domain/session';
 import { snapshotsCommands } from './tauri/domain/snapshots';
@@ -22,6 +23,7 @@ export function createTauriClient(): DesktopAPI {
     ...systemCommands, // flat system data methods (getAppVersion, openPath, …) — W11
     ...filesCommands, // flat FilesService methods (validatePath, getMCPStatus, …) — W12
     ...claudeFilesCommands, // flat read-only ~/.claude viewer methods
+    ...inspectorCommands, // source-aware Claude/Codex inspector methods
     ssh: { ...sshEvents, ...sshCommands },
     context: { ...systemCommands.context, ...contextEvents },
     maintenance: { ...maintenanceEvents, ...maintenanceCommands },
