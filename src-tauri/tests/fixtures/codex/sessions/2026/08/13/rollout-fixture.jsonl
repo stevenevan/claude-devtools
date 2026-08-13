@@ -1,0 +1,6 @@
+{"type":"session_meta","payload":{"type":"session_meta","id":"fixture-session","cwd":"/synthetic/project"}}
+{"type":"event_msg","payload":{"type":"user_message","message":"Show the fixture status"}}
+{"type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"The fixture is available."}]}}
+{"type":"response_item","payload":{"type":"custom_tool_call","name":"shell","arguments":"synthetic arguments"}}
+{"type":"response_item","payload":{"type":"custom_tool_call_output","name":"shell","output":"synthetic output"}}
+{"type":"response_item","payload":{"type":"encrypted_content","data":"omitted"}}

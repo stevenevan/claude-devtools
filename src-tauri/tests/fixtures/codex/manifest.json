@@ -1,0 +1,16 @@
+{
+  "codexCliVersion": "0.147.0",
+  "capturedAt": "2026-08-13",
+  "sanitized": true,
+  "observed": [
+    "history.jsonl rows with session_id, text, cwd, ts",
+    "session_index.jsonl latest thread_name mapping",
+    "dated sessions/rollout-*.jsonl files",
+    "archived_sessions/rollout-*.jsonl files"
+  ],
+  "guaranteed": [
+    "relative rollout identifiers",
+    "bounded JSONL reads",
+    "tool payload and encrypted reasoning redaction"
+  ]
+}

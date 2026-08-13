@@ -34,6 +34,7 @@ chrono = { version = "0.4", features = ["serde"] }
 lru = "0.16.3"
 sha2 = "0.10"
 base64 = "0.22"
+libc = "0.2"
 # cl100k_base token counting for the analytics path (W8). Same encoder family as
 # Go's weaviate/tiktoken-go; parity gated by tokenizer_matches_go_golden.
 tiktoken-rs = "0.6"
