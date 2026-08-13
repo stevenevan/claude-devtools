@@ -20,25 +20,25 @@ use crate::config::root::{app_data_dir, claude_dir};
 use crate::files::agents_write::{read_agent_configs as read_agent_configs_impl, AgentConfig};
 use crate::files::checkpoint_origin::{self, CheckpointOrigin};
 use crate::files::claude_read::{self, FileMeta};
-use crate::files::codex_reader::{self, InspectorEvent, InspectorHistoryEntry, InspectorPage, InspectorTaskGraphList, InspectorTaskGraphMeta, InspectorTaskGraphResult, InspectorTranscriptMeta};
-use crate::files::filehistory_reader::{self, CheckpointGroup};
-use crate::files::history_reader::{self, HistoryPage};
-use crate::files::marketplace_reader::{self, MarketplaceCatalog};
-use crate::files::task_graph_reader::{self, TaskGraphMeta, TaskNode};
-use crate::files::transcripts_reader::{self, TranscriptRecord};
 use crate::files::claudejson::{
     list_claude_json_backups as list_backups_impl, read_claude_json as read_claude_json_impl,
     read_claude_json_backup as read_backup_impl, read_claude_json_masked as read_masked_impl,
     reveal_claude_json_value as reveal_value_impl, ClaudeJsonBackup, ClaudeJsonCensus,
 };
 use crate::files::claudejson_write::{
-    add_global_mcp_server as add_mcp_server_impl, list_claude_json_app_backups as list_app_backups_impl,
-    purge_claude_json_projects as purge_impl,
-    remove_global_mcp_server as remove_mcp_server_impl,
+    add_global_mcp_server as add_mcp_server_impl,
+    list_claude_json_app_backups as list_app_backups_impl,
+    purge_claude_json_projects as purge_impl, remove_global_mcp_server as remove_mcp_server_impl,
     restore_claude_json_app_backup as restore_app_backup_impl,
     update_global_mcp_server as update_mcp_server_impl, PurgeResult,
 };
-use crate::files::hooks_write::{read_hooks as read_hooks_impl, toggle_hook as toggle_hook_impl, HookView};
+use crate::files::codex_reader;
+use crate::files::filehistory_reader::{self, CheckpointGroup};
+use crate::files::history_reader::{self, HistoryPage};
+use crate::files::hooks_write::{
+    read_hooks as read_hooks_impl, toggle_hook as toggle_hook_impl, HookView,
+};
+use crate::files::marketplace_reader::{self, MarketplaceCatalog};
 use crate::files::mcp_status::{get_mcp_status as get_mcp_status_impl, MCPStatusView};
 use crate::files::pathutil::{
     read_claude_md_files as read_claude_md_impl, read_directory_claude_md as read_dir_md_impl,
@@ -55,17 +55,23 @@ use crate::files::plugins_write::{
     read_global_plugins as read_plugins_impl, set_plugin_enabled as set_plugin_impl,
     DuplicateGroup, Plugin,
 };
-use crate::files::settings_sources::{enumerate_settings_sources as enumerate_sources_impl, SourcesView};
-use crate::files::statusline::{self, StatusLineConfig, StatusLineScriptInfo};
+use crate::files::settings_sources::{
+    enumerate_settings_sources as enumerate_sources_impl, SourcesView,
+};
 use crate::files::settings_write::{
     read_global_settings as read_settings_impl, update_global_settings as update_settings_impl,
     SettingsPatch,
 };
+use crate::files::statusline::{self, StatusLineConfig, StatusLineScriptInfo};
+use crate::files::task_graph_reader::{self, TaskGraphMeta, TaskNode};
+use crate::files::transcripts_reader::{self, TranscriptRecord};
 use crate::files::usage_reader;
 use crate::insights::permissions_analyzer::{analyze_usage, Suggestion};
 use crate::types::source::{
-    Diagnostic, Provenance, SourceCapabilities, SourceKind, SourceState, SourceStatus,
-    TaskGraphCapability, TaskGraphCapabilityState,
+    Diagnostic, InspectorEvent, InspectorHistoryEntry, InspectorPage, InspectorTaskGraphList,
+    InspectorTaskGraphMeta, InspectorTaskGraphResult, InspectorTaskNode, InspectorTranscriptMeta,
+    Provenance, SourceCapabilities, SourceKind, SourceState, SourceStatus, TaskGraphCapability,
+    TaskGraphCapabilityState,
 };
 
 #[tauri::command(rename_all = "camelCase")]
@@ -97,7 +103,11 @@ pub fn read_mentioned_file(
     project_root: String,
     max_tokens: Option<i64>,
 ) -> Result<Option<MentionedFileResult>, String> {
-    Ok(read_mentioned_impl(&absolute_path, &project_root, max_tokens))
+    Ok(read_mentioned_impl(
+        &absolute_path,
+        &project_root,
+        max_tokens,
+    ))
 }
 
 #[tauri::command(rename_all = "camelCase")]
@@ -312,7 +322,11 @@ pub fn list_file_history() -> Result<Vec<CheckpointGroup>, String> {
 }
 
 #[tauri::command(rename_all = "camelCase")]
-pub fn read_checkpoint(session_uuid: String, file_hash: String, version: u32) -> Result<String, String> {
+pub fn read_checkpoint(
+    session_uuid: String,
+    file_hash: String,
+    version: u32,
+) -> Result<String, String> {
     let root = claude_dir()?;
     filehistory_reader::read_checkpoint(&root.to_string_lossy(), &session_uuid, &file_hash, version)
 }
@@ -392,11 +406,7 @@ pub fn resolve_checkpoint_origin(
     file_hash: String,
 ) -> Result<Option<CheckpointOrigin>, String> {
     let root = claude_dir()?;
-    checkpoint_origin::resolve_checkpoint_origin(
-        &root.to_string_lossy(),
-        &session_uuid,
-        &file_hash,
-    )
+    checkpoint_origin::resolve_checkpoint_origin(&root.to_string_lossy(), &session_uuid, &file_hash)
 }
 
 /// Saves one checkpoint back over the file it was captured from, with the save
@@ -532,7 +542,10 @@ struct SourceCursor {
 
 #[tauri::command]
 pub fn get_inspector_sources() -> Result<Vec<SourceStatus>, String> {
-    Ok(vec![claude_source_status(), crate::config::root::get_codex_source_status()])
+    Ok(vec![
+        claude_source_status(),
+        crate::config::root::get_codex_source_status(),
+    ])
 }
 
 #[tauri::command(rename_all = "camelCase")]
@@ -549,8 +562,15 @@ pub fn read_source_history_page(
     }
     let limit = validate_source_limit(limit)?;
     let root = claude_dir()?;
-    let revision = crate::config::root::source_revision(&root).unwrap_or_else(|| "unknown".to_string());
-    let cursor = decode_source_cursor(cursor.as_deref(), SourceKind::Claude, "history", &revision, None)?;
+    let revision =
+        crate::config::root::source_revision(&root).unwrap_or_else(|| "unknown".to_string());
+    let cursor = decode_source_cursor(
+        cursor.as_deref(),
+        SourceKind::Claude,
+        "history",
+        &revision,
+        None,
+    )?;
     let page = history_reader::read_history_page(
         &root.to_string_lossy(),
         cursor.before,
@@ -594,6 +614,8 @@ pub fn read_source_history_page(
         total_matched: Some(page.total_matched),
         scan_limited: false,
         diagnostics: Vec::new(),
+        revision: None,
+        session: None,
     })
 }
 
@@ -609,8 +631,15 @@ pub fn list_source_transcripts(
     }
     let limit = validate_source_limit(limit)?;
     let root = claude_dir()?;
-    let revision = crate::config::root::source_revision(&root).unwrap_or_else(|| "unknown".to_string());
-    let cursor = decode_source_cursor(cursor.as_deref(), SourceKind::Claude, "transcripts", &revision, None)?;
+    let revision =
+        crate::config::root::source_revision(&root).unwrap_or_else(|| "unknown".to_string());
+    let cursor = decode_source_cursor(
+        cursor.as_deref(),
+        SourceKind::Claude,
+        "transcripts",
+        &revision,
+        None,
+    )?;
     let files = claude_read::list_dir_files(&root.to_string_lossy(), "transcripts", "jsonl")?;
     let items = files
         .into_iter()
@@ -649,6 +678,8 @@ pub fn list_source_transcripts(
         total_matched: Some(items.len()),
         scan_limited: false,
         diagnostics: Vec::new(),
+        revision: None,
+        session: None,
     })
 }
 
@@ -676,8 +707,15 @@ fn read_source_transcript_impl(
     }
     let limit = validate_source_limit(limit)?;
     let root = claude_dir()?;
-    let revision = crate::config::root::source_revision(&root).unwrap_or_else(|| "unknown".to_string());
-    let cursor = decode_source_cursor(cursor.as_deref(), SourceKind::Claude, "transcript", &revision, Some(&id))?;
+    let revision =
+        crate::config::root::source_revision(&root).unwrap_or_else(|| "unknown".to_string());
+    let cursor = decode_source_cursor(
+        cursor.as_deref(),
+        SourceKind::Claude,
+        "transcript",
+        &revision,
+        Some(&id),
+    )?;
     let records = transcripts_reader::read_transcript(&root.to_string_lossy(), &id)?;
     let events = records
         .into_iter()
@@ -724,6 +762,8 @@ fn read_source_transcript_impl(
         total_matched: Some(events.len()),
         scan_limited: false,
         diagnostics: Vec::new(),
+        revision: None,
+        session: None,
     })
 }
 
@@ -735,6 +775,7 @@ pub fn read_source_session(
     limit: usize,
 ) -> Result<InspectorPage<InspectorEvent>, String> {
     if source_kind == SourceKind::Codex {
+        validate_source_session_id(&id)?;
         validate_source_cursor(cursor.as_deref())?;
         validate_source_event_limit(limit)?;
         return codex_reader::read_session(&id, cursor.as_deref(), limit);
@@ -743,9 +784,7 @@ pub fn read_source_session(
 }
 
 #[tauri::command(rename_all = "camelCase")]
-pub fn list_source_task_graphs(
-    source_kind: SourceKind,
-) -> Result<InspectorTaskGraphList, String> {
+pub fn list_source_task_graphs(source_kind: SourceKind) -> Result<InspectorTaskGraphList, String> {
     if source_kind == SourceKind::Codex {
         return codex_reader::list_task_graphs();
     }
@@ -758,6 +797,7 @@ pub fn list_source_task_graphs(
             task_count: graph.task_count,
             latest_mtime: graph.latest_mtime,
             source: SourceKind::Claude,
+            provenance: None,
         })
         .collect();
     Ok(InspectorTaskGraphList {
@@ -778,12 +818,22 @@ pub fn read_source_task_graph(
     let root = claude_dir()?;
     let nodes = task_graph_reader::read_task_graph(&root.to_string_lossy(), &id)?
         .into_iter()
-        .filter_map(|node| serde_json::to_value(node).ok())
+        .map(|node| InspectorTaskNode {
+            id: node.id,
+            subject: node.subject,
+            description: node.description,
+            active_form: node.active_form,
+            status: node.status,
+            blocks: node.blocks,
+            blocked_by: node.blocked_by,
+            provenance: None,
+        })
         .collect();
     Ok(InspectorTaskGraphResult {
         id,
         nodes,
         capability: claude_task_graph_capability(),
+        provenance: None,
     })
 }
 
@@ -836,12 +886,21 @@ fn validate_source_transcript_id(id: &str) -> Result<(), String> {
     Ok(())
 }
 
+fn validate_source_session_id(id: &str) -> Result<(), String> {
+    if id.is_empty() || id.len() > 512 || id.contains('\0') {
+        return Err("source session id is invalid".to_string());
+    }
+    if id.ends_with(".jsonl") {
+        return validate_source_transcript_id(id);
+    }
+    if id.contains('/') || id.contains('\\') || id.contains("..") {
+        return Err("source session id must be a bare identifier or rollout path".to_string());
+    }
+    Ok(())
+}
+
 fn validate_source_task_graph_id(id: &str) -> Result<(), String> {
-    if id.is_empty()
-        || id.len() > 512
-        || id.contains('/')
-        || id.contains('\\')
-        || id.contains('\0')
+    if id.is_empty() || id.len() > 512 || id.contains('/') || id.contains('\\') || id.contains('\0')
     {
         return Err("source task graph id is invalid".to_string());
     }
@@ -876,8 +935,8 @@ fn decode_source_cursor(
     let bytes = URL_SAFE_NO_PAD
         .decode(encoded)
         .map_err(|_| "cursor is invalid".to_string())?;
-    let cursor: SourceCursor = serde_json::from_slice(&bytes)
-        .map_err(|_| "cursor is invalid".to_string())?;
+    let cursor: SourceCursor =
+        serde_json::from_slice(&bytes).map_err(|_| "cursor is invalid".to_string())?;
     if cursor.version != 1
         || cursor.source != source
         || cursor.operation != operation
@@ -952,5 +1011,41 @@ fn claude_task_graph_capability() -> TaskGraphCapability {
         state: TaskGraphCapabilityState::Available,
         reason: "Claude Task Graph files are available".to_string(),
         diagnostics: Vec::<Diagnostic>::new(),
+    }
+}
+
+#[cfg(test)]
+mod inspector_command_tests {
+    use super::*;
+
+    #[test]
+    fn source_session_ids_accept_bare_ids_and_rollout_paths() {
+        assert!(validate_source_session_id("session-1").is_ok());
+        assert!(validate_source_session_id("sessions/2026/rollout-session.jsonl").is_ok());
+        assert!(validate_source_session_id("../session-1").is_err());
+        assert!(validate_source_session_id("/tmp/session-1").is_err());
+        assert!(validate_source_session_id("session/1").is_err());
+        assert!(validate_source_session_id("session\0").is_err());
+    }
+
+    #[test]
+    fn source_cursors_reject_wrong_source_and_revision() {
+        let encoded = encode_source_cursor(&SourceCursor {
+            version: 1,
+            source: SourceKind::Codex,
+            operation: "history".to_string(),
+            revision: "rev-1".to_string(),
+            offset: 1,
+            before: None,
+            id: None,
+        });
+        assert!(
+            decode_source_cursor(Some(&encoded), SourceKind::Claude, "history", "rev-1", None,)
+                .is_err()
+        );
+        assert!(
+            decode_source_cursor(Some(&encoded), SourceKind::Codex, "history", "rev-2", None,)
+                .is_err()
+        );
     }
 }

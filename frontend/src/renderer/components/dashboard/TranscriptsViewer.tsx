@@ -4,6 +4,7 @@ import { CodeBlockViewer } from '@renderer/components/chat/viewers';
 import { Button } from '@renderer/components/ui/button';
 import { useStore } from '@renderer/store';
 import { InspectorSourceSelector } from './InspectorSourceSelector';
+import { InspectorEventCard } from './InspectorEventList';
 import { cn } from '@renderer/lib/utils';
 import { formatBytes } from '@renderer/utils/formatters';
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -60,17 +61,27 @@ export const TranscriptsViewer = (): JSX.Element => {
   const setInspectorCache = useStore((state) => state.setInspectorCache);
   const [transcripts, setTranscripts] = useState<InspectorTranscriptMeta[]>([]);
   const [listLoading, setListLoading] = useState(true);
+  const [listLoadingMore, setListLoadingMore] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
+  const [listNextCursor, setListNextCursor] = useState<string | null>(null);
+  const [listHasMore, setListHasMore] = useState(false);
+  const [listDiagnostics, setListDiagnostics] = useState<string[]>([]);
+  const [listScanLimited, setListScanLimited] = useState(false);
 
   const [selectedName, setSelectedName] = useState<string | null>(null);
   const [records, setRecords] = useState<(InspectorEvent | TranscriptRecord)[] | null>(null);
   const [recordsLoading, setRecordsLoading] = useState(false);
+  const [recordsLoadingMore, setRecordsLoadingMore] = useState(false);
   const [recordsError, setRecordsError] = useState<string | null>(null);
+  const [recordsNextCursor, setRecordsNextCursor] = useState<string | null>(null);
+  const [recordsHasMore, setRecordsHasMore] = useState(false);
+  const [recordsDiagnostics, setRecordsDiagnostics] = useState<string[]>([]);
+  const [recordsScanLimited, setRecordsScanLimited] = useState(false);
 
   const parentRef = useRef<HTMLDivElement>(null);
   const requestGenerationRef = useRef(0);
 
-  const loadList = async (): Promise<void> => {
+  const loadList = async (cursor: string | null = null, append = false): Promise<void> => {
     const requestGeneration = ++requestGenerationRef.current;
     const source = inspectorSource;
     const sourceGeneration = inspectorSourceGeneration;
@@ -78,23 +89,35 @@ export const TranscriptsViewer = (): JSX.Element => {
       requestGeneration === requestGenerationRef.current &&
       useStore.getState().inspectorSource === source &&
       useStore.getState().inspectorSourceGeneration === sourceGeneration;
-    setListLoading(true);
+    setListLoading(!append);
+    setListLoadingMore(append);
     setListError(null);
     try {
-      const cacheKey = getInspectorCacheKey(source, 'transcripts', undefined, null, '100');
-      const cached = getInspectorCache<InspectorPage<InspectorTranscriptMeta>>(cacheKey);
+      const cacheKey = getInspectorCacheKey(source, 'transcripts', undefined, cursor, '100');
+      const cached = cursor ? getInspectorCache<InspectorPage<InspectorTranscriptMeta>>(cacheKey) : undefined;
       const page =
         cached ??
         (source === 'claude'
           ? toTranscriptPage(await api.listTranscripts())
-          : await api.listSourceTranscripts(source, null, 100));
+          : await api.listSourceTranscripts(source, cursor, 100));
       if (!isCurrent()) return;
       if (!cached) setInspectorCache(cacheKey, page);
-      setTranscripts(page.items);
+      setTranscripts((current) => {
+        if (!append) return page.items;
+        const existing = new Set(current.map((transcript) => transcript.id));
+        return [...current, ...page.items.filter((transcript) => !existing.has(transcript.id))];
+      });
+      setListNextCursor(page.nextCursor);
+      setListHasMore(page.hasMore);
+      setListDiagnostics(page.diagnostics.map((diagnostic) => diagnostic.message));
+      setListScanLimited(page.scanLimited);
     } catch (err) {
       if (isCurrent()) setListError(errText(err));
     } finally {
-      if (isCurrent()) setListLoading(false);
+      if (isCurrent()) {
+        setListLoading(false);
+        setListLoadingMore(false);
+      }
     }
   };
 
@@ -102,6 +125,14 @@ export const TranscriptsViewer = (): JSX.Element => {
     void loadList();
     setSelectedName(null);
     setRecords(null);
+    setListNextCursor(null);
+    setListHasMore(false);
+    setListDiagnostics([]);
+    setListScanLimited(false);
+    setRecordsNextCursor(null);
+    setRecordsHasMore(false);
+    setRecordsDiagnostics([]);
+    setRecordsScanLimited(false);
   }, [inspectorSource, inspectorSourceGeneration]);
 
   const selectTranscript = async (name: string): Promise<void> => {
@@ -115,6 +146,10 @@ export const TranscriptsViewer = (): JSX.Element => {
     setSelectedName(name);
     setRecords(null);
     setRecordsError(null);
+    setRecordsNextCursor(null);
+    setRecordsHasMore(false);
+    setRecordsDiagnostics([]);
+    setRecordsScanLimited(false);
     setRecordsLoading(true);
     try {
       if (source === 'claude') {
@@ -123,16 +158,72 @@ export const TranscriptsViewer = (): JSX.Element => {
         setRecords(legacyRecords);
       } else {
         const cacheKey = getInspectorCacheKey(source, 'transcript', name, null, '200');
-        const cached = getInspectorCache<InspectorPage<InspectorEvent>>(cacheKey);
-        const page = cached ?? (await api.readSourceTranscript(source, name, null, 200));
+        const page = await api.readSourceTranscript(source, name, null, 200);
         if (!isCurrent()) return;
-        if (!cached) setInspectorCache(cacheKey, page);
+        setInspectorCache(cacheKey, page);
         setRecords(page.items);
+        setRecordsNextCursor(page.nextCursor);
+        setRecordsHasMore(page.hasMore);
+        setRecordsDiagnostics(page.diagnostics.map((diagnostic) => diagnostic.message));
+        setRecordsScanLimited(page.scanLimited);
       }
     } catch (err) {
       if (isCurrent()) setRecordsError(errText(err));
     } finally {
       if (isCurrent()) setRecordsLoading(false);
+    }
+  };
+
+  const loadMoreRecords = async (): Promise<void> => {
+    if (inspectorSource !== 'codex' || !selectedName || !recordsNextCursor || !recordsHasMore) {
+      return;
+    }
+    const requestGeneration = ++requestGenerationRef.current;
+    const source = inspectorSource;
+    const sourceGeneration = inspectorSourceGeneration;
+    const cursor = recordsNextCursor;
+    const isCurrent = (): boolean =>
+      requestGeneration === requestGenerationRef.current &&
+      useStore.getState().inspectorSource === source &&
+      useStore.getState().inspectorSourceGeneration === sourceGeneration;
+    const cacheKey = getInspectorCacheKey(source, 'transcript', selectedName, cursor, '200');
+    setRecordsLoadingMore(true);
+    try {
+      const cached = getInspectorCache<InspectorPage<InspectorEvent>>(cacheKey);
+      const page = cached ?? (await api.readSourceTranscript(source, selectedName, cursor, 200));
+      if (!isCurrent()) return;
+      if (!cached) setInspectorCache(cacheKey, page);
+      setRecords((current) => {
+        const existing = new Set(
+          (current ?? []).map((record) =>
+            'provenance' in record
+              ? `${record.provenance.sourceFile}:${record.provenance.line ?? ''}:${record.kind}`
+              : `${record.kind}:${record.timestamp ?? ''}`
+          )
+        );
+        return [
+          ...(current ?? []),
+          ...page.items.filter((event) => {
+            const key = `${event.provenance.sourceFile}:${event.provenance.line ?? ''}:${event.kind}`;
+            if (existing.has(key)) return false;
+            existing.add(key);
+            return true;
+          }),
+        ];
+      });
+      setRecordsNextCursor(page.nextCursor);
+      setRecordsHasMore(page.hasMore);
+      setRecordsDiagnostics((current) => [
+        ...current,
+        ...page.diagnostics
+          .map((diagnostic) => diagnostic.message)
+          .filter((message) => !current.includes(message)),
+      ]);
+      setRecordsScanLimited((current) => current || page.scanLimited);
+    } catch (err) {
+      if (isCurrent()) setRecordsError(errText(err));
+    } finally {
+      if (isCurrent()) setRecordsLoadingMore(false);
     }
   };
 
@@ -217,6 +308,30 @@ export const TranscriptsViewer = (): JSX.Element => {
               })}
             </div>
           )}
+          {listDiagnostics.length > 0 ? (
+            <div role="status" className="border-border m-2 rounded-md border px-2 py-1.5">
+              <p className="text-amber-500 text-[10px] font-medium">Read warnings</p>
+              <ul className="text-muted-foreground mt-1 list-disc pl-3 text-[10px]">
+                {listDiagnostics.map((diagnostic) => <li key={diagnostic}>{diagnostic}</li>)}
+              </ul>
+            </div>
+          ) : null}
+          {listScanLimited ? (
+            <p role="status" className="text-muted-foreground px-3 py-2 text-[10px]">
+              Transcript discovery stopped at the read safety limit.
+            </p>
+          ) : null}
+          {listHasMore ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="m-2"
+              disabled={listLoadingMore}
+              onClick={() => void loadList(listNextCursor, true)}
+            >
+              {listLoadingMore ? 'Loading…' : 'Load more transcripts'}
+            </Button>
+          ) : null}
         </div>
 
         <div className="min-w-0 flex-1 overflow-y-auto">
@@ -225,6 +340,11 @@ export const TranscriptsViewer = (): JSX.Element => {
             records={records}
             loading={recordsLoading}
             error={recordsError}
+            hasMore={recordsHasMore}
+            loadingMore={recordsLoadingMore}
+            diagnostics={recordsDiagnostics}
+            scanLimited={recordsScanLimited}
+            onLoadMore={() => void loadMoreRecords()}
           />
         </div>
       </div>
@@ -262,6 +382,11 @@ interface TranscriptDetailProps {
   records: (InspectorEvent | TranscriptRecord)[] | null;
   loading: boolean;
   error: string | null;
+  hasMore: boolean;
+  loadingMore: boolean;
+  diagnostics: string[];
+  scanLimited: boolean;
+  onLoadMore: () => void;
 }
 
 const TranscriptDetail = ({
@@ -269,6 +394,11 @@ const TranscriptDetail = ({
   records,
   loading,
   error,
+  hasMore,
+  loadingMore,
+  diagnostics,
+  scanLimited,
+  onLoadMore,
 }: Readonly<TranscriptDetailProps>): JSX.Element => {
   if (!selectedName) {
     return (
@@ -302,15 +432,33 @@ const TranscriptDetail = ({
   }
   return (
     <div className="flex flex-col gap-3 p-4">
+      {diagnostics.length > 0 ? (
+        <div role="status" className="border-border rounded-md border bg-amber-500/10 px-3 py-2">
+          <p className="text-amber-500 text-[10px] font-medium">Read warnings</p>
+          <ul className="text-muted-foreground mt-1 list-disc pl-4 text-[10px]">
+            {diagnostics.map((diagnostic) => <li key={diagnostic}>{diagnostic}</li>)}
+          </ul>
+        </div>
+      ) : null}
+      {scanLimited ? (
+        <p role="status" className="text-muted-foreground text-[10px]">
+          This transcript is truncated at the read safety limit.
+        </p>
+      ) : null}
       {records.map((record, index) => (
         <div key={index}>
           {isLegacyRecord(record) ? (
             <LegacyTranscriptRecordCard record={record} />
           ) : (
-            <TranscriptRecordCard record={record} />
+            <InspectorEventCard event={record} />
           )}
         </div>
       ))}
+      {hasMore ? (
+        <Button variant="outline" size="sm" disabled={loadingMore} onClick={onLoadMore}>
+          {loadingMore ? 'Loading…' : 'Load more events'}
+        </Button>
+      ) : null}
     </div>
   );
 };
@@ -391,69 +539,6 @@ const LegacyTranscriptRecordCard = ({
         timestamp={timestamp}
         truncated={record.truncated}
       />
-    </div>
-  );
-};
-
-const TranscriptRecordCard = ({ record }: Readonly<{ record: InspectorEvent }>): JSX.Element => {
-  const timestamp = record.timestamp ? new Date(record.timestamp).toLocaleString() : null;
-
-  if (record.role === 'user' || record.kind === 'user_message' || record.kind === 'user') {
-    return (
-      <div className="border-border bg-card/40 rounded-md border p-3">
-        <RecordHeader label="User" timestamp={timestamp} truncated={record.truncated} />
-        {/* Untrusted pasted text: plain JSX interpolation escapes it. Never
-            dangerouslySetInnerHTML / rehype-raw here — a Tauri-webview XSS
-            escalates to the Rust FS commands. */}
-        <p className="text-foreground mt-1.5 text-xs whitespace-pre-wrap break-words">
-          {record.content ?? '(empty message)'}
-        </p>
-      </div>
-    );
-  }
-
-  if (record.toolName && record.toolOutputSize === null) {
-    return (
-      <div className="border-border bg-card/40 rounded-md border p-3">
-        <RecordHeader
-          label={`Tool call · ${record.toolName ?? 'unknown'}`}
-          timestamp={timestamp}
-          truncated={record.truncated}
-        />
-        <div className="text-muted-foreground mt-1.5 text-xs">
-          Input withheld; shape: {record.toolInputShape ?? 'unknown'}.
-        </div>
-      </div>
-    );
-  }
-
-  if (record.toolName && record.toolOutputSize !== null) {
-    return (
-      <div className="border-border bg-card/40 rounded-md border p-3">
-        <RecordHeader
-          label={`Tool result · ${record.toolName ?? 'unknown'}`}
-          timestamp={timestamp}
-          truncated={record.truncated}
-        />
-        <div className="text-muted-foreground mt-1.5 text-xs">
-          Output withheld; recorded size: {record.toolOutputSize.toLocaleString()} bytes.
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="border-border bg-card/40 rounded-md border p-3">
-      <RecordHeader
-        label={`Unknown · ${record.kind || '(empty)'}`}
-        timestamp={timestamp}
-        truncated={record.truncated}
-      />
-      {record.content ? (
-        <p className="text-muted-foreground mt-1.5 text-xs whitespace-pre-wrap break-words">
-          {record.content}
-        </p>
-      ) : null}
     </div>
   );
 };

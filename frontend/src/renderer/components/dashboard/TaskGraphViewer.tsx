@@ -33,6 +33,8 @@ export const TaskGraphViewer = (): JSX.Element => {
   const simple = mode === 'simple';
   const inspectorSource = useStore((state) => state.inspectorSource);
   const inspectorSourceGeneration = useStore((state) => state.inspectorSourceGeneration);
+  const inspectorSelectedTaskGraphId = useStore((state) => state.inspectorSelectedTaskGraphId);
+  const setInspectorTaskGraphSelection = useStore((state) => state.setInspectorTaskGraphSelection);
   const getInspectorCacheKey = useStore((state) => state.getInspectorCacheKey);
   const getInspectorCache = useStore((state) => state.getInspectorCache);
   const setInspectorCache = useStore((state) => state.setInspectorCache);
@@ -42,9 +44,11 @@ export const TaskGraphViewer = (): JSX.Element => {
   const [selectedUuid, setSelectedUuid] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'graph' | 'outline'>('graph');
   const [capabilityReason, setCapabilityReason] = useState<string | null>(null);
+  const [diagnostics, setDiagnostics] = useState<string[]>([]);
+  const [refreshGeneration, setRefreshGeneration] = useState(0);
   const requestGenerationRef = useRef(0);
 
-  const loadList = async (): Promise<void> => {
+  const loadList = async (forceRefresh = false): Promise<void> => {
     const requestGeneration = ++requestGenerationRef.current;
     const source = inspectorSource;
     const sourceGeneration = inspectorSourceGeneration;
@@ -55,9 +59,10 @@ export const TaskGraphViewer = (): JSX.Element => {
     setListLoading(true);
     setListError(null);
     setCapabilityReason(null);
+    setDiagnostics([]);
     try {
       const cacheKey = getInspectorCacheKey(source, 'taskGraphs');
-      const cached = getInspectorCache<InspectorTaskGraphList>(cacheKey);
+      const cached = forceRefresh ? undefined : getInspectorCache<InspectorTaskGraphList>(cacheKey);
       const result = cached ?? (await api.listSourceTaskGraphs(source));
       if (!isCurrent()) return;
       if (!cached) setInspectorCache(cacheKey, result);
@@ -65,10 +70,20 @@ export const TaskGraphViewer = (): JSX.Element => {
       setCapabilityReason(
         result.capability.state === 'available' ? null : result.capability.reason
       );
+      const diagnostics = result.capability.diagnostics.map((diagnostic) => diagnostic.message);
+      if (
+        result.capability.state === 'available' &&
+        result.capability.reason !== 'Codex task graph data is available'
+      ) {
+        diagnostics.unshift(result.capability.reason);
+      }
+      setDiagnostics([...new Set(diagnostics)]);
       setSelectedUuid((current) =>
-        current && result.items.some((g) => g.id === current)
-          ? current
-          : (result.items[0]?.id ?? null)
+        inspectorSelectedTaskGraphId && result.items.some((g) => g.id === inspectorSelectedTaskGraphId)
+          ? inspectorSelectedTaskGraphId
+          : current && result.items.some((g) => g.id === current)
+            ? current
+            : (result.items[0]?.id ?? null)
       );
     } catch (err) {
       if (isCurrent()) setListError(errText(err));
@@ -82,6 +97,15 @@ export const TaskGraphViewer = (): JSX.Element => {
     void loadList();
   }, [inspectorSource, inspectorSourceGeneration]);
 
+  useEffect(() => {
+    if (
+      inspectorSelectedTaskGraphId &&
+      graphs.some((graph) => graph.id === inspectorSelectedTaskGraphId)
+    ) {
+      setSelectedUuid(inspectorSelectedTaskGraphId);
+    }
+  }, [graphs, inspectorSelectedTaskGraphId]);
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="border-border/50 flex shrink-0 items-start justify-between gap-2 border-b px-4 py-3">
@@ -90,14 +114,24 @@ export const TaskGraphViewer = (): JSX.Element => {
             {simple ? 'How tasks connect' : 'Task Graph'}
           </p>
           <p className="text-muted-foreground mt-0.5 text-xs">
-            {simple
-              ? 'When Claude splits work between helpers, this shows what ran and in what order.'
+            {simple && inspectorSource === 'codex'
+              ? 'Read-only Codex task state, when compatible task files are available.'
+              : simple
+                ? 'When Claude splits work between helpers, this shows what ran and in what order.'
               : `Read-only view of background task state under ~/${inspectorSource === 'codex' ? '.codex' : '.claude'}/tasks. Nothing here writes.`}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <InspectorSourceSelector />
-          <Button variant="outline" size="sm" disabled={listLoading} onClick={() => void loadList()}>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={listLoading}
+            onClick={() => {
+              setRefreshGeneration((current) => current + 1);
+              void loadList(true);
+            }}
+          >
             <RefreshCw className={cn('size-3.5', listLoading && 'animate-spin')} />
             Refresh
           </Button>
@@ -113,6 +147,19 @@ export const TaskGraphViewer = (): JSX.Element => {
         </div>
       )}
 
+      {diagnostics.length > 0 ? (
+        <div role="status" className="border-border bg-amber-500/10 shrink-0 border-b px-4 py-2">
+          <p className="text-amber-500 text-[10px] font-medium">
+            Some task graph details need review
+          </p>
+          <ul className="text-muted-foreground mt-1 list-disc pl-4 text-[10px]">
+            {diagnostics.map((diagnostic) => (
+              <li key={diagnostic}>{diagnostic}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <div className="flex flex-1 overflow-hidden">
         <div
           aria-label={simple ? 'Task groups' : 'Task graphs'}
@@ -127,9 +174,11 @@ export const TaskGraphViewer = (): JSX.Element => {
               <Workflow className="text-muted-foreground size-6 opacity-50" />
               <p className="text-muted-foreground text-xs">
                 {capabilityReason ??
-                  (simple
-                    ? 'Nothing to show yet. This is normal when Claude has not handed work to a helper.'
-                    : `No active task graphs found under ~/${inspectorSource === 'codex' ? '.codex' : '.claude'}/tasks.`)}
+                  (inspectorSource === 'codex'
+                    ? 'No compatible Codex task graphs found under ~/.codex/tasks.'
+                    : simple
+                      ? 'Nothing to show yet. This is normal when Claude has not handed work to a helper.'
+                      : 'No active task graphs found under ~/.claude/tasks.')}
               </p>
             </div>
           ) : (
@@ -141,6 +190,7 @@ export const TaskGraphViewer = (): JSX.Element => {
                 selected={graph.id === selectedUuid}
                 onSelect={() => {
                   setSelectedUuid(graph.id);
+                  setInspectorTaskGraphSelection(graph.id);
                   setViewMode('graph');
                 }}
               />
@@ -154,6 +204,7 @@ export const TaskGraphViewer = (): JSX.Element => {
               uuid={selectedUuid}
               sourceKind={inspectorSource}
               simple={simple}
+              refreshGeneration={refreshGeneration}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
             />
@@ -206,12 +257,14 @@ const TaskGraphDetail = ({
   uuid,
   sourceKind,
   simple,
+  refreshGeneration,
   viewMode,
   onViewModeChange,
 }: Readonly<{
   uuid: string;
   sourceKind: 'claude' | 'codex';
   simple: boolean;
+  refreshGeneration: number;
   viewMode: 'graph' | 'outline';
   onViewModeChange: (viewMode: 'graph' | 'outline') => void;
 }>): JSX.Element => {
@@ -234,7 +287,13 @@ const TaskGraphDetail = ({
       setLoading(true);
       setError(null);
       try {
-        const cacheKey = getInspectorCacheKey(sourceKind, 'taskGraph', uuid);
+        const cacheKey = getInspectorCacheKey(
+          sourceKind,
+          'taskGraph',
+          uuid,
+          undefined,
+          String(refreshGeneration)
+        );
         const cached = getInspectorCache<InspectorTaskGraphResult>(cacheKey);
         const result = cached ?? (await api.readSourceTaskGraph(sourceKind, uuid));
         if (!cached) setInspectorCache(cacheKey, result);
@@ -256,7 +315,7 @@ const TaskGraphDetail = ({
     return () => {
       cancelled = true;
     };
-  }, [sourceKind, uuid, inspectorSourceGeneration]);
+  }, [sourceKind, uuid, inspectorSourceGeneration, refreshGeneration]);
 
   if (loading) {
     return (

@@ -47,6 +47,19 @@ function errText(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
+function historyEntryKey(entry: DisplayHistoryEntry): string {
+  if (entry.source === 'codex' && entry.provenance.line !== undefined) {
+    return `${entry.provenance.sourceFile}:${entry.provenance.line}`;
+  }
+  return JSON.stringify([
+    entry.source,
+    entry.sessionId ?? '',
+    entry.timestamp,
+    entry.project,
+    entry.display,
+  ]);
+}
+
 // Read-only view of ~/.claude/history.jsonl prompt/command history. Pages
 // load newest-first via a `before` timestamp cursor (append-safe: a
 // positional offset would skip/duplicate rows as the file grows live).
@@ -67,6 +80,8 @@ export const HistoryBrowser = (): JSX.Element => {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [diagnostics, setDiagnostics] = useState<string[]>([]);
+  const [scanLimited, setScanLimited] = useState(false);
 
   const [searchInput, setSearchInput] = useState('');
   const [projectFilter, setProjectFilter] = useState(ALL_PROJECTS);
@@ -101,16 +116,33 @@ export const HistoryBrowser = (): JSX.Element => {
       useStore.getState().inspectorSource === source &&
       useStore.getState().inspectorSourceGeneration === sourceGeneration;
     try {
-      const cached = getInspectorCache<InspectorPage<InspectorHistoryEntry>>(cacheKey);
+      const cached = replace
+        ? undefined
+        : getInspectorCache<InspectorPage<InspectorHistoryEntry>>(cacheKey);
       const page =
         cached ?? (await api.readSourceHistoryPage(source, cursor, PAGE_SIZE, query));
       if (!isCurrent()) return;
       if (!cached) setInspectorCache(cacheKey, page);
       const mappedEntries = page.items.map(mapEntry);
-      setEntries((prev) => (replace ? mappedEntries : [...prev, ...mappedEntries]));
+      setEntries((prev) => {
+        if (replace) return mappedEntries;
+        const existing = new Set(prev.map(historyEntryKey));
+        return [...prev, ...mappedEntries.filter((entry) => !existing.has(historyEntryKey(entry)))];
+      });
       setTotalMatched(page.totalMatched ?? 0);
       setHasMore(page.hasMore);
       setNextCursor(page.nextCursor);
+      setDiagnostics((current) =>
+        replace
+          ? page.diagnostics.map((diagnostic) => diagnostic.message)
+          : [
+              ...current,
+              ...page.diagnostics
+                .map((diagnostic) => diagnostic.message)
+                .filter((message) => !current.includes(message)),
+            ]
+      );
+      setScanLimited((current) => (replace ? page.scanLimited : current || page.scanLimited));
     } catch (err) {
       if (!isCurrent()) return;
       setError(errText(err));
@@ -127,6 +159,8 @@ export const HistoryBrowser = (): JSX.Element => {
     setError(null);
     setSelected(null);
     setProjectFilter(ALL_PROJECTS);
+    setDiagnostics([]);
+    setScanLimited(false);
 
     const trimmed = searchInput.trim();
     const handle = setTimeout(() => {
@@ -141,6 +175,8 @@ export const HistoryBrowser = (): JSX.Element => {
     setError(null);
     setSelected(null);
     setNextCursor(null);
+    setDiagnostics([]);
+    setScanLimited(false);
     void loadPage(null, searchInput.trim() || undefined, true);
   };
 
@@ -255,6 +291,20 @@ export const HistoryBrowser = (): JSX.Element => {
         </div>
       )}
 
+      {diagnostics.length > 0 ? (
+        <div role="status" className="border-border/50 bg-amber-500/10 shrink-0 border-b px-4 py-2 text-xs">
+          <p className="text-amber-500 font-medium">History read warnings</p>
+          <ul className="text-muted-foreground mt-1 list-disc pl-4 text-[10px]">
+            {diagnostics.map((diagnostic) => <li key={diagnostic}>{diagnostic}</li>)}
+          </ul>
+        </div>
+      ) : null}
+      {scanLimited ? (
+        <p role="status" className="text-muted-foreground border-border/50 shrink-0 border-b px-4 py-2 text-[10px]">
+          History scanning stopped at the read safety limit.
+        </p>
+      ) : null}
+
       <div className="flex flex-1 overflow-hidden">
         <div
           ref={parentRef}
@@ -271,8 +321,8 @@ export const HistoryBrowser = (): JSX.Element => {
               <p className="text-muted-foreground text-xs">
                 {entries.length === 0
                   ? mode === 'simple'
-                    ? 'Nothing here yet. Use Claude Code to create history entries.'
-                    : 'No history entries found.'
+                    ? `Nothing here yet. Use ${inspectorSource === 'codex' ? 'Codex' : 'Claude Code'} to create history entries.`
+                    : `No ${inspectorSource === 'codex' ? 'Codex' : 'Claude'} history entries found.`
                   : mode === 'simple'
                     ? 'Nothing found. Try a different word, or clear the folder filter.'
                     : 'No entries match this project filter.'}

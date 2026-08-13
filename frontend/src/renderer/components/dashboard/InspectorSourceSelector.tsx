@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@renderer/components/ui/select';
 
-import type { SourceKind } from '@shared/types/api';
+import type { SourceKind, TaskGraphCapabilityState } from '@shared/types/api';
 
 const SOURCE_OPTIONS: SourceKind[] = ['claude', 'codex'];
 
@@ -20,6 +20,17 @@ const SOURCE_LABELS: Record<SourceKind, string> = {
   claude: 'Claude',
   codex: 'Codex',
 };
+
+function taskGraphStateLabel(state: TaskGraphCapabilityState): string {
+  switch (state) {
+    case 'available':
+      return 'graphs available';
+    case 'missing':
+      return 'graphs missing';
+    case 'unsupportedCapability':
+      return 'graphs unsupported';
+  }
+}
 
 export function InspectorSourceSelector() {
   const {
@@ -67,6 +78,11 @@ export function InspectorSourceSelector() {
               <SelectItem key={source} value={source}>
                 <span>{SOURCE_LABELS[source]}</span>
                 <span className="text-muted-foreground">{state}</span>
+                {source === 'codex' && status ? (
+                  <span className="text-muted-foreground">
+                    {taskGraphStateLabel(status.capabilities.taskGraph.state)}
+                  </span>
+                ) : null}
               </SelectItem>
             );
           })}
@@ -75,6 +91,14 @@ export function InspectorSourceSelector() {
       {selectedStatus?.state !== 'available' && selectedStatus?.reason ? (
         <span className="text-warning max-w-56 truncate text-xs" title={selectedStatus.reason}>
           {selectedStatus.reason}
+        </span>
+      ) : null}
+      {inspectorSource === 'codex' && selectedStatus ? (
+        <span
+          className="text-muted-foreground max-w-56 truncate text-xs"
+          title={selectedStatus.capabilities.taskGraph.reason}
+        >
+          {taskGraphStateLabel(selectedStatus.capabilities.taskGraph.state)}
         </span>
       ) : null}
       {inspectorSourcesError ? (

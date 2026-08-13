@@ -45,6 +45,19 @@ export interface InspectorPage<T> {
   totalMatched: number | null;
   scanLimited: boolean;
   diagnostics: InspectorDiagnostic[];
+  revision?: string;
+  session?: InspectorSessionSummary;
+}
+
+export interface InspectorSessionSummary {
+  sessionId: string;
+  project: string;
+  transcriptId: string;
+  turnCount: number;
+  eventCount: number | null;
+  countsComplete: boolean;
+  source: SourceKind;
+  provenance: InspectorProvenance;
 }
 
 export interface InspectorHistoryEntry {
@@ -87,6 +100,7 @@ export interface InspectorTaskGraphMeta {
   taskCount: number;
   latestMtime: number;
   source: SourceKind;
+  provenance?: InspectorProvenance;
 }
 
 export interface InspectorTaskGraphList {
@@ -98,6 +112,7 @@ export interface InspectorTaskGraphResult {
   id: string;
   nodes: TaskNodeData[];
   capability: TaskGraphCapability;
+  provenance?: InspectorProvenance;
 }
 
 export interface TaskNodeData {
@@ -108,4 +123,5 @@ export interface TaskNodeData {
   status: string;
   blocks: string[];
   blockedBy: string[];
+  provenance?: InspectorProvenance;
 }

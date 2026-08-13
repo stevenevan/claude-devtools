@@ -61,6 +61,11 @@ impl Diagnostic {
         self.line = Some(line);
         self
     }
+
+    pub fn with_field(mut self, field: impl Into<String>) -> Self {
+        self.field = Some(field.into());
+        self
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -72,6 +77,22 @@ pub struct TaskGraphCapability {
 }
 
 impl TaskGraphCapability {
+    pub fn available() -> Self {
+        Self {
+            state: TaskGraphCapabilityState::Available,
+            reason: "Codex task graph data is available".to_string(),
+            diagnostics: Vec::new(),
+        }
+    }
+
+    pub fn missing(reason: impl Into<String>) -> Self {
+        Self {
+            state: TaskGraphCapabilityState::Missing,
+            reason: reason.into(),
+            diagnostics: Vec::new(),
+        }
+    }
+
     pub fn unsupported(reason: impl Into<String>) -> Self {
         Self {
             state: TaskGraphCapabilityState::UnsupportedCapability,
@@ -109,4 +130,115 @@ pub struct Provenance {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub line: Option<usize>,
     pub archived: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InspectorPage<T> {
+    pub items: Vec<T>,
+    pub next_cursor: Option<String>,
+    pub has_more: bool,
+    pub total_matched: Option<usize>,
+    pub scan_limited: bool,
+    pub diagnostics: Vec<Diagnostic>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub revision: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub session: Option<InspectorSessionSummary>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InspectorSessionSummary {
+    pub session_id: String,
+    pub project: String,
+    pub transcript_id: String,
+    pub turn_count: usize,
+    pub event_count: Option<usize>,
+    pub counts_complete: bool,
+    pub source: SourceKind,
+    pub provenance: Provenance,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InspectorHistoryEntry {
+    pub session_id: Option<String>,
+    pub display: String,
+    pub project: String,
+    pub timestamp: Option<i64>,
+    pub pasted_count: usize,
+    pub source: SourceKind,
+    pub provenance: Provenance,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InspectorTranscriptMeta {
+    pub id: String,
+    pub label: String,
+    pub size_bytes: u64,
+    pub mtime: Option<i64>,
+    pub source: SourceKind,
+    pub archived: bool,
+    pub provenance: Provenance,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InspectorEvent {
+    pub kind: String,
+    pub timestamp: Option<String>,
+    pub role: Option<String>,
+    pub content: Option<String>,
+    pub tool_name: Option<String>,
+    pub tool_id: Option<String>,
+    pub tool_input_shape: Option<String>,
+    pub tool_output_size: Option<usize>,
+    pub tool_status: Option<String>,
+    pub truncated: bool,
+    pub provenance: Provenance,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InspectorTaskGraphMeta {
+    pub id: String,
+    pub label: Option<String>,
+    pub task_count: usize,
+    pub latest_mtime: i64,
+    pub source: SourceKind,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub provenance: Option<Provenance>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InspectorTaskGraphList {
+    pub capability: TaskGraphCapability,
+    pub items: Vec<InspectorTaskGraphMeta>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InspectorTaskNode {
+    pub id: String,
+    pub subject: String,
+    pub description: String,
+    pub active_form: String,
+    pub status: String,
+    pub blocks: Vec<String>,
+    pub blocked_by: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub provenance: Option<Provenance>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InspectorTaskGraphResult {
+    pub id: String,
+    pub nodes: Vec<InspectorTaskNode>,
+    pub capability: TaskGraphCapability,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub provenance: Option<Provenance>,
 }

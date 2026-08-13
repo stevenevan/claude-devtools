@@ -52,8 +52,8 @@ pub fn projects_dir() -> Result<PathBuf, String> {
 /// error rather than a silent fallback to another directory.
 pub fn codex_dir() -> Result<PathBuf, String> {
     let home = home_dir()?;
-    let configured = std::env::var_os(CODEX_HOME_ENV)
-        .map(|value| value.to_string_lossy().into_owned());
+    let configured =
+        std::env::var_os(CODEX_HOME_ENV).map(|value| value.to_string_lossy().into_owned());
     resolve_codex_dir(configured.as_deref(), &home)
 }
 
@@ -70,8 +70,8 @@ pub fn resolve_codex_dir(configured: Option<&str>, home: &Path) -> Result<PathBu
 
 /// Returns a renderer-safe status without exposing an absolute local path.
 pub fn get_codex_source_status() -> SourceStatus {
-    let configured = std::env::var_os(CODEX_HOME_ENV)
-        .map(|value| value.to_string_lossy().into_owned());
+    let configured =
+        std::env::var_os(CODEX_HOME_ENV).map(|value| value.to_string_lossy().into_owned());
     let label = if configured
         .as_deref()
         .map(str::trim)
@@ -81,13 +81,7 @@ pub fn get_codex_source_status() -> SourceStatus {
     } else {
         "~/.codex".to_string()
     };
-    let capabilities = SourceCapabilities {
-        sessions: true,
-        transcripts: true,
-        task_graph: TaskGraphCapability::unsupported(
-            "Codex does not expose the Claude Task Graph format",
-        ),
-    };
+    let capabilities = codex_capabilities(None);
 
     let home = match home_dir() {
         Ok(home) => home,
@@ -118,14 +112,7 @@ pub fn get_codex_source_status() -> SourceStatus {
     let metadata = match std::fs::metadata(&path) {
         Ok(metadata) => metadata,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            return SourceStatus {
-                source_kind: SourceKind::Codex,
-                state: SourceState::NotFound,
-                label,
-                revision: None,
-                reason: Some("Codex data directory was not found".to_string()),
-                capabilities,
-            }
+            return missing_codex_status(label, capabilities);
         }
         Err(error) => {
             return SourceStatus {
@@ -138,6 +125,26 @@ pub fn get_codex_source_status() -> SourceStatus {
             }
         }
     };
+    classify_codex_source_status(&path, label, metadata, capabilities)
+}
+
+fn missing_codex_status(label: String, capabilities: SourceCapabilities) -> SourceStatus {
+    SourceStatus {
+        source_kind: SourceKind::Codex,
+        state: SourceState::NotFound,
+        label,
+        revision: None,
+        reason: Some("Codex data directory was not found".to_string()),
+        capabilities,
+    }
+}
+
+fn classify_codex_source_status(
+    path: &Path,
+    label: String,
+    metadata: std::fs::Metadata,
+    fallback_capabilities: SourceCapabilities,
+) -> SourceStatus {
     if !metadata.is_dir() {
         return SourceStatus {
             source_kind: SourceKind::Codex,
@@ -145,17 +152,17 @@ pub fn get_codex_source_status() -> SourceStatus {
             label,
             revision: None,
             reason: Some("Codex data root is not a directory".to_string()),
-            capabilities,
+            capabilities: fallback_capabilities,
         };
     }
-    if let Err(error) = std::fs::read_dir(&path) {
+    if let Err(error) = std::fs::read_dir(path) {
         return SourceStatus {
             source_kind: SourceKind::Codex,
             state: SourceState::Unreadable,
             label,
             revision: None,
             reason: Some(format!("cannot read Codex data directory: {error}")),
-            capabilities,
+            capabilities: fallback_capabilities,
         };
     }
 
@@ -163,9 +170,35 @@ pub fn get_codex_source_status() -> SourceStatus {
         source_kind: SourceKind::Codex,
         state: SourceState::Available,
         label,
-        revision: source_revision(&path),
+        revision: source_revision(path),
         reason: None,
-        capabilities,
+        capabilities: codex_capabilities(Some(path)),
+    }
+}
+
+fn codex_capabilities(root: Option<&Path>) -> SourceCapabilities {
+    let task_graph = match root.map(|path| path.join("tasks")) {
+        Some(path) => match std::fs::symlink_metadata(path) {
+            Ok(metadata) if metadata.file_type().is_symlink() => TaskGraphCapability::unsupported(
+                "Codex task graphs directory is not a compatible directory",
+            ),
+            Ok(metadata) if metadata.is_dir() => TaskGraphCapability::available(),
+            Ok(_) => TaskGraphCapability::unsupported(
+                "Codex task graphs directory is not a compatible directory",
+            ),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                TaskGraphCapability::missing("Codex task graphs directory was not found")
+            }
+            Err(error) => TaskGraphCapability::unsupported(format!(
+                "cannot inspect Codex task graphs directory: {error}"
+            )),
+        },
+        None => TaskGraphCapability::missing("Codex data directory was not found"),
+    };
+    SourceCapabilities {
+        sessions: true,
+        transcripts: true,
+        task_graph,
     }
 }
 
@@ -177,15 +210,20 @@ pub fn source_revision(root: &Path) -> Option<String> {
         "session_index.jsonl",
         "sessions",
         "archived_sessions",
+        "tasks",
     ] {
         let path = root.join(name);
         name.hash(&mut hasher);
         match std::fs::metadata(path) {
             Ok(metadata) => {
                 metadata.len().hash(&mut hasher);
-                metadata.modified().ok().and_then(|time| time.duration_since(UNIX_EPOCH).ok()).map(|modified| {
-                    modified.as_nanos().hash(&mut hasher);
-                });
+                metadata
+                    .modified()
+                    .ok()
+                    .and_then(|time| time.duration_since(UNIX_EPOCH).ok())
+                    .map(|modified| {
+                        modified.as_nanos().hash(&mut hasher);
+                    });
             }
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
                 0_u8.hash(&mut hasher);
@@ -262,7 +300,10 @@ mod tests {
     fn claude_dir_is_home_dot_claude() {
         let home = dirs::home_dir().unwrap();
         assert_eq!(claude_dir().unwrap(), home.join(".claude"));
-        assert_eq!(projects_dir().unwrap(), home.join(".claude").join("projects"));
+        assert_eq!(
+            projects_dir().unwrap(),
+            home.join(".claude").join("projects")
+        );
     }
 
     #[test]
@@ -270,7 +311,10 @@ mod tests {
         assert_eq!(normalize_claude_root_path(None), None);
         assert_eq!(normalize_claude_root_path(Some("   ")), None);
         assert_eq!(normalize_claude_root_path(Some("relative")), None);
-        assert_eq!(normalize_claude_root_path(Some("/a/b/")), Some("/a/b".to_string()));
+        assert_eq!(
+            normalize_claude_root_path(Some("/a/b/")),
+            Some("/a/b".to_string())
+        );
         assert_eq!(normalize_claude_root_path(Some("/")), Some("/".to_string()));
     }
 
@@ -296,5 +340,50 @@ mod tests {
             PathBuf::from("/opt/codex")
         );
         assert!(resolve_codex_dir(Some("relative"), &home).is_err());
+        assert_eq!(
+            resolve_codex_dir(Some("   "), &home).unwrap(),
+            PathBuf::from("/tmp/test-home/.codex")
+        );
+        assert_eq!(
+            resolve_codex_dir(Some("/tmp/test-home/.Codex"), &home).unwrap(),
+            PathBuf::from("/tmp/test-home/.Codex")
+        );
+    }
+
+    #[test]
+    fn codex_status_classifies_missing_file_and_available_roots() {
+        let nonce = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!("claude-codex-status-{nonce}"));
+        std::fs::create_dir_all(root.join("tasks")).unwrap();
+        let capabilities = codex_capabilities(None);
+        let missing = missing_codex_status("CODEX_HOME".to_string(), capabilities.clone());
+        assert_eq!(missing.state, SourceState::NotFound);
+
+        let file = root.with_extension("file");
+        std::fs::write(&file, "not a directory").unwrap();
+        let invalid = classify_codex_source_status(
+            &file,
+            "CODEX_HOME".to_string(),
+            std::fs::metadata(&file).unwrap(),
+            capabilities.clone(),
+        );
+        assert_eq!(invalid.state, SourceState::Invalid);
+
+        let available = classify_codex_source_status(
+            &root,
+            "CODEX_HOME".to_string(),
+            std::fs::metadata(&root).unwrap(),
+            capabilities,
+        );
+        assert_eq!(available.state, SourceState::Available);
+        assert_eq!(
+            available.capabilities.task_graph.state,
+            crate::types::source::TaskGraphCapabilityState::Available
+        );
+        let _ = std::fs::remove_dir_all(root);
+        let _ = std::fs::remove_file(file);
     }
 }

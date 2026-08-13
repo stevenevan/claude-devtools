@@ -19,7 +19,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::config::root;
-use crate::types::source::{Diagnostic, Provenance, SourceKind, TaskGraphCapability};
+use crate::types::source::{
+    Diagnostic, InspectorEvent, InspectorHistoryEntry, InspectorPage, InspectorSessionSummary,
+    InspectorTaskGraphList, InspectorTaskGraphMeta, InspectorTaskGraphResult, InspectorTaskNode,
+    InspectorTranscriptMeta, Provenance, SourceKind, TaskGraphCapability,
+};
 
 pub const MAX_PAGE_SIZE: usize = 100;
 pub const MAX_EVENT_PAGE: usize = 500;
@@ -29,85 +33,14 @@ pub const MAX_HISTORY_BASE_DEPTH: usize = 8;
 pub const MAX_CURSOR_BYTES: usize = 512;
 pub const MAX_QUERY_BYTES: usize = 4096;
 pub const MAX_FIELD_BYTES: usize = 64 * 1024;
+pub const MAX_SESSION_RESOLUTION_BYTES: u64 = 64 * 1024 * 1024;
+pub const MAX_SESSION_RESOLUTION_FILES: usize = 256;
 const MAX_SCAN_BYTES: u64 = 32 * 1024 * 1024;
 const MAX_LINE_BYTES: usize = 1024 * 1024;
 const MAX_ROLLOUT_DEPTH: usize = 6;
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct InspectorPage<T> {
-    pub items: Vec<T>,
-    pub next_cursor: Option<String>,
-    pub has_more: bool,
-    pub total_matched: Option<usize>,
-    pub scan_limited: bool,
-    pub diagnostics: Vec<Diagnostic>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct InspectorHistoryEntry {
-    pub session_id: Option<String>,
-    pub display: String,
-    pub project: String,
-    pub timestamp: Option<i64>,
-    pub pasted_count: usize,
-    pub source: SourceKind,
-    pub provenance: Provenance,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct InspectorTranscriptMeta {
-    pub id: String,
-    pub label: String,
-    pub size_bytes: u64,
-    pub mtime: Option<i64>,
-    pub source: SourceKind,
-    pub archived: bool,
-    pub provenance: Provenance,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct InspectorEvent {
-    pub kind: String,
-    pub timestamp: Option<String>,
-    pub role: Option<String>,
-    pub content: Option<String>,
-    pub tool_name: Option<String>,
-    pub tool_id: Option<String>,
-    pub tool_input_shape: Option<String>,
-    pub tool_output_size: Option<usize>,
-    pub tool_status: Option<String>,
-    pub truncated: bool,
-    pub provenance: Provenance,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct InspectorTaskGraphMeta {
-    pub id: String,
-    pub label: Option<String>,
-    pub task_count: usize,
-    pub latest_mtime: i64,
-    pub source: SourceKind,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct InspectorTaskGraphList {
-    pub capability: TaskGraphCapability,
-    pub items: Vec<InspectorTaskGraphMeta>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct InspectorTaskGraphResult {
-    pub id: String,
-    pub nodes: Vec<Value>,
-    pub capability: TaskGraphCapability,
-}
+const MAX_TASK_GRAPHS: usize = 128;
+const MAX_TASK_GRAPH_NODES: usize = 500;
+const MAX_TASK_GRAPH_BYTES: u64 = 8 * 1024 * 1024;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -118,6 +51,20 @@ struct InspectorCursor {
     revision: String,
     offset: usize,
     id: Option<String>,
+    #[serde(default)]
+    byte_offset: Option<usize>,
+    #[serde(default)]
+    event_offset: Option<usize>,
+    #[serde(default)]
+    total_events: Option<usize>,
+    #[serde(default)]
+    turn_count: Option<usize>,
+    #[serde(default)]
+    session_id: Option<String>,
+    #[serde(default)]
+    project: Option<String>,
+    #[serde(default)]
+    session_line: Option<usize>,
 }
 
 #[derive(Debug, Clone)]
@@ -153,6 +100,8 @@ pub fn read_history_page(
                     "historyMissing",
                     "Codex history.jsonl was not found",
                 )],
+                revision: Some(revision),
+                session: None,
             })
         }
         Err(error) => return Err(format!("cannot read Codex history: {error}")),
@@ -270,6 +219,13 @@ pub fn read_history_page(
             revision: revision.clone(),
             offset: page_end,
             id: None,
+            byte_offset: None,
+            event_offset: None,
+            total_events: None,
+            turn_count: None,
+            session_id: None,
+            project: None,
+            session_line: None,
         })
     });
 
@@ -281,6 +237,8 @@ pub fn read_history_page(
         total_matched,
         scan_limited: lines.truncated,
         diagnostics,
+        revision: Some(revision),
+        session: None,
     })
 }
 
@@ -324,9 +282,16 @@ pub fn list_transcripts(
             version: 1,
             source: SourceKind::Codex,
             operation: "transcripts".to_string(),
-            revision,
+            revision: revision.clone(),
             offset: page_end,
             id: None,
+            byte_offset: None,
+            event_offset: None,
+            total_events: None,
+            turn_count: None,
+            session_id: None,
+            project: None,
+            session_line: None,
         })
     });
     diagnostics.truncate(MAX_DIAGNOSTICS);
@@ -337,6 +302,8 @@ pub fn list_transcripts(
         total_matched: (!discovery_limited).then_some(files.len()),
         scan_limited: discovery_limited,
         diagnostics,
+        revision: Some(revision),
+        session: None,
     })
 }
 
@@ -345,72 +312,7 @@ pub fn read_transcript(
     cursor: Option<&str>,
     limit: usize,
 ) -> Result<InspectorPage<InspectorEvent>, String> {
-    let limit = validate_event_limit(limit)?;
-    let codex_root = root::codex_dir()?;
-    let (path, archived) = resolve_rollout(&codex_root, id)?;
-    let revision = rollout_revision(&codex_root, &path, id);
-    let offset = decode_cursor(cursor, "transcript", &revision, Some(id))?.offset;
-    let (text, scan_limited) =
-        read_capped_file(&path).map_err(|error| format!("cannot read transcript: {error}"))?;
-    let mut events = Vec::new();
-    let mut diagnostics = Vec::new();
-    let mut event_index = 0usize;
-    for (line_index, line) in text.lines().enumerate() {
-        if line.trim().is_empty() {
-            continue;
-        }
-        if line.len() > MAX_LINE_BYTES {
-            diagnostics.push(
-                Diagnostic::new("lineTooLarge", "Skipped an oversized transcript record")
-                    .at_line(line_index + 1),
-            );
-            continue;
-        }
-        let value: Value = match serde_json::from_str(line) {
-            Ok(value) => value,
-            Err(_) => {
-                diagnostics.push(
-                    Diagnostic::new("invalidJson", "Skipped an invalid transcript record")
-                        .at_line(line_index + 1),
-                );
-                continue;
-            }
-        };
-        let Some((mut event, mut event_diagnostics)) =
-            normalize_event(&value, line_index + 1, archived)
-        else {
-            continue;
-        };
-        event.provenance.source_file = id.to_string();
-        diagnostics.append(&mut event_diagnostics);
-        if event_index >= offset && events.len() < limit {
-            events.push(event);
-        }
-        event_index += 1;
-        if events.len() >= limit {
-            break;
-        }
-    }
-    let has_more = event_index < count_normalized_events(&text);
-    let next_cursor = has_more.then(|| {
-        encode_cursor(&InspectorCursor {
-            version: 1,
-            source: SourceKind::Codex,
-            operation: "transcript".to_string(),
-            revision,
-            offset: offset + events.len(),
-            id: Some(id.to_string()),
-        })
-    });
-    diagnostics.truncate(MAX_DIAGNOSTICS);
-    Ok(InspectorPage {
-        items: events,
-        next_cursor,
-        has_more,
-        total_matched: None,
-        scan_limited,
-        diagnostics,
-    })
+    read_transcript_page(id, cursor, limit, false)
 }
 
 pub fn read_session(
@@ -419,37 +321,617 @@ pub fn read_session(
     limit: usize,
 ) -> Result<InspectorPage<InspectorEvent>, String> {
     let codex_root = root::codex_dir()?;
+    let revision = root::source_revision(&codex_root).unwrap_or_else(|| "unknown".to_string());
     let rollout_id = if id.ends_with(".jsonl") {
         id.to_string()
     } else {
-        resolve_session_rollout(&codex_root, id)?
+        match resolve_session_rollout(&codex_root, id)? {
+            SessionResolution::Found(rollout_id) => rollout_id,
+            SessionResolution::Limited => {
+                return Ok(InspectorPage {
+                    items: Vec::new(),
+                    next_cursor: None,
+                    has_more: false,
+                    total_matched: None,
+                    scan_limited: true,
+                    diagnostics: vec![Diagnostic::new(
+                        "sessionResolutionLimited",
+                        "Stopped Codex session discovery at the configured scan budget",
+                    )],
+                    revision: Some(revision),
+                    session: None,
+                });
+            }
+            SessionResolution::NotFound => {
+                return Err("Codex session was not found in the bounded rollout scan".to_string());
+            }
+        }
     };
-    read_transcript(&rollout_id, cursor, limit)
+    read_transcript_page(&rollout_id, cursor, limit, true)
 }
 
-pub fn list_task_graphs() -> Result<InspectorTaskGraphList, String> {
-    let _ = root::codex_dir()?;
-    Ok(InspectorTaskGraphList {
-        capability: TaskGraphCapability::unsupported(
-            "Codex does not expose the Claude Task Graph format",
-        ),
-        items: Vec::new(),
+fn read_transcript_page(
+    id: &str,
+    cursor: Option<&str>,
+    limit: usize,
+    include_session: bool,
+) -> Result<InspectorPage<InspectorEvent>, String> {
+    let limit = validate_event_limit(limit)?;
+    let codex_root = root::codex_dir()?;
+    let (path, archived) = resolve_rollout(&codex_root, id)?;
+    let revision = rollout_revision(&codex_root, &path, id);
+    let cursor = decode_cursor(cursor, "transcript", &revision, Some(id))?;
+    let (text, scan_limited) =
+        read_capped_file(&path).map_err(|error| format!("cannot read transcript: {error}"))?;
+    let start_offset = cursor.byte_offset.unwrap_or(0);
+    if start_offset > text.len() || !text.is_char_boundary(start_offset) {
+        return Err("cursor is invalid; reload the transcript".to_string());
+    }
+    let page_start = cursor.event_offset.unwrap_or(cursor.offset);
+    let mut events = Vec::new();
+    let mut diagnostics = Vec::new();
+    let mut event_index = page_start;
+    let mut turn_count = cursor.turn_count.unwrap_or(0);
+    let mut session_id = cursor.session_id.clone();
+    let mut project = cursor.project.clone();
+    let mut session_line = cursor.session_line;
+    let mut next_byte_offset = None;
+    let mut page_complete = false;
+    let mut line_start = start_offset;
+    let mut line_index = text[..start_offset]
+        .bytes()
+        .filter(|byte| *byte == b'\n')
+        .count()
+        + 1;
+
+    for segment in text[start_offset..].split_inclusive('\n') {
+        let line_end = line_start + segment.len();
+        let line_without_newline = segment.strip_suffix('\n').unwrap_or(segment);
+        let line = line_without_newline
+            .strip_suffix('\r')
+            .unwrap_or(line_without_newline);
+        if line.trim().is_empty() {
+            line_start = line_end;
+            line_index += 1;
+            continue;
+        }
+        if line.len() > MAX_LINE_BYTES {
+            diagnostics.push(
+                Diagnostic::new("lineTooLarge", "Skipped an oversized transcript record")
+                    .at_line(line_index),
+            );
+            line_start = line_end;
+            line_index += 1;
+            continue;
+        }
+        let value: Value = match serde_json::from_str(line) {
+            Ok(value) => value,
+            Err(_) => {
+                diagnostics.push(
+                    Diagnostic::new("invalidJson", "Skipped an invalid transcript record")
+                        .at_line(line_index),
+                );
+                line_start = line_end;
+                line_index += 1;
+                continue;
+            }
+        };
+        if include_session {
+            if let Some(metadata) = session_metadata(&value) {
+                session_id = session_id.or(metadata.session_id);
+                project = project.or(metadata.project.map(|value| project_label(&value)));
+                session_line = session_line.or(Some(line_index));
+            }
+        }
+        let Some((mut event, mut event_diagnostics)) =
+            normalize_event(&value, line_index, archived)
+        else {
+            line_start = line_end;
+            line_index += 1;
+            continue;
+        };
+        event.provenance.source_file = id.to_string();
+        diagnostics.append(&mut event_diagnostics);
+        if event.role.as_deref() == Some("user") || event.kind == "user_message" {
+            turn_count = turn_count.saturating_add(1);
+        }
+        let current_index = event_index;
+        event_index = event_index.saturating_add(1);
+        if !page_complete && current_index >= page_start {
+            events.push(event);
+            if events.len() >= limit {
+                page_complete = true;
+                next_byte_offset = Some(line_end);
+            }
+        }
+        line_start = line_end;
+        line_index += 1;
+    }
+    let total_events = (!scan_limited).then_some(event_index);
+    let has_more = page_complete && event_index > page_start.saturating_add(events.len());
+    let next_cursor = has_more.then(|| {
+        encode_cursor(&InspectorCursor {
+            version: 1,
+            source: SourceKind::Codex,
+            operation: "transcript".to_string(),
+            revision: revision.clone(),
+            offset: page_start + events.len(),
+            id: Some(id.to_string()),
+            byte_offset: next_byte_offset,
+            event_offset: Some(page_start + events.len()),
+            total_events,
+            turn_count: Some(turn_count),
+            session_id: session_id.clone(),
+            project: project.clone(),
+            session_line,
+        })
+    });
+    diagnostics.truncate(MAX_DIAGNOSTICS);
+    let session = include_session.then(|| InspectorSessionSummary {
+        session_id: session_id.unwrap_or_else(|| id.to_string()),
+        project: project.unwrap_or_default(),
+        transcript_id: id.to_string(),
+        turn_count,
+        event_count: total_events,
+        counts_complete: !scan_limited,
+        source: SourceKind::Codex,
+        provenance: Provenance {
+            source_file: id.to_string(),
+            line: session_line,
+            archived,
+        },
+    });
+    Ok(InspectorPage {
+        items: events,
+        next_cursor,
+        has_more,
+        total_matched: total_events,
+        scan_limited,
+        diagnostics,
+        revision: Some(revision),
+        session,
     })
 }
 
+pub fn list_task_graphs() -> Result<InspectorTaskGraphList, String> {
+    let codex_root = root::codex_dir()?;
+    let tasks = codex_root.join("tasks");
+    let metadata = match fs::symlink_metadata(&tasks) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == io::ErrorKind::NotFound => {
+            return Ok(InspectorTaskGraphList {
+                capability: TaskGraphCapability::missing(
+                    "Codex task graphs directory was not found",
+                ),
+                items: Vec::new(),
+            });
+        }
+        Err(error) => return Err(format!("cannot inspect Codex task graphs: {error}")),
+    };
+    if metadata.file_type().is_symlink() || !metadata.is_dir() {
+        return Ok(InspectorTaskGraphList {
+            capability: TaskGraphCapability::unsupported(
+                "Codex task graphs directory is not a compatible directory",
+            ),
+            items: Vec::new(),
+        });
+    }
+
+    let mut graph_ids = Vec::new();
+    let mut diagnostics = Vec::new();
+    for entry in
+        fs::read_dir(&tasks).map_err(|error| format!("cannot read Codex task graphs: {error}"))?
+    {
+        if graph_ids.len() >= MAX_TASK_GRAPHS {
+            diagnostics.push(Diagnostic::new(
+                "taskGraphLimit",
+                "Stopped Codex task graph discovery at the configured graph limit",
+            ));
+            break;
+        }
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(error) => {
+                diagnostics.push(Diagnostic::new(
+                    "taskGraphEntryUnreadable",
+                    format!("skipped an unreadable Codex task graph entry: {error}"),
+                ));
+                continue;
+            }
+        };
+        let file_type = match entry.file_type() {
+            Ok(file_type) => file_type,
+            Err(error) => {
+                diagnostics.push(Diagnostic::new(
+                    "taskGraphMetadataUnreadable",
+                    format!("skipped a Codex task graph with unreadable metadata: {error}"),
+                ));
+                continue;
+            }
+        };
+        if file_type.is_symlink() || !file_type.is_dir() {
+            continue;
+        }
+        let id = entry.file_name().to_string_lossy().into_owned();
+        if validate_task_graph_id(&id).is_err() {
+            diagnostics.push(Diagnostic::new(
+                "invalidTaskGraphId",
+                "Skipped a Codex task graph with an unsafe identifier",
+            ));
+            continue;
+        }
+        graph_ids.push(id);
+    }
+    graph_ids.sort();
+
+    let mut items = Vec::new();
+    let mut has_files = false;
+    let mut has_nodes = false;
+    let mut scan_limited = false;
+    for id in graph_ids {
+        let graph = read_task_graph_from_root(&codex_root, &id)?;
+        has_files |= graph.has_files;
+        has_nodes |= !graph.nodes.is_empty();
+        scan_limited |= graph.scan_limited;
+        diagnostics.extend(graph.diagnostics);
+        let latest_mtime = graph.latest_mtime;
+        let label = graph
+            .nodes
+            .first()
+            .map(|node| node.subject.clone())
+            .filter(|subject| !subject.is_empty())
+            .or_else(|| {
+                graph
+                    .nodes
+                    .first()
+                    .map(|node| node.description.clone())
+                    .filter(|description| !description.is_empty())
+            });
+        items.push(InspectorTaskGraphMeta {
+            id: id.clone(),
+            label,
+            task_count: graph.nodes.len(),
+            latest_mtime,
+            source: SourceKind::Codex,
+            provenance: Some(Provenance {
+                source_file: format!("tasks/{id}"),
+                line: None,
+                archived: false,
+            }),
+        });
+    }
+    diagnostics.truncate(MAX_DIAGNOSTICS);
+    let capability = if has_nodes {
+        let mut capability = TaskGraphCapability::available();
+        if scan_limited {
+            capability.reason = "Codex task graph scan is partial".to_string();
+        }
+        capability.diagnostics = diagnostics;
+        capability
+    } else if has_files {
+        let mut capability = TaskGraphCapability::unsupported(
+            "Codex task graph files did not match the supported node format",
+        );
+        capability.diagnostics = diagnostics;
+        capability
+    } else {
+        let mut capability = TaskGraphCapability::missing("No Codex task graphs were found");
+        capability.diagnostics = diagnostics;
+        capability
+    };
+    Ok(InspectorTaskGraphList { capability, items })
+}
+
 pub fn read_task_graph(id: &str) -> Result<InspectorTaskGraphResult, String> {
+    validate_task_graph_id(id)?;
+    let codex_root = root::codex_dir()?;
+    let graph = read_task_graph_from_root(&codex_root, id)?;
+    let mut capability = if !graph.has_files {
+        TaskGraphCapability::missing("Codex task graph was not found")
+    } else if graph.nodes.is_empty() {
+        TaskGraphCapability::unsupported(
+            "Codex task graph files did not match the supported node format",
+        )
+    } else {
+        TaskGraphCapability::available()
+    };
+    if graph.scan_limited {
+        capability.reason = "Codex task graph is partial".to_string();
+    }
+    capability.diagnostics = graph.diagnostics;
+    Ok(InspectorTaskGraphResult {
+        id: id.to_string(),
+        nodes: graph.nodes,
+        capability,
+        provenance: Some(Provenance {
+            source_file: format!("tasks/{id}"),
+            line: None,
+            archived: false,
+        }),
+    })
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase", default)]
+struct RawTaskNode {
+    id: String,
+    subject: String,
+    description: String,
+    active_form: String,
+    status: String,
+    blocks: Vec<String>,
+    blocked_by: Vec<String>,
+}
+
+impl Default for RawTaskNode {
+    fn default() -> Self {
+        Self {
+            id: String::new(),
+            subject: String::new(),
+            description: String::new(),
+            active_form: String::new(),
+            status: String::new(),
+            blocks: Vec::new(),
+            blocked_by: Vec::new(),
+        }
+    }
+}
+
+struct TaskGraphRead {
+    nodes: Vec<InspectorTaskNode>,
+    diagnostics: Vec<Diagnostic>,
+    has_files: bool,
+    scan_limited: bool,
+    latest_mtime: i64,
+}
+
+fn read_task_graph_from_root(root: &Path, id: &str) -> Result<TaskGraphRead, String> {
+    let relative_dir = format!("tasks/{id}");
+    let directory = match confined_path(root, &relative_dir) {
+        Ok(path) => path,
+        Err(error) if error.kind() == io::ErrorKind::NotFound => {
+            return Ok(TaskGraphRead {
+                nodes: Vec::new(),
+                diagnostics: Vec::new(),
+                has_files: false,
+                scan_limited: false,
+                latest_mtime: 0,
+            });
+        }
+        Err(error) => return Err(format!("cannot open Codex task graph: {error}")),
+    };
+    let mut leaves = Vec::new();
+    let mut diagnostics = Vec::new();
+    let mut has_files = false;
+    let mut scan_limited = false;
+    let mut latest_mtime = 0_i64;
+    let mut visited = 0usize;
+    for entry in fs::read_dir(&directory)
+        .map_err(|error| format!("cannot read Codex task graph: {error}"))?
+    {
+        if visited >= MAX_TASK_GRAPH_NODES {
+            scan_limited = true;
+            diagnostics.push(Diagnostic::new(
+                "taskGraphLimit",
+                "Stopped Codex task graph scanning at the configured node limit",
+            ));
+            break;
+        }
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(error) => {
+                diagnostics.push(Diagnostic::new(
+                    "taskGraphEntryUnreadable",
+                    format!("skipped an unreadable Codex task graph entry: {error}"),
+                ));
+                continue;
+            }
+        };
+        let file_type = match entry.file_type() {
+            Ok(file_type) => file_type,
+            Err(error) => {
+                diagnostics.push(Diagnostic::new(
+                    "taskGraphMetadataUnreadable",
+                    format!("skipped a Codex task graph entry with unreadable metadata: {error}"),
+                ));
+                continue;
+            }
+        };
+        if file_type.is_symlink() || !file_type.is_file() {
+            continue;
+        }
+        let name = entry.file_name().to_string_lossy().into_owned();
+        let Some(number) = name
+            .strip_suffix(".json")
+            .and_then(|value| value.parse::<u32>().ok())
+        else {
+            continue;
+        };
+        has_files = true;
+        let metadata = match fs::metadata(entry.path()) {
+            Ok(metadata) => metadata,
+            Err(error) => {
+                diagnostics.push(Diagnostic::new(
+                    "taskGraphMetadataUnreadable",
+                    format!("skipped Codex task node metadata: {error}"),
+                ));
+                continue;
+            }
+        };
+        latest_mtime = latest_mtime.max(modified_ms(&metadata).unwrap_or(0));
+        leaves.push((number, name, metadata.len()));
+        visited += 1;
+    }
+    leaves.sort_by_key(|(number, _, _)| *number);
+    let mut nodes = Vec::new();
+    let mut scanned_bytes = 0_u64;
+    for (_, name, size) in leaves {
+        if scanned_bytes.saturating_add(size) > MAX_TASK_GRAPH_BYTES {
+            scan_limited = true;
+            diagnostics.push(Diagnostic::new(
+                "taskGraphByteLimit",
+                "Stopped Codex task graph scanning at the configured byte budget",
+            ));
+            break;
+        }
+        scanned_bytes = scanned_bytes.saturating_add(size);
+        let relative = format!("{relative_dir}/{name}");
+        let path = match confined_path(root, &relative) {
+            Ok(path) => path,
+            Err(error) => {
+                diagnostics.push(Diagnostic::new(
+                    "taskGraphPathRejected",
+                    format!("skipped a Codex task node outside the source root: {error}"),
+                ));
+                continue;
+            }
+        };
+        let (text, truncated) = match read_capped_file(&path) {
+            Ok(value) => value,
+            Err(error) => {
+                diagnostics.push(Diagnostic::new(
+                    "taskGraphReadFailed",
+                    format!("skipped a Codex task node because it could not be read: {error}"),
+                ));
+                continue;
+            }
+        };
+        if truncated {
+            scan_limited = true;
+            diagnostics.push(Diagnostic::new(
+                "taskGraphNodeTruncated",
+                "Skipped a Codex task node larger than the configured file budget",
+            ));
+            continue;
+        }
+        let value: Value = match serde_json::from_str(&text) {
+            Ok(value) => value,
+            Err(_) => {
+                diagnostics.push(Diagnostic::new(
+                    "invalidTaskNode",
+                    "Skipped a malformed Codex task node",
+                ));
+                continue;
+            }
+        };
+        let Some(mut node) = parse_task_node(&value, &relative, &mut diagnostics) else {
+            continue;
+        };
+        node.provenance = Some(Provenance {
+            source_file: relative,
+            line: None,
+            archived: false,
+        });
+        nodes.push(node);
+    }
+    let ids = nodes
+        .iter()
+        .map(|node| node.id.as_str())
+        .collect::<std::collections::HashSet<_>>();
+    for node in &nodes {
+        for dependency in node.blocks.iter().chain(node.blocked_by.iter()) {
+            if !ids.contains(dependency.as_str()) {
+                diagnostics.push(Diagnostic::new(
+                    "missingTaskReference",
+                    "Codex task graph edge points to a missing node",
+                ));
+            }
+        }
+    }
+    diagnostics.truncate(MAX_DIAGNOSTICS);
+    Ok(TaskGraphRead {
+        nodes,
+        diagnostics,
+        has_files,
+        scan_limited,
+        latest_mtime,
+    })
+}
+
+fn parse_task_node(
+    value: &Value,
+    source_file: &str,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Option<InspectorTaskNode> {
+    let raw: RawTaskNode = match serde_json::from_value(value.clone()) {
+        Ok(raw) => raw,
+        Err(_) => {
+            diagnostics.push(Diagnostic::new(
+                "invalidTaskNode",
+                "Codex task node fields have invalid types",
+            ));
+            return None;
+        }
+    };
+    if validate_task_node_id(&raw.id).is_err() {
+        diagnostics.push(Diagnostic::new(
+            "invalidTaskNodeId",
+            "Skipped a Codex task node with an unsafe identifier",
+        ));
+        return None;
+    }
+    let capped = |value: String, field: &str, diagnostics: &mut Vec<Diagnostic>| {
+        let (value, truncated) = safe_text(&value, MAX_FIELD_BYTES);
+        if truncated {
+            diagnostics.push(
+                Diagnostic::new("taskFieldTruncated", "Truncated a Codex task field")
+                    .with_field(field),
+            );
+        }
+        value
+    };
+    let mut blocks = Vec::new();
+    for dependency in raw.blocks {
+        if validate_task_node_id(&dependency).is_ok() {
+            blocks.push(dependency);
+        } else {
+            diagnostics.push(Diagnostic::new(
+                "invalidTaskReference",
+                "Skipped an unsafe Codex task graph edge",
+            ));
+        }
+    }
+    let mut blocked_by = Vec::new();
+    for dependency in raw.blocked_by {
+        if validate_task_node_id(&dependency).is_ok() {
+            blocked_by.push(dependency);
+        } else {
+            diagnostics.push(Diagnostic::new(
+                "invalidTaskReference",
+                "Skipped an unsafe Codex task graph edge",
+            ));
+        }
+    }
+    Some(InspectorTaskNode {
+        id: raw.id,
+        subject: capped(raw.subject, "subject", diagnostics),
+        description: capped(raw.description, "description", diagnostics),
+        active_form: capped(raw.active_form, "activeForm", diagnostics),
+        status: capped(raw.status, "status", diagnostics),
+        blocks,
+        blocked_by,
+        provenance: Some(Provenance {
+            source_file: source_file.to_string(),
+            line: None,
+            archived: false,
+        }),
+    })
+}
+
+fn validate_task_graph_id(id: &str) -> Result<(), String> {
     if id.is_empty() || id.len() > 512 || id.contains('/') || id.contains('\\') || id.contains('\0')
     {
         return Err("Codex task graph id is invalid".to_string());
     }
-    let _ = root::codex_dir()?;
-    Ok(InspectorTaskGraphResult {
-        id: id.to_string(),
-        nodes: Vec::new(),
-        capability: TaskGraphCapability::unsupported(
-            "Codex does not expose the Claude Task Graph format",
-        ),
-    })
+    Ok(())
+}
+
+fn validate_task_node_id(id: &str) -> Result<(), String> {
+    if id.is_empty() || id.len() > 256 || id.contains('/') || id.contains('\\') || id.contains('\0')
+    {
+        return Err("Codex task graph id is invalid".to_string());
+    }
+    Ok(())
 }
 
 fn validate_limit(limit: usize) -> Result<usize, String> {
@@ -496,6 +978,13 @@ fn decode_cursor(
             revision: revision.to_string(),
             offset: 0,
             id: id.map(str::to_string),
+            byte_offset: None,
+            event_offset: None,
+            total_events: None,
+            turn_count: None,
+            session_id: None,
+            project: None,
+            session_line: None,
         });
     };
     if encoded.len() > MAX_CURSOR_BYTES {
@@ -694,6 +1183,17 @@ fn collect_rollouts(
         ));
         return Ok(());
     }
+    let directory_metadata = fs::symlink_metadata(directory)?;
+    if directory_metadata.file_type().is_symlink() {
+        diagnostics.push(Diagnostic::new(
+            "symlinkSkipped",
+            "Skipped a symlink in the Codex transcript tree",
+        ));
+        return Ok(());
+    }
+    if !directory_metadata.is_dir() {
+        return Ok(());
+    }
     for entry in fs::read_dir(directory)? {
         let entry = match entry {
             Ok(entry) => entry,
@@ -827,7 +1327,13 @@ fn resolve_rollout(root: &Path, id: &str) -> Result<(PathBuf, bool), String> {
     Ok((path, archived))
 }
 
-fn resolve_session_rollout(root: &Path, session_id: &str) -> Result<String, String> {
+enum SessionResolution {
+    Found(String),
+    NotFound,
+    Limited,
+}
+
+fn resolve_session_rollout(root: &Path, session_id: &str) -> Result<SessionResolution, String> {
     if session_id.is_empty()
         || session_id.len() > 256
         || session_id.contains('/')
@@ -836,22 +1342,58 @@ fn resolve_session_rollout(root: &Path, session_id: &str) -> Result<String, Stri
     {
         return Err("session id is invalid".to_string());
     }
-    let transcripts = list_transcripts(None, MAX_PAGE_SIZE)?;
-    for transcript in transcripts.items {
+    let mut transcripts = Vec::new();
+    let mut diagnostics = Vec::new();
+    let mut visited_entries = 0usize;
+    for (directory, archived) in [("sessions", false), ("archived_sessions", true)] {
+        let path = root.join(directory);
+        if let Err(error) = collect_rollouts(
+            &path,
+            root,
+            archived,
+            0,
+            &mut transcripts,
+            &mut visited_entries,
+            &mut diagnostics,
+        ) {
+            if error.kind() != io::ErrorKind::NotFound {
+                return Err(format!("cannot discover Codex sessions: {error}"));
+            }
+        }
+    }
+    transcripts.sort_by(|left, right| left.id.cmp(&right.id));
+    let mut discovery_limited = visited_entries >= MAX_DISCOVERY_ENTRIES;
+    if transcripts.len() > MAX_SESSION_RESOLUTION_FILES {
+        discovery_limited = true;
+    }
+    let mut scanned_bytes = 0_u64;
+    for transcript in transcripts.iter().take(MAX_SESSION_RESOLUTION_FILES) {
         let (path, _) = resolve_rollout(root, &transcript.id)?;
+        let size = fs::metadata(&path)
+            .map(|metadata| metadata.len())
+            .unwrap_or(0);
+        let candidate_size = size.min(MAX_SCAN_BYTES);
+        if scanned_bytes.saturating_add(candidate_size) > MAX_SESSION_RESOLUTION_BYTES {
+            return Ok(SessionResolution::Limited);
+        }
         let Ok((text, _)) = read_capped_file(&path) else {
             continue;
         };
+        scanned_bytes = scanned_bytes.saturating_add(text.len() as u64);
         for line in text.lines().filter(|line| line.len() <= MAX_LINE_BYTES) {
             let Ok(value) = serde_json::from_str::<Value>(line) else {
                 continue;
             };
             if value_contains_session_id(&value, session_id) {
-                return Ok(transcript.id);
+                return Ok(SessionResolution::Found(transcript.id.clone()));
             }
         }
     }
-    Err("Codex session was not found in the discovered rollout files".to_string())
+    if discovery_limited {
+        Ok(SessionResolution::Limited)
+    } else {
+        Ok(SessionResolution::NotFound)
+    }
 }
 
 fn value_contains_session_id(value: &Value, session_id: &str) -> bool {
@@ -1053,12 +1595,26 @@ fn normalize_event(
     Some((event, diagnostics))
 }
 
-fn count_normalized_events(text: &str) -> usize {
-    text.lines()
-        .filter(|line| !line.trim().is_empty() && line.len() <= MAX_LINE_BYTES)
-        .filter_map(|line| serde_json::from_str::<Value>(line).ok())
-        .filter(|value| normalize_event(value, 0, false).is_some())
-        .count()
+struct SessionMetadata {
+    session_id: Option<String>,
+    project: Option<String>,
+}
+
+fn session_metadata(value: &Value) -> Option<SessionMetadata> {
+    let payload = value.get("payload").unwrap_or(value);
+    let payload_type = payload
+        .get("type")
+        .and_then(Value::as_str)
+        .or_else(|| value.get("type").and_then(Value::as_str));
+    if payload_type != Some("session_meta") {
+        return None;
+    }
+    Some(SessionMetadata {
+        session_id: string_field(payload, &["id", "session_id", "sessionId"])
+            .map(|value| safe_text(&value, 256).0),
+        project: string_field(payload, &["cwd", "project"])
+            .map(|value| safe_text(&value, MAX_FIELD_BYTES).0),
+    })
 }
 
 fn extract_message_text(value: &Value) -> (Option<String>, bool) {

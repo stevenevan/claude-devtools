@@ -4,6 +4,7 @@ import type { AppState } from '../types';
 import type {
   InspectorEvent,
   InspectorPage,
+  InspectorSessionSummary,
   InspectorSourceStatus,
   SourceKind,
 } from '@shared/types/api';
@@ -17,7 +18,13 @@ export interface InspectorSourceSlice {
   inspectorSourceGeneration: number;
   inspectorCache: Record<string, unknown>;
   inspectorSelectedSessionId: string | null;
+  inspectorSelectedTaskGraphId: string | null;
   inspectorSessionEvents: InspectorEvent[];
+  inspectorSessionSummary: InspectorSessionSummary | null;
+  inspectorSessionNextCursor: string | null;
+  inspectorSessionHasMore: boolean;
+  inspectorSessionScanLimited: boolean;
+  inspectorSessionDiagnostics: string[];
   inspectorSessionLoading: boolean;
   inspectorSessionError: string | null;
 
@@ -34,6 +41,8 @@ export interface InspectorSourceSlice {
   setInspectorCache: (key: string, value: unknown) => void;
   clearInspectorCache: () => void;
   loadInspectorSession: (id: string) => Promise<void>;
+  loadMoreInspectorSession: () => Promise<void>;
+  setInspectorTaskGraphSelection: (id: string | null) => void;
 }
 
 export const createInspectorSourceSlice: StateCreator<
@@ -53,7 +62,13 @@ export const createInspectorSourceSlice: StateCreator<
     inspectorSourceGeneration: 0,
     inspectorCache: {},
     inspectorSelectedSessionId: null,
+    inspectorSelectedTaskGraphId: null,
     inspectorSessionEvents: [],
+    inspectorSessionSummary: null,
+    inspectorSessionNextCursor: null,
+    inspectorSessionHasMore: false,
+    inspectorSessionScanLimited: false,
+    inspectorSessionDiagnostics: [],
     inspectorSessionLoading: false,
     inspectorSessionError: null,
 
@@ -82,7 +97,13 @@ export const createInspectorSourceSlice: StateCreator<
         inspectorSourceGeneration: state.inspectorSourceGeneration + 1,
         inspectorCache: {},
         inspectorSelectedSessionId: null,
+        inspectorSelectedTaskGraphId: null,
         inspectorSessionEvents: [],
+        inspectorSessionSummary: null,
+        inspectorSessionNextCursor: null,
+        inspectorSessionHasMore: false,
+        inspectorSessionScanLimited: false,
+        inspectorSessionDiagnostics: [],
         inspectorSessionLoading: false,
         inspectorSessionError: null,
       }));
@@ -131,12 +152,16 @@ export const createInspectorSourceSlice: StateCreator<
       set({
         inspectorSelectedSessionId: id,
         inspectorSessionEvents: [],
+        inspectorSessionSummary: null,
+        inspectorSessionNextCursor: null,
+        inspectorSessionHasMore: false,
+        inspectorSessionScanLimited: false,
+        inspectorSessionDiagnostics: [],
         inspectorSessionLoading: true,
         inspectorSessionError: null,
       });
       try {
-        const cached = get().getInspectorCache<InspectorPage<InspectorEvent>>(cacheKey);
-        const page = cached ?? (await api.readSourceSession(source, id, null, 500));
+        const page = await api.readSourceSession(source, id, null, 500);
         const current = get();
         if (
           request !== sessionRequestId ||
@@ -145,11 +170,16 @@ export const createInspectorSourceSlice: StateCreator<
         ) {
           return;
         }
-        if (!cached) current.setInspectorCache(cacheKey, page);
+        current.setInspectorCache(cacheKey, page);
         set({
           inspectorSessionEvents: page.items,
           inspectorSessionLoading: false,
-          inspectorSessionError: page.diagnostics[0]?.message ?? null,
+          inspectorSessionSummary: page.session ?? null,
+          inspectorSessionNextCursor: page.nextCursor,
+          inspectorSessionHasMore: page.hasMore,
+          inspectorSessionScanLimited: page.scanLimited,
+          inspectorSessionDiagnostics: page.diagnostics.map((diagnostic) => diagnostic.message),
+          inspectorSessionError: null,
         });
       } catch (error) {
         const current = get();
@@ -165,6 +195,73 @@ export const createInspectorSourceSlice: StateCreator<
           inspectorSessionError: error instanceof Error ? error.message : String(error),
         });
       }
+    },
+
+    loadMoreInspectorSession: async (): Promise<void> => {
+      const source = get().inspectorSource;
+      const id = get().inspectorSelectedSessionId;
+      const cursor = get().inspectorSessionNextCursor;
+      const generation = get().inspectorSourceGeneration;
+      const request = ++sessionRequestId;
+      if (!id || !cursor || !get().inspectorSessionHasMore) return;
+      const cacheKey = get().getInspectorCacheKey(source, 'session', id, cursor, '500');
+      set({ inspectorSessionLoading: true, inspectorSessionError: null });
+      try {
+        const cached = get().getInspectorCache<InspectorPage<InspectorEvent>>(cacheKey);
+        const page = cached ?? (await api.readSourceSession(source, id, cursor, 500));
+        const current = get();
+        if (
+          request !== sessionRequestId ||
+          current.inspectorSource !== source ||
+          current.inspectorSourceGeneration !== generation ||
+          current.inspectorSelectedSessionId !== id
+        ) {
+          return;
+        }
+        if (!cached) current.setInspectorCache(cacheKey, page);
+        const existing = new Set(
+          current.inspectorSessionEvents.map(
+            (event) => `${event.provenance.sourceFile}:${event.provenance.line ?? ''}:${event.kind}`
+          )
+        );
+        const appended = page.items.filter((event) => {
+          const key = `${event.provenance.sourceFile}:${event.provenance.line ?? ''}:${event.kind}`;
+          if (existing.has(key)) return false;
+          existing.add(key);
+          return true;
+        });
+        set({
+          inspectorSessionEvents: [...current.inspectorSessionEvents, ...appended],
+          inspectorSessionLoading: false,
+          inspectorSessionSummary: current.inspectorSessionSummary ?? page.session ?? null,
+          inspectorSessionNextCursor: page.nextCursor,
+          inspectorSessionHasMore: page.hasMore,
+          inspectorSessionScanLimited: current.inspectorSessionScanLimited || page.scanLimited,
+          inspectorSessionDiagnostics: [
+            ...current.inspectorSessionDiagnostics,
+            ...page.diagnostics
+              .map((diagnostic) => diagnostic.message)
+              .filter((message) => !current.inspectorSessionDiagnostics.includes(message)),
+          ],
+        });
+      } catch (error) {
+        const current = get();
+        if (
+          request !== sessionRequestId ||
+          current.inspectorSource !== source ||
+          current.inspectorSourceGeneration !== generation
+        ) {
+          return;
+        }
+        set({
+          inspectorSessionLoading: false,
+          inspectorSessionError: error instanceof Error ? error.message : String(error),
+        });
+      }
+    },
+
+    setInspectorTaskGraphSelection: (id: string | null): void => {
+      set({ inspectorSelectedTaskGraphId: id });
     },
   };
 };

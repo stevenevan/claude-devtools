@@ -178,3 +178,98 @@ fn paginated_history_base_chain_is_bounded_and_confined() {
         .iter()
         .any(|item| item.code == "historyBaseOutsideRoot"));
 }
+
+#[test]
+fn session_summary_and_byte_cursor_preserve_bounded_events() {
+    let _lock = crate::files::TEST_ENV_LOCK.lock().unwrap();
+    let guard = CodexHomeGuard::new();
+    fs::write(
+        guard.root.join("sessions/2026/08/13/rollout-s1.jsonl"),
+        concat!(
+            "{\"type\":\"session_meta\",\"payload\":{\"type\":\"session_meta\",\"id\":\"s1\",\"cwd\":\"/synthetic/project\"}}\n",
+            "{\"type\":\"event_msg\",\"payload\":{\"type\":\"user_message\",\"message\":\"first\"}}\n",
+            "{\"type\":\"response_item\",\"payload\":{\"type\":\"message\",\"role\":\"assistant\",\"content\":\"answer\"}}\n",
+            "{\"type\":\"future_event\",\"payload\":{\"type\":\"future_event\"}}\n",
+            "{\"type\":\"event_msg\",\"payload\":{\"type\":\"user_message\",\"message\":\"second\"}}\n",
+        ),
+    )
+    .expect("write session fixture");
+
+    let first = read_session("s1", None, 2).expect("read first session page");
+    let summary = first.session.as_ref().expect("session summary");
+    assert_eq!(summary.session_id, "s1");
+    assert_eq!(summary.project, "project");
+    assert_eq!(summary.turn_count, 1);
+    assert_eq!(summary.event_count, Some(5));
+    assert!(first.has_more);
+    assert!(first
+        .diagnostics
+        .iter()
+        .any(|diagnostic| diagnostic.code == "unknownEvent"));
+
+    let second =
+        read_session("s1", first.next_cursor.as_deref(), 3).expect("read second session page");
+    assert_eq!(second.items.len(), 3);
+    assert!(!second.has_more);
+    assert_eq!(second.session.expect("continued session summary").turn_count, 2);
+    assert!(second.items.iter().any(|event| event.kind == "unknown"));
+}
+
+#[test]
+fn malformed_history_is_reported_without_hiding_valid_rows() {
+    let _lock = crate::files::TEST_ENV_LOCK.lock().unwrap();
+    let guard = CodexHomeGuard::new();
+    fs::write(
+        guard.root.join("history.jsonl"),
+        concat!("not json\n", "{\"session_id\":\"s1\",\"text\":\"valid\"}\n",),
+    )
+    .expect("write malformed history");
+    let page = read_history_page(None, 20, None).expect("read malformed history");
+    assert_eq!(page.items.len(), 1);
+    assert!(page
+        .diagnostics
+        .iter()
+        .any(|diagnostic| diagnostic.code == "invalidJson"));
+}
+
+#[test]
+fn task_graphs_keep_valid_nodes_and_report_edges_and_incompatible_files() {
+    let _lock = crate::files::TEST_ENV_LOCK.lock().unwrap();
+    let guard = CodexHomeGuard::new();
+    let good = guard.root.join("tasks/good");
+    let bad = guard.root.join("tasks/bad");
+    fs::create_dir_all(&good).expect("create good graph");
+    fs::create_dir_all(&bad).expect("create bad graph");
+    fs::write(
+        good.join("1.json"),
+        r#"{"id":"1","subject":"first","description":"desc","activeForm":"Doing first","status":"pending","blocks":["missing"],"blockedBy":[]}"#,
+    )
+    .expect("write good graph");
+    fs::write(good.join("2.json"), "not json").expect("write malformed node");
+    fs::write(bad.join("1.json"), r#"{"wrong":true}"#).expect("write incompatible graph");
+
+    let list = list_task_graphs().expect("list task graphs");
+    assert_eq!(list.items.len(), 2);
+    assert_eq!(
+        list.capability.state,
+        crate::types::source::TaskGraphCapabilityState::Available
+    );
+    assert!(list
+        .capability
+        .diagnostics
+        .iter()
+        .any(|diagnostic| diagnostic.code == "missingTaskReference"));
+
+    let result = read_task_graph("good").expect("read good graph");
+    assert_eq!(result.nodes.len(), 1);
+    assert!(result
+        .capability
+        .diagnostics
+        .iter()
+        .any(|diagnostic| diagnostic.code == "missingTaskReference"));
+    let incompatible = read_task_graph("bad").expect("read incompatible graph");
+    assert_eq!(
+        incompatible.capability.state,
+        crate::types::source::TaskGraphCapabilityState::UnsupportedCapability
+    );
+}
