@@ -27,22 +27,23 @@ import type { ActivityView } from '@renderer/store/slices/uiSlice';
 type MoreItem = {
   activity: ActivityView;
   label: string;
+  description: string;
   icon: ComponentType<{ className?: string }>;
 };
 
 const ITEMS: ReadonlyArray<MoreItem> = [
-  { activity: 'agents', label: 'Agents', icon: Bot },
-  { activity: 'skills', label: 'Skills', icon: Sparkles },
-  { activity: 'plugins', label: 'Plugins', icon: Puzzle },
-  { activity: 'annotations', label: 'Annotations', icon: MessageSquareText },
+  { activity: 'agents', label: 'Agents', description: 'Delegate work to helpers', icon: Bot },
+  { activity: 'skills', label: 'Skills', description: 'Reusable capabilities', icon: Sparkles },
+  { activity: 'plugins', label: 'Plugins', description: 'Installable add-ons', icon: Puzzle },
+  { activity: 'annotations', label: 'Annotations', description: 'Your notes', icon: MessageSquareText },
 ];
 
 const DESKTOP_ITEMS: ReadonlyArray<MoreItem> = [
-  { activity: 'history', label: 'History', icon: History },
-  { activity: 'transcripts', label: 'Transcripts', icon: ScrollText },
-  { activity: 'marketplace', label: 'Marketplace', icon: Store },
-  { activity: 'taskGraph', label: 'Task Graph', icon: Workflow },
-  { activity: 'maintenance', label: 'Maintenance', icon: Wrench },
+  { activity: 'history', label: 'History', description: 'Past activity', icon: History },
+  { activity: 'transcripts', label: 'Transcripts', description: 'Helper transcripts', icon: ScrollText },
+  { activity: 'marketplace', label: 'Marketplace', description: 'Find add-ons', icon: Store },
+  { activity: 'taskGraph', label: 'Task Graph', description: 'How tasks connect', icon: Workflow },
+  { activity: 'maintenance', label: 'Maintenance', description: 'Free up space', icon: Wrench },
 ];
 
 export const MoreMenu = (): JSX.Element => {
@@ -72,11 +73,11 @@ export const MoreMenu = (): JSX.Element => {
         <span>More</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="start" className="w-56 gap-1 p-1.5">
-        {items.map(({ activity, label, icon: Icon }) => (
+        {items.map(({ activity, label, description, icon: Icon }) => (
           <DropdownMenuItem
             key={activity}
             className={cn(
-              'h-8 w-full justify-start gap-2 px-2',
+              'min-h-12 w-full items-start justify-start gap-2 px-2 py-1.5',
               activeActivity === activity && 'bg-muted text-foreground'
             )}
             onClick={() => {
@@ -84,8 +85,11 @@ export const MoreMenu = (): JSX.Element => {
               setIsOpen(false);
             }}
           >
-            <Icon className="size-4" />
-            <span>{label}</span>
+            <Icon className="mt-0.5 size-4 shrink-0" />
+            <span className="flex min-w-0 flex-col items-start">
+              <span className="text-foreground text-xs font-medium">{label}</span>
+              <span className="text-muted-foreground text-[11px] leading-4">{description}</span>
+            </span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

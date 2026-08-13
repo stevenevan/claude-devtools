@@ -1,4 +1,4 @@
-import { ComponentType, JSX } from 'react';
+import { ComponentType, JSX, useEffect, useRef, useState } from 'react';
 import { isDesktopMode } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@renderer/components/ui/tooltip';
@@ -62,6 +62,8 @@ const NERD_DESKTOP_ITEMS: ReadonlyArray<ActivityItem> = [
 
 export const ActivityBar = (): JSX.Element => {
   const mode = useUIMode();
+  const previousMode = useRef(mode);
+  const [modeAnnouncement, setModeAnnouncement] = useState('');
   const { activeActivity, setActiveActivity, unreadCount, setHelpPanelOpen } = useStore(
     useShallow((state) => ({
       activeActivity: state.activeActivity,
@@ -72,6 +74,12 @@ export const ActivityBar = (): JSX.Element => {
   );
   const nerdItems = isDesktopMode() ? [...NERD_ITEMS, ...NERD_DESKTOP_ITEMS] : NERD_ITEMS;
   const items = mode === 'simple' ? SIMPLE_ITEMS : nerdItems;
+
+  useEffect(() => {
+    if (previousMode.current === mode) return;
+    previousMode.current = mode;
+    setModeAnnouncement(`Switched to ${mode === 'simple' ? 'Simple' : 'Nerd'} mode`);
+  }, [mode]);
 
   const renderItem = ({ activity, label, icon: Icon, badge }: ActivityItem): JSX.Element => {
     const isActive = activeActivity === activity;
@@ -112,6 +120,9 @@ export const ActivityBar = (): JSX.Element => {
 
   return (
     <TooltipProvider delay={300}>
+      <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {modeAnnouncement}
+      </span>
       <nav
         role="tablist"
         aria-orientation="vertical"
