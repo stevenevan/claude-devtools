@@ -3,9 +3,9 @@ import { getDateGroupLabel } from '@renderer/utils/dateGrouping';
 import type { Project } from '@renderer/types/data';
 import type { HistoryEntry } from '@shared/types/api';
 
-export type HistoryListItem =
+export type HistoryListItem<T extends HistoryEntry = HistoryEntry> =
   | { type: 'heading'; id: string; label: string }
-  | { type: 'entry'; id: string; entry: HistoryEntry };
+  | { type: 'entry'; id: string; entry: T };
 
 export interface HistoryProjectOption {
   value: string;
@@ -54,11 +54,11 @@ export function getHistoryProjectOptions(
     .sort((left, right) => left.label.localeCompare(right.label) || left.value.localeCompare(right.value));
 }
 
-export function flattenHistoryEntries(
-  entries: readonly HistoryEntry[],
+export function flattenHistoryEntries<T extends HistoryEntry>(
+  entries: readonly T[],
   now: Date = new Date()
-): HistoryListItem[] {
-  const groups = new Map<string, { label: string; entries: HistoryEntry[] }>();
+): HistoryListItem<T>[] {
+  const groups = new Map<string, { label: string; entries: T[] }>();
   const occurrences = new Map<string, number>();
 
   for (const entry of entries) {

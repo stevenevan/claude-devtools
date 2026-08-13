@@ -10,6 +10,7 @@ import { createContextSlice } from './slices/contextSlice';
 import { createConversationSlice } from './slices/conversation';
 import { createConversationFeedSlice } from './slices/conversationFeedSlice';
 import { createMaintenanceSlice } from './slices/maintenanceSlice';
+import { createInspectorSourceSlice } from './slices/inspectorSourceSlice';
 import { createNotificationSlice } from './slices/notificationSlice';
 import { createPaneSlice } from './slices/paneSlice';
 import { createProjectContextSlice } from './slices/projectContextSlice';
@@ -72,6 +73,7 @@ export const useStore = create<AppState>()(
       ...createComparisonTabSlice(...args),
       ...createSnapshotSlice(...args),
       ...createMaintenanceSlice(...args),
+      ...createInspectorSourceSlice(...args),
     }),
     {
       name: 'claude-devtools-store',

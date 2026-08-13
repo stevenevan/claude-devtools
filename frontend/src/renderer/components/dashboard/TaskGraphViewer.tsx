@@ -1,13 +1,20 @@
-import { JSX, useEffect, useState } from 'react';
+import { JSX, useEffect, useRef, useState } from 'react';
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
+import { InspectorSourceSelector } from './InspectorSourceSelector';
 import { useUIMode } from '@renderer/hooks/useUIMode';
+import { useStore } from '@renderer/store';
 import { cn } from '@renderer/lib/utils';
 import { sanitizeSimpleText } from '@renderer/utils/simpleTextSanitizer';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { CheckCircle2, Circle, GitBranch, Loader2, RefreshCw, Workflow } from 'lucide-react';
 
-import type { TaskGraphMeta, TaskNode } from '@shared/types/api';
+import type {
+  InspectorTaskGraphList,
+  InspectorTaskGraphMeta,
+  InspectorTaskGraphResult,
+  TaskNodeData,
+} from '@shared/types/api';
 
 import { TaskOutline } from './TaskOutline';
 
@@ -24,31 +31,56 @@ function errText(err: unknown): string {
 export const TaskGraphViewer = (): JSX.Element => {
   const mode = useUIMode();
   const simple = mode === 'simple';
-  const [graphs, setGraphs] = useState<TaskGraphMeta[]>([]);
+  const inspectorSource = useStore((state) => state.inspectorSource);
+  const inspectorSourceGeneration = useStore((state) => state.inspectorSourceGeneration);
+  const getInspectorCacheKey = useStore((state) => state.getInspectorCacheKey);
+  const getInspectorCache = useStore((state) => state.getInspectorCache);
+  const setInspectorCache = useStore((state) => state.setInspectorCache);
+  const [graphs, setGraphs] = useState<InspectorTaskGraphMeta[]>([]);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
   const [selectedUuid, setSelectedUuid] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'graph' | 'outline'>('graph');
+  const [capabilityReason, setCapabilityReason] = useState<string | null>(null);
+  const requestGenerationRef = useRef(0);
 
   const loadList = async (): Promise<void> => {
+    const requestGeneration = ++requestGenerationRef.current;
+    const source = inspectorSource;
+    const sourceGeneration = inspectorSourceGeneration;
+    const isCurrent = (): boolean =>
+      requestGeneration === requestGenerationRef.current &&
+      useStore.getState().inspectorSource === source &&
+      useStore.getState().inspectorSourceGeneration === sourceGeneration;
     setListLoading(true);
     setListError(null);
+    setCapabilityReason(null);
     try {
-      const result = await api.listTaskGraphs();
-      setGraphs(result);
+      const cacheKey = getInspectorCacheKey(source, 'taskGraphs');
+      const cached = getInspectorCache<InspectorTaskGraphList>(cacheKey);
+      const result = cached ?? (await api.listSourceTaskGraphs(source));
+      if (!isCurrent()) return;
+      if (!cached) setInspectorCache(cacheKey, result);
+      setGraphs(result.items);
+      setCapabilityReason(
+        result.capability.state === 'available' ? null : result.capability.reason
+      );
       setSelectedUuid((current) =>
-        current && result.some((g) => g.uuid === current) ? current : (result[0]?.uuid ?? null)
+        current && result.items.some((g) => g.id === current)
+          ? current
+          : (result.items[0]?.id ?? null)
       );
     } catch (err) {
-      setListError(errText(err));
+      if (isCurrent()) setListError(errText(err));
     } finally {
-      setListLoading(false);
+      if (isCurrent()) setListLoading(false);
     }
   };
 
   useEffect(() => {
+    setSelectedUuid(null);
     void loadList();
-  }, []);
+  }, [inspectorSource, inspectorSourceGeneration]);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -60,13 +92,16 @@ export const TaskGraphViewer = (): JSX.Element => {
           <p className="text-muted-foreground mt-0.5 text-xs">
             {simple
               ? 'When Claude splits work between helpers, this shows what ran and in what order.'
-              : 'Read-only view of background task state under ~/.claude/tasks. Nothing here writes.'}
+              : `Read-only view of background task state under ~/${inspectorSource === 'codex' ? '.codex' : '.claude'}/tasks. Nothing here writes.`}
           </p>
         </div>
-        <Button variant="outline" size="sm" disabled={listLoading} onClick={() => void loadList()}>
-          <RefreshCw className={cn('size-3.5', listLoading && 'animate-spin')} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <InspectorSourceSelector />
+          <Button variant="outline" size="sm" disabled={listLoading} onClick={() => void loadList()}>
+            <RefreshCw className={cn('size-3.5', listLoading && 'animate-spin')} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {listError && (
@@ -91,20 +126,21 @@ export const TaskGraphViewer = (): JSX.Element => {
             <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
               <Workflow className="text-muted-foreground size-6 opacity-50" />
               <p className="text-muted-foreground text-xs">
-                {simple
-                  ? 'Nothing to show yet. This is normal when Claude has not handed work to a helper.'
-                  : 'No active task graphs found under ~/.claude/tasks.'}
+                {capabilityReason ??
+                  (simple
+                    ? 'Nothing to show yet. This is normal when Claude has not handed work to a helper.'
+                    : `No active task graphs found under ~/${inspectorSource === 'codex' ? '.codex' : '.claude'}/tasks.`)}
               </p>
             </div>
           ) : (
             graphs.map((graph) => (
               <TaskGraphRow
-                key={graph.uuid}
+                key={graph.id}
                 graph={graph}
                 simple={simple}
-                selected={graph.uuid === selectedUuid}
+                selected={graph.id === selectedUuid}
                 onSelect={() => {
-                  setSelectedUuid(graph.uuid);
+                  setSelectedUuid(graph.id);
                   setViewMode('graph');
                 }}
               />
@@ -116,6 +152,7 @@ export const TaskGraphViewer = (): JSX.Element => {
           {selectedUuid ? (
             <TaskGraphDetail
               uuid={selectedUuid}
+              sourceKind={inspectorSource}
               simple={simple}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
@@ -130,7 +167,7 @@ export const TaskGraphViewer = (): JSX.Element => {
 };
 
 interface TaskGraphRowProps {
-  graph: TaskGraphMeta;
+  graph: InspectorTaskGraphMeta;
   simple: boolean;
   selected: boolean;
   onSelect: () => void;
@@ -147,7 +184,7 @@ const TaskGraphRow = ({ graph, simple, selected, onSelect }: Readonly<TaskGraphR
     )}
   >
     <span className="text-foreground w-full truncate text-xs font-medium">
-      {simple ? sanitizeSimpleText(graph.label?.trim() || 'Task group') : `${graph.uuid.slice(0, 8)}…`}
+      {simple ? sanitizeSimpleText(graph.label?.trim() || 'Task group') : `${graph.id.slice(0, 8)}…`}
     </span>
     <span className="text-muted-foreground w-full truncate text-[10px]">
       {graph.taskCount} task{graph.taskCount === 1 ? '' : 's'} ·{' '}
@@ -167,38 +204,59 @@ const EmptyDetail = ({ simple }: Readonly<{ simple: boolean }>): JSX.Element => 
 
 const TaskGraphDetail = ({
   uuid,
+  sourceKind,
   simple,
   viewMode,
   onViewModeChange,
 }: Readonly<{
   uuid: string;
+  sourceKind: 'claude' | 'codex';
   simple: boolean;
   viewMode: 'graph' | 'outline';
   onViewModeChange: (viewMode: 'graph' | 'outline') => void;
 }>): JSX.Element => {
-  const [nodes, setNodes] = useState<TaskNode[]>([]);
+  const getInspectorCacheKey = useStore((state) => state.getInspectorCacheKey);
+  const getInspectorCache = useStore((state) => state.getInspectorCache);
+  const setInspectorCache = useStore((state) => state.setInspectorCache);
+  const inspectorSourceGeneration = useStore((state) => state.inspectorSourceGeneration);
+  const [nodes, setNodes] = useState<TaskNodeData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    const sourceGeneration = inspectorSourceGeneration;
+    const isCurrent = (): boolean =>
+      !cancelled &&
+      useStore.getState().inspectorSource === sourceKind &&
+      useStore.getState().inspectorSourceGeneration === sourceGeneration;
     const run = async (): Promise<void> => {
       setLoading(true);
       setError(null);
       try {
-        const result = await api.readTaskGraph(uuid);
-        if (!cancelled) setNodes(result);
+        const cacheKey = getInspectorCacheKey(sourceKind, 'taskGraph', uuid);
+        const cached = getInspectorCache<InspectorTaskGraphResult>(cacheKey);
+        const result = cached ?? (await api.readSourceTaskGraph(sourceKind, uuid));
+        if (!cached) setInspectorCache(cacheKey, result);
+        if (isCurrent()) {
+          if (result.capability.state !== 'available') {
+            setError(result.capability.reason);
+            setNodes([]);
+          } else {
+            setNodes(result.nodes);
+          }
+        }
       } catch {
-        if (!cancelled) setError('This task dir is no longer available.');
+        if (isCurrent()) setError('This task dir is no longer available.');
       } finally {
-        if (!cancelled) setLoading(false);
+        if (isCurrent()) setLoading(false);
       }
     };
     void run();
     return () => {
       cancelled = true;
     };
-  }, [uuid]);
+  }, [sourceKind, uuid, inspectorSourceGeneration]);
 
   if (loading) {
     return (
@@ -248,7 +306,7 @@ const TaskGraphDetail = ({
           <Button
             type="button"
             size="xs"
-            variant={viewMode === 'outline' ? 'secondary' : 'outline'}
+            variant="outline"
             onClick={() => onViewModeChange('outline')}
           >
             Outline
@@ -283,7 +341,7 @@ const StatusBadge = ({ status }: Readonly<{ status: string }>): JSX.Element => {
   );
 };
 
-const TaskNodeCard = ({ node }: Readonly<{ node: TaskNode }>): JSX.Element => (
+const TaskNodeCard = ({ node }: Readonly<{ node: TaskNodeData }>): JSX.Element => (
   <div className="border-border/60 bg-card rounded-md border p-3">
     <div className="mb-1.5 flex items-start justify-between gap-2">
       <span className="text-foreground text-xs font-medium">{node.subject}</span>

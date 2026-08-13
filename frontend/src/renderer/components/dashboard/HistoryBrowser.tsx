@@ -13,6 +13,7 @@ import {
 import { cn } from '@renderer/lib/utils';
 import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
+import { InspectorSourceSelector } from './InspectorSourceSelector';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { History as HistoryIcon, Loader2, RefreshCw, Search } from 'lucide-react';
@@ -22,8 +23,9 @@ import {
   getHistoryProjectLabel,
   getHistoryProjectOptions,
 } from './historyBrowserHelpers';
+import { CodexSessionDetail } from './CodexSessionDetail';
 
-import type { HistoryEntry } from '@shared/types/api';
+import type { HistoryEntry, InspectorHistoryEntry, InspectorPage } from '@shared/types/api';
 import type { HistoryListItem } from './historyBrowserHelpers';
 import type { Project } from '@renderer/types/data';
 
@@ -35,7 +37,10 @@ const SEARCH_DEBOUNCE_MS = 300;
 const LOAD_MORE_THRESHOLD = 3;
 const ALL_PROJECTS = '__all__';
 
-const estimateRowSize = (item: HistoryListItem | undefined): number =>
+type DisplayHistoryEntry = HistoryEntry &
+  Pick<InspectorHistoryEntry, 'sessionId' | 'source' | 'provenance'>;
+
+const estimateRowSize = (item: HistoryListItem<DisplayHistoryEntry> | undefined): number =>
   item?.type === 'heading' ? HEADING_HEIGHT : ROW_HEIGHT;
 
 function errText(err: unknown): string {
@@ -50,52 +55,73 @@ function errText(err: unknown): string {
 export const HistoryBrowser = (): JSX.Element => {
   const mode = useUIMode();
   const projects = useStore((state) => state.projects);
-  const [entries, setEntries] = useState<HistoryEntry[]>([]);
+  const inspectorSource = useStore((state) => state.inspectorSource);
+  const inspectorSourceGeneration = useStore((state) => state.inspectorSourceGeneration);
+  const getInspectorCacheKey = useStore((state) => state.getInspectorCacheKey);
+  const getInspectorCache = useStore((state) => state.getInspectorCache);
+  const setInspectorCache = useStore((state) => state.setInspectorCache);
+  const [entries, setEntries] = useState<DisplayHistoryEntry[]>([]);
   const [totalMatched, setTotalMatched] = useState(0);
   const [hasMore, setHasMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [searchInput, setSearchInput] = useState('');
   const [projectFilter, setProjectFilter] = useState(ALL_PROJECTS);
-  const [selected, setSelected] = useState<HistoryEntry | null>(null);
+  const [selected, setSelected] = useState<DisplayHistoryEntry | null>(null);
 
   // Bumped on every search reset so a slow, now-stale page (Tauri `invoke`
   // has no cancellation) can be told apart from the page a fresh query wants.
   const generationRef = useRef(0);
-  const isFirstRenderRef = useRef(true);
   const parentRef = useRef<HTMLDivElement>(null);
 
+  const mapEntry = (entry: InspectorHistoryEntry): DisplayHistoryEntry => ({
+    display: entry.display,
+    project: entry.project,
+    timestamp: entry.timestamp ?? 0,
+    pastedCount: entry.pastedCount,
+    sessionId: entry.sessionId,
+    source: entry.source,
+    provenance: entry.provenance,
+  });
+
   const loadPage = async (
-    before: number | null,
+    cursor: string | null,
     query: string | undefined,
     replace: boolean
   ): Promise<void> => {
     const generation = generationRef.current;
+    const source = inspectorSource;
+    const sourceGeneration = inspectorSourceGeneration;
+    const cacheKey = getInspectorCacheKey(source, 'history', undefined, cursor, query);
+    const isCurrent = (): boolean =>
+      generation === generationRef.current &&
+      useStore.getState().inspectorSource === source &&
+      useStore.getState().inspectorSourceGeneration === sourceGeneration;
     try {
-      const page = await api.readHistoryPage(before, PAGE_SIZE, query);
-      if (generation !== generationRef.current) return;
-      setEntries((prev) => (replace ? page.entries : [...prev, ...page.entries]));
-      setTotalMatched(page.totalMatched);
+      const cached = getInspectorCache<InspectorPage<InspectorHistoryEntry>>(cacheKey);
+      const page =
+        cached ?? (await api.readSourceHistoryPage(source, cursor, PAGE_SIZE, query));
+      if (!isCurrent()) return;
+      if (!cached) setInspectorCache(cacheKey, page);
+      const mappedEntries = page.items.map(mapEntry);
+      setEntries((prev) => (replace ? mappedEntries : [...prev, ...mappedEntries]));
+      setTotalMatched(page.totalMatched ?? 0);
       setHasMore(page.hasMore);
+      setNextCursor(page.nextCursor);
     } catch (err) {
-      if (generation !== generationRef.current) return;
+      if (!isCurrent()) return;
       setError(errText(err));
     } finally {
-      if (generation !== generationRef.current) return;
+      if (!isCurrent()) return;
       if (replace) setLoading(false);
       else setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    if (isFirstRenderRef.current) {
-      isFirstRenderRef.current = false;
-      void loadPage(null, undefined, true);
-      return;
-    }
-
     generationRef.current += 1;
     setLoading(true);
     setError(null);
@@ -107,13 +133,14 @@ export const HistoryBrowser = (): JSX.Element => {
       void loadPage(null, trimmed || undefined, true);
     }, SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(handle);
-  }, [searchInput]);
+  }, [searchInput, inspectorSource, inspectorSourceGeneration]);
 
   const refresh = (): void => {
     generationRef.current += 1;
     setLoading(true);
     setError(null);
     setSelected(null);
+    setNextCursor(null);
     void loadPage(null, searchInput.trim() || undefined, true);
   };
 
@@ -145,11 +172,10 @@ export const HistoryBrowser = (): JSX.Element => {
     if (virtualRowsLength === 0 || !hasMore || loading || loadingMore) return;
     const lastRow = virtualRows[virtualRowsLength - 1];
     if (!lastRow || lastRow.index < historyItems.length - LOAD_MORE_THRESHOLD) return;
-    const oldestLoaded = entries[entries.length - 1];
-    if (!oldestLoaded) return;
+    if (!nextCursor) return;
 
     setLoadingMore(true);
-    void loadPage(oldestLoaded.timestamp, searchInput.trim() || undefined, false);
+    void loadPage(nextCursor, searchInput.trim() || undefined, false);
   }, [
     virtualRows,
     virtualRowsLength,
@@ -158,7 +184,10 @@ export const HistoryBrowser = (): JSX.Element => {
     loading,
     loadingMore,
     entries,
+    nextCursor,
     searchInput,
+    inspectorSource,
+    inspectorSourceGeneration,
   ]);
 
   return (
@@ -171,13 +200,16 @@ export const HistoryBrowser = (): JSX.Element => {
           <p className="text-muted-foreground mt-0.5 text-xs">
             {mode === 'simple'
               ? 'Prompts you have written are saved here for reuse.'
-              : 'Read-only view of prompt and command history captured under ~/.claude/history.jsonl. Nothing here writes.'}
+              : `Read-only view of prompt and command history captured under ~/${inspectorSource === 'codex' ? '.codex' : '.claude'}/history.jsonl. Nothing here writes.`}
           </p>
         </div>
-        <Button variant="outline" size="sm" disabled={loading} onClick={refresh}>
-          <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <InspectorSourceSelector />
+          <Button variant="outline" size="sm" disabled={loading} onClick={refresh}>
+            <RefreshCw className={cn('size-3.5', loading && 'animate-spin')} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       <div className="border-border/50 flex shrink-0 flex-wrap items-center gap-2 border-b px-4 py-2.5">
@@ -297,7 +329,7 @@ export const HistoryBrowser = (): JSX.Element => {
 };
 
 interface HistoryRowProps {
-  entry: HistoryEntry;
+  entry: DisplayHistoryEntry;
   mode: 'simple' | 'nerd';
   projects: readonly Project[];
   selected: boolean;
@@ -370,7 +402,7 @@ const HistoryDetail = ({
   mode,
   projects,
 }: Readonly<{
-  entry: HistoryEntry | null;
+  entry: DisplayHistoryEntry | null;
   mode: 'simple' | 'nerd';
   projects: readonly Project[];
 }>): JSX.Element => {
@@ -381,6 +413,9 @@ const HistoryDetail = ({
         <p className="text-muted-foreground text-xs">Select an entry to view its full prompt.</p>
       </div>
     );
+  }
+  if (entry.source === 'codex' && entry.sessionId) {
+    return <CodexSessionDetail sessionId={entry.sessionId} />;
   }
   const projectLabel = getHistoryProjectLabel(entry.project, projects, mode);
   const dateLabel =
