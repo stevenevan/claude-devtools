@@ -111,6 +111,18 @@ fn bounds_utf8_metadata() {
 }
 
 #[test]
+fn keeps_latest_custom_title() {
+    let summary = scan_fixture(
+        "latest-title",
+        r#"{"type":"custom-title","customTitle":"First title"}
+{"type":"custom-title","customTitle":"Latest title"}
+{"type":"user","message":{"role":"user","content":"hello"}}"#,
+    );
+
+    assert_eq!(summary.custom_title.as_deref(), Some("Latest title"));
+}
+
+#[test]
 fn skips_oversized_record_then_reads_valid_record() {
     let path = std::env::temp_dir().join(format!(
         "claude-devtools-light-scan-{}-{}.jsonl",

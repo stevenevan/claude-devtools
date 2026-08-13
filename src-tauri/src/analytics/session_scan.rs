@@ -556,11 +556,8 @@ pub fn scan_session_light(file_path: &Path) -> Option<LightSessionSummary> {
             }
         };
 
-        if custom_title.is_none() {
-            custom_title = entry
-                .custom_title
-                .as_deref()
-                .map(|title| bounded_text(title, LIGHT_METADATA_MAX_CHARS));
+        if let Some(title) = entry.custom_title.as_deref() {
+            custom_title = Some(bounded_text(title, LIGHT_METADATA_MAX_CHARS));
         }
         if agent_name.is_none() {
             agent_name = entry

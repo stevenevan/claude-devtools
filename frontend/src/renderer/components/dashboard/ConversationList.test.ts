@@ -101,6 +101,8 @@ test('adds an end sentinel only while the global feed has another page', () => {
 
 test('formats conversation metadata for list and reader reuse', () => {
   expect(formatConversationSubject(session({ customTitle: 'Custom title' }))).toBe('Custom title');
+  expect(formatConversationSubject(session({ firstMessage: 'First message' }))).toBe('First message');
+  expect(formatConversationSubject(session({ firstMessage: undefined }))).toBe('Untitled conversation');
   expect(formatConversationMessageCount(1)).toBe('1 message');
   expect(formatConversationMessageCount(2)).toBe('2 messages');
   expect(formatCost(0)).toBe('$0.00');
