@@ -33,6 +33,12 @@ interface UseCodexSettingsResult {
   readonly clearWriteError: () => void;
 }
 
+function errorMessage(cause: unknown, fallback: string): string {
+  if (cause instanceof Error) return cause.message;
+  if (typeof cause === 'string' && cause.trim()) return cause;
+  return fallback;
+}
+
 export function useCodexSettings(): UseCodexSettingsResult {
   const projects = useStore((state) => state.projects);
   const selectedProjectId = useStore((state) => state.selectedProjectId);
@@ -75,7 +81,7 @@ export function useCodexSettings(): UseCodexSettingsResult {
       setView(await api.getCodexSettings(context));
     } catch (cause) {
       setView(null);
-      setError(cause instanceof Error ? cause.message : 'Could not load Codex settings');
+      setError(errorMessage(cause, 'Could not load Codex settings'));
     } finally {
       setLoading(false);
     }
@@ -89,7 +95,7 @@ export function useCodexSettings(): UseCodexSettingsResult {
     try {
       await api.openCodexConfigFolder();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not open the Codex config folder');
+      setError(errorMessage(cause, 'Could not open the Codex config folder'));
     }
   }, []);
 
@@ -108,7 +114,7 @@ export function useCodexSettings(): UseCodexSettingsResult {
       try {
         return await api.previewCodexSettingsPatch(context, patch, expectedRevision);
       } catch (cause) {
-        const message = cause instanceof Error ? cause.message : 'Could not review Codex settings changes';
+        const message = errorMessage(cause, 'Could not review Codex settings changes');
         setWriteError(message);
         throw cause;
       } finally {
@@ -133,7 +139,7 @@ export function useCodexSettings(): UseCodexSettingsResult {
       try {
         return await api.applyCodexSettingsPatch(context, patch, expectedRevision);
       } catch (cause) {
-        const message = cause instanceof Error ? cause.message : 'Could not apply Codex settings changes';
+        const message = errorMessage(cause, 'Could not apply Codex settings changes');
         setWriteError(message);
         throw cause;
       } finally {

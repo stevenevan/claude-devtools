@@ -50,6 +50,9 @@ export const CodexSettingsReviewDialog = ({
       </DialogHeader>
 
       <div className="space-y-3">
+        <p className="text-muted-foreground" role="status" aria-live="polite">
+          {preview.diff.length} setting{preview.diff.length === 1 ? '' : 's'} will change in the user config.
+        </p>
         <div className="border-border/50 bg-card/50 rounded-md border px-3 py-2">
           <div className="text-muted-foreground">Target</div>
           <div className="mt-1 font-medium">{preview.target}</div>

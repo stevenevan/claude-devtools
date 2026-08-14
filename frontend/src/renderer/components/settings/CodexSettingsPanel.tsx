@@ -2,6 +2,7 @@ import { JSX, useEffect, useMemo, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
+import { useStore } from '@renderer/store';
 import { Loader2, RefreshCw } from 'lucide-react';
 
 import { SettingsSectionHeader } from './components';
@@ -30,7 +31,7 @@ const LABELS: Record<string, string> = {
   default_permissions: 'Default permissions',
 };
 
-interface CodexSettingsDraft {
+export interface CodexSettingsDraft {
   model: string;
   approvalPolicy: string;
   sandboxMode: string;
@@ -59,11 +60,15 @@ function sourceSummary(setting: CodexResolvedSetting | undefined): string {
   return setting ? `Source: ${setting.sourceLabel}` : 'No source defines this setting';
 }
 
+export function sourceAccessibleName(setting: CodexResolvedSetting | undefined): string {
+  return setting?.sourceLabel ?? 'No source defines this setting';
+}
+
 function settingMap(view: CodexSettingsView): Map<string, CodexResolvedSetting> {
   return new Map(view.settings.map((setting) => [setting.key, setting]));
 }
 
-function draftFromView(view: CodexSettingsView): CodexSettingsDraft {
+export function draftFromView(view: CodexSettingsView): CodexSettingsDraft {
   const settings = settingMap(view);
   const valueFor = (key: string): string => {
     const setting = settings.get(key);
@@ -77,7 +82,7 @@ function draftFromView(view: CodexSettingsView): CodexSettingsDraft {
   };
 }
 
-function buildPatch(
+export function buildPatch(
   draft: CodexSettingsDraft,
   settings: Map<string, CodexResolvedSetting>
 ): CodexSettingsPatch {
@@ -92,7 +97,7 @@ function buildPatch(
   return patch;
 }
 
-function fieldEditable(
+export function fieldEditable(
   view: CodexSettingsView,
   settings: Map<string, CodexResolvedSetting>,
   key: string
@@ -128,7 +133,14 @@ function fieldReason(
   if (constraint?.value.scalar) {
     return `Managed requirement fixes this value to ${constraint.value.scalar}`;
   }
+  if (constraint?.value.kind === 'allowedValues') {
+    return `Managed requirement limits this field: ${constraint.value.display}`;
+  }
   return null;
+}
+
+function userDefaultSummary(setting: CodexResolvedSetting | undefined): string | null {
+  return setting?.userValue ? `User default: ${setting.userValue.display}` : null;
 }
 
 function SourceRow({ source }: Readonly<{ source: CodexSettingsSource }>): JSX.Element {
@@ -159,6 +171,9 @@ export const CodexSettingsPanel = ({ nerd = false }: CodexSettingsPanelProps): J
     applyPatch,
     clearWriteError,
   } = useCodexSettings();
+  const connectionMode = useStore((state) => state.connectionMode);
+  const connectionState = useStore((state) => state.connectionState);
+  const localOnlyDisabled = connectionMode !== 'local' || connectionState !== 'disconnected';
   const [showSources, setShowSources] = useState(nerd);
   const [profileDraft, setProfileDraft] = useState(profile ?? '');
   const [draft, setDraft] = useState<CodexSettingsDraft>(EMPTY_DRAFT);
@@ -209,6 +224,10 @@ export const CodexSettingsPanel = ({ nerd = false }: CodexSettingsPanelProps): J
 
   const handleReview = async (): Promise<void> => {
     if (!view || !context) return;
+    if (localOnlyDisabled) {
+      setEditorError('Codex settings can only be edited on the local machine.');
+      return;
+    }
     const patch = buildPatch(draft, settings);
     if (Object.keys(patch).length === 0) {
       setEditorError('Change at least one safe user value before reviewing.');
@@ -282,6 +301,11 @@ export const CodexSettingsPanel = ({ nerd = false }: CodexSettingsPanelProps): J
 
       {view && (
         <>
+          {localOnlyDisabled && (
+            <p className="border-amber-500/40 bg-amber-500/10 text-amber-500 mt-3 rounded-md border px-3 py-2 text-xs" role="status">
+              Codex settings always use the local machine. Disconnect SSH before reviewing or applying changes.
+            </p>
+          )}
           <div className="mt-3 grid gap-1 text-xs sm:grid-cols-2">
             <div className="text-muted-foreground">Profile</div>
             <div>{profile ?? 'None selected'}</div>
@@ -294,7 +318,14 @@ export const CodexSettingsPanel = ({ nerd = false }: CodexSettingsPanelProps): J
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => setShowSources((value) => !value)}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              aria-expanded={showSources}
+              aria-controls="codex-settings-sources"
+              onClick={() => setShowSources((value) => !value)}
+            >
               {showSources ? 'Hide sources' : 'View sources'}
             </Button>
             <Button type="button" variant="outline" size="sm" onClick={() => void openConfigFolder()}>
@@ -332,7 +363,9 @@ export const CodexSettingsPanel = ({ nerd = false }: CodexSettingsPanelProps): J
             view={view}
             settings={settings}
             draft={draft}
-            disabled={loading || writeBusy}
+            disabled={loading || writeBusy || localOnlyDisabled}
+            busy={writeBusy}
+            disabledReason={localOnlyDisabled ? 'Codex settings can only be edited on the local machine' : null}
             error={editorError ?? writeError}
             successMessage={successMessage}
             onDraftChange={updateDraft}
@@ -373,6 +406,7 @@ export const CodexSettingsPanel = ({ nerd = false }: CodexSettingsPanelProps): J
                   </div>
                 );
               })}
+              {showSources && <SourcesDetails view={view} />}
             </div>
           ) : (
             <NerdDetails view={view} settings={settings} showSources={showSources} />
@@ -401,6 +435,8 @@ function CodexSettingsEditor({
   settings,
   draft,
   disabled,
+  busy,
+  disabledReason,
   error,
   successMessage,
   onDraftChange,
@@ -411,6 +447,8 @@ function CodexSettingsEditor({
   settings: Map<string, CodexResolvedSetting>;
   draft: CodexSettingsDraft;
   disabled: boolean;
+  busy: boolean;
+  disabledReason: string | null;
   error: string | null;
   successMessage: string | null;
   onDraftChange: (field: keyof CodexSettingsDraft, value: string) => void;
@@ -421,7 +459,9 @@ function CodexSettingsEditor({
   const approvalEditable = fieldEditable(view, settings, 'approval_policy');
   const sandboxEditable = fieldEditable(view, settings, 'sandbox_mode');
   const reasonFor = (key: string): string | null =>
-    fieldReason(view, settings, key) ?? (!view.canEdit ? 'Safe user editing is unavailable' : null);
+    fieldReason(view, settings, key) ??
+    disabledReason ??
+    (!view.canEdit ? 'Safe user editing is unavailable' : null);
 
   return (
     <div className="border-border/50 bg-card/30 mt-4 rounded-md border p-3 text-xs">
@@ -439,10 +479,12 @@ function CodexSettingsEditor({
             disabled={disabled || !modelEditable}
             onChange={(event) => onDraftChange('model', event.target.value)}
             placeholder="Keep current"
+            aria-label={`Model — ${sourceAccessibleName(settings.get('model'))}`}
             aria-describedby="codex-settings-model-help"
           />
           <p id="codex-settings-model-help" className="text-muted-foreground min-h-8 text-[0.7rem]">
             {reasonFor('model') ?? 'Safe model identifier only; paths and secrets are rejected.'}
+            {userDefaultSummary(settings.get('model')) && ` ${userDefaultSummary(settings.get('model'))}`}
           </p>
         </div>
 
@@ -454,6 +496,7 @@ function CodexSettingsEditor({
             value={draft.approvalPolicy}
             disabled={disabled || !approvalEditable}
             onChange={(event) => onDraftChange('approvalPolicy', event.target.value)}
+            aria-label={`Approval mode — ${sourceAccessibleName(settings.get('approval_policy'))}`}
             aria-describedby="codex-settings-approval-help"
           >
             <NativeSelectOption value="">Keep current</NativeSelectOption>
@@ -463,6 +506,7 @@ function CodexSettingsEditor({
           </NativeSelect>
           <p id="codex-settings-approval-help" className="text-muted-foreground min-h-8 text-[0.7rem]">
             {reasonFor('approval_policy') ?? 'Granular approval rules are read-only.'}
+            {userDefaultSummary(settings.get('approval_policy')) && ` ${userDefaultSummary(settings.get('approval_policy'))}`}
           </p>
         </div>
 
@@ -474,6 +518,7 @@ function CodexSettingsEditor({
             value={draft.sandboxMode}
             disabled={disabled || !sandboxEditable}
             onChange={(event) => onDraftChange('sandboxMode', event.target.value)}
+            aria-label={`Sandbox — ${sourceAccessibleName(settings.get('sandbox_mode'))}`}
             aria-describedby="codex-settings-sandbox-help"
           >
             <NativeSelectOption value="">Keep current</NativeSelectOption>
@@ -482,14 +527,15 @@ function CodexSettingsEditor({
           </NativeSelect>
           <p id="codex-settings-sandbox-help" className="text-muted-foreground min-h-8 text-[0.7rem]">
             {reasonFor('sandbox_mode') ?? 'Danger-full-access is intentionally excluded.'}
+            {userDefaultSummary(settings.get('sandbox_mode')) && ` ${userDefaultSummary(settings.get('sandbox_mode'))}`}
           </p>
         </div>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button type="button" size="sm" disabled={disabled || !view.canEdit} onClick={onReview}>
-          {disabled && <Loader2 className="size-3 animate-spin" />}
-          {disabled ? 'Reviewing…' : 'Review changes'}
+          {busy && <Loader2 className="size-3 animate-spin" />}
+          {busy ? 'Reviewing…' : 'Review changes'}
         </Button>
         <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={onReset}>
           Reset draft
@@ -539,24 +585,7 @@ function NerdDetails({
         </tbody>
       </table>
 
-      {showSources && (
-        <details open className="border-border/50 rounded-md border">
-          <summary className="cursor-pointer px-3 py-2 font-medium">Configuration sources</summary>
-          <div className="overflow-x-auto px-1 pb-1">
-            <table className="w-full" aria-label="Codex configuration sources">
-              <thead className="text-muted-foreground text-left">
-                <tr>
-                  <th className="px-2 py-1 font-medium">Source</th>
-                  <th className="px-2 py-1 font-medium">Status</th>
-                  <th className="px-2 py-1 font-medium">Keys</th>
-                  <th className="px-2 py-1 font-medium">Activity</th>
-                </tr>
-              </thead>
-              <tbody>{view.sources.map((source) => <SourceRow key={source.id} source={source} />)}</tbody>
-            </table>
-          </div>
-        </details>
-      )}
+      {showSources && <SourcesDetails view={view} />}
 
       {view.provenance.length > 0 && (
         <details className="border-border/50 rounded-md border">
@@ -593,5 +622,30 @@ function NerdDetails({
         </details>
       )}
     </div>
+  );
+}
+
+function SourcesDetails({
+  view,
+}: Readonly<{
+  view: NonNullable<ReturnType<typeof useCodexSettings>['view']>;
+}>): JSX.Element {
+  return (
+    <details id="codex-settings-sources" open className="border-border/50 mt-3 rounded-md border">
+      <summary className="cursor-pointer px-3 py-2 font-medium">Configuration sources</summary>
+      <div className="overflow-x-auto px-1 pb-1">
+        <table className="w-full" aria-label="Codex configuration sources">
+          <thead className="text-muted-foreground text-left">
+            <tr>
+              <th className="px-2 py-1 font-medium">Source</th>
+              <th className="px-2 py-1 font-medium">Status</th>
+              <th className="px-2 py-1 font-medium">Keys</th>
+              <th className="px-2 py-1 font-medium">Activity</th>
+            </tr>
+          </thead>
+          <tbody>{view.sources.map((source) => <SourceRow key={source.id} source={source} />)}</tbody>
+        </table>
+      </div>
+    </details>
   );
 }
