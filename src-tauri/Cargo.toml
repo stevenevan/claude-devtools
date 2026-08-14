@@ -28,6 +28,7 @@ serde = { version = "1", features = ["derive"] }
 # encoding/json (whose default parser is correctly-rounded). Without it,
 # serde_json's best-effort parse differs from Go by up to 1 ULP → parity break.
 serde_json = { version = "1", features = ["float_roundtrip"] }
+toml_edit = "0.25.13"
 dirs = "6"
 regex = "1"
 chrono = { version = "0.4", features = ["serde"] }

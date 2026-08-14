@@ -32,6 +32,13 @@ import type { AgentConfig, GlobalPlugin } from './agents';
 import type { BackendCacheStats, BackendTimingSummary } from './backend';
 import type { CheckpointGroup, CheckpointOrigin, FileMeta } from './claudeFiles';
 import type { ClaudeJSONBackup, ClaudeJSONCensus, PurgeResult } from './claudeJson';
+import type {
+  CodexSettingsApplyResult,
+  CodexSettingsContext,
+  CodexSettingsPatch,
+  CodexSettingsPreviewResult,
+  CodexSettingsView,
+} from './codexSettings';
 import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
 import type { HistoryPage } from './history';
@@ -68,6 +75,7 @@ export type * from './claudeFiles';
 export type * from './claudeJson';
 export type * from './config';
 export type * from './configBackup';
+export type * from './codexSettings';
 export type * from './context';
 export type * from './history';
 export type * from './inspector';
@@ -134,6 +142,19 @@ export interface SourcesView {
 }
 
 export interface DesktopAPI {
+  getCodexSettings: (context: CodexSettingsContext) => Promise<CodexSettingsView>;
+  openCodexConfigFolder: () => Promise<void>;
+  previewCodexSettingsPatch: (
+    context: CodexSettingsContext,
+    patch: CodexSettingsPatch,
+    expectedRevision: string
+  ) => Promise<CodexSettingsPreviewResult>;
+  applyCodexSettingsPatch: (
+    context: CodexSettingsContext,
+    patch: CodexSettingsPatch,
+    expectedRevision: string
+  ) => Promise<CodexSettingsApplyResult>;
+
   getAppVersion: () => Promise<string>;
   getProjects: () => Promise<Project[]>;
   getGlobalSessionsPaginated: (

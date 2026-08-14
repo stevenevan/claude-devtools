@@ -14,6 +14,7 @@ import { RadioGroup, RadioGroupItem } from '@renderer/components/ui/radio-group'
 import { Switch } from '@renderer/components/ui/switch';
 
 import { SettingRow, SettingsSectionHeader } from './components';
+import { CodexSettingsPanel } from './CodexSettingsPanel';
 import { ClaudeRootSubsection } from './sections/GeneralSection/ClaudeRootSubsection';
 import { THEME_OPTIONS } from './sections/GeneralSection/constants';
 
@@ -168,6 +169,8 @@ export const SimpleSettings = ({
       )}
 
       {isDesktop && <ClaudeRootSubsection simple />}
+
+      <CodexSettingsPanel />
     </div>
   );
 };

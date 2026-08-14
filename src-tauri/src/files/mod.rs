@@ -10,6 +10,8 @@ pub mod claude_read;
 pub mod claudejson;
 pub mod claudejson_write;
 pub mod codex_reader;
+pub mod codex_settings;
+pub mod codex_settings_write;
 pub mod filehistory_reader;
 pub mod fsutil;
 pub mod history_reader;

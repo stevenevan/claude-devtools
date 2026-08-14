@@ -154,6 +154,10 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['readAgentConfigs', (a) => a.readAgentConfigs('r')],
   ['readGlobalPlugins', (a) => a.readGlobalPlugins()],
   ['readGlobalSettings', (a) => a.readGlobalSettings()],
+  ['getCodexSettings', (a) => a.getCodexSettings({ projectRoot: '/project' })],
+  ['openCodexConfigFolder', (a) => a.openCodexConfigFolder()],
+  ['previewCodexSettingsPatch', (a) => a.previewCodexSettingsPatch({}, {}, 'missing')],
+  ['applyCodexSettingsPatch', (a) => a.applyCodexSettingsPatch({}, {}, 'missing')],
   ['updateGlobalSettings', (a) => a.updateGlobalSettings({})],
   ['readStatusLine', (a) => a.readStatusLine()],
   ['updateStatusLine', (a) => a.updateStatusLine(null)],
@@ -351,6 +355,56 @@ test('MCP server write commands preserve command names and argument shapes', asy
     { command: 'add_mcp_server', args: { name: 'n', config: { command: 'x' } } },
     { command: 'update_mcp_server', args: { name: 'n', patch: { args: [] } } },
     { command: 'remove_mcp_server', args: { name: 'n' } },
+  ]);
+});
+
+test('Codex settings commands keep the context server-resolved', async () => {
+  invocations.length = 0;
+  const api = createTauriClient();
+  await api.getCodexSettings({
+    projectRoot: '/workspace/project',
+    workingDirectory: '/workspace/project/src',
+    profile: 'review',
+  });
+  await api.openCodexConfigFolder();
+  await api.previewCodexSettingsPatch(
+    { projectRoot: '/workspace/project' },
+    { model: 'new-model' },
+    'missing'
+  );
+  await api.applyCodexSettingsPatch(
+    { projectRoot: '/workspace/project' },
+    { sandboxMode: 'workspace-write' },
+    'missing'
+  );
+  expect(invocations).toEqual([
+    {
+      command: 'get_codex_settings',
+      args: {
+        context: {
+          projectRoot: '/workspace/project',
+          workingDirectory: '/workspace/project/src',
+          profile: 'review',
+        },
+      },
+    },
+    { command: 'open_codex_config_folder', args: undefined },
+    {
+      command: 'preview_codex_settings_patch',
+      args: {
+        context: { projectRoot: '/workspace/project' },
+        patch: { model: 'new-model' },
+        expectedRevision: 'missing',
+      },
+    },
+    {
+      command: 'apply_codex_settings_patch',
+      args: {
+        context: { projectRoot: '/workspace/project' },
+        patch: { sandboxMode: 'workspace-write' },
+        expectedRevision: 'missing',
+      },
+    },
   ]);
 });
 
