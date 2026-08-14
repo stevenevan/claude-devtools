@@ -92,3 +92,115 @@ pub struct CodexUnresolvedCapability {
     pub kind: String,
     pub resolved: bool,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexInstructionSource {
+    pub identity: CodexSourceIdentity,
+    pub active: bool,
+    pub priority: usize,
+    pub state: CodexValidationState,
+    pub bytes: usize,
+    pub truncated: bool,
+    pub revision: Option<String>,
+    pub diagnostics: Vec<CodexInventoryDiagnostic>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexInstructionList {
+    pub items: Vec<CodexInstructionSource>,
+    pub summary: CodexInventorySummary,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexInstructionDetail {
+    pub source: CodexInstructionSource,
+    pub content: String,
+    pub truncated: bool,
+    pub exact_revision: String,
+    pub untrusted: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexAgentSummary {
+    pub identity: CodexSourceIdentity,
+    pub name: String,
+    pub description: String,
+    pub state: CodexValidationState,
+    pub revision: Option<String>,
+    pub developer_instructions_available: bool,
+    pub model: Option<String>,
+    pub effort: Option<String>,
+    pub sandbox_mode: Option<String>,
+    pub declared_capabilities: Vec<CodexUnresolvedCapability>,
+    pub diagnostics: Vec<CodexInventoryDiagnostic>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexAgentList {
+    pub items: Vec<CodexAgentSummary>,
+    pub summary: CodexInventorySummary,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexAgentDetail {
+    pub agent: CodexAgentSummary,
+    pub developer_instructions: Option<String>,
+    pub truncated: bool,
+    pub exact_revision: String,
+    pub untrusted: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexDiffLine {
+    pub kind: String,
+    pub text: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexTextPreview {
+    pub record_id: String,
+    pub current_revision: String,
+    pub proposed_revision: String,
+    pub diff: Vec<CodexDiffLine>,
+    pub warnings: Vec<String>,
+    pub can_apply: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexTextConflict {
+    pub record_id: String,
+    pub expected_revision: String,
+    pub actual_revision: String,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "status", content = "data", rename_all = "camelCase")]
+pub enum CodexTextPreviewResult {
+    Ready(CodexTextPreview),
+    Conflict(CodexTextConflict),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexTextWriteResult {
+    pub record_id: String,
+    pub revision: String,
+    pub backup_created: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "status", content = "data", rename_all = "camelCase")]
+pub enum CodexTextApplyResult {
+    Applied(CodexTextWriteResult),
+    Conflict(CodexTextConflict),
+}
