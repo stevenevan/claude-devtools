@@ -101,6 +101,14 @@ export const SETTINGS_SEARCH_ITEMS: readonly SettingsSearchItem[] = [
     desktopOnly: true,
   },
   {
+    id: 'codex-settings',
+    label: 'Codex settings',
+    section: 'claudeCode',
+    sectionLabel: 'Claude Code',
+    anchorId: 'settings-codex-settings-heading',
+    desktopOnly: true,
+  },
+  {
     id: 'notification-settings',
     label: 'Notification settings',
     section: 'notifications',

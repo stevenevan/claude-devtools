@@ -15,7 +15,8 @@ use claude_devtools_lib::analytics::{
 use claude_devtools_lib::cache::SessionCache;
 use claude_devtools_lib::commands::notify::NotifyState;
 use claude_devtools_lib::commands::{
-    config as config_cmds, files as files_cmds, maintenance as maintenance_cmds,
+    codex_settings as codex_settings_cmds, config as config_cmds, files as files_cmds,
+    maintenance as maintenance_cmds,
     notify as notify_cmds, session as session_cmds,
 };
 use claude_devtools_lib::config::root;
@@ -571,6 +572,8 @@ fn main() {
             get_all_todos,
             plugins_discover,
             quit_app,
+            codex_settings_cmds::get_codex_settings,
+            codex_settings_cmds::open_codex_config_folder,
             // ── W12 config commands ──
             config_cmds::config_get,
             config_cmds::config_update,

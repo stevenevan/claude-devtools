@@ -29,5 +29,12 @@ describe('settings search', () => {
       section: 'general',
       anchorId: 'settings-launch-at-login',
     });
+
+    const codexItem = SETTINGS_SEARCH_ITEMS.find((candidate) => candidate.id === 'codex-settings');
+    expect(codexItem).toBeDefined();
+    expect(getSettingsSearchTarget(codexItem!)).toEqual({
+      section: 'claudeCode',
+      anchorId: 'settings-codex-settings-heading',
+    });
   });
 });

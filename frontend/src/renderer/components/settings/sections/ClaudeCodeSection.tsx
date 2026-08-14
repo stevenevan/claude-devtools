@@ -6,6 +6,7 @@ import { CheckCircle, Loader2, Plus, Trash2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { SettingsSectionHeader } from '../components';
+import { CodexSettingsPanel } from '../CodexSettingsPanel';
 
 import { EnvFlagsPanel } from './claudeCode/EnvFlagsPanel';
 import { HooksPanel } from './claudeCode/HooksPanel';
@@ -223,6 +224,8 @@ export const ClaudeCodeSection = (): JSX.Element | null => {
 
       <SettingsSectionHeader title="Plugins" />
       <PluginsPanel />
+
+      <CodexSettingsPanel nerd />
 
       <div className="mt-6 flex items-center gap-3">
         <Button
