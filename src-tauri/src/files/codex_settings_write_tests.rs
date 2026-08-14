@@ -193,3 +193,34 @@ fn managed_default_permissions_blocks_safety_edits() {
     assert!(!home.join("config.toml.bak").exists());
     let _ = fs::remove_dir_all(root);
 }
+
+#[test]
+fn managed_allowlist_blocks_values_outside_the_declared_set() {
+    let root = fixture("managed-allowlist");
+    let home = root.join("codex-home");
+    let system = root.join("system");
+    fs::create_dir_all(&home).expect("home");
+    fs::create_dir_all(&system).expect("system");
+    let target = home.join("config.toml");
+    fs::write(&target, "sandbox_mode = \"read-only\"\n").expect("config");
+    fs::write(
+        system.join("requirements.toml"),
+        "allowed_sandbox_modes = [\"read-only\"]\n",
+    )
+    .expect("requirements");
+    let current = super::revision(&fs::read(&target).expect("read"));
+    let error = apply_at(
+        &home,
+        &context(&root),
+        &CodexSettingsPatch {
+            sandbox_mode: Some("workspace-write".to_string()),
+            ..Default::default()
+        },
+        &current,
+        Some(&system),
+    )
+    .expect_err("managed allowlist gate");
+    assert!(error.contains("managed requirement"));
+    assert!(!home.join("config.toml.bak").exists());
+    let _ = fs::remove_dir_all(root);
+}

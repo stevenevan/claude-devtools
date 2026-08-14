@@ -136,6 +136,7 @@ pub fn preview_at(
     validate_revision(expected_revision)?;
     let _guard = lock_writer();
 
+    let view = codex_settings::discover_at(codex_home, context, system_root)?;
     let current = read_current(codex_home)?;
     if current.revision != expected_revision {
         return Ok(CodexSettingsPreviewResult::Conflict(conflict(
@@ -143,7 +144,6 @@ pub fn preview_at(
             &current.revision,
         )));
     }
-    let view = codex_settings::discover_at(codex_home, context, system_root)?;
     ensure_patch_targets_user(&view, patch)?;
     let proposed = render_patch(current.bytes.as_deref().unwrap_or_default(), patch)?;
     Ok(CodexSettingsPreviewResult::Ready(build_preview(
@@ -168,6 +168,7 @@ pub fn apply_at(
     validate_revision(expected_revision)?;
     let _guard = lock_writer();
 
+    let view = codex_settings::discover_at(codex_home, context, system_root)?;
     let current = read_current(codex_home)?;
     if current.revision != expected_revision {
         return Ok(CodexSettingsApplyResult::Conflict(conflict(
@@ -175,9 +176,8 @@ pub fn apply_at(
             &current.revision,
         )));
     }
-    let view = codex_settings::discover_at(codex_home, context, system_root)?;
     ensure_patch_targets_user(&view, patch)?;
-    // Reopen the canonical parent after all validation. This second read is a
+    // Reopen the resolved parent after all validation. This second read is a
     // compare-and-swap check for an external edit between discovery and open.
     let parent = open_parent(codex_home, true)?;
     let current = read_current_from_parent(&parent)?;
@@ -208,13 +208,30 @@ pub fn apply_at(
                 .to_string(),
         },
     };
+    let snapshot_created = snapshot.created;
 
-    write_atomic(&parent, proposed.as_slice())?;
-    let after = read_current_from_parent(&parent)?;
+    let install = write_atomic(&parent, proposed.as_slice(), expected_revision)
+        .map_err(|error| with_snapshot_recovery(error, snapshot_created))?;
+    if let InstallOutcome::Conflict(actual_revision) = install {
+        return Ok(CodexSettingsApplyResult::Conflict(conflict(
+            expected_revision,
+            &actual_revision,
+        )));
+    }
+    let after = read_current_from_parent(&parent)
+        .map_err(|error| with_snapshot_recovery(error, snapshot_created))?;
     let after_bytes = after.bytes.as_deref().ok_or_else(|| {
-        "codex settings: written config disappeared during verification".to_string()
+        with_snapshot_recovery(
+            "codex settings: written config disappeared during verification".to_string(),
+            snapshot_created,
+        )
     })?;
-    let verified = verify_patch(after_bytes, patch)?;
+    let verified = verify_patch(after_bytes, patch)
+        .map_err(|error| with_snapshot_recovery(error, snapshot_created))?;
+    let verified_view = codex_settings::discover_at(codex_home, context, system_root)
+        .map_err(|error| with_snapshot_recovery(error, snapshot_created))?;
+    verify_effective_patch(&verified_view, patch)
+        .map_err(|error| with_snapshot_recovery(error, snapshot_created))?;
     Ok(CodexSettingsApplyResult::Applied(
         CodexSettingsWriteResult {
             target: "user config (~/.codex/config.toml)".to_string(),
@@ -309,7 +326,12 @@ fn ensure_patch_targets_user(
             .iter()
             .find(|constraint| constraint.key == key)
         {
-            if constraint.value.scalar.as_deref() != Some(value) {
+            let allowed = constraint
+                .allowed_values
+                .as_ref()
+                .map(|values| values.iter().any(|candidate| candidate == value))
+                .unwrap_or_else(|| constraint.value.scalar.as_deref() == Some(value));
+            if !allowed {
                 return Err(format!(
                     "codex settings: {key} conflicts with a local managed requirement"
                 ));
@@ -317,6 +339,14 @@ fn ensure_patch_targets_user(
         }
     }
     Ok(())
+}
+
+fn with_snapshot_recovery(error: String, snapshot_created: bool) -> String {
+    if snapshot_created {
+        format!("{error}; pre-write snapshot {SNAPSHOT_IDENTITY} is available for recovery")
+    } else {
+        format!("{error}; no pre-write snapshot was created because the user config was new")
+    }
 }
 
 fn build_preview(
@@ -417,6 +447,25 @@ fn verify_patch(
     Ok(verified)
 }
 
+fn verify_effective_patch(
+    view: &CodexSettingsView,
+    patch: &CodexSettingsPatch,
+) -> Result<(), String> {
+    for (key, expected) in patch_fields(patch) {
+        let setting = view
+            .settings
+            .iter()
+            .find(|setting| setting.key == key)
+            .ok_or_else(|| format!("codex settings: verification could not resolve {key}"))?;
+        if setting.value.scalar.as_deref() != Some(expected) {
+            return Err(format!(
+                "codex settings: verification did not observe the requested {key} value"
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn conflict(expected: &str, actual: &str) -> CodexSettingsConflict {
     CodexSettingsConflict {
         target: "user config (~/.codex/config.toml)".to_string(),
@@ -470,11 +519,9 @@ fn open_parent(codex_home: &Path, create: bool) -> Result<Option<ParentDir>, Str
         fs::set_permissions(codex_home, fs::Permissions::from_mode(0o700))
             .map_err(|error| format!("codex settings: secure CODEX_HOME: {error}"))?;
     }
-    let canonical = fs::canonicalize(codex_home)
-        .map_err(|error| format!("codex settings: resolve CODEX_HOME parent: {error}"))?;
     #[cfg(unix)]
     {
-        let bytes = std::ffi::CString::new(canonical.as_os_str().as_bytes())
+        let bytes = std::ffi::CString::new(codex_home.as_os_str().as_bytes())
             .map_err(|_| "codex settings: CODEX_HOME contains an invalid path")?;
         let fd = unsafe {
             libc::open(
@@ -493,7 +540,11 @@ fn open_parent(codex_home: &Path, create: bool) -> Result<Option<ParentDir>, Str
         }));
     }
     #[cfg(not(unix))]
-    Ok(Some(ParentDir { path: canonical }))
+    {
+        let canonical = fs::canonicalize(codex_home)
+            .map_err(|error| format!("codex settings: resolve CODEX_HOME parent: {error}"))?;
+        Ok(Some(ParentDir { path: canonical }))
+    }
 }
 
 fn read_named(parent: &ParentDir, name: &str) -> Result<Option<Vec<u8>>, String> {
@@ -563,7 +614,17 @@ fn write_snapshot(parent: &ParentDir, bytes: &[u8]) -> Result<String, String> {
     Ok(name)
 }
 
-fn write_atomic(parent: &ParentDir, bytes: &[u8]) -> Result<(), String> {
+#[derive(Debug)]
+enum InstallOutcome {
+    Applied,
+    Conflict(String),
+}
+
+fn write_atomic(
+    parent: &ParentDir,
+    bytes: &[u8],
+    expected_revision: &str,
+) -> Result<InstallOutcome, String> {
     let (name, mut file) = create_unique(parent, ".codex-settings.tmp", false)
         .map_err(|error| format!("codex settings: create private temp file: {error}"))?;
     if let Err(error) = file.write_all(bytes).and_then(|_| file.sync_all()) {
@@ -571,13 +632,76 @@ fn write_atomic(parent: &ParentDir, bytes: &[u8]) -> Result<(), String> {
         return Err(format!("codex settings: write private temp file: {error}"));
     }
     drop(file);
-    if let Err(error) = rename_named(parent, &name, TARGET_NAME) {
+    let result = install_temp(parent, &name, expected_revision);
+    if result.is_err() {
         let _ = remove_named(parent, &name);
-        return Err(format!(
-            "codex settings: atomically replace config.toml: {error}"
-        ));
     }
-    Ok(())
+    result
+}
+
+fn install_temp(
+    parent: &ParentDir,
+    temp_name: &str,
+    expected_revision: &str,
+) -> Result<InstallOutcome, String> {
+    if expected_revision == "missing" {
+        match link_named(parent, temp_name, TARGET_NAME) {
+            Ok(()) => {
+                remove_named(parent, temp_name).map_err(|error| {
+                    format!("codex settings: remove private temp file: {error}")
+                })?;
+                return Ok(InstallOutcome::Applied);
+            }
+            Err(error) if error.kind() == io::ErrorKind::AlreadyExists => {
+                let actual = read_current_from_parent(parent)?.revision;
+                let _ = remove_named(parent, temp_name);
+                return Ok(InstallOutcome::Conflict(actual));
+            }
+            Err(error) => {
+                return Err(format!(
+                    "codex settings: install new config without replacement: {error}"
+                ));
+            }
+        }
+    }
+
+    match exchange_named(parent, temp_name, TARGET_NAME) {
+        Ok(()) => {}
+        Err(error) if error.kind() == io::ErrorKind::NotFound => {
+            let _ = remove_named(parent, temp_name);
+            return Ok(InstallOutcome::Conflict("missing".to_string()));
+        }
+        Err(error) => {
+            return Err(format!(
+                "codex settings: atomically compare and replace config.toml: {error}"
+            ));
+        }
+    }
+    let previous = match read_named(parent, temp_name) {
+        Ok(Some(bytes)) => bytes,
+        Ok(None) => Vec::new(),
+        Err(error) => {
+            let rollback = exchange_named(parent, temp_name, TARGET_NAME);
+            return Err(match rollback {
+                Ok(()) => format!("codex settings: inspect displaced config: {error}"),
+                Err(rollback) => format!(
+                    "codex settings: inspect displaced config: {error}; rollback failed: {rollback}"
+                ),
+            });
+        }
+    };
+    let actual_revision = revision(&previous);
+    if actual_revision != expected_revision {
+        exchange_named(parent, temp_name, TARGET_NAME).map_err(|error| {
+            format!("codex settings: configuration changed and rollback failed: {error}")
+        })?;
+        remove_named(parent, temp_name)
+            .map_err(|error| format!("codex settings: remove private temp file: {error}"))?;
+        return Ok(InstallOutcome::Conflict(actual_revision));
+    }
+    remove_named(parent, temp_name)
+        .map_err(|error| format!("codex settings: remove private displaced config: {error}"))?;
+    Ok(InstallOutcome::Applied)
 }
 
 fn create_unique(
@@ -661,7 +785,7 @@ fn remove_named(parent: &ParentDir, name: &str) -> io::Result<()> {
     fs::remove_file(parent.path.join(name))
 }
 
-fn rename_named(parent: &ParentDir, from: &str, to: &str) -> io::Result<()> {
+fn link_named(parent: &ParentDir, from: &str, to: &str) -> io::Result<()> {
     #[cfg(unix)]
     {
         let from =
@@ -669,11 +793,12 @@ fn rename_named(parent: &ParentDir, from: &str, to: &str) -> io::Result<()> {
         let to =
             std::ffi::CString::new(to).map_err(|_| io::Error::from_raw_os_error(libc::EINVAL))?;
         let result = unsafe {
-            libc::renameat(
+            libc::linkat(
                 parent.fd.as_raw_fd(),
                 from.as_ptr(),
                 parent.fd.as_raw_fd(),
                 to.as_ptr(),
+                0,
             )
         };
         if result == 0 {
@@ -683,7 +808,68 @@ fn rename_named(parent: &ParentDir, from: &str, to: &str) -> io::Result<()> {
         }
     }
     #[cfg(not(unix))]
-    fs::rename(parent.path.join(from), parent.path.join(to))
+    fs::hard_link(parent.path.join(from), parent.path.join(to))
+}
+
+fn exchange_named(parent: &ParentDir, from: &str, to: &str) -> io::Result<()> {
+    #[cfg(target_os = "macos")]
+    {
+        let from =
+            std::ffi::CString::new(from).map_err(|_| io::Error::from_raw_os_error(libc::EINVAL))?;
+        let to =
+            std::ffi::CString::new(to).map_err(|_| io::Error::from_raw_os_error(libc::EINVAL))?;
+        let result = unsafe {
+            libc::renameatx_np(
+                parent.fd.as_raw_fd(),
+                from.as_ptr(),
+                parent.fd.as_raw_fd(),
+                to.as_ptr(),
+                libc::RENAME_SWAP,
+            )
+        };
+        if result == 0 {
+            Ok(())
+        } else {
+            Err(io::Error::last_os_error())
+        }
+    }
+    #[cfg(target_os = "linux")]
+    {
+        let from =
+            std::ffi::CString::new(from).map_err(|_| io::Error::from_raw_os_error(libc::EINVAL))?;
+        let to =
+            std::ffi::CString::new(to).map_err(|_| io::Error::from_raw_os_error(libc::EINVAL))?;
+        let result = unsafe {
+            libc::renameat2(
+                parent.fd.as_raw_fd(),
+                from.as_ptr(),
+                parent.fd.as_raw_fd(),
+                to.as_ptr(),
+                libc::RENAME_EXCHANGE,
+            )
+        };
+        if result == 0 {
+            Ok(())
+        } else {
+            Err(io::Error::last_os_error())
+        }
+    }
+    #[cfg(all(unix, not(any(target_os = "macos", target_os = "linux"))))]
+    {
+        let _ = (parent, from, to);
+        Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "atomic compare-and-swap is unavailable on this Unix platform",
+        ))
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = (parent, from, to);
+        Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "atomic compare-and-swap is unavailable on this platform",
+        ))
+    }
 }
 
 fn revision(bytes: &[u8]) -> String {
