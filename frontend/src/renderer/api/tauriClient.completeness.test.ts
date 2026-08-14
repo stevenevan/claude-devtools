@@ -158,6 +158,22 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['openCodexConfigFolder', (a) => a.openCodexConfigFolder()],
   ['previewCodexSettingsPatch', (a) => a.previewCodexSettingsPatch({}, {}, 'missing')],
   ['applyCodexSettingsPatch', (a) => a.applyCodexSettingsPatch({}, {}, 'missing')],
+  ['listCodexInstructions', (a) => a.listCodexInstructions({ kind: 'global' })],
+  ['readCodexInstruction', (a) => a.readCodexInstruction({ kind: 'global' }, 'id', 32)],
+  [
+    'previewCodexInstruction',
+    (a) => a.previewCodexInstruction({ kind: 'global' }, 'id', 'new', 'revision'),
+  ],
+  [
+    'applyCodexInstruction',
+    (a) => a.applyCodexInstruction({ kind: 'global' }, 'id', 'new', 'revision'),
+  ],
+  ['listCodexAgents', (a) => a.listCodexAgents({ kind: 'global' })],
+  ['readCodexAgent', (a) => a.readCodexAgent({ kind: 'global' }, 'id', 32)],
+  ['previewCodexAgent', (a) => a.previewCodexAgent({ kind: 'global' }, 'id', 'new', 'revision')],
+  ['applyCodexAgent', (a) => a.applyCodexAgent({ kind: 'global' }, 'id', 'new', 'revision')],
+  ['listCodexSkills', (a) => a.listCodexSkills({ kind: 'global' })],
+  ['readCodexSkill', (a) => a.readCodexSkill({ kind: 'global' }, 'id', 32)],
   ['updateGlobalSettings', (a) => a.updateGlobalSettings({})],
   ['readStatusLine', (a) => a.readStatusLine()],
   ['updateStatusLine', (a) => a.updateStatusLine(null)],
@@ -404,6 +420,49 @@ test('Codex settings commands keep the context server-resolved', async () => {
         patch: { sandboxMode: 'workspace-write' },
         expectedRevision: 'missing',
       },
+    },
+  ]);
+});
+
+test('Codex inventory commands preserve scope and opaque record arguments', async () => {
+  invocations.length = 0;
+  const api = createTauriClient();
+  const scope = { kind: 'project' as const, projectId: 'issued-project' };
+  await api.listCodexInstructions(scope);
+  await api.readCodexInstruction(scope, 'instruction-id', 64);
+  await api.previewCodexAgent(scope, 'agent-id', 'new content', 'expected-revision');
+  await api.applyCodexAgent(scope, 'agent-id', 'new content', 'expected-revision');
+  await api.listCodexSkills({ kind: 'global' });
+  expect(invocations).toEqual([
+    {
+      command: 'list_codex_instructions',
+      args: { scope },
+    },
+    {
+      command: 'read_codex_instruction',
+      args: { scope, recordId: 'instruction-id', maxBytes: 64 },
+    },
+    {
+      command: 'preview_codex_agent',
+      args: {
+        scope,
+        recordId: 'agent-id',
+        content: 'new content',
+        expectedRevision: 'expected-revision',
+      },
+    },
+    {
+      command: 'apply_codex_agent',
+      args: {
+        scope,
+        recordId: 'agent-id',
+        content: 'new content',
+        expectedRevision: 'expected-revision',
+      },
+    },
+    {
+      command: 'list_codex_skills',
+      args: { scope: { kind: 'global' } },
     },
   ]);
 });

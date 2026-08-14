@@ -68,7 +68,7 @@ pub fn apply_codex_settings_patch(
     )
 }
 
-fn ensure_local(ssh: &SshState) -> Result<(), String> {
+pub(crate) fn ensure_local(ssh: &SshState) -> Result<(), String> {
     if ssh.get_status().state != "disconnected" {
         return Err(ERR_SSH_ACTIVE.to_string());
     }

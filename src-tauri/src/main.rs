@@ -15,7 +15,8 @@ use claude_devtools_lib::analytics::{
 use claude_devtools_lib::cache::SessionCache;
 use claude_devtools_lib::commands::notify::NotifyState;
 use claude_devtools_lib::commands::{
-    codex_settings as codex_settings_cmds, config as config_cmds, files as files_cmds,
+    codex_inventory as codex_inventory_cmds, codex_settings as codex_settings_cmds,
+    config as config_cmds, files as files_cmds,
     maintenance as maintenance_cmds,
     notify as notify_cmds, session as session_cmds,
 };
@@ -458,6 +459,7 @@ fn main() {
     let ssh: SharedSsh = Arc::new(SshState::new());
     let last_conn: SharedLastConn = Arc::new(Mutex::new(None));
     let config: SharedConfig = Arc::new(ConfigState::new());
+    let codex_inventory = Arc::new(codex_inventory_cmds::CodexInventoryState::new());
     // W14: the persisted notification store. Constructed BEFORE MaintenanceState
     // so the pending-cleanup closure can capture its Arc — the two share nothing
     // else. (Store path: $HOME/.claude/claude-devtools-notifications.json.)
@@ -497,6 +499,7 @@ fn main() {
         .manage(ssh)
         .manage(last_conn)
         .manage(config)
+        .manage(codex_inventory)
         .manage(maintenance)
         .manage(notify_state)
         .setup(|app| {
@@ -576,6 +579,16 @@ fn main() {
             codex_settings_cmds::open_codex_config_folder,
             codex_settings_cmds::preview_codex_settings_patch,
             codex_settings_cmds::apply_codex_settings_patch,
+            codex_inventory_cmds::list_codex_instructions,
+            codex_inventory_cmds::read_codex_instruction,
+            codex_inventory_cmds::preview_codex_instruction,
+            codex_inventory_cmds::apply_codex_instruction,
+            codex_inventory_cmds::list_codex_agents,
+            codex_inventory_cmds::read_codex_agent,
+            codex_inventory_cmds::preview_codex_agent,
+            codex_inventory_cmds::apply_codex_agent,
+            codex_inventory_cmds::list_codex_skills,
+            codex_inventory_cmds::read_codex_skill,
             // ── W12 config commands ──
             config_cmds::config_get,
             config_cmds::config_update,
