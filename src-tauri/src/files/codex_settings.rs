@@ -7,6 +7,7 @@
 
 use std::collections::BTreeMap;
 use std::fs;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
@@ -162,6 +163,8 @@ pub struct CodexPolicyConstraint {
     pub key: String,
     pub value: CodexSettingValue,
     pub source_label: String,
+    #[serde(skip)]
+    pub(crate) allowed_values: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone)]
@@ -175,6 +178,7 @@ struct NormalizedContext {
 struct RawDefinition {
     key: String,
     value: CodexSettingValue,
+    allowed_values: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone)]
@@ -381,7 +385,7 @@ pub fn discover_at(
     precedence_records.push(default);
 
     let mut settings = Vec::new();
-    let mut winners: BTreeMap<String, (RawDefinition, String, String, bool)> = BTreeMap::new();
+    let mut winners: BTreeMap<String, (RawDefinition, String, String, String)> = BTreeMap::new();
     let mut shadowed: BTreeMap<String, Vec<CodexShadowedValue>> = BTreeMap::new();
     for record in &precedence_records {
         if !record.source.active {
@@ -404,7 +408,7 @@ pub fn discover_at(
                         definition.clone(),
                         record.source.id.clone(),
                         record.source.label.clone(),
-                        record.source.kind == "user",
+                        record.source.kind.clone(),
                     ),
                 );
             }
@@ -418,15 +422,16 @@ pub fn discover_at(
         .collect();
     let has_default_permissions = winners.contains_key("default_permissions");
     for key in SUPPORTED_KEYS {
-        let Some((definition, source_id, source_label, source_is_user)) = winners.get(key) else {
+        let Some((definition, source_id, source_label, source_kind)) = winners.get(key) else {
             continue;
         };
-        let mut editable = *source_is_user && is_user_editable(definition, true, "user");
+        let can_user_override = can_user_override_source(source_kind);
+        let mut editable = can_user_override && is_safe_editable(definition);
         let mut read_only_reason = if key == "default_permissions" {
             Some("Permission profiles are read-only in this sprint".to_string())
         } else if definition.value.kind == "approvalGranular" {
             Some("Granular approval rules are read-only in this sprint".to_string())
-        } else if !source_is_user {
+        } else if !can_user_override {
             Some("A higher-priority read-only source owns this value".to_string())
         } else {
             None
@@ -602,7 +607,12 @@ fn inspect_source(
         });
         read.status.to_string()
     } else if let Some(bytes) = read.bytes.as_deref() {
-        match parse_document(bytes, trust_project) {
+        let parsed = if kind == "managedPolicy" {
+            parse_requirements_document(bytes)
+        } else {
+            parse_document(bytes, trust_project)
+        };
+        match parsed {
             Ok(parsed) => {
                 definitions = parsed.definitions;
                 provenance_keys = parsed.provenance_keys;
@@ -731,6 +741,86 @@ fn default_source() -> SourceRecord {
     }
 }
 
+#[cfg(unix)]
+fn read_bounded_file(path: &Path) -> FileRead {
+    use std::os::unix::fs::OpenOptionsExt;
+
+    let mut options = fs::OpenOptions::new();
+    options
+        .read(true)
+        .custom_flags(libc::O_CLOEXEC | libc::O_NOFOLLOW);
+    let mut file = match options.open(path) {
+        Ok(file) => file,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return FileRead {
+                status: "missing",
+                revision: None,
+                bytes: None,
+                error: None,
+            }
+        }
+        Err(error) if error.raw_os_error() == Some(libc::ELOOP) => {
+            return FileRead {
+                status: "invalid",
+                revision: None,
+                bytes: None,
+                error: Some("symlink-rejected"),
+            }
+        }
+        Err(_) => {
+            return FileRead {
+                status: "unreadable",
+                revision: None,
+                bytes: None,
+                error: Some("unreadable"),
+            }
+        }
+    };
+    let metadata = match file.metadata() {
+        Ok(metadata) => metadata,
+        Err(_) => {
+            return FileRead {
+                status: "unreadable",
+                revision: None,
+                bytes: None,
+                error: Some("unreadable"),
+            }
+        }
+    };
+    if !metadata.is_file() {
+        return FileRead {
+            status: "invalid",
+            revision: None,
+            bytes: None,
+            error: Some("not-regular-file"),
+        };
+    }
+    if metadata.len() > MAX_SOURCE_BYTES {
+        return FileRead {
+            status: "invalid",
+            revision: None,
+            bytes: None,
+            error: Some("source-too-large"),
+        };
+    }
+    let mut bytes = Vec::with_capacity(metadata.len() as usize);
+    match file.read_to_end(&mut bytes) {
+        Ok(_) => FileRead {
+            status: "available",
+            revision: Some(revision(&bytes)),
+            bytes: Some(bytes),
+            error: None,
+        },
+        Err(_) => FileRead {
+            status: "unreadable",
+            revision: None,
+            bytes: None,
+            error: Some("unreadable"),
+        },
+    }
+}
+
+#[cfg(not(unix))]
 fn read_bounded_file(path: &Path) -> FileRead {
     let metadata = match fs::symlink_metadata(path) {
         Ok(metadata) => metadata,
@@ -811,6 +901,7 @@ fn parse_document(
                     RawDefinition {
                         key: key.to_string(),
                         value,
+                        allowed_values: None,
                     },
                 );
             }
@@ -838,6 +929,117 @@ fn parse_document(
         trust_state,
         diagnostics,
     })
+}
+
+fn parse_requirements_document(bytes: &[u8]) -> Result<ParsedDocument, &'static str> {
+    let text = std::str::from_utf8(bytes).map_err(|_| "source is not valid UTF-8")?;
+    let document: DocumentMut = text.parse().map_err(|_| "source could not be parsed")?;
+    let mut parsed = parse_document(bytes, None)?;
+
+    if let Some(item) = document.get("allowed_approval_policies") {
+        let values = string_array(item).ok_or("managed approval policy allowlist is invalid")?;
+        parsed.definitions.insert(
+            "approval_policy".to_string(),
+            RawDefinition {
+                key: "approval_policy".to_string(),
+                value: allowed_values_value("Allowed approval policies", values.len()),
+                allowed_values: Some(values),
+            },
+        );
+    }
+    if let Some(item) = document.get("allowed_sandbox_modes") {
+        let values = string_array(item).ok_or("managed sandbox mode allowlist is invalid")?;
+        parsed.definitions.insert(
+            "sandbox_mode".to_string(),
+            RawDefinition {
+                key: "sandbox_mode".to_string(),
+                value: allowed_values_value("Allowed sandbox modes", values.len()),
+                allowed_values: Some(values),
+            },
+        );
+    }
+    if let Some(item) = document.get("allowed_permission_profiles") {
+        let values = permission_profile_names(item)
+            .ok_or("managed permission profile allowlist is invalid")?;
+        parsed.definitions.insert(
+            "default_permissions".to_string(),
+            RawDefinition {
+                key: "default_permissions".to_string(),
+                value: allowed_values_value("Allowed permission profiles", values.len()),
+                allowed_values: Some(values),
+            },
+        );
+    }
+    if document.get("allowed_permission_profiles").is_none() {
+        if let Some(item) = document.get("default_permissions") {
+            if let Some(profile) = item.as_value().and_then(Value::as_str) {
+                if let Some(profile) = safe_text(profile, false) {
+                    parsed.definitions.insert(
+                        "default_permissions".to_string(),
+                        RawDefinition {
+                            key: "default_permissions".to_string(),
+                            value: scalar_value("permissionProfile", profile),
+                            allowed_values: None,
+                        },
+                    );
+                } else {
+                    parsed.definitions.remove("default_permissions");
+                }
+            }
+        }
+    }
+    Ok(parsed)
+}
+
+fn string_array(item: &Item) -> Option<Vec<String>> {
+    let array = item.as_value()?.as_array()?;
+    let mut values = Vec::with_capacity(array.len());
+    for value in array {
+        let value = value.as_str()?;
+        if !safe_key(value)
+            && !matches!(
+                value,
+                "untrusted"
+                    | "on-request"
+                    | "never"
+                    | "granular"
+                    | "read-only"
+                    | "workspace-write"
+                    | "danger-full-access"
+            )
+        {
+            return None;
+        }
+        values.push(value.to_string());
+    }
+    Some(values)
+}
+
+fn permission_profile_names(item: &Item) -> Option<Vec<String>> {
+    let mut values = Vec::new();
+    if let Some(table) = item.as_table() {
+        for (key, value) in table {
+            if value.as_value().and_then(Value::as_bool) == Some(true) {
+                if !safe_key(key) {
+                    return None;
+                }
+                values.push(key.to_string());
+            }
+        }
+        return Some(values);
+    }
+    if let Some(table) = item.as_inline_table() {
+        for (key, value) in table {
+            if value.as_bool() == Some(true) {
+                if !safe_key(key) {
+                    return None;
+                }
+                values.push(key.to_string());
+            }
+        }
+        return Some(values);
+    }
+    None
 }
 
 fn parse_supported_value(
@@ -893,38 +1095,25 @@ fn safe_json_from_item(item: &Item, depth: usize) -> Option<JsonValue> {
         return None;
     }
     if let Some(value) = item.as_value() {
-        if let Some(value) = value.as_str() {
-            return Some(match safe_text(value, false) {
-                Some(value) => JsonValue::String(value),
-                None => JsonValue::String("[redacted]".to_string()),
-            });
-        }
-        if let Some(value) = value.as_bool() {
-            return Some(JsonValue::Bool(value));
-        }
-        if let Some(value) = value.as_integer() {
-            return Some(JsonValue::Number(value.into()));
-        }
-        if let Some(value) = value.as_float() {
-            return serde_json::Number::from_f64(value).map(JsonValue::Number);
-        }
-        if let Some(array) = value.as_array() {
-            let values = array
-                .iter()
-                .map(|item| safe_json_from_item(item, depth + 1))
-                .collect::<Option<Vec<_>>>()?;
-            return Some(JsonValue::Array(values));
-        }
+        return safe_json_from_value(value, depth);
     }
     if let Some(table) = item.as_table() {
         let mut object = Map::new();
-        for (key, value) in table {
+        for (key, _value) in table {
             if !safe_key(key) {
                 continue;
             }
-            if let Some(value) = safe_json_from_item(value, depth + 1) {
-                object.insert(key.to_string(), value);
+            object.insert(key.to_string(), JsonValue::String("[redacted]".to_string()));
+        }
+        return Some(JsonValue::Object(object));
+    }
+    if let Some(table) = item.as_inline_table() {
+        let mut object = Map::new();
+        for (key, _value) in table {
+            if !safe_key(key) {
+                continue;
             }
+            object.insert(key.to_string(), JsonValue::String("[redacted]".to_string()));
         }
         return Some(JsonValue::Object(object));
     }
@@ -936,6 +1125,30 @@ fn safe_json_from_item(item: &Item, depth: usize) -> Option<JsonValue> {
         return Some(JsonValue::Array(values));
     }
     None
+}
+
+fn safe_json_from_value(value: &Value, depth: usize) -> Option<JsonValue> {
+    if depth > MAX_STRUCTURED_DEPTH {
+        return None;
+    }
+    if let Some(array) = value.as_array() {
+        let values = array
+            .iter()
+            .map(|value| safe_json_from_value(value, depth + 1))
+            .collect::<Option<Vec<_>>>()?;
+        return Some(JsonValue::Array(values));
+    }
+    if let Some(table) = value.as_inline_table() {
+        let mut object = Map::new();
+        for (key, _value) in table {
+            if !safe_key(key) {
+                continue;
+            }
+            object.insert(key.to_string(), JsonValue::String("[redacted]".to_string()));
+        }
+        return Some(JsonValue::Object(object));
+    }
+    Some(JsonValue::String("[redacted]".to_string()))
 }
 
 fn safe_text(value: &str, model: bool) -> Option<String> {
@@ -999,7 +1212,17 @@ fn structured_value(kind: &str, structured: JsonValue) -> CodexSettingValue {
         display: "Structured value (read-only)".to_string(),
         scalar: None,
         structured: Some(structured),
-        redacted: false,
+        redacted: true,
+    }
+}
+
+fn allowed_values_value(label: &str, count: usize) -> CodexSettingValue {
+    CodexSettingValue {
+        kind: "allowedValues".to_string(),
+        display: format!("{label} ({count} allowed)"),
+        scalar: None,
+        structured: None,
+        redacted: true,
     }
 }
 
@@ -1059,6 +1282,7 @@ fn build_policy(
     let local_available = requirements
         .map(|record| record.source.status == "available")
         .unwrap_or(false);
+    let cloud_available = false;
     if let Some(requirements) = requirements {
         for definition in requirements.definitions.values() {
             if !matches!(
@@ -1071,10 +1295,11 @@ fn build_policy(
                 key: definition.key.clone(),
                 value: definition.value.clone(),
                 source_label: requirements.source.label.clone(),
+                allowed_values: definition.allowed_values.clone(),
             });
         }
     }
-    if !local_available {
+    if !local_available || !cloud_available {
         diagnostics.push(CodexDiagnostic {
             source_id: "managed-requirements".to_string(),
             severity: "info".to_string(),
@@ -1091,7 +1316,7 @@ fn build_policy(
         else {
             continue;
         };
-        if constraint.value.scalar.is_some() && constraint.value.scalar != setting.value.scalar {
+        if !constraint_matches(constraint, setting) {
             diagnostics.push(CodexDiagnostic {
                 source_id: "managed-requirements".to_string(),
                 severity: "warning".to_string(),
@@ -1105,7 +1330,7 @@ fn build_policy(
     let has_conflict = diagnostics
         .iter()
         .any(|diagnostic| diagnostic.code == "policy-conflict");
-    let resolution = if local_available && !has_conflict {
+    let resolution = if local_available && !has_conflict && cloud_available {
         "complete"
     } else {
         "incomplete"
@@ -1113,7 +1338,7 @@ fn build_policy(
     (
         CodexPolicyStatus {
             local_requirements_available: local_available,
-            cloud_requirements_available: false,
+            cloud_requirements_available: cloud_available,
             resolution: resolution.to_string(),
             constraints,
             diagnostics: diagnostics.clone(),
@@ -1122,11 +1347,43 @@ fn build_policy(
     )
 }
 
+fn constraint_matches(constraint: &CodexPolicyConstraint, setting: &CodexResolvedSetting) -> bool {
+    if let Some(allowed_values) = constraint.allowed_values.as_ref() {
+        let actual = setting
+            .value
+            .scalar
+            .as_deref()
+            .or_else(|| (setting.value.kind == "approvalGranular").then_some("granular"));
+        return actual
+            .map(|actual| allowed_values.iter().any(|allowed| allowed == actual))
+            .unwrap_or(false);
+    }
+    match (
+        constraint.value.scalar.as_deref(),
+        setting.value.scalar.as_deref(),
+    ) {
+        (Some(expected), Some(actual)) => expected == actual,
+        (Some(_), None) => false,
+        (None, _) => true,
+    }
+}
+
 fn is_user_editable(definition: &RawDefinition, active: bool, kind: &str) -> bool {
     if !active || kind != "user" || definition.key == "default_permissions" {
         return false;
     }
     if definition.value.kind == "approvalGranular" {
+        return false;
+    }
+    is_safe_editable(definition)
+}
+
+fn can_user_override_source(kind: &str) -> bool {
+    matches!(kind, "user" | "system")
+}
+
+fn is_safe_editable(definition: &RawDefinition) -> bool {
+    if definition.key == "default_permissions" || definition.value.kind == "approvalGranular" {
         return false;
     }
     definition.key != "sandbox_mode"

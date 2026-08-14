@@ -152,13 +152,68 @@ fn secret_shaped_model_is_not_returned() {
 }
 
 #[test]
+fn system_value_can_be_overridden_by_a_safe_user_default() {
+    let root = fixture("system-override");
+    let codex_home = root.join("codex-home");
+    let system = root.join("system");
+    fs::create_dir_all(&codex_home).expect("codex home");
+    fs::create_dir_all(&system).expect("system");
+    fs::write(codex_home.join("config.toml"), "# user config\n").expect("user config");
+    fs::write(system.join("config.toml"), "model = \"system-model\"\n").expect("system config");
+
+    let view = discover_at(&codex_home, &context(&root, &root), Some(&system)).expect("discover");
+    let model = view
+        .settings
+        .iter()
+        .find(|setting| setting.key == "model")
+        .expect("model");
+    assert_eq!(model.source_id, "system");
+    assert!(model.editable);
+    assert_eq!(model.user_value, None);
+    let _ = fs::remove_dir_all(root);
+}
+
+#[test]
+fn managed_allowlists_are_bounded_and_not_exposed() {
+    let root = fixture("managed-allowlists");
+    let codex_home = root.join("codex-home");
+    let system = root.join("system");
+    fs::create_dir_all(&codex_home).expect("codex home");
+    fs::create_dir_all(&system).expect("system");
+    fs::write(
+        codex_home.join("config.toml"),
+        "approval_policy = \"on-request\"\nsandbox_mode = \"read-only\"\n",
+    )
+    .expect("user config");
+    fs::write(
+        system.join("requirements.toml"),
+        "allowed_approval_policies = [\"on-request\", \"never\"]\nallowed_sandbox_modes = [\"read-only\"]\n\n[allowed_permission_profiles]\nsafe = true\n",
+    )
+    .expect("requirements");
+
+    let view = discover_at(&codex_home, &context(&root, &root), Some(&system)).expect("discover");
+    let approval = view
+        .policy
+        .constraints
+        .iter()
+        .find(|constraint| constraint.key == "approval_policy")
+        .expect("approval constraint");
+    assert_eq!(approval.value.kind, "allowedValues");
+    assert!(view.policy.resolution == "incomplete");
+    let json = serde_json::to_string(&view).expect("serialize");
+    assert!(!json.contains("allowed_approval_policies"));
+    assert!(!json.contains("never"));
+    let _ = fs::remove_dir_all(root);
+}
+
+#[test]
 fn granular_approval_and_default_permissions_are_read_only() {
     let root = fixture("policy");
     let codex_home = root.join("codex-home");
     fs::create_dir_all(&codex_home).expect("codex home");
     fs::write(
         codex_home.join("config.toml"),
-        "approval_policy = { allow = [\"read\"] }\nsandbox_mode = \"workspace-write\"\n\n[default_permissions]\nmode = \"safe\"\n",
+        "approval_policy = { granular = { password = \"hunter2\", location = \"/private/path\" } }\nsandbox_mode = \"workspace-write\"\n\n[default_permissions]\nmode = \"safe\"\n",
     )
     .expect("user config");
     let view = discover_at(
@@ -182,5 +237,8 @@ fn granular_approval_and_default_permissions_are_read_only() {
         .find(|setting| setting.key == "sandbox_mode");
     assert!(!sandbox.expect("sandbox").editable);
     assert!(view.policy.resolution == "incomplete");
+    let json = serde_json::to_string(&view).expect("serialize");
+    assert!(!json.contains("hunter2"));
+    assert!(!json.contains("/private/path"));
     let _ = fs::remove_dir_all(root);
 }
