@@ -1,4 +1,4 @@
-import { JSX, useEffect, useState } from 'react';
+import { JSX, useEffect, useMemo, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { Button } from '@renderer/components/ui/button';
@@ -10,14 +10,28 @@ import { DryRunConfirmDialog } from '../maintenance/DryRunConfirmDialog';
 
 import { InstallableList } from './InstallableList';
 import { SkillDetail } from './SkillDetail';
+import { CodexSkillsPanel } from './CodexSkillsPanel';
+import {
+  CodexSourcePicker,
+  getCodexScope,
+  type InventorySource,
+} from './CodexInventorySource';
 
 import type { SkillInventoryEntry } from '@shared/types/api';
 
 export const SkillsManager = (): JSX.Element => {
   const mode = useUIMode();
   const connectionMode = useStore((s) => s.connectionMode);
+  const selectedProjectId = useStore((s) => s.selectedProjectId);
+  const projects = useStore((s) => s.projects);
   const setActiveActivity = useStore((s) => s.setActiveActivity);
   const canAct = isDesktopMode() && connectionMode === 'local';
+  const [source, setSource] = useState<InventorySource>('claude');
+  const codexScope = useMemo(
+    () => getCodexScope(selectedProjectId, projects),
+    [projects, selectedProjectId]
+  );
+  const selectedProjectName = projects.find((project) => project.id === selectedProjectId)?.name;
 
   const [skills, setSkills] = useState<SkillInventoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,15 +58,16 @@ export const SkillsManager = (): JSX.Element => {
   };
 
   useEffect(() => {
+    if (source !== 'claude') return;
     void refresh();
-    // Load once on mount.
+    // Load on mount and when returning from the Codex source.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [source]);
 
   useEffect(() => {
-    if (mode === 'simple' || selectedName || skills.length === 0) return;
+    if (source !== 'claude' || mode === 'simple' || selectedName || skills.length === 0) return;
     setSelectedName(skills[0].name);
-  }, [mode, skills, selectedName]);
+  }, [mode, skills, selectedName, source]);
 
   const selectSkill = async (name: string): Promise<void> => {
     if (editorDirty) {
@@ -110,9 +125,33 @@ export const SkillsManager = (): JSX.Element => {
     stateLabel: 'Available',
   }));
 
+  if (source === 'codex') {
+    return (
+      <div className="bg-background flex flex-1 flex-col overflow-hidden">
+        <CodexSourcePicker
+          source={source}
+          onChange={setSource}
+          scope={codexScope}
+          projectName={selectedProjectName}
+        />
+        <CodexSkillsPanel
+          mode={mode}
+          scope={codexScope}
+          projectName={selectedProjectName}
+        />
+      </div>
+    );
+  }
+
   if (mode === 'simple') {
     return (
       <div className="bg-background flex flex-1 flex-col overflow-y-auto">
+        <CodexSourcePicker
+          source={source}
+          onChange={setSource}
+          scope={codexScope}
+          projectName={selectedProjectName}
+        />
         <div className="border-border/50 border-b px-6 py-5">
           <p className="text-foreground text-lg font-medium">What Claude can do</p>
           <p className="text-muted-foreground mt-1 max-w-2xl text-sm">
@@ -154,6 +193,12 @@ export const SkillsManager = (): JSX.Element => {
 
   return (
     <div className="bg-background flex flex-1 flex-col overflow-hidden">
+      <CodexSourcePicker
+        source={source}
+        onChange={setSource}
+        scope={codexScope}
+        projectName={selectedProjectName}
+      />
       <div className="border-border/50 border-b px-4 py-3">
         <p className="text-foreground text-sm font-medium">Skills</p>
         <p className="text-muted-foreground mt-0.5 text-xs">

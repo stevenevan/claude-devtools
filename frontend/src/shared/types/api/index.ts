@@ -39,6 +39,17 @@ import type {
   CodexSettingsPreviewResult,
   CodexSettingsView,
 } from './codexSettings';
+import type {
+  CodexAgentDetail,
+  CodexAgentList,
+  CodexInventoryScope,
+  CodexInstructionDetail,
+  CodexInstructionList,
+  CodexSkillDetail,
+  CodexSkillList,
+  CodexTextApplyResult,
+  CodexTextPreviewResult,
+} from './codexInventory';
 import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
 import type { HistoryPage } from './history';
@@ -76,6 +87,7 @@ export type * from './claudeJson';
 export type * from './config';
 export type * from './configBackup';
 export type * from './codexSettings';
+export type * from './codexInventory';
 export type * from './context';
 export type * from './history';
 export type * from './inspector';
@@ -142,6 +154,49 @@ export interface SourcesView {
 }
 
 export interface DesktopAPI {
+  listCodexInstructions: (scope: CodexInventoryScope) => Promise<CodexInstructionList>;
+  readCodexInstruction: (
+    scope: CodexInventoryScope,
+    recordId: string,
+    maxBytes?: number
+  ) => Promise<CodexInstructionDetail>;
+  previewCodexInstruction: (
+    scope: CodexInventoryScope,
+    recordId: string,
+    content: string,
+    expectedRevision: string
+  ) => Promise<CodexTextPreviewResult>;
+  applyCodexInstruction: (
+    scope: CodexInventoryScope,
+    recordId: string,
+    content: string,
+    expectedRevision: string
+  ) => Promise<CodexTextApplyResult>;
+  listCodexAgents: (scope: CodexInventoryScope) => Promise<CodexAgentList>;
+  readCodexAgent: (
+    scope: CodexInventoryScope,
+    recordId: string,
+    maxBytes?: number
+  ) => Promise<CodexAgentDetail>;
+  previewCodexAgent: (
+    scope: CodexInventoryScope,
+    recordId: string,
+    content: string,
+    expectedRevision: string
+  ) => Promise<CodexTextPreviewResult>;
+  applyCodexAgent: (
+    scope: CodexInventoryScope,
+    recordId: string,
+    content: string,
+    expectedRevision: string
+  ) => Promise<CodexTextApplyResult>;
+  listCodexSkills: (scope: CodexInventoryScope) => Promise<CodexSkillList>;
+  readCodexSkill: (
+    scope: CodexInventoryScope,
+    recordId: string,
+    maxBytes?: number
+  ) => Promise<CodexSkillDetail>;
+
   getCodexSettings: (context: CodexSettingsContext) => Promise<CodexSettingsView>;
   openCodexConfigFolder: () => Promise<void>;
   previewCodexSettingsPatch: (
