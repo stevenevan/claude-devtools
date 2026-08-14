@@ -58,6 +58,50 @@ pub(crate) fn preview(
     }))
 }
 
+pub(crate) fn preview_with_transform<F>(
+    kind: CodexRecordKind,
+    record_id: &str,
+    root: &Path,
+    relative: &Path,
+    input: &str,
+    expected_revision: &str,
+    transform: F,
+) -> Result<CodexTextPreviewResult, String>
+where
+    F: FnOnce(&str) -> Result<String, String>,
+{
+    validate_inputs(record_id, relative, input, expected_revision)?;
+    let _guard = lock_writer()?;
+    let path = resolve_target(root, relative, kind)?;
+    let current = read_current(&path, kind)?;
+    if current.revision != expected_revision {
+        return Ok(CodexTextPreviewResult::Conflict(conflict(
+            record_id,
+            expected_revision,
+            &current.revision,
+        )));
+    }
+    let content = transform(&current.content).map_err(|error| {
+        format!(
+            "codex {}: prepare transformed content: {error}",
+            kind_label(kind)
+        )
+    })?;
+    validate_content(&content)?;
+    let proposed_revision = revision(content.as_bytes());
+    Ok(CodexTextPreviewResult::Ready(CodexTextPreview {
+        record_id: record_id.to_string(),
+        current_revision: current.revision,
+        proposed_revision,
+        diff: diff_lines(&current.content, &content),
+        warnings: vec![
+            "The selected local file is untrusted content.".to_string(),
+            "Apply creates a sibling .bak recovery copy before replacement.".to_string(),
+        ],
+        can_apply: true,
+    }))
+}
+
 pub(crate) fn apply(
     kind: CodexRecordKind,
     record_id: &str,
@@ -77,6 +121,54 @@ pub(crate) fn apply(
             &current.revision,
         )));
     }
+    let backup = backup_path(&path)?;
+    ensure_regular_or_missing(&backup)?;
+    fs::copy(&path, &backup).map_err(|error| {
+        format!(
+            "codex {}: create recovery copy before write: {error}",
+            kind_label(kind)
+        )
+    })?;
+    write_atomic(&path, content.as_bytes(), &backup)?;
+    let revision = exact_revision(&path)
+        .map_err(|error| format!("codex {}: verify replacement: {error}", kind_label(kind)))?;
+    Ok(CodexTextApplyResult::Applied(CodexTextWriteResult {
+        record_id: record_id.to_string(),
+        revision,
+        backup_created: true,
+    }))
+}
+
+pub(crate) fn apply_with_transform<F>(
+    kind: CodexRecordKind,
+    record_id: &str,
+    root: &Path,
+    relative: &Path,
+    input: &str,
+    expected_revision: &str,
+    transform: F,
+) -> Result<CodexTextApplyResult, String>
+where
+    F: FnOnce(&str) -> Result<String, String>,
+{
+    validate_inputs(record_id, relative, input, expected_revision)?;
+    let _guard = lock_writer()?;
+    let path = resolve_target(root, relative, kind)?;
+    let current = read_current(&path, kind)?;
+    if current.revision != expected_revision {
+        return Ok(CodexTextApplyResult::Conflict(conflict(
+            record_id,
+            expected_revision,
+            &current.revision,
+        )));
+    }
+    let content = transform(&current.content).map_err(|error| {
+        format!(
+            "codex {}: prepare transformed content: {error}",
+            kind_label(kind)
+        )
+    })?;
+    validate_content(&content)?;
     let backup = backup_path(&path)?;
     ensure_regular_or_missing(&backup)?;
     fs::copy(&path, &backup).map_err(|error| {
@@ -139,6 +231,19 @@ fn validate_inputs(
     }
     validate_relative_path(relative)
         .map_err(|error| format!("codex text write: invalid selected path: {error}"))?;
+    validate_content(content)?;
+    if expected_revision.len() != 64
+        || expected_revision.len() > MAX_REVISION_BYTES
+        || !expected_revision
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit())
+    {
+        return Err("codex text write: expected revision is invalid".to_string());
+    }
+    Ok(())
+}
+
+fn validate_content(content: &str) -> Result<(), String> {
     if content.as_bytes().len() > MAX_CONTENT_BYTES {
         return Err(format!(
             "codex text write: content exceeds {MAX_CONTENT_BYTES} bytes"
@@ -148,14 +253,6 @@ fn validate_inputs(
         return Err(
             "codex text write: redacted placeholders cannot be written back to a file".to_string(),
         );
-    }
-    if expected_revision.len() != 64
-        || expected_revision.len() > MAX_REVISION_BYTES
-        || !expected_revision
-            .bytes()
-            .all(|byte| byte.is_ascii_hexdigit())
-    {
-        return Err("codex text write: expected revision is invalid".to_string());
     }
     Ok(())
 }

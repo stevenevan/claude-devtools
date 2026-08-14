@@ -7,7 +7,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use toml_edit::{DocumentMut, Item, Value};
+use toml_edit::{value, DocumentMut, Item, Value};
 
 use crate::config::codex_context::ResolvedCodexProjectContext;
 use crate::files::codex_inventory::{
@@ -196,6 +196,19 @@ pub(crate) fn read_detail(
         exact_revision,
         untrusted: true,
     })
+}
+
+/// Replace only the developer-instructions field while preserving all other
+/// agent metadata and unknown TOML fields on the server.
+pub(crate) fn render_developer_instructions(
+    current: &str,
+    instructions: &str,
+) -> Result<String, String> {
+    let mut document: DocumentMut = current.parse().map_err(|_| {
+        "codex agents: selected agent TOML could not be parsed for editing".to_string()
+    })?;
+    document["developer_instructions"] = value(instructions);
+    Ok(document.to_string())
 }
 
 fn parse_summary(

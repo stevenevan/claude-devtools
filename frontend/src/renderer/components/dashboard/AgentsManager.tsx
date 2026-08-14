@@ -1,4 +1,4 @@
-import { JSX, useEffect, useState } from 'react';
+import { JSX, useEffect, useMemo, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { Button } from '@renderer/components/ui/button';
@@ -12,6 +12,12 @@ import { DryRunConfirmDialog } from '../maintenance/DryRunConfirmDialog';
 
 import { AgentDetailEditor } from './AgentDetailEditor';
 import { AGENT_NAME_RULE, getAgentCapabilityLabel, isValidAgentName } from './agentCapability';
+import { CodexAgentsPanel } from './CodexAgentsPanel';
+import {
+  CodexSourcePicker,
+  getCodexScope,
+  type InventorySource,
+} from './CodexInventorySource';
 import { InstallableList } from './InstallableList';
 
 import type { GlobalAgent } from '@shared/types/api';
@@ -36,7 +42,15 @@ function toolsSummary(tools: string): string {
 export const AgentsManager = (): JSX.Element => {
   const mode = useUIMode();
   const connectionMode = useStore((s) => s.connectionMode);
+  const selectedProjectId = useStore((s) => s.selectedProjectId);
+  const projects = useStore((s) => s.projects);
   const canAct = isDesktopMode() && connectionMode === 'local';
+  const [source, setSource] = useState<InventorySource>('claude');
+  const codexScope = useMemo(
+    () => getCodexScope(selectedProjectId, projects),
+    [projects, selectedProjectId]
+  );
+  const selectedProjectName = projects.find((project) => project.id === selectedProjectId)?.name;
 
   const [agents, setAgents] = useState<GlobalAgent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,15 +83,16 @@ export const AgentsManager = (): JSX.Element => {
   };
 
   useEffect(() => {
+    if (source !== 'claude') return;
     void refresh();
-    // Load once on mount.
+    // Load on mount and when returning from the Codex source.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [source]);
 
   useEffect(() => {
-    if (mode === 'simple' || selectedFileBase || agents.length === 0) return;
+    if (source !== 'claude' || mode === 'simple' || selectedFileBase || agents.length === 0) return;
     setSelectedFileBase(fileBaseOf(agents[0].filePath));
-  }, [agents, mode, selectedFileBase]);
+  }, [agents, mode, selectedFileBase, source]);
 
   const selectAgent = async (fileBase: string): Promise<void> => {
     if (editorDirty) {
@@ -146,9 +161,34 @@ export const AgentsManager = (): JSX.Element => {
     detail: getAgentCapabilityLabel(agent.tools),
   }));
 
+  if (source === 'codex') {
+    return (
+      <div className="bg-background flex flex-1 flex-col overflow-hidden">
+        <CodexSourcePicker
+          source={source}
+          onChange={setSource}
+          scope={codexScope}
+          projectName={selectedProjectName}
+        />
+        <CodexAgentsPanel
+          mode={mode}
+          scope={codexScope}
+          projectName={selectedProjectName}
+          canAct={canAct}
+        />
+      </div>
+    );
+  }
+
   if (mode === 'simple' && !showAllAgents) {
     return (
       <div className="bg-background flex flex-1 flex-col overflow-y-auto">
+        <CodexSourcePicker
+          source={source}
+          onChange={setSource}
+          scope={codexScope}
+          projectName={selectedProjectName}
+        />
         <div className="border-border/50 border-b px-6 py-5">
           <p className="text-foreground text-lg font-medium">Helpers</p>
           <p className="text-muted-foreground mt-1 max-w-2xl text-sm">
@@ -189,6 +229,12 @@ export const AgentsManager = (): JSX.Element => {
 
   return (
     <div className="bg-background flex flex-1 flex-col overflow-hidden">
+      <CodexSourcePicker
+        source={source}
+        onChange={setSource}
+        scope={codexScope}
+        projectName={selectedProjectName}
+      />
       <div className="border-border/50 flex items-start justify-between gap-3 border-b px-4 py-3">
         <div>
           <p className="text-foreground text-sm font-medium">Agents</p>

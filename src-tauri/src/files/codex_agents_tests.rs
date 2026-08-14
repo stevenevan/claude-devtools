@@ -54,6 +54,26 @@ unknown_field = "not displayed"
 }
 
 #[test]
+fn editing_developer_instructions_preserves_unknown_agent_fields() {
+    let current = r#"name = "reviewer"
+unknown_field = "keep this field"
+developer_instructions = "old"
+"#;
+    let rendered = render_developer_instructions(current, "new instructions").expect("render");
+    let document: toml_edit::DocumentMut = rendered.parse().expect("parse rendered");
+    assert_eq!(
+        document.get("unknown_field").and_then(|item| item.as_str()),
+        Some("keep this field")
+    );
+    assert_eq!(
+        document
+            .get("developer_instructions")
+            .and_then(|item| item.as_str()),
+        Some("new instructions")
+    );
+}
+
+#[test]
 fn malformed_agent_does_not_hide_a_valid_sibling() {
     let root = fixture("malformed");
     let agents = root.join("agents");

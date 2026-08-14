@@ -290,13 +290,14 @@ pub fn preview_codex_agent(
     let SnapshotRecord::Agent(record) = record else {
         return Err("codex inventory: selected record is not an agent".to_string());
     };
-    codex_text_write::preview(
+    codex_text_write::preview_with_transform(
         CodexRecordKind::Agent,
         record_id,
         &record.root,
         &record.relative,
         &content,
         &expected_revision,
+        |current| codex_agents::render_developer_instructions(current, &content),
     )
 }
 
@@ -315,13 +316,14 @@ pub fn apply_codex_agent(
     let SnapshotRecord::Agent(record) = record else {
         return Err("codex inventory: selected record is not an agent".to_string());
     };
-    let result = codex_text_write::apply(
+    let result = codex_text_write::apply_with_transform(
         CodexRecordKind::Agent,
         record_id,
         &record.root,
         &record.relative,
         &content,
         &expected_revision,
+        |current| codex_agents::render_developer_instructions(current, &content),
     )?;
     inventory.invalidate()?;
     Ok(result)
