@@ -105,3 +105,64 @@ export interface CodexSettingsView {
   target: string;
   canEdit: boolean;
 }
+
+export interface CodexSettingsPatch {
+  model?: string | null;
+  approvalPolicy?: string | null;
+  sandboxMode?: string | null;
+}
+
+export interface CodexFieldDiff {
+  key: string;
+  oldValue: string;
+  newValue: string;
+}
+
+export interface CodexSettingsPreview {
+  target: string;
+  expectedRevision: string;
+  currentRevision: string;
+  proposedRevision: string;
+  diff: CodexFieldDiff[];
+  warnings: string[];
+  canApply: boolean;
+}
+
+export interface CodexSettingsConflict {
+  target: string;
+  expectedRevision: string;
+  actualRevision: string;
+  message: string;
+}
+
+export type CodexSettingsPreviewResult =
+  | { status: 'ready'; data: CodexSettingsPreview }
+  | { status: 'conflict'; data: CodexSettingsConflict };
+
+export interface CodexSnapshotStatus {
+  created: boolean;
+  identity: string;
+  note: string;
+}
+
+export interface CodexVerifiedField {
+  key: string;
+  value: string;
+}
+
+export interface CodexWriteVerification {
+  verified: boolean;
+  fields: CodexVerifiedField[];
+}
+
+export interface CodexSettingsWriteResult {
+  target: string;
+  revision: string;
+  diff: CodexFieldDiff[];
+  snapshot: CodexSnapshotStatus;
+  verification: CodexWriteVerification;
+}
+
+export type CodexSettingsApplyResult =
+  | { status: 'applied'; data: CodexSettingsWriteResult }
+  | { status: 'conflict'; data: CodexSettingsConflict };

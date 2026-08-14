@@ -500,7 +500,7 @@ pub fn discover_at(
             .revision
             .unwrap_or_else(|| "missing".to_string()),
         target: "user config (~/.codex/config.toml)".to_string(),
-        can_edit: true,
+        can_edit: matches!(user.source.status.as_str(), "available" | "missing"),
     })
 }
 
@@ -1061,6 +1061,12 @@ fn build_policy(
         .unwrap_or(false);
     if let Some(requirements) = requirements {
         for definition in requirements.definitions.values() {
+            if !matches!(
+                definition.key.as_str(),
+                "approval_policy" | "sandbox_mode" | "default_permissions"
+            ) {
+                continue;
+            }
             constraints.push(CodexPolicyConstraint {
                 key: definition.key.clone(),
                 value: definition.value.clone(),

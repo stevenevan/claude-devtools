@@ -574,6 +574,8 @@ fn main() {
             quit_app,
             codex_settings_cmds::get_codex_settings,
             codex_settings_cmds::open_codex_config_folder,
+            codex_settings_cmds::preview_codex_settings_patch,
+            codex_settings_cmds::apply_codex_settings_patch,
             // ── W12 config commands ──
             config_cmds::config_get,
             config_cmds::config_update,

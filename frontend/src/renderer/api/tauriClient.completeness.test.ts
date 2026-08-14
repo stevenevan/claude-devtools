@@ -156,6 +156,8 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['readGlobalSettings', (a) => a.readGlobalSettings()],
   ['getCodexSettings', (a) => a.getCodexSettings({ projectRoot: '/project' })],
   ['openCodexConfigFolder', (a) => a.openCodexConfigFolder()],
+  ['previewCodexSettingsPatch', (a) => a.previewCodexSettingsPatch({}, {}, 'missing')],
+  ['applyCodexSettingsPatch', (a) => a.applyCodexSettingsPatch({}, {}, 'missing')],
   ['updateGlobalSettings', (a) => a.updateGlobalSettings({})],
   ['readStatusLine', (a) => a.readStatusLine()],
   ['updateStatusLine', (a) => a.updateStatusLine(null)],
@@ -365,6 +367,16 @@ test('Codex settings commands keep the context server-resolved', async () => {
     profile: 'review',
   });
   await api.openCodexConfigFolder();
+  await api.previewCodexSettingsPatch(
+    { projectRoot: '/workspace/project' },
+    { model: 'new-model' },
+    'missing'
+  );
+  await api.applyCodexSettingsPatch(
+    { projectRoot: '/workspace/project' },
+    { sandboxMode: 'workspace-write' },
+    'missing'
+  );
   expect(invocations).toEqual([
     {
       command: 'get_codex_settings',
@@ -377,6 +389,22 @@ test('Codex settings commands keep the context server-resolved', async () => {
       },
     },
     { command: 'open_codex_config_folder', args: undefined },
+    {
+      command: 'preview_codex_settings_patch',
+      args: {
+        context: { projectRoot: '/workspace/project' },
+        patch: { model: 'new-model' },
+        expectedRevision: 'missing',
+      },
+    },
+    {
+      command: 'apply_codex_settings_patch',
+      args: {
+        context: { projectRoot: '/workspace/project' },
+        patch: { sandboxMode: 'workspace-write' },
+        expectedRevision: 'missing',
+      },
+    },
   ]);
 });
 
