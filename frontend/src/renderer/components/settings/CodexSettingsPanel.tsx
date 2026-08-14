@@ -1,12 +1,21 @@
-import { JSX, useMemo, useState } from 'react';
+import { JSX, useEffect, useMemo, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
+import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
 import { Loader2, RefreshCw } from 'lucide-react';
 
 import { SettingsSectionHeader } from './components';
+import { CodexSettingsReviewDialog } from './CodexSettingsReviewDialog';
 import { useCodexSettings } from './hooks/useCodexSettings';
 
-import type { CodexResolvedSetting, CodexSettingsSource } from '@shared/types/api';
+import type {
+  CodexResolvedSetting,
+  CodexSettingsConflict,
+  CodexSettingsPatch,
+  CodexSettingsPreview,
+  CodexSettingsSource,
+  CodexSettingsView,
+} from '@shared/types/api';
 
 interface CodexSettingsPanelProps {
   readonly nerd?: boolean;
@@ -21,6 +30,23 @@ const LABELS: Record<string, string> = {
   default_permissions: 'Default permissions',
 };
 
+interface CodexSettingsDraft {
+  model: string;
+  approvalPolicy: string;
+  sandboxMode: string;
+}
+
+interface CodexReviewState {
+  patch: CodexSettingsPatch;
+  preview: CodexSettingsPreview;
+}
+
+const EMPTY_DRAFT: CodexSettingsDraft = {
+  model: '',
+  approvalPolicy: '',
+  sandboxMode: '',
+};
+
 function settingLabel(key: string): string {
   return LABELS[key] ?? key;
 }
@@ -31,6 +57,78 @@ function settingDisplay(setting: CodexResolvedSetting | undefined): string {
 
 function sourceSummary(setting: CodexResolvedSetting | undefined): string {
   return setting ? `Source: ${setting.sourceLabel}` : 'No source defines this setting';
+}
+
+function settingMap(view: CodexSettingsView): Map<string, CodexResolvedSetting> {
+  return new Map(view.settings.map((setting) => [setting.key, setting]));
+}
+
+function draftFromView(view: CodexSettingsView): CodexSettingsDraft {
+  const settings = settingMap(view);
+  const valueFor = (key: string): string => {
+    const setting = settings.get(key);
+    if (!setting?.editable) return '';
+    return setting.userValue?.scalar ?? setting.value.scalar ?? '';
+  };
+  return {
+    model: valueFor('model'),
+    approvalPolicy: valueFor('approval_policy'),
+    sandboxMode: valueFor('sandbox_mode'),
+  };
+}
+
+function buildPatch(
+  draft: CodexSettingsDraft,
+  settings: Map<string, CodexResolvedSetting>
+): CodexSettingsPatch {
+  const patch: CodexSettingsPatch = {};
+  const addIfChanged = (key: string, value: string, assign: (value: string) => void): void => {
+    const trimmed = value.trim();
+    if (trimmed && trimmed !== settings.get(key)?.value.scalar) assign(trimmed);
+  };
+  addIfChanged('model', draft.model, (value) => { patch.model = value; });
+  addIfChanged('approval_policy', draft.approvalPolicy, (value) => { patch.approvalPolicy = value; });
+  addIfChanged('sandbox_mode', draft.sandboxMode, (value) => { patch.sandboxMode = value; });
+  return patch;
+}
+
+function fieldEditable(
+  view: CodexSettingsView,
+  settings: Map<string, CodexResolvedSetting>,
+  key: string
+): boolean {
+  if (!view.canEdit) return false;
+  const setting = settings.get(key);
+  if (setting && !setting.editable) return false;
+  if (
+    (key === 'approval_policy' || key === 'sandbox_mode') &&
+    (settings.has('default_permissions') ||
+      view.policy.constraints.some((item) => item.key === 'default_permissions'))
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function fieldReason(
+  view: CodexSettingsView,
+  settings: Map<string, CodexResolvedSetting>,
+  key: string
+): string | null {
+  const setting = settings.get(key);
+  if (setting && !setting.editable) return setting.readOnlyReason;
+  if (
+    (key === 'approval_policy' || key === 'sandbox_mode') &&
+    (settings.has('default_permissions') ||
+      view.policy.constraints.some((item) => item.key === 'default_permissions'))
+  ) {
+    return 'default_permissions is present; this safety field is read-only in this sprint';
+  }
+  const constraint = view.policy.constraints.find((item) => item.key === key);
+  if (constraint?.value.scalar) {
+    return `Managed requirement fixes this value to ${constraint.value.scalar}`;
+  }
+  return null;
 }
 
 function SourceRow({ source }: Readonly<{ source: CodexSettingsSource }>): JSX.Element {
@@ -49,23 +147,110 @@ export const CodexSettingsPanel = ({ nerd = false }: CodexSettingsPanelProps): J
     view,
     loading,
     error,
+    writeError,
+    writeBusy,
     projectRoot,
     profile,
+    context,
     setProfile,
     refresh,
     openConfigFolder,
+    previewPatch,
+    applyPatch,
+    clearWriteError,
   } = useCodexSettings();
   const [showSources, setShowSources] = useState(nerd);
   const [profileDraft, setProfileDraft] = useState(profile ?? '');
+  const [draft, setDraft] = useState<CodexSettingsDraft>(EMPTY_DRAFT);
+  const [draftRevision, setDraftRevision] = useState<string | null>(null);
+  const [review, setReview] = useState<CodexReviewState | null>(null);
+  const [conflict, setConflict] = useState<CodexSettingsConflict | null>(null);
+  const [editorError, setEditorError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const settings = useMemo(
     () => new Map((view?.settings ?? []).map((setting) => [setting.key, setting])),
     [view?.settings]
   );
 
+  useEffect(() => {
+    if (!view) {
+      setDraft(EMPTY_DRAFT);
+      setDraftRevision(null);
+      return;
+    }
+    if (review || draftRevision === view.userRevision) return;
+    setDraft(draftFromView(view));
+    setDraftRevision(view.userRevision);
+  }, [draftRevision, review, view]);
+
   const applyProfile = (): void => {
     const next = profileDraft.trim();
     setProfile(next || null);
+  };
+
+  const updateDraft = (field: keyof CodexSettingsDraft, value: string): void => {
+    setDraft((current) => ({ ...current, [field]: value }));
+    setEditorError(null);
+    setSuccessMessage(null);
+    setConflict(null);
+    clearWriteError();
+  };
+
+  const resetDraft = (): void => {
+    if (!view) return;
+    setDraft(draftFromView(view));
+    setDraftRevision(view.userRevision);
+    setEditorError(null);
+    setSuccessMessage(null);
+    setConflict(null);
+    clearWriteError();
+  };
+
+  const handleReview = async (): Promise<void> => {
+    if (!view || !context) return;
+    const patch = buildPatch(draft, settings);
+    if (Object.keys(patch).length === 0) {
+      setEditorError('Change at least one safe user value before reviewing.');
+      return;
+    }
+    setEditorError(null);
+    setSuccessMessage(null);
+    setConflict(null);
+    clearWriteError();
+    try {
+      const result = await previewPatch(patch, view.userRevision);
+      if (result.status === 'conflict') {
+        setConflict(result.data);
+        await refresh();
+        return;
+      }
+      setReview({ patch, preview: result.data });
+    } catch {
+      // The hook stores the renderer-safe error for the editor and dialog.
+    }
+  };
+
+  const handleApply = async (): Promise<void> => {
+    if (!review) return;
+    try {
+      const result = await applyPatch(review.patch, review.preview.expectedRevision);
+      if (result.status === 'conflict') {
+        setReview(null);
+        setConflict(result.data);
+        await refresh();
+        return;
+      }
+      setReview(null);
+      setSuccessMessage(
+        result.data.verification.verified
+          ? 'Codex settings applied and verified.'
+          : 'Codex settings applied.'
+      );
+      await refresh();
+    } catch {
+      // The hook stores the renderer-safe error while the review remains open.
+    }
   };
 
   return (
@@ -143,6 +328,35 @@ export const CodexSettingsPanel = ({ nerd = false }: CodexSettingsPanelProps): J
             </span>
           </div>
 
+          <CodexSettingsEditor
+            view={view}
+            settings={settings}
+            draft={draft}
+            disabled={loading || writeBusy}
+            error={editorError ?? writeError}
+            successMessage={successMessage}
+            onDraftChange={updateDraft}
+            onReview={() => void handleReview()}
+            onReset={resetDraft}
+          />
+
+          {conflict && (
+            <div className="border-amber-500/40 bg-amber-500/10 text-amber-500 mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-xs" role="alert">
+              <span>{conflict.message} The editor was refreshed; review the current values again.</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setConflict(null);
+                  void refresh();
+                }}
+              >
+                Refresh
+              </Button>
+            </div>
+          )}
+
           {!nerd ? (
             <div className="mt-3">
               {SIMPLE_KEYS.map((key) => {
@@ -163,11 +377,130 @@ export const CodexSettingsPanel = ({ nerd = false }: CodexSettingsPanelProps): J
           ) : (
             <NerdDetails view={view} settings={settings} showSources={showSources} />
           )}
+
+          {review && (
+            <CodexSettingsReviewDialog
+              open
+              preview={review.preview}
+              busy={writeBusy}
+              error={writeError}
+              onOpenChange={(open) => {
+                if (!open) setReview(null);
+              }}
+              onApply={handleApply}
+            />
+          )}
         </>
       )}
     </section>
   );
 };
+
+function CodexSettingsEditor({
+  view,
+  settings,
+  draft,
+  disabled,
+  error,
+  successMessage,
+  onDraftChange,
+  onReview,
+  onReset,
+}: Readonly<{
+  view: CodexSettingsView;
+  settings: Map<string, CodexResolvedSetting>;
+  draft: CodexSettingsDraft;
+  disabled: boolean;
+  error: string | null;
+  successMessage: string | null;
+  onDraftChange: (field: keyof CodexSettingsDraft, value: string) => void;
+  onReview: () => void;
+  onReset: () => void;
+}>): JSX.Element {
+  const modelEditable = fieldEditable(view, settings, 'model');
+  const approvalEditable = fieldEditable(view, settings, 'approval_policy');
+  const sandboxEditable = fieldEditable(view, settings, 'sandbox_mode');
+  const reasonFor = (key: string): string | null =>
+    fieldReason(view, settings, key) ?? (!view.canEdit ? 'Safe user editing is unavailable' : null);
+
+  return (
+    <div className="border-border/50 bg-card/30 mt-4 rounded-md border p-3 text-xs">
+      <div className="font-medium">Safe user defaults</div>
+      <p className="text-muted-foreground mt-1">
+        Draft changes locally, then review the exact fields before writing to the user config. Unknown TOML stays untouched.
+      </p>
+
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        <div className="space-y-1">
+          <label htmlFor="codex-settings-model" className="font-medium">Model</label>
+          <Input
+            id="codex-settings-model"
+            value={draft.model}
+            disabled={disabled || !modelEditable}
+            onChange={(event) => onDraftChange('model', event.target.value)}
+            placeholder="Keep current"
+            aria-describedby="codex-settings-model-help"
+          />
+          <p id="codex-settings-model-help" className="text-muted-foreground min-h-8 text-[0.7rem]">
+            {reasonFor('model') ?? 'Safe model identifier only; paths and secrets are rejected.'}
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <label htmlFor="codex-settings-approval" className="font-medium">Approval mode</label>
+          <NativeSelect
+            id="codex-settings-approval"
+            className="w-full"
+            value={draft.approvalPolicy}
+            disabled={disabled || !approvalEditable}
+            onChange={(event) => onDraftChange('approvalPolicy', event.target.value)}
+            aria-describedby="codex-settings-approval-help"
+          >
+            <NativeSelectOption value="">Keep current</NativeSelectOption>
+            <NativeSelectOption value="untrusted">Untrusted</NativeSelectOption>
+            <NativeSelectOption value="on-request">On request</NativeSelectOption>
+            <NativeSelectOption value="never">Never</NativeSelectOption>
+          </NativeSelect>
+          <p id="codex-settings-approval-help" className="text-muted-foreground min-h-8 text-[0.7rem]">
+            {reasonFor('approval_policy') ?? 'Granular approval rules are read-only.'}
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <label htmlFor="codex-settings-sandbox" className="font-medium">Sandbox</label>
+          <NativeSelect
+            id="codex-settings-sandbox"
+            className="w-full"
+            value={draft.sandboxMode}
+            disabled={disabled || !sandboxEditable}
+            onChange={(event) => onDraftChange('sandboxMode', event.target.value)}
+            aria-describedby="codex-settings-sandbox-help"
+          >
+            <NativeSelectOption value="">Keep current</NativeSelectOption>
+            <NativeSelectOption value="read-only">Read-only</NativeSelectOption>
+            <NativeSelectOption value="workspace-write">Workspace write</NativeSelectOption>
+          </NativeSelect>
+          <p id="codex-settings-sandbox-help" className="text-muted-foreground min-h-8 text-[0.7rem]">
+            {reasonFor('sandbox_mode') ?? 'Danger-full-access is intentionally excluded.'}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <Button type="button" size="sm" disabled={disabled || !view.canEdit} onClick={onReview}>
+          {disabled && <Loader2 className="size-3 animate-spin" />}
+          {disabled ? 'Reviewing…' : 'Review changes'}
+        </Button>
+        <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={onReset}>
+          Reset draft
+        </Button>
+      </div>
+
+      {error && <p className="text-destructive mt-2" role="alert">{error}</p>}
+      {successMessage && <p className="mt-2 text-emerald-500" role="status">{successMessage}</p>}
+    </div>
+  );
+}
 
 function NerdDetails({
   view,
