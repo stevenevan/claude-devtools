@@ -13,6 +13,7 @@ pub(crate) mod codex_inventory;
 pub(crate) mod codex_instructions;
 pub(crate) mod codex_agents;
 pub(crate) mod codex_text_write;
+pub(crate) mod codex_skills;
 pub mod codex_reader;
 pub mod codex_settings;
 pub mod codex_settings_write;

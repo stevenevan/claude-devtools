@@ -158,6 +158,48 @@ pub struct CodexAgentDetail {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CodexSkillResource {
+    pub kind: String,
+    pub relative_path: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexSkillSummary {
+    pub identity: CodexSourceIdentity,
+    pub name: String,
+    pub description: String,
+    pub state: CodexValidationState,
+    pub enabled_state: CodexEnabledState,
+    pub enabled_source: Option<String>,
+    pub symlink: bool,
+    pub external_target: bool,
+    pub entry_point: String,
+    pub resources: Vec<CodexSkillResource>,
+    pub metadata_truncated: bool,
+    pub revision: Option<String>,
+    pub diagnostics: Vec<CodexInventoryDiagnostic>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexSkillList {
+    pub items: Vec<CodexSkillSummary>,
+    pub summary: CodexInventorySummary,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexSkillDetail {
+    pub skill: CodexSkillSummary,
+    pub content: String,
+    pub truncated: bool,
+    pub exact_revision: Option<String>,
+    pub untrusted: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CodexDiffLine {
     pub kind: String,
     pub text: String,
