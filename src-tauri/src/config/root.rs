@@ -234,7 +234,7 @@ pub fn source_revision(root: &Path) -> Option<String> {
     Some(format!("{:016x}", hasher.finish()))
 }
 
-fn home_dir() -> Result<PathBuf, String> {
+pub(crate) fn home_dir() -> Result<PathBuf, String> {
     dirs::home_dir().ok_or_else(|| "cannot resolve home directory".to_string())
 }
 

@@ -1,4 +1,5 @@
 pub mod chunks;
+pub mod codex_inventory;
 pub mod constants;
 pub mod domain;
 pub mod jsonl;

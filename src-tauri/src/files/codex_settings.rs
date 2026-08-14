@@ -15,11 +15,11 @@ use serde_json::{Map, Value as JsonValue};
 use sha2::{Digest, Sha256};
 use toml_edit::{DocumentMut, Item, Value};
 
+use crate::config::codex_context::normalize_project_context;
 use crate::config::root;
 
 const MAX_SOURCE_BYTES: u64 = 256 * 1024;
 const MAX_SOURCE_COUNT: usize = 64;
-const MAX_PROFILE_NAME_BYTES: usize = 64;
 const MAX_SAFE_TEXT_BYTES: usize = 256;
 const MAX_STRUCTURED_DEPTH: usize = 5;
 
@@ -168,13 +168,6 @@ pub struct CodexPolicyConstraint {
 }
 
 #[derive(Debug, Clone)]
-struct NormalizedContext {
-    project_root: PathBuf,
-    working_directory: PathBuf,
-    profile: Option<String>,
-}
-
-#[derive(Debug, Clone)]
 struct RawDefinition {
     key: String,
     value: CodexSettingValue,
@@ -233,7 +226,12 @@ pub fn discover_at(
     context: &CodexSettingsContext,
     system_root: Option<&Path>,
 ) -> Result<CodexSettingsView, String> {
-    let context = normalize_context(context)?;
+    let context = normalize_project_context(
+        &context.project_root,
+        context.working_directory.as_deref(),
+        context.profile.as_deref(),
+        "codex settings",
+    )?;
     if !codex_home.is_absolute() {
         return Err("codex settings: resolved CODEX_HOME must be absolute".to_string());
     }
@@ -507,65 +505,6 @@ pub fn discover_at(
         target: "user config (~/.codex/config.toml)".to_string(),
         can_edit: matches!(user.source.status.as_str(), "available" | "missing"),
     })
-}
-
-fn normalize_context(context: &CodexSettingsContext) -> Result<NormalizedContext, String> {
-    let project_root = validate_directory(&context.project_root, "project root")?;
-    let working_directory = match context.working_directory.as_deref() {
-        None => project_root.clone(),
-        Some(value) if value.trim().is_empty() => {
-            return Err("codex settings: working directory must not be empty".to_string());
-        }
-        Some(value) => validate_directory(value, "working directory")?,
-    };
-    if !working_directory.starts_with(&project_root) {
-        return Err(
-            "codex settings: working directory must be inside the selected project root"
-                .to_string(),
-        );
-    }
-    let profile = context
-        .profile
-        .as_deref()
-        .map(validate_profile_name)
-        .transpose()?;
-    Ok(NormalizedContext {
-        project_root,
-        working_directory,
-        profile,
-    })
-}
-
-fn validate_directory(value: &str, label: &str) -> Result<PathBuf, String> {
-    let path = Path::new(value.trim());
-    if !path.is_absolute() {
-        return Err(format!("codex settings: {label} must be an absolute path"));
-    }
-    let canonical = fs::canonicalize(path)
-        .map_err(|_| format!("codex settings: {label} must be an existing directory"))?;
-    if !fs::metadata(&canonical)
-        .map(|metadata| metadata.is_dir())
-        .unwrap_or(false)
-    {
-        return Err(format!(
-            "codex settings: {label} must be an existing directory"
-        ));
-    }
-    Ok(canonical)
-}
-
-fn validate_profile_name(value: &str) -> Result<String, String> {
-    if value.is_empty()
-        || value.len() > MAX_PROFILE_NAME_BYTES
-        || !value
-            .bytes()
-            .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-' || byte == b'_')
-    {
-        return Err(
-            "codex settings: profile must contain only letters, numbers, '-' or '_'".to_string(),
-        );
-    }
-    Ok(value.to_string())
 }
 
 fn project_layer_paths(project_root: &Path, working_directory: &Path) -> Vec<PathBuf> {

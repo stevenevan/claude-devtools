@@ -9,6 +9,7 @@ pub mod checkpoint_origin;
 pub mod claude_read;
 pub mod claudejson;
 pub mod claudejson_write;
+pub(crate) mod codex_inventory;
 pub mod codex_reader;
 pub mod codex_settings;
 pub mod codex_settings_write;
