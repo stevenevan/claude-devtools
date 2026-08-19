@@ -2,6 +2,7 @@ import { JSX } from 'react';
 import { Button } from '@renderer/components/ui/button';
 
 import type {
+  CodexInspectionContext,
   CodexInventoryDiagnostic,
   CodexInventoryScope,
   CodexValidationState,
@@ -23,6 +24,16 @@ export function codexScopeLabel(scope: CodexInventoryScope, projectName?: string
   return scope.kind === 'project'
     ? `Project · ${projectName || 'selected project'}`
     : 'Global Codex layer';
+}
+
+export function getCodexInspectionContext(
+  scope: CodexInventoryScope
+): CodexInspectionContext {
+  return {
+    scope,
+    workingDirectory: null,
+    profile: null,
+  };
 }
 
 interface CodexSourcePickerProps {

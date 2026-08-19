@@ -21,6 +21,12 @@ import { sanitizeSimpleText } from '@renderer/utils/simpleTextSanitizer';
 
 import type { CatalogPlugin, DuplicateGroup, GlobalPlugin, MarketplaceView } from '@shared/types/api';
 
+import { CodexPluginsPanel } from './CodexPluginsPanel';
+import {
+  CodexSourcePicker,
+  getCodexScope,
+  type InventorySource,
+} from './CodexInventorySource';
 import { InstallableList, type InstallableListItem } from './InstallableList';
 
 function errText(err: unknown): string {
@@ -86,7 +92,15 @@ export function indexDuplicateGroups(
 export const MarketplaceBrowser = (): JSX.Element => {
   const mode = useUIMode();
   const connectionMode = useStore((s) => s.connectionMode);
+  const selectedProjectId = useStore((s) => s.selectedProjectId);
+  const projects = useStore((s) => s.projects);
   const canAct = isDesktopMode() && connectionMode === 'local';
+  const [source, setSource] = useState<InventorySource>('claude');
+  const codexScope = useMemo(
+    () => getCodexScope(selectedProjectId, projects),
+    [projects, selectedProjectId]
+  );
+  const selectedProjectName = projects.find((project) => project.id === selectedProjectId)?.name;
 
   const [marketplaces, setMarketplaces] = useState<MarketplaceView[]>([]);
   const [globalPlugins, setGlobalPlugins] = useState<GlobalPlugin[]>([]);
@@ -123,8 +137,11 @@ export const MarketplaceBrowser = (): JSX.Element => {
   };
 
   useEffect(() => {
+    if (source !== 'claude') return;
     void load();
-  }, []);
+    // Load on mount and when returning from the Codex source.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [source]);
 
   const selected = marketplaces.find((m) => m.name === selectedName) ?? null;
   const globalPluginsByKey = useMemo(() => indexGlobalPlugins(globalPlugins), [globalPlugins]);
@@ -134,8 +151,32 @@ export const MarketplaceBrowser = (): JSX.Element => {
     [marketplaces, simpleMarketplaceFilter, simpleQuery]
   );
 
+  if (source === 'codex') {
+    return (
+      <div className="bg-background flex h-full flex-col overflow-hidden">
+        <CodexSourcePicker
+          source={source}
+          onChange={setSource}
+          scope={codexScope}
+          projectName={selectedProjectName}
+        />
+        <CodexPluginsPanel
+          mode={mode}
+          scope={codexScope}
+          projectName={selectedProjectName}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
+      <CodexSourcePicker
+        source={source}
+        onChange={setSource}
+        scope={codexScope}
+        projectName={selectedProjectName}
+      />
       <div className="border-border/50 flex shrink-0 items-start justify-between gap-2 border-b px-4 py-3">
         <div>
           <p className="text-foreground text-sm font-medium">Marketplace</p>

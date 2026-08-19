@@ -1,4 +1,4 @@
-import { JSX, useEffect, useState } from 'react';
+import { JSX, useEffect, useMemo, useState } from 'react';
 import { api, isDesktopMode } from '@renderer/api';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
 import { Button } from '@renderer/components/ui/button';
@@ -6,10 +6,18 @@ import { Input } from '@renderer/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
 import { Textarea } from '@renderer/components/ui/textarea';
 import { useClipboard } from '@renderer/hooks/mantine';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
 import { Check, Copy, KeyRound, Loader2, Plus, RefreshCw } from 'lucide-react';
 
 import type { MCPServerConfig, MCPServerRow, MCPStatusView } from '@shared/types/api';
+
+import { CodexMcpPanel } from './CodexMcpPanel';
+import {
+  CodexSourcePicker,
+  getCodexScope,
+  type InventorySource,
+} from '../dashboard/CodexInventorySource';
 
 const SOURCE_LABEL: Record<string, string> = {
   global: '~/.claude.json · global',
@@ -71,6 +79,48 @@ function parseKeyValueLines(text: string): Record<string, string> | undefined {
 // write path is add/edit/remove of GLOBAL (top-level ~/.claude.json) servers —
 // project-scoped and .mcp.json entries stay read-only, managed via the CLI.
 export const MCPStatusPanel = (): JSX.Element => {
+  const mode = useUIMode();
+  const selectedProjectId = useStore((s) => s.selectedProjectId);
+  const projects = useStore((s) => s.projects);
+  const [source, setSource] = useState<InventorySource>('claude');
+  const codexScope = useMemo(
+    () => getCodexScope(selectedProjectId, projects),
+    [projects, selectedProjectId]
+  );
+  const selectedProjectName = projects.find((project) => project.id === selectedProjectId)?.name;
+
+  if (source === 'codex') {
+    return (
+      <div className="bg-background flex flex-1 flex-col overflow-hidden">
+        <CodexSourcePicker
+          source={source}
+          onChange={setSource}
+          scope={codexScope}
+          projectName={selectedProjectName}
+        />
+        <CodexMcpPanel
+          mode={mode}
+          scope={codexScope}
+          projectName={selectedProjectName}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-background flex flex-1 flex-col overflow-y-auto">
+      <CodexSourcePicker
+        source={source}
+        onChange={setSource}
+        scope={codexScope}
+        projectName={selectedProjectName}
+      />
+      <ClaudeMcpStatusPanel />
+    </div>
+  );
+};
+
+const ClaudeMcpStatusPanel = (): JSX.Element => {
   const connectionMode = useStore((s) => s.connectionMode);
   const canAct = isDesktopMode() && connectionMode === 'local';
 
