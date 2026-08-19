@@ -3,6 +3,7 @@
 //! Recovery records are local app data. The renderer receives only opaque ids
 //! and display metadata; the real target path never crosses the IPC boundary.
 
+use std::collections::HashSet;
 use std::fs::{self, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Component, Path, PathBuf};
@@ -107,6 +108,7 @@ fn create_locked(
     let id = Uuid::new_v4().to_string();
     let dir = recovery_dir()?;
     ensure_private_dir(&dir)?;
+    let mut records = load_records()?;
     let copy_path = dir.join(format!("{id}.bin"));
     write_private_file(&copy_path, &bytes)?;
     let record = RecoveryRecord {
@@ -123,14 +125,30 @@ fn create_locked(
         target_after_checksum,
         state: "retained".to_string(),
     };
-    let mut records = load_records()?;
     records.push(record.clone());
     records.sort_by_key(|item| item.created_at);
+    let mut retired = Vec::new();
     while records.len() > MAX_RECOVERY_COPIES {
-        let removed = records.remove(0);
-        let _ = remove_private_file(&dir.join(format!("{}.bin", removed.id)));
+        retired.push(records.remove(0));
     }
-    save_records(&records)?;
+    if let Err(error) = save_records(&records) {
+        let cleanup = remove_private_file(&copy_path);
+        return match cleanup {
+            Ok(()) => Err(format!(
+                "save recovery manifest failed; new recovery copy was removed: {error}"
+            )),
+            Err(cleanup_error) => Err(format!(
+                "save recovery manifest failed: {error}; failed to remove new recovery copy: {cleanup_error}"
+            )),
+        };
+    }
+    for removed in retired {
+        if let Err(error) = remove_private_file(&dir.join(format!("{}.bin", removed.id))) {
+            return Err(format!(
+                "recovery manifest saved, but retired recovery copy cleanup failed: {error}"
+            ));
+        }
+    }
     Ok(to_public(record))
 }
 
@@ -207,12 +225,22 @@ pub fn delete(source: SourceKind, id: &str) -> Result<RecoveryCopy, String> {
         return Err("recovery copy was not found".to_string());
     }
     let path = dir.join(format!("{id}.bin"));
-    remove_private_file(&path)?;
     save_records(&records)?;
+    remove_private_file(&path).map_err(|error| {
+        format!("recovery manifest removed the copy, but binary cleanup failed: {error}")
+    })?;
     Ok(public)
 }
 
 pub fn write_atomic(target: &Path, bytes: &[u8]) -> Result<(), String> {
+    write_atomic_checked(target, bytes, None)
+}
+
+fn write_atomic_checked(
+    target: &Path,
+    bytes: &[u8],
+    expected_checksum: Option<&str>,
+) -> Result<(), String> {
     validate_target(target)?;
     let target_mode = target_mode(target)?;
     let parent = target
@@ -242,6 +270,15 @@ pub fn write_atomic(target: &Path, bytes: &[u8]) -> Result<(), String> {
             .map_err(|error| format!("sync restore temporary file: {error}"))?;
         drop(file);
         validate_target(target)?;
+        if let Some(expected_checksum) = expected_checksum {
+            let current = read_target(target)?;
+            if checksum(&current) != expected_checksum {
+                return Err(
+                    "restore target changed during final validation; no file was written"
+                        .to_string(),
+                );
+            }
+        }
         fs::rename(&temporary, target).map_err(|error| format!("replace restore target: {error}"))
     })();
     if result.is_err() {
@@ -299,24 +336,88 @@ fn write_atomic_if_unchanged_locked(
     bytes: &[u8],
     expected_checksum: &str,
 ) -> Result<(), String> {
+    write_atomic_if_unchanged_with_hook(target, bytes, expected_checksum, |_| Ok(()))
+}
+
+fn write_atomic_if_unchanged_with_hook<F>(
+    target: &Path,
+    bytes: &[u8],
+    expected_checksum: &str,
+    before_final_check: F,
+) -> Result<(), String>
+where
+    F: FnOnce(&Path) -> Result<(), String>,
+{
     validate_target(target)?;
     let current = read_target(target)?;
     if checksum(&current) != expected_checksum {
         return Err("restore target changed after confirmation; no file was written".to_string());
     }
-    write_atomic(target, bytes)
+    before_final_check(target)?;
+    write_atomic_checked(target, bytes, Some(expected_checksum))
 }
 
 fn load_records() -> Result<Vec<RecoveryRecord>, String> {
     let dir = recovery_dir()?;
     ensure_private_dir(&dir)?;
     let path = dir.join(MANIFEST_NAME);
-    match read_private_file(&path, MAX_MANIFEST_BYTES) {
+    let records = match read_private_file(&path, MAX_MANIFEST_BYTES) {
         Ok(bytes) => serde_json::from_slice(&bytes)
             .map_err(|error| format!("read recovery manifest: {error}")),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(Vec::new()),
         Err(error) => Err(format!("read recovery manifest: {error}")),
+    }?;
+    reconcile_records(&dir, records)
+}
+
+fn reconcile_records(
+    dir: &Path,
+    records: Vec<RecoveryRecord>,
+) -> Result<Vec<RecoveryRecord>, String> {
+    let original_len = records.len();
+    let mut retained = Vec::with_capacity(original_len);
+    for record in records {
+        validate_id(&record.id)
+            .map_err(|error| format!("recovery manifest contains an invalid id: {error}"))?;
+        let path = dir.join(format!("{}.bin", record.id));
+        match fs::symlink_metadata(&path) {
+            Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_file() => {
+                return Err(format!(
+                    "recovery binary for {} is not a regular file",
+                    record.id
+                ));
+            }
+            Ok(_) => retained.push(record),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => {
+                return Err(format!(
+                    "inspect recovery binary for {}: {error}",
+                    record.id
+                ))
+            }
+        }
     }
+
+    let referenced = retained
+        .iter()
+        .map(|record| record.id.as_str())
+        .collect::<HashSet<_>>();
+    for entry in fs::read_dir(dir).map_err(|error| format!("read recovery directory: {error}"))? {
+        let entry = entry.map_err(|error| format!("read recovery directory entry: {error}"))?;
+        let name = entry.file_name();
+        let Some(id) = name.to_str().and_then(|name| name.strip_suffix(".bin")) else {
+            continue;
+        };
+        if !referenced.contains(id) {
+            remove_private_file(&entry.path())
+                .map_err(|error| format!("remove orphaned recovery binary {id}: {error}"))?;
+        }
+    }
+
+    if retained.len() != original_len {
+        save_records(&retained)?;
+    }
+    Ok(retained)
 }
 
 fn save_records(records: &[RecoveryRecord]) -> Result<(), String> {
@@ -564,5 +665,41 @@ mod tests {
         );
 
         fs::remove_file(&target).expect("remove recovery test target");
+    }
+
+    #[test]
+    fn atomic_restore_checks_for_a_change_after_preparation() {
+        let target =
+            std::env::temp_dir().join(format!("codex-recovery-final-check-{}.txt", Uuid::new_v4()));
+        fs::write(&target, b"before").expect("write recovery final-check target");
+        let expected = checksum(b"before");
+
+        let error =
+            write_atomic_if_unchanged_with_hook(&target, b"replacement", &expected, |path| {
+                fs::write(path, b"changed during preparation")
+                    .map_err(|error| format!("change test target: {error}"))
+            })
+            .expect_err("final target change must be rejected");
+        assert!(error.contains("during final validation"));
+        assert_eq!(
+            fs::read(&target).expect("read recovery final-check target"),
+            b"changed during preparation"
+        );
+
+        fs::remove_file(&target).expect("remove recovery final-check target");
+    }
+
+    #[test]
+    fn reconcile_records_removes_orphaned_binary_files() {
+        let dir = std::env::temp_dir().join(format!("codex-recovery-reconcile-{}", Uuid::new_v4()));
+        fs::create_dir_all(&dir).expect("create reconcile directory");
+        let orphan = dir.join("orphan.bin");
+        fs::write(&orphan, b"orphan").expect("write orphan recovery file");
+
+        let records = reconcile_records(&dir, Vec::new()).expect("reconcile recovery files");
+
+        assert!(records.is_empty());
+        assert!(!orphan.exists());
+        crate::testutil::remove_tree(dir);
     }
 }

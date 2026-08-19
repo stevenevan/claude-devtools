@@ -209,6 +209,7 @@ pub async fn save_source_checkpoint_via_dialog(
     app: AppHandle,
 ) -> Result<CheckpointMutationResult, String> {
     validate_checkpoint_ids(&session_uuid, &file_hash)?;
+    ensure_codex_mutation_supported(source_kind)?;
     let bytes = read_checkpoint_bytes(source_kind, &session_uuid, &file_hash, version).map_err(
         |error| format!("save checkpoint failed before write (target unchanged): {error}"),
     )?;
@@ -245,6 +246,7 @@ pub async fn restore_source_checkpoint(
     app: AppHandle,
 ) -> Result<CheckpointMutationResult, String> {
     validate_checkpoint_ids(&session_uuid, &file_hash)?;
+    ensure_codex_mutation_supported(source_kind)?;
     let initial_origin = resolve_origin(source_kind, &session_uuid, &file_hash)
         .map_err(|error| format!("restore checkpoint failed before write (target unchanged): {error}"))?
         .ok_or_else(|| "restore checkpoint failed before write (target unchanged): original path for this checkpoint is unknown".to_string())?;
@@ -1032,6 +1034,16 @@ fn validate_cursor_bytes(cursor: Option<&str>) -> Result<(), String> {
 fn validate_checkpoint_ids(session_uuid: &str, file_hash: &str) -> Result<(), String> {
     validate_component(session_uuid, "session id")?;
     validate_component(file_hash, "file hash")
+}
+
+fn ensure_codex_mutation_supported(source_kind: SourceKind) -> Result<(), String> {
+    if source_kind == SourceKind::Codex {
+        return Err(
+            "Codex checkpoint Save as and Restore are unavailable until the producer and origin contracts are pinned"
+                .to_string(),
+        );
+    }
+    Ok(())
 }
 
 fn validate_component(value: &str, label: &str) -> Result<(), String> {
