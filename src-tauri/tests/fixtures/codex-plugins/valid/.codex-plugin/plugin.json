@@ -1,0 +1,8 @@
+{
+  "name": "browser",
+  "display_name": "Browser tools",
+  "description": "Research helpers",
+  "version": "1.0.0",
+  "skills": "skills",
+  "mcpServers": ".mcp.json"
+}

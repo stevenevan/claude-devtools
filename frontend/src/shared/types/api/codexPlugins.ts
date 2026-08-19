@@ -3,7 +3,7 @@ import type {
   CodexInventorySummary,
 } from './codexInventory';
 
-export type CodexPluginState = 'installed' | 'available' | 'invalid' | 'unknown';
+export type CodexPluginState = 'installed' | 'available' | 'disabled' | 'invalid' | 'unknown';
 export type CodexPluginCapabilityKind = 'skill' | 'mcpServer' | 'app' | 'hook';
 
 export interface CodexPluginSource {
@@ -25,6 +25,7 @@ export interface CodexPluginSummary {
   description: string;
   version: string | null;
   state: CodexPluginState;
+  enabledState: 'enabled' | 'disabled' | 'inherited' | 'unknown';
   source: CodexPluginSource;
   capabilities: CodexPluginCapability[];
   diagnostics: CodexInventoryDiagnostic[];

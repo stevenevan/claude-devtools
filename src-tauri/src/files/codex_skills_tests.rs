@@ -115,3 +115,43 @@ fn linked_skill_directories_are_read_only_and_external_targets_are_labeled() {
     assert!(linked.external_target);
     let _ = fs::remove_dir_all(root);
 }
+
+#[test]
+fn plugin_bundled_skills_keep_a_single_record_with_owner_link() {
+    let root = fixture("plugin-owner");
+    let package = root.join("plugins/cache/community/browser/1.0.0");
+    fs::create_dir_all(package.join(".codex-plugin")).expect("manifest");
+    fs::write(
+        package.join(".codex-plugin/plugin.json"),
+        r#"{"name":"browser","skills":"skills"}"#,
+    )
+    .expect("manifest");
+    fs::create_dir_all(package.join("skills/research")).expect("skill");
+    fs::write(
+        package.join("skills/research/SKILL.md"),
+        "---\nname: research\n---\n",
+    )
+    .expect("skill doc");
+
+    let inventory = discover(&root, &CodexInventoryScope::Global, None).expect("discover");
+    let owned = inventory
+        .view
+        .items
+        .iter()
+        .find(|item| item.owner_plugin_id.is_some())
+        .expect("plugin-owned skill");
+    assert!(owned
+        .owner_plugin_id
+        .as_deref()
+        .is_some_and(|id| id.starts_with("cdx-plugin-")));
+    assert_eq!(
+        inventory
+            .view
+            .items
+            .iter()
+            .filter(|item| item.owner_plugin_id.is_some())
+            .count(),
+        1
+    );
+    let _ = fs::remove_dir_all(root);
+}

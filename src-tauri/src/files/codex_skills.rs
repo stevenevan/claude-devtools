@@ -16,6 +16,7 @@ use crate::files::codex_inventory::{
     exact_revision, metadata_revision, read_bounded_file, resolve_readonly_directory,
     source_identity, MAX_DETAIL_BYTES, MAX_INVENTORY_ITEMS, MAX_RESOURCE_NAMES,
 };
+use crate::files::codex_plugins;
 use crate::types::codex_inventory::{
     CodexEnabledState, CodexInventoryDiagnostic, CodexInventoryScope, CodexInventorySummary,
     CodexRecordKind, CodexSkillDetail, CodexSkillList, CodexSkillResource, CodexSkillSummary,
@@ -47,6 +48,7 @@ struct SkillRoot {
     root: PathBuf,
     relative: PathBuf,
     source_scope: CodexInventoryScope,
+    owner_plugin_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -69,10 +71,33 @@ pub(crate) fn discover(
     scope: &CodexInventoryScope,
     context: Option<&ResolvedCodexProjectContext>,
 ) -> Result<SkillInventory, String> {
-    let roots = skill_roots(codex_home, scope, context)?;
+    let plugin_inventory = codex_plugins::discover(codex_home, scope, context)?;
+    let mut roots = skill_roots(codex_home, scope, context)?;
+    roots.extend(
+        plugin_inventory
+            .skill_roots
+            .into_iter()
+            .map(|root| SkillRoot {
+                root: root.root,
+                relative: root.relative,
+                source_scope: root.source_scope,
+                owner_plugin_id: Some(root.owner_plugin_id),
+            }),
+    );
+    roots.sort_by(|left, right| {
+        left.root
+            .cmp(&right.root)
+            .then_with(|| left.relative.cmp(&right.relative))
+    });
+    roots.dedup_by(|left, right| {
+        left.root == right.root
+            && left.relative == right.relative
+            && left.source_scope == right.source_scope
+    });
     let config = read_skill_config(codex_home, scope, context);
     let mut records = Vec::new();
     let mut diagnostics = config.diagnostics.clone();
+    diagnostics.extend(plugin_inventory.view.summary.diagnostics);
     let mut omitted_count = 0usize;
 
     for skill_root in roots {
@@ -111,6 +136,7 @@ pub(crate) fn discover(
                 &relative,
                 identity,
                 &config,
+                skill_root.owner_plugin_id.as_deref(),
                 &mut diagnostics,
             );
             records.push(SkillRecord {
@@ -173,6 +199,7 @@ fn inspect_skill(
     relative: &Path,
     identity: CodexSourceIdentity,
     config: &SkillConfig,
+    owner_plugin_id: Option<&str>,
     diagnostics: &mut Vec<CodexInventoryDiagnostic>,
 ) -> CodexSkillSummary {
     let fallback_name = relative
@@ -186,7 +213,7 @@ fn inspect_skill(
         state: CodexValidationState::Valid,
         enabled_state: CodexEnabledState::Unknown,
         enabled_source: None,
-        owner_plugin_id: None,
+        owner_plugin_id: owner_plugin_id.map(str::to_string),
         symlink: false,
         external_target: false,
         entry_point: "SKILL.md".to_string(),
@@ -353,6 +380,7 @@ fn skill_roots(
             root: context.project_root.clone(),
             relative: PathBuf::from(".agents/skills"),
             source_scope: source_scope.clone(),
+            owner_plugin_id: None,
         });
         for component in relative.components() {
             current.push(component.as_os_str());
@@ -363,6 +391,7 @@ fn skill_roots(
                 root: context.project_root.clone(),
                 relative: root_relative.join(".agents/skills"),
                 source_scope: source_scope.clone(),
+                owner_plugin_id: None,
             });
         }
     }
@@ -373,6 +402,7 @@ fn skill_roots(
             root: home,
             relative: PathBuf::from(".agents/skills"),
             source_scope: CodexInventoryScope::Global,
+            owner_plugin_id: None,
         });
     } else {
         let codex_agents = codex_home.join(".agents/skills");
@@ -382,18 +412,21 @@ fn skill_roots(
                 root: codex_home.to_path_buf(),
                 relative: PathBuf::from(".agents/skills"),
                 source_scope: CodexInventoryScope::Global,
+                owner_plugin_id: None,
             });
         } else if codex_skills.exists() {
             roots.push(SkillRoot {
                 root: codex_home.to_path_buf(),
                 relative: PathBuf::from("skills"),
                 source_scope: CodexInventoryScope::Global,
+                owner_plugin_id: None,
             });
         } else {
             roots.push(SkillRoot {
                 root: home,
                 relative: PathBuf::from(".agents/skills"),
                 source_scope: CodexInventoryScope::Global,
+                owner_plugin_id: None,
             });
         }
     }
@@ -755,10 +788,6 @@ fn diagnostic(
         relative_path: relative_path.map(str::to_string),
     }
 }
-
-#[cfg(test)]
-#[path = "codex_skills_tests.rs"]
-mod tests;
 
 #[cfg(test)]
 #[path = "codex_skills_tests.rs"]

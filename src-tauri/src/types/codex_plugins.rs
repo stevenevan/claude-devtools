@@ -2,13 +2,14 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::codex_inventory::{CodexInventoryDiagnostic, CodexInventorySummary};
+use super::codex_inventory::{CodexEnabledState, CodexInventoryDiagnostic, CodexInventorySummary};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum CodexPluginState {
     Installed,
     Available,
+    Disabled,
     Invalid,
     Unknown,
 }
@@ -47,6 +48,7 @@ pub struct CodexPluginSummary {
     pub description: String,
     pub version: Option<String>,
     pub state: CodexPluginState,
+    pub enabled_state: CodexEnabledState,
     pub source: CodexPluginSource,
     pub capabilities: Vec<CodexPluginCapability>,
     pub diagnostics: Vec<CodexInventoryDiagnostic>,

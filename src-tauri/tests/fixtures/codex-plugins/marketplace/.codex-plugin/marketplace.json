@@ -1,0 +1,12 @@
+{
+  "plugins": [
+    {
+      "name": "market",
+      "description": "Marketplace metadata",
+      "source": "plugins/market"
+    },
+    {
+      "name": "market"
+    }
+  ]
+}
