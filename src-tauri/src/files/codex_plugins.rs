@@ -47,6 +47,7 @@ pub(crate) struct PluginMcpRoot {
     pub(crate) relative: PathBuf,
     pub(crate) source_scope: CodexInventoryScope,
     pub(crate) owner_plugin_id: String,
+    pub(crate) owner_plugin_name: String,
 }
 
 #[derive(Debug, Clone)]
@@ -365,6 +366,7 @@ fn parse_plugin_candidate(candidate: &PluginCandidate) -> Option<CodexPluginReco
         .and_then(Value::as_str)
         .and_then(safe_plugin_name)
         .unwrap_or(fallback_name);
+    let owner_plugin_name = name.clone();
     if object.get("name").is_some()
         && object
             .get("name")
@@ -411,6 +413,7 @@ fn parse_plugin_candidate(candidate: &PluginCandidate) -> Option<CodexPluginReco
             &candidate.relative,
             &package_root,
             &id,
+            &owner_plugin_name,
             &path,
             CodexPluginCapabilityKind::McpServer,
             &mut mcp_roots,
@@ -429,6 +432,7 @@ fn parse_plugin_candidate(candidate: &PluginCandidate) -> Option<CodexPluginReco
                 &candidate.relative,
                 &package_root,
                 &id,
+                &owner_plugin_name,
                 &path,
                 kind,
                 &mut ignored_roots,
@@ -558,6 +562,7 @@ fn add_file_component(
     package_relative: &Path,
     package_root: &Path,
     owner_plugin_id: &str,
+    owner_plugin_name: &str,
     relative_text: &str,
     kind: CodexPluginCapabilityKind,
     mcp_roots: &mut Vec<PluginMcpRoot>,
@@ -602,6 +607,7 @@ fn add_file_component(
             relative: package_relative.join(&relative),
             source_scope: scan_root.scope.clone(),
             owner_plugin_id: owner_plugin_id.to_string(),
+            owner_plugin_name: owner_plugin_name.to_string(),
         });
     }
     capabilities.push(capability(kind, name, owner_plugin_id, None));

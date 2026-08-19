@@ -1,0 +1,7 @@
+{
+  "browser": {
+    "type": "stdio",
+    "command": "browser-mcp",
+    "args": ["--fixture"]
+  }
+}

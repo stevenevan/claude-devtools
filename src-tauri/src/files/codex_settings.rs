@@ -17,6 +17,7 @@ use toml_edit::{DocumentMut, Item, Value};
 
 use crate::config::codex_context::normalize_project_context;
 use crate::config::root;
+use crate::types::codex_inventory::CodexInventoryScope;
 
 const MAX_SOURCE_BYTES: u64 = 256 * 1024;
 const MAX_SOURCE_COUNT: usize = 64;
@@ -600,6 +601,35 @@ pub(crate) fn load_config_layers_at(
             })
         })
         .collect())
+}
+
+/// Load configuration layers for an inventory scope without making the
+/// renderer invent a project root for global inspection.
+pub(crate) fn load_config_layers_for_scope_at(
+    codex_home: &Path,
+    scope: &CodexInventoryScope,
+    context: Option<&crate::config::codex_context::ResolvedCodexProjectContext>,
+    system_root: Option<&Path>,
+) -> Result<Vec<CodexConfigLayer>, String> {
+    let context = match scope {
+        CodexInventoryScope::Global if !codex_home.exists() => return Ok(Vec::new()),
+        CodexInventoryScope::Global => CodexSettingsContext {
+            project_root: codex_home.to_string_lossy().into_owned(),
+            working_directory: None,
+            profile: None,
+        },
+        CodexInventoryScope::Project { .. } => {
+            let context = context.ok_or_else(|| {
+                "codex settings: project scope requires a validated project context".to_string()
+            })?;
+            CodexSettingsContext {
+                project_root: context.project_root.to_string_lossy().into_owned(),
+                working_directory: Some(context.working_directory.to_string_lossy().into_owned()),
+                profile: context.profile.clone(),
+            }
+        }
+    };
+    load_config_layers_at(codex_home, &context, system_root)
 }
 
 fn project_layer_paths(project_root: &Path, working_directory: &Path) -> Vec<PathBuf> {

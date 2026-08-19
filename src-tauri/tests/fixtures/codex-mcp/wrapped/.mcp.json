@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "docs": {
+      "type": "http",
+      "url": "https://fixture.invalid/mcp",
+      "headers": {
+        "Authorization": "Bearer fixture-value"
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[mcp_servers.files]
+type = "stdio"
+command = "node"
+args = ["--token", "sk-fixture-token"]
+env = { TOKEN = "sk-fixture-token" }
+enabled = true
+enabled_tools = ["read"]
