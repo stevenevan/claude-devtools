@@ -7,6 +7,7 @@ import { Button } from '@renderer/components/ui/button';
 import { NativeSelect, NativeSelectOption } from '@renderer/components/ui/native-select';
 import { cn } from '@renderer/lib/utils';
 import { formatBytes } from '@renderer/utils/formatters';
+import { createSourceRequestGate } from './sourceRequestGate';
 import { RefreshCw } from 'lucide-react';
 
 import type { RecoveryCopy, SourceCheckpointGroup, SourceKind } from '@shared/types/api';
@@ -36,6 +37,7 @@ export const FileHistoryBrowserPanel = ({
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [listRevision, setListRevision] = useState<string | null>(null);
   const [listPartial, setListPartial] = useState(false);
+  const [listDiagnostic, setListDiagnostic] = useState<string | null>(null);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
 
@@ -63,7 +65,7 @@ export const FileHistoryBrowserPanel = ({
   const [recoveryCopies, setRecoveryCopies] = useState<RecoveryCopy[]>([]);
   const [recoveryLoading, setRecoveryLoading] = useState(false);
   const [recoveryError, setRecoveryError] = useState<string | null>(null);
-  const sourceRequest = useRef(0);
+  const requestGate = useRef(createSourceRequestGate());
 
   const sessionGroups = useMemo<SessionGroup[]>(() => {
     const bySession = new Map<string, SourceCheckpointGroup[]>();
@@ -78,30 +80,31 @@ export const FileHistoryBrowserPanel = ({
     return Array.from(bySession, ([sessionUuid, files]) => ({ sessionUuid, files }));
   }, [groups]);
 
-  const loadList = async (
-    cursor: string | null = null,
-    append = false,
-    expectedRequest = sourceRequest.current
-  ): Promise<void> => {
+  const loadList = async (cursor: string | null = null, append = false): Promise<void> => {
+    const request = requestGate.current.begin('list');
     setListLoading(true);
     if (!append) {
       setListError(null);
+      setListDiagnostic(null);
       setListPartial(false);
       setNextCursor(null);
       setListRevision(null);
     }
     try {
       const page = await api.listSourceFileHistory(source, cursor, 100);
-      if (expectedRequest !== sourceRequest.current) return;
+      if (!requestGate.current.isCurrent('list', request)) return;
       setGroups((current) => (append ? [...current, ...page.items] : page.items));
       setNextCursor(page.nextCursor);
       setListRevision(page.revision ?? null);
       setListPartial((current) => current || page.scanLimited);
+      if (page.diagnostics.length > 0) {
+        setListDiagnostic(page.diagnostics.map((diagnostic) => diagnostic.message).join(' '));
+      }
     } catch (err) {
-      if (expectedRequest !== sourceRequest.current) return;
+      if (!requestGate.current.isCurrent('list', request)) return;
       setListError(errText(err));
     } finally {
-      if (expectedRequest === sourceRequest.current) setListLoading(false);
+      if (requestGate.current.isCurrent('list', request)) setListLoading(false);
     }
   };
 
@@ -110,25 +113,24 @@ export const FileHistoryBrowserPanel = ({
     await loadList(nextCursor, true);
   };
 
-  const loadRecoveryCopies = async (
-    expectedRequest = sourceRequest.current
-  ): Promise<void> => {
+  const loadRecoveryCopies = async (): Promise<void> => {
+    const request = requestGate.current.begin('recovery');
     setRecoveryLoading(true);
     setRecoveryError(null);
     try {
       const copies = await api.listCheckpointRecoveryCopies(source);
-      if (expectedRequest !== sourceRequest.current) return;
+      if (!requestGate.current.isCurrent('recovery', request)) return;
       setRecoveryCopies(copies);
     } catch (err) {
-      if (expectedRequest !== sourceRequest.current) return;
+      if (!requestGate.current.isCurrent('recovery', request)) return;
       setRecoveryError(errText(err));
     } finally {
-      if (expectedRequest === sourceRequest.current) setRecoveryLoading(false);
+      if (requestGate.current.isCurrent('recovery', request)) setRecoveryLoading(false);
     }
   };
 
   useEffect(() => {
-    const request = ++sourceRequest.current;
+    requestGate.current.switchSource();
     setGroups([]);
     setNextCursor(null);
     setListRevision(null);
@@ -140,13 +142,17 @@ export const FileHistoryBrowserPanel = ({
     setContentError(null);
     setContentLoading(false);
     setOrigin(null);
+    setExporting(false);
+    setRestoring(false);
     resetCompare();
     setRecoveryCopies([]);
-    void loadList(null, false, request);
-    void loadRecoveryCopies(request);
+    setRecoveryLoading(false);
+    void loadList();
+    void loadRecoveryCopies();
   }, [source]);
 
   const resetCompare = (): void => {
+    requestGate.current.begin('compare');
     setCompareVersion(null);
     setCompareContent(null);
     setCompareError(null);
@@ -155,42 +161,56 @@ export const FileHistoryBrowserPanel = ({
   };
 
   const selectSession = (sessionUuid: string): void => {
+    requestGate.current.begin('origin');
+    requestGate.current.begin('content');
+    requestGate.current.begin('mutation');
     setSelectedSession(sessionUuid);
     setSelectedFile(null);
     setSelectedVersion(null);
     setContent(null);
     setContentError(null);
+    setContentLoading(false);
     setOrigin(null);
+    setExporting(false);
+    setRestoring(false);
     resetCompare();
   };
 
   const selectFile = async (group: SourceCheckpointGroup): Promise<void> => {
+    requestGate.current.begin('content');
+    requestGate.current.begin('mutation');
     setSelectedFile(group);
     setSelectedVersion(null);
     setContent(null);
     setContentError(null);
+    setContentLoading(false);
     setOrigin(null);
+    setExporting(false);
+    setRestoring(false);
     resetCompare();
     if (!selectedSession) return;
-    const request = sourceRequest.current;
+    const request = requestGate.current.begin('origin');
     try {
       const origins = await api.resolveSourceCheckpointOrigins(source, selectedSession, [group.fileHash]);
-      if (request !== sourceRequest.current) return;
+      if (!requestGate.current.isCurrent('origin', request)) return;
       setOrigin(origins[group.fileHash] ?? null);
     } catch (err) {
-      if (request !== sourceRequest.current) return;
+      if (!requestGate.current.isCurrent('origin', request)) return;
       setContentError(errText(err));
     }
   };
 
   const selectVersion = async (version: number): Promise<void> => {
     if (!selectedSession || !selectedFile) return;
+    requestGate.current.begin('mutation');
     setSelectedVersion(version);
     setContent(null);
     setContentError(null);
+    setExporting(false);
+    setRestoring(false);
     resetCompare();
     setContentLoading(true);
-    const request = sourceRequest.current;
+    const request = requestGate.current.begin('content');
     try {
       const detail = await api.readSourceCheckpoint(
         source,
@@ -198,7 +218,7 @@ export const FileHistoryBrowserPanel = ({
         selectedFile.fileHash,
         version
       );
-      if (request !== sourceRequest.current) return;
+      if (!requestGate.current.isCurrent('content', request)) return;
       setContent(detail.content);
       if (detail.contentUnavailableReason) {
         setContentError(detail.contentUnavailableReason);
@@ -206,10 +226,10 @@ export const FileHistoryBrowserPanel = ({
         setContentError('This checkpoint is binary and cannot be shown as text.');
       }
     } catch (err) {
-      if (request !== sourceRequest.current) return;
+      if (!requestGate.current.isCurrent('content', request)) return;
       setContentError(errText(err));
     } finally {
-      if (request === sourceRequest.current) setContentLoading(false);
+      if (requestGate.current.isCurrent('content', request)) setContentLoading(false);
     }
   };
 
@@ -223,7 +243,7 @@ export const FileHistoryBrowserPanel = ({
     setCompareVersion(version);
     setCompareContent(null);
     setCompareError(null);
-    const request = sourceRequest.current;
+    const request = requestGate.current.begin('compare');
     try {
       const detail = await api.readSourceCheckpoint(
         source,
@@ -231,7 +251,7 @@ export const FileHistoryBrowserPanel = ({
         selectedFile.fileHash,
         version
       );
-      if (request !== sourceRequest.current) return;
+      if (!requestGate.current.isCurrent('compare', request)) return;
       if (detail.contentUnavailableReason || detail.binary || detail.content === null) {
         setCompareError(
           detail.contentUnavailableReason ?? 'This checkpoint cannot be shown as text.'
@@ -240,13 +260,14 @@ export const FileHistoryBrowserPanel = ({
         setCompareContent(detail.content);
       }
     } catch (err) {
-      if (request !== sourceRequest.current) return;
+      if (!requestGate.current.isCurrent('compare', request)) return;
       setCompareError(errText(err));
     }
   };
 
   const exportSelected = async (): Promise<void> => {
     if (!selectedSession || !selectedFile || selectedVersion === null) return;
+    const request = requestGate.current.begin('mutation');
     setExporting(true);
     setExported(false);
     try {
@@ -256,19 +277,21 @@ export const FileHistoryBrowserPanel = ({
         selectedFile.fileHash,
         selectedVersion
       );
+      if (!requestGate.current.isCurrent('mutation', request)) return;
       setExported(result.state === 'written');
     } catch (err) {
+      if (!requestGate.current.isCurrent('mutation', request)) return;
       setContentError(errText(err));
     } finally {
-      setExporting(false);
+      if (requestGate.current.isCurrent('mutation', request)) setExporting(false);
     }
   };
 
   const restoreSelected = async (): Promise<void> => {
     if (!selectedSession || !selectedFile || selectedVersion === null) return;
+    const request = requestGate.current.begin('mutation');
     setRestoring(true);
     setRestoredPath(null);
-    const request = sourceRequest.current;
     try {
       const result = await api.restoreSourceCheckpoint(
         source,
@@ -276,15 +299,16 @@ export const FileHistoryBrowserPanel = ({
         selectedFile.fileHash,
         selectedVersion
       );
-      if (request !== sourceRequest.current) return;
+      if (!requestGate.current.isCurrent('mutation', request)) return;
       if (result.state === 'written') {
         setRestoredPath(result.targetLabel);
         await loadRecoveryCopies();
       }
     } catch (err) {
+      if (!requestGate.current.isCurrent('mutation', request)) return;
       setContentError(errText(err));
     } finally {
-      setRestoring(false);
+      if (requestGate.current.isCurrent('mutation', request)) setRestoring(false);
     }
   };
 
@@ -321,6 +345,15 @@ export const FileHistoryBrowserPanel = ({
         </div>
       )}
 
+      {listDiagnostic && (
+        <div
+          role="status"
+          className="border-border/50 bg-card/50 text-muted-foreground border-b px-4 py-2 text-xs"
+        >
+          {listDiagnostic}
+        </div>
+      )}
+
       {listPartial && (
         <div
           role="status"
@@ -343,7 +376,7 @@ export const FileHistoryBrowserPanel = ({
         </p>
       )}
 
-      {!listLoading && !listError && !listPartial && groups.length === 0 && (
+      {!listLoading && !listError && !listDiagnostic && !listPartial && groups.length === 0 && (
         <p className="text-muted-foreground px-4 py-3 text-xs">
           No file-history checkpoints found under {source === 'codex' ? '~/.codex/file-history' : '~/.claude/file-history'}.
         </p>
@@ -490,6 +523,16 @@ export const FileHistoryBrowserPanel = ({
                       : 'Original path unknown — use Save as… (the session log this is recovered from may have been pruned).'}
                   </span>
                 )}
+              </div>
+            )}
+
+            {selectedFile && (
+              <div className="text-muted-foreground flex min-w-0 flex-wrap gap-x-3 gap-y-1 text-[11px]">
+                <span>Source: {selectedFile.source === 'codex' ? 'Codex' : 'Claude Code'}</span>
+                <span className="max-w-full break-all select-text">
+                  Provenance: {selectedFile.provenance.sourceFile}
+                </span>
+                {selectedFile.provenance.archived && <span>Archived</span>}
               </div>
             )}
 

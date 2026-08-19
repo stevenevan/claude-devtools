@@ -3,6 +3,7 @@ import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { formatBytes } from '@renderer/utils/formatters';
+import { createSourceRequestGate } from './sourceRequestGate';
 import { Activity, AlertTriangle, RefreshCw } from 'lucide-react';
 
 import type {
@@ -35,10 +36,12 @@ export const UsageStatsPanel = ({ source }: Readonly<UsageStatsPanelProps>): JSX
   const [selectedEvent, setSelectedEvent] = useState<TelemetryDetail | null>(null);
   const [eventLoading, setEventLoading] = useState(false);
   const [eventError, setEventError] = useState<string | null>(null);
-  const requestId = useRef(0);
+  const requestGate = useRef(createSourceRequestGate());
 
   const load = useCallback(async (): Promise<void> => {
-    const request = ++requestId.current;
+    const summaryRequest = requestGate.current.begin('summary');
+    const eventsRequest = requestGate.current.begin('events');
+    requestGate.current.begin('detail');
     setSummaryLoading(true);
     setEventsLoading(true);
     setSummary(null);
@@ -48,33 +51,36 @@ export const UsageStatsPanel = ({ source }: Readonly<UsageStatsPanelProps>): JSX
     setSummaryError(null);
     setEventsError(null);
     setNextCursor(null);
+    setEventLoading(false);
+    setEventError(null);
     try {
       const result = await api.readSourceUsageSummary(source);
-      if (request !== requestId.current) return;
+      if (!requestGate.current.isCurrent('summary', summaryRequest)) return;
       setSummary(result);
     } catch (error) {
-      if (request !== requestId.current) return;
+      if (!requestGate.current.isCurrent('summary', summaryRequest)) return;
       setSummary(null);
       setSummaryError(errText(error));
     } finally {
-      if (request === requestId.current) setSummaryLoading(false);
+      if (requestGate.current.isCurrent('summary', summaryRequest)) setSummaryLoading(false);
     }
     try {
       const page = await api.listSourceTelemetry(source, null, 50);
-      if (request !== requestId.current) return;
+      if (!requestGate.current.isCurrent('events', eventsRequest)) return;
       setEvents(page.items);
       setNextCursor(page.nextCursor);
       if (page.diagnostics.length > 0) setEventsError(diagnosticText(page.diagnostics));
     } catch (error) {
-      if (request !== requestId.current) return;
+      if (!requestGate.current.isCurrent('events', eventsRequest)) return;
       setEvents([]);
       setEventsError(errText(error));
     } finally {
-      if (request === requestId.current) setEventsLoading(false);
+      if (requestGate.current.isCurrent('events', eventsRequest)) setEventsLoading(false);
     }
   }, [source]);
 
   useEffect(() => {
+    requestGate.current.switchSource();
     setSelectedId(null);
     setSelectedEvent(null);
     setEventError(null);
@@ -83,37 +89,37 @@ export const UsageStatsPanel = ({ source }: Readonly<UsageStatsPanelProps>): JSX
 
   const loadMore = async (): Promise<void> => {
     if (!nextCursor) return;
-    const request = ++requestId.current;
+    const request = requestGate.current.begin('events');
     setEventsLoading(true);
     try {
       const page = await api.listSourceTelemetry(source, nextCursor, 50);
-      if (request !== requestId.current) return;
+      if (!requestGate.current.isCurrent('events', request)) return;
       setEvents((current) => [...current, ...page.items]);
       setNextCursor(page.nextCursor);
       if (page.diagnostics.length > 0) setEventsError(diagnosticText(page.diagnostics));
     } catch (error) {
-      if (request !== requestId.current) return;
+      if (!requestGate.current.isCurrent('events', request)) return;
       setEventsError(errText(error));
     } finally {
-      if (request === requestId.current) setEventsLoading(false);
+      if (requestGate.current.isCurrent('events', request)) setEventsLoading(false);
     }
   };
 
   const selectEvent = async (id: string): Promise<void> => {
-    const request = ++requestId.current;
+    const request = requestGate.current.begin('detail');
     setSelectedId(id);
     setSelectedEvent(null);
     setEventError(null);
     setEventLoading(true);
     try {
       const result = await api.readSourceTelemetry(source, id);
-      if (request !== requestId.current) return;
+      if (!requestGate.current.isCurrent('detail', request)) return;
       setSelectedEvent(result);
     } catch (error) {
-      if (request !== requestId.current) return;
+      if (!requestGate.current.isCurrent('detail', request)) return;
       setEventError(errText(error));
     } finally {
-      if (request === requestId.current) setEventLoading(false);
+      if (requestGate.current.isCurrent('detail', request)) setEventLoading(false);
     }
   };
 
@@ -184,6 +190,14 @@ const UsageSummarySection = ({
           <Metric label="Turns" value={formatNumber(summary.turns)} />
           <Metric label="Tokens" value={formatNumber(summary.tokens)} />
           <Metric label="Cost" value={summary.cost === null ? 'Not reported' : String(summary.cost)} />
+        </div>
+        <div className="text-muted-foreground mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+          <span>Source: {summary.source === 'codex' ? 'Codex' : 'Claude Code'}</span>
+          {summary.sourceFile && (
+            <span className="max-w-full break-all select-text">Provenance: {summary.sourceFile}</span>
+          )}
+          {summary.revision && <span>Revision: {summary.revision}</span>}
+          {summary.stale && <span className="text-warning">Stale snapshot</span>}
         </div>
         {summary.state !== 'available' && (
           <p className="text-muted-foreground mt-3 text-xs">{summary.state} · no complete summary.</p>
@@ -312,6 +326,10 @@ const TelemetryDetailView = ({
         <span className="text-foreground font-medium">{detail.item.kind ?? 'event'}</span>
         <span className="text-muted-foreground">{detail.item.timestamp ?? 'time not reported'}</span>
         <span className="text-muted-foreground">{detail.item.redaction}</span>
+        <span className="text-muted-foreground max-w-full break-all select-text">
+          Provenance: {detail.item.provenance.sourceFile}
+        </span>
+        {detail.item.provenance.archived && <span className="text-muted-foreground">Archived</span>}
       </div>
       {detail.summary.length > 0 ? (
         <dl className="mt-3 grid gap-x-4 gap-y-2 sm:grid-cols-2">

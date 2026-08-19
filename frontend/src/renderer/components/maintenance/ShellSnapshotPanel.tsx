@@ -4,6 +4,7 @@ import { CodeBlockViewer } from '@renderer/components/chat/viewers';
 import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { formatBytes } from '@renderer/utils/formatters';
+import { createSourceRequestGate } from './sourceRequestGate';
 import { AlertTriangle, RefreshCw, ShieldCheck } from 'lucide-react';
 
 import type { ShellSnapshotDetail, ShellSnapshotItem, SourceKind } from '@shared/types/api';
@@ -25,10 +26,11 @@ export const ShellSnapshotPanel = ({ source }: Readonly<ShellSnapshotPanelProps>
   const [detail, setDetail] = useState<ShellSnapshotDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
-  const requestId = useRef(0);
+  const requestGate = useRef(createSourceRequestGate());
 
   const loadList = useCallback(async (): Promise<void> => {
-    const request = ++requestId.current;
+    const request = requestGate.current.begin('list');
+    requestGate.current.begin('detail');
     setListLoading(true);
     setListError(null);
     setSnapshots([]);
@@ -38,58 +40,60 @@ export const ShellSnapshotPanel = ({ source }: Readonly<ShellSnapshotPanelProps>
     setNextCursor(null);
     try {
       const page = await api.listSourceShellSnapshots(source, null, 50);
-      if (request !== requestId.current) return;
+      if (!requestGate.current.isCurrent('list', request)) return;
       setSnapshots(page.items);
       setNextCursor(page.nextCursor);
       if (page.diagnostics.length > 0) setListError(page.diagnostics.map((item) => item.message).join(' '));
     } catch (error) {
-      if (request !== requestId.current) return;
+      if (!requestGate.current.isCurrent('list', request)) return;
       setSnapshots([]);
       setListError(errText(error));
     } finally {
-      if (request === requestId.current) setListLoading(false);
+      if (requestGate.current.isCurrent('list', request)) setListLoading(false);
     }
   }, [source]);
 
   useEffect(() => {
+    requestGate.current.switchSource();
     setSelectedName(null);
     setDetail(null);
     setDetailError(null);
+    setDetailLoading(false);
     void loadList();
   }, [loadList]);
 
   const loadMore = async (): Promise<void> => {
     if (!nextCursor) return;
-    const request = ++requestId.current;
+    const request = requestGate.current.begin('list');
     setListLoading(true);
     try {
       const page = await api.listSourceShellSnapshots(source, nextCursor, 50);
-      if (request !== requestId.current) return;
+      if (!requestGate.current.isCurrent('list', request)) return;
       setSnapshots((current) => [...current, ...page.items]);
       setNextCursor(page.nextCursor);
     } catch (error) {
-      if (request !== requestId.current) return;
+      if (!requestGate.current.isCurrent('list', request)) return;
       setListError(errText(error));
     } finally {
-      if (request === requestId.current) setListLoading(false);
+      if (requestGate.current.isCurrent('list', request)) setListLoading(false);
     }
   };
 
   const selectSnapshot = async (name: string): Promise<void> => {
-    const request = ++requestId.current;
+    const request = requestGate.current.begin('detail');
     setSelectedName(name);
     setDetail(null);
     setDetailError(null);
     setDetailLoading(true);
     try {
       const result = await api.readSourceShellSnapshot(source, name);
-      if (request !== requestId.current) return;
+      if (!requestGate.current.isCurrent('detail', request)) return;
       setDetail(result);
     } catch (error) {
-      if (request !== requestId.current) return;
+      if (!requestGate.current.isCurrent('detail', request)) return;
       setDetailError(errText(error));
     } finally {
-      if (request === requestId.current) setDetailLoading(false);
+      if (requestGate.current.isCurrent('detail', request)) setDetailLoading(false);
     }
   };
 
@@ -203,6 +207,10 @@ const SnapshotContent = ({
     <div className="min-w-0 flex-1">
       <div className="text-muted-foreground mb-2 flex flex-wrap gap-2 text-[11px]">
         <span>{detail.item.redaction}</span>
+        <span className="max-w-full break-all select-text">
+          Provenance: {detail.item.provenance.sourceFile}
+        </span>
+        {detail.item.provenance.archived && <span>Archived</span>}
         {detail.truncated && <span>Preview truncated at the reader limit.</span>}
       </div>
       <CodeBlockViewer fileName={detail.item.name} content={detail.content} language="bash" />

@@ -320,12 +320,26 @@ const SourceSummary = ({ source }: Readonly<{ source: SourceKind }>): JSX.Elemen
         </p>
       )}
       {usage && (
-        <dl className="mt-4 grid gap-x-4 gap-y-3 text-xs sm:grid-cols-4">
-          <SummaryMetric label="Period" value={usage.period ?? 'Not reported'} />
-          <SummaryMetric label="Turns" value={formatSummaryNumber(usage.turns)} />
-          <SummaryMetric label="Tokens" value={formatSummaryNumber(usage.tokens)} />
-          <SummaryMetric label="Cost" value={usage.cost === null ? 'Not reported' : String(usage.cost)} />
-        </dl>
+        <>
+          <dl className="mt-4 grid gap-x-4 gap-y-3 text-xs sm:grid-cols-4">
+            <SummaryMetric label="Period" value={usage.period ?? 'Not reported'} />
+            <SummaryMetric label="Turns" value={formatSummaryNumber(usage.turns)} />
+            <SummaryMetric label="Tokens" value={formatSummaryNumber(usage.tokens)} />
+            <SummaryMetric label="Cost" value={usage.cost === null ? 'Not reported' : String(usage.cost)} />
+          </dl>
+          <div className="text-muted-foreground mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+            {usage.sourceFile && (
+              <span className="max-w-full break-all select-text">Provenance: {usage.sourceFile}</span>
+            )}
+            {usage.revision && <span>Revision: {usage.revision}</span>}
+            {usage.stale && <span className="text-warning">Stale snapshot</span>}
+          </div>
+          {usage.diagnostics.length > 0 && (
+            <p role="status" className="text-muted-foreground mt-3 text-xs">
+              {usage.diagnostics.map((diagnostic) => diagnostic.message).join(' ')}
+            </p>
+          )}
+        </>
       )}
     </section>
   );
