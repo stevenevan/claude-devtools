@@ -15,8 +15,8 @@ use claude_devtools_lib::analytics::{
 use claude_devtools_lib::cache::SessionCache;
 use claude_devtools_lib::commands::notify::NotifyState;
 use claude_devtools_lib::commands::{
-    codex_inventory as codex_inventory_cmds, codex_settings as codex_settings_cmds,
-    config as config_cmds, files as files_cmds,
+    codex_extensions as codex_extensions_cmds, codex_inventory as codex_inventory_cmds,
+    codex_settings as codex_settings_cmds, config as config_cmds, files as files_cmds,
     maintenance as maintenance_cmds,
     notify as notify_cmds, session as session_cmds,
 };
@@ -579,6 +579,9 @@ fn main() {
             codex_settings_cmds::open_codex_config_folder,
             codex_settings_cmds::preview_codex_settings_patch,
             codex_settings_cmds::apply_codex_settings_patch,
+            codex_extensions_cmds::get_codex_plugins,
+            codex_extensions_cmds::get_codex_mcp_status,
+            codex_extensions_cmds::open_codex_plugins_folder,
             codex_inventory_cmds::list_codex_instructions,
             codex_inventory_cmds::read_codex_instruction,
             codex_inventory_cmds::preview_codex_instruction,

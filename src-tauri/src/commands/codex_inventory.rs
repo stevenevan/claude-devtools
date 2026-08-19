@@ -23,9 +23,9 @@ use crate::files::codex_skills::{self, SkillRecord};
 use crate::files::codex_text_write;
 use crate::ssh::State as SshState;
 use crate::types::codex_inventory::{
-    CodexAgentDetail, CodexAgentList, CodexInstructionDetail, CodexInstructionList,
-    CodexInventoryScope, CodexRecordKind, CodexSkillDetail, CodexSkillList, CodexTextApplyResult,
-    CodexTextPreviewResult,
+    CodexAgentDetail, CodexAgentList, CodexInspectionContext, CodexInstructionDetail,
+    CodexInstructionList, CodexInventoryScope, CodexRecordKind, CodexSkillDetail, CodexSkillList,
+    CodexTextApplyResult, CodexTextPreviewResult,
 };
 
 const SNAPSHOT_TTL: Duration = Duration::from_secs(300);
@@ -56,9 +56,9 @@ enum SnapshotRecord {
     Skill(SkillRecord),
 }
 
-struct ResolvedScope {
-    codex_home: PathBuf,
-    project_context: Option<ResolvedCodexProjectContext>,
+pub(crate) struct ResolvedScope {
+    pub(crate) codex_home: PathBuf,
+    pub(crate) project_context: Option<ResolvedCodexProjectContext>,
 }
 
 impl CodexInventoryState {
@@ -364,13 +364,34 @@ pub fn read_codex_skill(
     codex_skills::read_detail(&record, detail_limit(max_bytes)?)
 }
 
-fn resolve_scope(scope: &CodexInventoryScope) -> Result<ResolvedScope, String> {
+pub(crate) fn resolve_inspection_context(
+    context: &CodexInspectionContext,
+) -> Result<ResolvedScope, String> {
     let codex_home = root::codex_dir()?;
     if !codex_home.is_absolute() {
         return Err("codex inventory: resolved CODEX_HOME must be absolute".to_string());
     }
-    let project_context = match scope {
-        CodexInventoryScope::Global => None,
+    let project_context = match &context.scope {
+        CodexInventoryScope::Global => {
+            if context
+                .working_directory
+                .as_deref()
+                .is_some_and(|value| !value.trim().is_empty())
+            {
+                return Err(
+                    "codex inventory: working directory is only valid for project scope"
+                        .to_string(),
+                );
+            }
+            if context
+                .profile
+                .as_deref()
+                .is_some_and(|value| !value.trim().is_empty())
+            {
+                return Err("codex inventory: profile is only valid for project scope".to_string());
+            }
+            None
+        }
         CodexInventoryScope::Project { project_id } => {
             if project_id.is_empty() || project_id.len() > 512 {
                 return Err("codex inventory: project id is invalid".to_string());
@@ -383,8 +404,8 @@ fn resolve_scope(scope: &CodexInventoryScope) -> Result<ResolvedScope, String> {
                 })?;
             Some(normalize_project_context(
                 &project.path,
-                None,
-                None,
+                context.working_directory.as_deref(),
+                context.profile.as_deref(),
                 "codex inventory",
             )?)
         }
@@ -392,6 +413,14 @@ fn resolve_scope(scope: &CodexInventoryScope) -> Result<ResolvedScope, String> {
     Ok(ResolvedScope {
         codex_home,
         project_context,
+    })
+}
+
+fn resolve_scope(scope: &CodexInventoryScope) -> Result<ResolvedScope, String> {
+    resolve_inspection_context(&CodexInspectionContext {
+        scope: scope.clone(),
+        working_directory: None,
+        profile: None,
     })
 }
 

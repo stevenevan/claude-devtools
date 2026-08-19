@@ -1,5 +1,6 @@
 import { analyticsCommands } from './tauri/domain/analytics';
 import { claudeFilesCommands } from './tauri/domain/claudeFiles';
+import { codexExtensionsCommands } from './tauri/domain/codexExtensions';
 import { codexSettingsCommands } from './tauri/domain/codexSettings';
 import { codexInventoryCommands } from './tauri/domain/codexInventory';
 import { configApi, notificationEvents, notificationsApi, webhookApi } from './tauri/domain/config';
@@ -25,6 +26,7 @@ export function createTauriClient(): DesktopAPI {
     ...systemCommands, // flat system data methods (getAppVersion, openPath, …) — W11
     ...filesCommands, // flat FilesService methods (validatePath, getMCPStatus, …) — W12
     ...claudeFilesCommands, // flat read-only ~/.claude viewer methods
+    ...codexExtensionsCommands, // Codex plugin and MCP inventory
     ...codexSettingsCommands, // Codex settings discovery and safe editor
     ...codexInventoryCommands, // Codex instructions, agents, and skills inventory
     ...inspectorCommands, // source-aware Claude/Codex inspector methods

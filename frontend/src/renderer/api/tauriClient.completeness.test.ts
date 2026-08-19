@@ -154,6 +154,25 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['readAgentConfigs', (a) => a.readAgentConfigs('r')],
   ['readGlobalPlugins', (a) => a.readGlobalPlugins()],
   ['readGlobalSettings', (a) => a.readGlobalSettings()],
+  [
+    'getCodexPlugins',
+    (a) =>
+      a.getCodexPlugins({
+        scope: { kind: 'global' },
+        workingDirectory: null,
+        profile: null,
+      }),
+  ],
+  [
+    'getCodexMcpStatus',
+    (a) =>
+      a.getCodexMcpStatus({
+        scope: { kind: 'global' },
+        workingDirectory: null,
+        profile: null,
+      }),
+  ],
+  ['openCodexPluginsFolder', (a) => a.openCodexPluginsFolder()],
   ['getCodexSettings', (a) => a.getCodexSettings({ projectRoot: '/project' })],
   ['openCodexConfigFolder', (a) => a.openCodexConfigFolder()],
   ['previewCodexSettingsPatch', (a) => a.previewCodexSettingsPatch({}, {}, 'missing')],
@@ -421,6 +440,24 @@ test('Codex settings commands keep the context server-resolved', async () => {
         expectedRevision: 'missing',
       },
     },
+  ]);
+});
+
+test('Codex extension commands keep inspection context and fixed folder targets', async () => {
+  invocations.length = 0;
+  const api = createTauriClient();
+  const context = {
+    scope: { kind: 'project' as const, projectId: 'issued-project' },
+    workingDirectory: '/workspace/project/src',
+    profile: 'review',
+  };
+  await api.getCodexPlugins(context);
+  await api.getCodexMcpStatus(context);
+  await api.openCodexPluginsFolder();
+  expect(invocations).toEqual([
+    { command: 'get_codex_plugins', args: { context } },
+    { command: 'get_codex_mcp_status', args: { context } },
+    { command: 'open_codex_plugins_folder', args: undefined },
   ]);
 });
 
