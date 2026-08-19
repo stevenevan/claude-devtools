@@ -42,6 +42,7 @@ import type {
 import type {
   CodexAgentDetail,
   CodexAgentList,
+  CodexInspectionContext,
   CodexInventoryScope,
   CodexInstructionDetail,
   CodexInstructionList,
@@ -50,6 +51,8 @@ import type {
   CodexTextApplyResult,
   CodexTextPreviewResult,
 } from './codexInventory';
+import type { CodexMcpStatusView } from './codexMcp';
+import type { CodexPluginList } from './codexPlugins';
 import type { ConfigAPI } from './config';
 import type { ContextInfo } from './context';
 import type { HistoryPage } from './history';
@@ -88,6 +91,8 @@ export type * from './config';
 export type * from './configBackup';
 export type * from './codexSettings';
 export type * from './codexInventory';
+export type * from './codexMcp';
+export type * from './codexPlugins';
 export type * from './context';
 export type * from './history';
 export type * from './inspector';
@@ -196,6 +201,10 @@ export interface DesktopAPI {
     recordId: string,
     maxBytes?: number
   ) => Promise<CodexSkillDetail>;
+
+  getCodexPlugins: (context: CodexInspectionContext) => Promise<CodexPluginList>;
+  getCodexMcpStatus: (context: CodexInspectionContext) => Promise<CodexMcpStatusView>;
+  openCodexPluginsFolder: () => Promise<void>;
 
   getCodexSettings: (context: CodexSettingsContext) => Promise<CodexSettingsView>;
   openCodexConfigFolder: () => Promise<void>;

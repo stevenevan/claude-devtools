@@ -10,6 +10,7 @@ pub mod claude_read;
 pub mod claudejson;
 pub mod claudejson_write;
 pub(crate) mod codex_inventory;
+pub(crate) mod codex_redaction;
 pub(crate) mod codex_instructions;
 pub(crate) mod codex_agents;
 pub(crate) mod codex_text_write;

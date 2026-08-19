@@ -186,6 +186,7 @@ fn inspect_skill(
         state: CodexValidationState::Valid,
         enabled_state: CodexEnabledState::Unknown,
         enabled_source: None,
+        owner_plugin_id: None,
         symlink: false,
         external_target: false,
         entry_point: "SKILL.md".to_string(),

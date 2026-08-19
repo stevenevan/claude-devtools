@@ -177,9 +177,11 @@ struct RawDefinition {
 #[derive(Debug, Clone)]
 struct SourceRecord {
     source: CodexSettingsSource,
+    path: Option<PathBuf>,
     definitions: BTreeMap<String, RawDefinition>,
     provenance_keys: Vec<String>,
     trust_state: TrustState,
+    document: Option<DocumentMut>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -192,6 +194,7 @@ enum TrustState {
 
 #[derive(Debug, Clone)]
 struct ParsedDocument {
+    document: DocumentMut,
     definitions: BTreeMap<String, RawDefinition>,
     provenance_keys: Vec<String>,
     trust_state: Option<TrustState>,
@@ -213,6 +216,33 @@ struct FileRead {
     error: Option<&'static str>,
 }
 
+/// Validated, read-only Codex configuration source data shared by settings
+/// and capability projections. The parsed TOML stays crate-private and is
+/// never placed in a renderer response.
+#[derive(Debug, Clone)]
+pub(crate) struct CodexConfigLayer {
+    pub(crate) id: String,
+    pub(crate) label: String,
+    pub(crate) kind: String,
+    pub(crate) path: PathBuf,
+    pub(crate) active: bool,
+    pub(crate) precedence: usize,
+    pub(crate) status: String,
+    pub(crate) revision: Option<String>,
+    pub(crate) document: Option<DocumentMut>,
+    pub(crate) diagnostics: Vec<CodexDiagnostic>,
+}
+
+#[derive(Debug, Clone)]
+struct ConfigRecords {
+    context: crate::config::codex_context::ResolvedCodexProjectContext,
+    user: SourceRecord,
+    project: Vec<SourceRecord>,
+    profile: Option<SourceRecord>,
+    system: Option<SourceRecord>,
+    requirements: Option<SourceRecord>,
+}
+
 /// Discover Codex configuration using the process's configured `$CODEX_HOME`.
 pub fn discover(context: &CodexSettingsContext) -> Result<CodexSettingsView, String> {
     let codex_home = root::codex_dir()?;
@@ -226,99 +256,14 @@ pub fn discover_at(
     context: &CodexSettingsContext,
     system_root: Option<&Path>,
 ) -> Result<CodexSettingsView, String> {
-    let context = normalize_project_context(
-        &context.project_root,
-        context.working_directory.as_deref(),
-        context.profile.as_deref(),
-        "codex settings",
-    )?;
-    if !codex_home.is_absolute() {
-        return Err("codex settings: resolved CODEX_HOME must be absolute".to_string());
-    }
-
-    let user_path = codex_home.join("config.toml");
-    let user = inspect_source(
-        "user",
-        "User config (~/.codex/config.toml)",
-        "user",
-        &user_path,
-        true,
-        5,
-        Some(context.project_root.to_string_lossy().as_ref()),
-    );
+    let records = load_config_records(codex_home, context, system_root)?;
+    let context = records.context;
+    let user = records.user;
     let trust = trust_status(user_trust_state(&user), &user.source.status);
-
-    let project_paths = project_layer_paths(&context.project_root, &context.working_directory);
-    if project_paths.len() > MAX_SOURCE_COUNT {
-        return Err("codex settings: project configuration chain is too deep".to_string());
-    }
-    let project_records: Vec<SourceRecord> = project_paths
-        .iter()
-        .enumerate()
-        .map(|(index, path)| {
-            let label = if index == 0 {
-                "Project layer 1 (root)".to_string()
-            } else {
-                format!("Project layer {} (nested)", index + 1)
-            };
-            let active = trust.state == "trusted";
-            let mut record = inspect_source(
-                &format!("project-{index}"),
-                &label,
-                "project",
-                path,
-                active,
-                index,
-                None,
-            );
-            if !active {
-                record.source.status = if trust.state == "untrusted" {
-                    "inactive-untrusted".to_string()
-                } else {
-                    "inactive-unverified".to_string()
-                };
-                record.source.values.clear();
-                record.definitions.clear();
-            }
-            record
-        })
-        .collect();
-
-    let profile = context.profile.as_deref().map(|name| {
-        inspect_source(
-            "profile",
-            &format!("Selected profile ({name})"),
-            "profile",
-            &codex_home.join(format!("{name}.config.toml")),
-            true,
-            3,
-            None,
-        )
-    });
-
-    let system = system_root.map(|system_root| {
-        inspect_source(
-            "system",
-            "System config",
-            "system",
-            &system_root.join("config.toml"),
-            true,
-            6,
-            None,
-        )
-    });
-
-    let requirements = system_root.map(|system_root| {
-        inspect_source(
-            "managed-requirements",
-            "Managed requirements (local)",
-            "managedPolicy",
-            &system_root.join("requirements.toml"),
-            true,
-            1,
-            None,
-        )
-    });
+    let project_records = records.project;
+    let profile = records.profile;
+    let system = records.system;
+    let requirements = records.requirements;
 
     let cli = unavailable_source(
         "cli",
@@ -507,6 +452,156 @@ pub fn discover_at(
     })
 }
 
+fn load_config_records(
+    codex_home: &Path,
+    context: &CodexSettingsContext,
+    system_root: Option<&Path>,
+) -> Result<ConfigRecords, String> {
+    let context = normalize_project_context(
+        &context.project_root,
+        context.working_directory.as_deref(),
+        context.profile.as_deref(),
+        "codex settings",
+    )?;
+    if !codex_home.is_absolute() {
+        return Err("codex settings: resolved CODEX_HOME must be absolute".to_string());
+    }
+
+    let user_path = codex_home.join("config.toml");
+    let user = inspect_source(
+        "user",
+        "User config (~/.codex/config.toml)",
+        "user",
+        &user_path,
+        true,
+        5,
+        Some(context.project_root.to_string_lossy().as_ref()),
+    );
+    let trust_state = user_trust_state(&user);
+
+    let project_paths = project_layer_paths(&context.project_root, &context.working_directory);
+    if project_paths.len() > MAX_SOURCE_COUNT {
+        return Err("codex settings: project configuration chain is too deep".to_string());
+    }
+    let project = project_paths
+        .iter()
+        .enumerate()
+        .map(|(index, path)| {
+            let label = if index == 0 {
+                "Project layer 1 (root)".to_string()
+            } else {
+                format!("Project layer {} (nested)", index + 1)
+            };
+            let active = trust_state == TrustState::Trusted;
+            let mut record = inspect_source(
+                &format!("project-{index}"),
+                &label,
+                "project",
+                path,
+                active,
+                index,
+                None,
+            );
+            if !active {
+                record.source.status = if trust_state == TrustState::Untrusted {
+                    "inactive-untrusted".to_string()
+                } else {
+                    "inactive-unverified".to_string()
+                };
+                record.source.values.clear();
+                record.definitions.clear();
+            }
+            record
+        })
+        .collect();
+
+    let profile = context.profile.as_deref().map(|name| {
+        inspect_source(
+            "profile",
+            &format!("Selected profile ({name})"),
+            "profile",
+            &codex_home.join(format!("{name}.config.toml")),
+            true,
+            3,
+            None,
+        )
+    });
+
+    let system = system_root.map(|system_root| {
+        inspect_source(
+            "system",
+            "System config",
+            "system",
+            &system_root.join("config.toml"),
+            true,
+            6,
+            None,
+        )
+    });
+
+    let requirements = system_root.map(|system_root| {
+        inspect_source(
+            "managed-requirements",
+            "Managed requirements (local)",
+            "managedPolicy",
+            &system_root.join("requirements.toml"),
+            true,
+            1,
+            None,
+        )
+    });
+
+    Ok(ConfigRecords {
+        context,
+        user,
+        project,
+        profile,
+        system,
+        requirements,
+    })
+}
+
+/// Load the same validated source layers used by the settings projection.
+/// Only the bounded, parsed documents remain inside the Rust crate.
+pub(crate) fn load_config_layers_at(
+    codex_home: &Path,
+    context: &CodexSettingsContext,
+    system_root: Option<&Path>,
+) -> Result<Vec<CodexConfigLayer>, String> {
+    let records = load_config_records(codex_home, context, system_root)?;
+    let mut sources = Vec::new();
+    sources.push(records.user);
+    sources.extend(records.project);
+    if let Some(profile) = records.profile {
+        sources.push(profile);
+    }
+    if let Some(system) = records.system {
+        sources.push(system);
+    }
+    if let Some(requirements) = records.requirements {
+        sources.push(requirements);
+    }
+
+    Ok(sources
+        .into_iter()
+        .filter_map(|record| {
+            let path = record.path?;
+            Some(CodexConfigLayer {
+                id: record.source.id,
+                label: record.source.label,
+                kind: record.source.kind,
+                path,
+                active: record.source.active,
+                precedence: record.source.precedence,
+                status: record.source.status,
+                revision: record.source.revision,
+                document: record.document,
+                diagnostics: record.source.diagnostics,
+            })
+        })
+        .collect())
+}
+
 fn project_layer_paths(project_root: &Path, working_directory: &Path) -> Vec<PathBuf> {
     let relative = working_directory
         .strip_prefix(project_root)
@@ -535,6 +630,7 @@ fn inspect_source(
     let mut definitions = BTreeMap::new();
     let mut provenance_keys = Vec::new();
     let mut trust_state = TrustState::Missing;
+    let mut document = None;
     let status = if let Some(error) = read.error {
         diagnostics.push(CodexDiagnostic {
             source_id: id.to_string(),
@@ -553,6 +649,7 @@ fn inspect_source(
         };
         match parsed {
             Ok(parsed) => {
+                document = Some(parsed.document);
                 definitions = parsed.definitions;
                 provenance_keys = parsed.provenance_keys;
                 trust_state = parsed.trust_state.unwrap_or(TrustState::Missing);
@@ -620,9 +717,11 @@ fn inspect_source(
             values: source_values,
             diagnostics: diagnostics_for_source,
         },
+        path: Some(path.to_path_buf()),
         definitions,
         provenance_keys,
         trust_state,
+        document,
     }
 }
 
@@ -654,9 +753,11 @@ fn unavailable_source(
             values: Vec::new(),
             diagnostics: vec![diagnostic],
         },
+        path: None,
         definitions: BTreeMap::new(),
         provenance_keys: Vec::new(),
         trust_state: TrustState::Missing,
+        document: None,
     }
 }
 
@@ -674,9 +775,11 @@ fn default_source() -> SourceRecord {
             values: Vec::new(),
             diagnostics: Vec::new(),
         },
+        path: None,
         definitions: BTreeMap::new(),
         provenance_keys: Vec::new(),
         trust_state: TrustState::Missing,
+        document: None,
     }
 }
 
@@ -863,6 +966,7 @@ fn parse_document(
     }
     let trust_state = trust_project.map(|project| read_trust_state(&document, project));
     Ok(ParsedDocument {
+        document,
         definitions,
         provenance_keys,
         trust_state,
@@ -871,9 +975,8 @@ fn parse_document(
 }
 
 fn parse_requirements_document(bytes: &[u8]) -> Result<ParsedDocument, &'static str> {
-    let text = std::str::from_utf8(bytes).map_err(|_| "source is not valid UTF-8")?;
-    let document: DocumentMut = text.parse().map_err(|_| "source could not be parsed")?;
     let mut parsed = parse_document(bytes, None)?;
+    let document = parsed.document.clone();
 
     if let Some(item) = document.get("allowed_approval_policies") {
         let values = string_array(item).ok_or("managed approval policy allowlist is invalid")?;

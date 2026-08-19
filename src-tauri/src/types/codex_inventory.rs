@@ -26,6 +26,16 @@ impl CodexInventoryScope {
     }
 }
 
+/// Renderer input for Codex inspection commands. The backend resolves a
+/// project id to its filesystem root and validates the optional context.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CodexInspectionContext {
+    pub scope: CodexInventoryScope,
+    pub working_directory: Option<String>,
+    pub profile: Option<String>,
+}
+
 /// A source identity is stable for a given scope and relative record path.
 /// It deliberately excludes content and revision so a file edit does not
 /// change the renderer's selection identity.
@@ -172,6 +182,7 @@ pub struct CodexSkillSummary {
     pub state: CodexValidationState,
     pub enabled_state: CodexEnabledState,
     pub enabled_source: Option<String>,
+    pub owner_plugin_id: Option<String>,
     pub symlink: bool,
     pub external_target: bool,
     pub entry_point: String,
