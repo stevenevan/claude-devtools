@@ -25,3 +25,14 @@ Primary references:
 
 The fixture is not a promise that every historical Codex build contains every
 dataset. Missing or unsupported datasets remain explicit capability states.
+
+Fixture-to-state cases:
+
+- `stats-cache.json` — valid but producer-unpinned; capability is unsupported.
+- `telemetry/fixture.json` — valid but not projected; safe fields stay out of
+  the Codex telemetry response.
+- `telemetry/malformed.json` — malformed JSON; detail returns a diagnostic.
+- `file-history/session-1/not-a-version` — unsafe checkpoint name; it is not a
+  versioned checkpoint.
+- `shell_snapshots/session-1.sh` — supported header with assignments redacted.
+- `shell_snapshots/unsafe.sh` — shell content withheld as unsafe.

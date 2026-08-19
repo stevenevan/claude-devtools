@@ -46,22 +46,44 @@ fn supported_shell_snapshot_requires_known_header() {
 }
 
 #[test]
-fn sanitized_usage_fixture_projects_only_known_metrics() {
+fn unversioned_usage_fixture_does_not_make_codex_capability_available() {
     let value: serde_json::Value = serde_json::from_str(include_str!(
         "../../tests/fixtures/codex-maintenance/stats-cache.json"
     ))
     .expect("usage fixture JSON");
 
     assert_eq!(
-        find_string(&value, &["period"]).as_deref(),
-        Some("fixture-window")
+        value.get("turns").and_then(serde_json::Value::as_u64),
+        Some(3)
     );
-    assert_eq!(find_u64(&value, &["turns"]), Some(3));
-    assert_eq!(find_u64(&value, &["tokens"]), Some(512));
-    assert_eq!(find_f64(&value, &["cost"]), Some(0.04));
-    assert!(safe_fields(&value)
+    let nonce = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("capability test clock")
+        .as_nanos();
+    let root = std::env::temp_dir().join(format!("codex-maintenance-capability-{nonce}"));
+    std::fs::create_dir_all(root.join("telemetry")).expect("create telemetry directory");
+    std::fs::create_dir_all(root.join("file-history")).expect("create file-history directory");
+    std::fs::write(root.join("stats-cache.json"), value.to_string()).expect("write usage fixture");
+
+    let capabilities = crate::config::root::maintenance_capabilities(Some(&root));
+    assert_eq!(
+        capabilities.usage.state,
+        MaintenanceCapabilityState::Unsupported
+    );
+    assert_eq!(
+        capabilities.telemetry.state,
+        MaintenanceCapabilityState::Unsupported
+    );
+    assert_eq!(
+        capabilities.file_history.state,
+        MaintenanceCapabilityState::Unsupported
+    );
+    assert!(capabilities
+        .usage
+        .diagnostics
         .iter()
-        .all(|field| field.name != "privateField"));
+        .any(|diagnostic| diagnostic.code == "usageSchemaUnsupported"));
+    crate::testutil::remove_tree(root);
 }
 
 #[test]
@@ -86,6 +108,12 @@ fn telemetry_fixture_drops_sensitive_or_unknown_values() {
     }))
     .iter()
     .all(|field| field.name != "status"));
+}
+
+#[test]
+fn malformed_telemetry_fixture_is_not_treated_as_a_projection() {
+    let raw = include_str!("../../tests/fixtures/codex-maintenance/telemetry/malformed.json");
+    assert!(serde_json::from_str::<serde_json::Value>(raw).is_err());
 }
 
 #[test]
@@ -116,6 +144,12 @@ fn shell_fixture_redacts_sensitive_assignment_and_value() {
 }
 
 #[test]
+fn unsafe_shell_fixture_is_withheld() {
+    let fixture = include_str!("../../tests/fixtures/codex-maintenance/shell_snapshots/unsafe.sh");
+    assert!(redact_shell_snapshot(fixture).is_none());
+}
+
+#[test]
 fn shell_redaction_withholds_sensitive_command_arguments() {
     assert!(redact_shell_snapshot(
         "# Snapshot file\ncurl --token fixture-secret https://example.test"
@@ -142,4 +176,28 @@ fn maintenance_revision_changes_for_nested_file_metadata() {
 
     assert_ne!(before, after);
     let _ = std::fs::remove_dir_all(root);
+}
+
+#[test]
+fn bounded_shell_listing_carries_one_metadata_revision() {
+    let nonce = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("listing test clock")
+        .as_nanos();
+    let root = std::env::temp_dir().join(format!("codex-maintenance-listing-{nonce}"));
+    let snapshots = root.join("shell_snapshots");
+    std::fs::create_dir_all(&snapshots).expect("create snapshot directory");
+    std::fs::write(snapshots.join("one.sh"), "# Snapshot file\n").expect("write first snapshot");
+
+    let first = list_regular_files(&root, "shell_snapshots", MAX_SCAN_ENTRIES)
+        .expect("first bounded listing");
+    assert_eq!(first.paths.len(), 1);
+    assert!(!first.revision.starts_with("incomplete-"));
+
+    std::fs::write(snapshots.join("two.sh"), "# Snapshot file\n").expect("write second snapshot");
+    let second = list_regular_files(&root, "shell_snapshots", MAX_SCAN_ENTRIES)
+        .expect("second bounded listing");
+    assert_eq!(second.paths.len(), 2);
+    assert_ne!(first.revision, second.revision);
+    crate::testutil::remove_tree(root);
 }

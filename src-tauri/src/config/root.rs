@@ -13,9 +13,11 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::{Deserialize, Serialize};
 
-use crate::types::codex_maintenance::{MaintenanceCapabilities, MaintenanceCapability};
+use crate::types::codex_maintenance::{
+    MaintenanceCapabilities, MaintenanceCapability, MaintenanceCapabilityState,
+};
 use crate::types::source::{
-    SourceCapabilities, SourceKind, SourceState, SourceStatus, TaskGraphCapability,
+    Diagnostic, SourceCapabilities, SourceKind, SourceState, SourceStatus, TaskGraphCapability,
 };
 
 const APP_DATA_DIR_ENV: &str = "CLAUDE_DEVTOOLS_DIR";
@@ -259,9 +261,27 @@ fn codex_capabilities(root: Option<&Path>) -> SourceCapabilities {
 
 pub fn maintenance_capabilities(root: Option<&Path>) -> MaintenanceCapabilities {
     MaintenanceCapabilities {
-        usage: maintenance_capability(root, "stats-cache.json", false, "Usage cache"),
-        telemetry: maintenance_capability(root, "telemetry", true, "Telemetry"),
-        file_history: maintenance_capability(root, "file-history", true, "File history"),
+        usage: codex_schema_capability(
+            root,
+            "stats-cache.json",
+            false,
+            "Usage cache",
+            "usageSchemaUnsupported",
+        ),
+        telemetry: codex_schema_capability(
+            root,
+            "telemetry",
+            true,
+            "Telemetry",
+            "telemetrySchemaUnsupported",
+        ),
+        file_history: codex_schema_capability(
+            root,
+            "file-history",
+            true,
+            "File history",
+            "fileHistorySchemaUnsupported",
+        ),
         shell_snapshots: maintenance_capability(root, "shell_snapshots", true, "Shell snapshots"),
     }
 }
@@ -293,6 +313,27 @@ fn claude_task_graph_capability() -> TaskGraphCapability {
         state: crate::types::source::TaskGraphCapabilityState::Available,
         reason: "Claude Task Graph files are available".to_string(),
         diagnostics: Vec::new(),
+    }
+}
+
+fn codex_schema_capability(
+    root: Option<&Path>,
+    relative: &str,
+    expect_directory: bool,
+    label: &str,
+    diagnostic_code: &str,
+) -> MaintenanceCapability {
+    let capability = maintenance_capability(root, relative, expect_directory, label);
+    if capability.state != MaintenanceCapabilityState::Available {
+        return capability;
+    }
+    MaintenanceCapability {
+        state: MaintenanceCapabilityState::Unsupported,
+        reason: format!("{label} producer contract is not pinned"),
+        diagnostics: vec![Diagnostic::new(
+            diagnostic_code,
+            format!("{label} is present, but its Codex producer contract is not pinned"),
+        )],
     }
 }
 

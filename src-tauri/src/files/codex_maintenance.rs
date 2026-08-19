@@ -4,8 +4,9 @@
 //! not return arbitrary JSON, accepts no renderer filesystem path, and never
 //! executes shell snapshot content.
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::fs;
+use std::hash::{Hash, Hasher};
 use std::path::{Component, Path, PathBuf};
 use std::time::UNIX_EPOCH;
 
@@ -47,6 +48,14 @@ struct MaintenanceCursor {
 struct BoundedBytes {
     bytes: Vec<u8>,
     truncated: bool,
+}
+
+#[derive(Debug, Clone)]
+struct BoundedFileListing {
+    paths: Vec<PathBuf>,
+    diagnostics: Vec<Diagnostic>,
+    scan_limited: bool,
+    revision: String,
 }
 
 pub fn source_status() -> Result<SourceMaintenanceStatus, String> {
@@ -125,8 +134,8 @@ pub fn read_usage_summary() -> Result<UsageSummary, String> {
         }
     };
 
-    let value = match serde_json::from_slice::<Value>(&bytes) {
-        Ok(value) => value,
+    match serde_json::from_slice::<Value>(&bytes) {
+        Ok(_) => {}
         Err(error) => {
             diagnostics.push(Diagnostic::new(
                 "usageInvalidJson",
@@ -145,21 +154,18 @@ pub fn read_usage_summary() -> Result<UsageSummary, String> {
                 diagnostics,
             });
         }
-    };
-    let period = find_string(&value, &["period", "window", "range", "dateRange"]);
-    let turns = find_u64(&value, &["turns", "turnCount", "totalTurns", "requests"]);
-    let tokens = find_u64(
-        &value,
-        &["tokens", "totalTokens", "inputTokens", "outputTokens"],
-    );
-    let cost = find_f64(&value, &["cost", "totalCost", "estimatedCost"]);
+    }
+    diagnostics.push(Diagnostic::new(
+        "usageSchemaUnsupported",
+        "Codex usage metrics are not projected because the producer contract is not pinned",
+    ));
     Ok(UsageSummary {
         source: SourceKind::Codex,
-        state: MaintenanceCapabilityState::Available,
-        period,
-        turns,
-        tokens,
-        cost,
+        state: MaintenanceCapabilityState::Unsupported,
+        period: None,
+        turns: None,
+        tokens: None,
+        cost: None,
         source_file: Some("stats-cache.json".to_string()),
         revision,
         stale: false,
@@ -171,74 +177,33 @@ pub fn list_telemetry(
     cursor: Option<&str>,
     limit: usize,
 ) -> Result<MaintenancePage<TelemetryItem>, String> {
-    let limit = validate_limit(limit)?;
+    validate_limit(limit)?;
+    validate_cursor_size(cursor)?;
     let codex_root = root::codex_dir()?;
     let revision = dataset_revision(&codex_root, "telemetry");
-    let offset = decode_cursor(cursor, "telemetry", &revision)?;
     let dir = codex_root.join("telemetry");
-    let (paths, mut diagnostics, scan_limited) = list_regular_files(&dir, MAX_SCAN_ENTRIES)?;
-    let mut items = Vec::new();
-    let total_matched = (!scan_limited).then_some(paths.len());
-    let mut next_offset = offset;
-    let mut has_more = false;
-    for (index, path) in paths.iter().enumerate().skip(offset).take(limit + 1) {
-        if index >= offset.saturating_add(limit) {
-            has_more = true;
-            break;
+    match fs::symlink_metadata(&dir) {
+        Ok(metadata) if metadata.file_type().is_symlink() => {
+            Err("Codex telemetry directory is a symlink".to_string())
         }
-        next_offset = index.saturating_add(1);
-        let id = relative_label(&dir, &path);
-        let source_file = relative_label(&codex_root, &path);
-        let metadata = match fs::symlink_metadata(path) {
-            Ok(metadata) => metadata,
-            Err(error) => {
-                diagnostics.push(Diagnostic::new(
-                    "telemetryMetadataUnreadable",
-                    format!("skipped telemetry metadata: {error}"),
-                ));
-                continue;
-            }
-        };
-        let (kind, timestamp, status) = match read_json_value(path, MAX_DETAIL_BYTES) {
-            Ok(Some(value)) => (
-                find_string(&value, &["kind", "type", "event", "name"]),
-                find_string(&value, &["timestamp", "ts", "createdAt", "time"]),
-                find_string(&value, &["status", "state", "result"]),
+        Ok(metadata) if !metadata.is_dir() => {
+            Err("Codex telemetry path is not a directory".to_string())
+        }
+        Ok(_) => Ok(diagnostic_page(
+            "telemetry",
+            revision,
+            Diagnostic::new(
+                "telemetrySchemaUnsupported",
+                "Codex telemetry records are not projected because the producer contract is not pinned",
             ),
-            Ok(None) => (None, None, None),
-            Err(error) => {
-                diagnostics.push(Diagnostic::new(
-                    "telemetryRecordUnreadable",
-                    format!("telemetry record is unavailable: {error}"),
-                ));
-                (None, None, None)
-            }
-        };
-        items.push(TelemetryItem {
-            id,
-            kind,
-            timestamp,
-            status,
-            size_bytes: metadata.len(),
-            mtime: modified_ms(&metadata),
-            redaction: "redacted".to_string(),
-            provenance: Provenance {
-                source_file,
-                line: None,
-                archived: false,
-            },
-        });
+        )),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(diagnostic_page(
+            "telemetry",
+            revision,
+            Diagnostic::new("telemetryMissing", "Codex telemetry directory was not found"),
+        )),
+        Err(error) => Err(format!("cannot inspect Codex telemetry: {error}")),
     }
-    page_window(
-        items,
-        next_offset,
-        has_more,
-        total_matched,
-        "telemetry",
-        revision,
-        scan_limited,
-        diagnostics,
-    )
 }
 
 pub fn read_telemetry(id: &str) -> Result<TelemetryDetail, String> {
@@ -251,20 +216,25 @@ pub fn read_telemetry(id: &str) -> Result<TelemetryDetail, String> {
         .map_err(|error| format!("cannot inspect telemetry record {id}: {error}"))?;
     let item = telemetry_item_from_path(&codex_root, &path, metadata)?;
     let mut diagnostics = Vec::new();
-    let summary = match read_json_value(&path, MAX_DETAIL_BYTES) {
-        Ok(Some(value)) => safe_fields(&value),
-        Ok(None) => Vec::new(),
+    match read_json_value(&path, MAX_DETAIL_BYTES) {
+        Ok(Some(_)) => diagnostics.push(Diagnostic::new(
+            "telemetrySchemaUnsupported",
+            "Codex telemetry fields are not projected because the producer contract is not pinned",
+        )),
+        Ok(None) => diagnostics.push(Diagnostic::new(
+            "telemetryRecordEmpty",
+            "Codex telemetry record is empty",
+        )),
         Err(error) => {
             diagnostics.push(Diagnostic::new(
                 "telemetryRecordInvalid",
                 format!("cannot parse telemetry record: {error}"),
             ));
-            Vec::new()
         }
-    };
+    }
     Ok(TelemetryDetail {
         item,
-        summary,
+        summary: Vec::new(),
         diagnostics,
     })
 }
@@ -273,47 +243,36 @@ pub fn list_file_history(
     cursor: Option<&str>,
     limit: usize,
 ) -> Result<MaintenancePage<SourceCheckpointGroup>, String> {
-    let limit = validate_limit(limit)?;
+    validate_limit(limit)?;
+    validate_cursor_size(cursor)?;
     let codex_root = root::codex_dir()?;
     let revision = dataset_revision(&codex_root, "file-history");
-    let offset = decode_cursor(cursor, "file-history", &revision)?;
     let history_dir = codex_root.join("file-history");
-    let (groups, diagnostics, scan_limited) = collect_checkpoint_groups(&history_dir)?;
-    let total_matched = (!scan_limited).then_some(groups.len());
-    let mut items = Vec::new();
-    let mut next_offset = offset;
-    let mut has_more = false;
-    for (index, group) in groups.iter().enumerate().skip(offset).take(limit + 1) {
-        if index >= offset.saturating_add(limit) {
-            has_more = true;
-            break;
+    match fs::symlink_metadata(&history_dir) {
+        Ok(metadata) if metadata.file_type().is_symlink() => {
+            Err("Codex file history directory is a symlink".to_string())
         }
-        next_offset = index.saturating_add(1);
-        items.push(SourceCheckpointGroup {
-            source: SourceKind::Codex,
-            session_uuid: group.session_uuid.clone(),
-            file_hash: group.file_hash.clone(),
-            versions: group.versions.clone(),
-            latest_mtime: group.latest_mtime,
-            latest_size: group.latest_size,
-            origin: None,
-            provenance: Provenance {
-                source_file: format!("file-history/{}/{}", group.session_uuid, group.file_hash),
-                line: None,
-                archived: false,
-            },
-        });
+        Ok(metadata) if !metadata.is_dir() => {
+            Err("Codex file history path is not a directory".to_string())
+        }
+        Ok(_) => Ok(diagnostic_page(
+            "file-history",
+            revision,
+            Diagnostic::new(
+                "fileHistorySchemaUnsupported",
+                "Codex file history is not projected because the producer contract is not pinned",
+            ),
+        )),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(diagnostic_page(
+            "file-history",
+            revision,
+            Diagnostic::new(
+                "fileHistoryMissing",
+                "Codex file history directory was not found",
+            ),
+        )),
+        Err(error) => Err(format!("cannot inspect Codex file history: {error}")),
     }
-    page_window(
-        items,
-        next_offset,
-        has_more,
-        total_matched,
-        "file-history",
-        revision,
-        scan_limited,
-        diagnostics,
-    )
 }
 
 pub fn read_checkpoint(
@@ -321,25 +280,69 @@ pub fn read_checkpoint(
     file_hash: &str,
     version: u32,
 ) -> Result<SourceCheckpointDetail, String> {
+    validate_checkpoint_ids(session_uuid, file_hash)?;
     let codex_root = root::codex_dir()?;
-    let bytes = read_checkpoint_bytes(session_uuid, file_hash, version)?;
-    let (content, content_unavailable_reason) = safe_checkpoint_preview(&bytes);
+    let relative = Path::new("file-history")
+        .join(session_uuid)
+        .join(format!("{file_hash}@v{version}"));
+    let path = codex_inventory::confined_path(&codex_root, &relative)
+        .map_err(|error| format!("checkpoint is not safe: {error}"))?;
+    let mut diagnostics = Vec::new();
+    let (byte_size, content_unavailable_reason) = match fs::symlink_metadata(&path) {
+        Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_file() => {
+            diagnostics.push(Diagnostic::new(
+                "fileHistoryCheckpointUnsupported",
+                "Codex checkpoint is not a regular file",
+            ));
+            (
+                0,
+                Some("Codex checkpoint is not a regular file".to_string()),
+            )
+        }
+        Ok(metadata) => {
+            diagnostics.push(Diagnostic::new(
+                "fileHistorySchemaUnsupported",
+                "Codex checkpoint content is unavailable because the producer contract is not pinned",
+            ));
+            (
+                metadata.len().min(MAX_DETAIL_BYTES as u64) as usize,
+                Some(
+                    "Codex checkpoint content is unavailable because the producer contract is not pinned"
+                        .to_string(),
+                ),
+            )
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            diagnostics.push(Diagnostic::new(
+                "fileHistoryCheckpointMissing",
+                "Codex checkpoint file was not found",
+            ));
+            (0, Some("Codex checkpoint file was not found".to_string()))
+        }
+        Err(error) => {
+            diagnostics.push(Diagnostic::new(
+                "fileHistoryCheckpointUnreadable",
+                format!("cannot inspect Codex checkpoint: {error}"),
+            ));
+            (0, Some(format!("cannot inspect Codex checkpoint: {error}")))
+        }
+    };
     Ok(SourceCheckpointDetail {
         source: SourceKind::Codex,
         session_uuid: session_uuid.to_string(),
         file_hash: file_hash.to_string(),
         version,
-        content,
+        content: None,
         content_unavailable_reason,
-        byte_size: bytes.len(),
-        binary: bytes.iter().any(|byte| *byte == 0) || std::str::from_utf8(&bytes).is_err(),
+        byte_size,
+        binary: false,
         provenance: Provenance {
             source_file: format!("file-history/{session_uuid}/{file_hash}@v{version}"),
             line: None,
             archived: false,
         },
         revision: root::maintenance_revision(&codex_root, "file-history"),
-        diagnostics: Vec::new(),
+        diagnostics,
     })
 }
 
@@ -399,10 +402,11 @@ pub fn list_shell_snapshots(
 ) -> Result<MaintenancePage<ShellSnapshotItem>, String> {
     let limit = validate_limit(limit)?;
     let codex_root = root::codex_dir()?;
-    let revision = dataset_revision(&codex_root, "shell_snapshots");
-    let offset = decode_cursor(cursor, "shell_snapshots", &revision)?;
-    let dir = codex_root.join("shell_snapshots");
-    let (paths, mut diagnostics, scan_limited) = list_regular_files(&dir, MAX_SCAN_ENTRIES)?;
+    let listing = list_regular_files(&codex_root, "shell_snapshots", MAX_SCAN_ENTRIES)?;
+    let offset = decode_cursor(cursor, "shell_snapshots", &listing.revision)?;
+    let mut diagnostics = listing.diagnostics;
+    let scan_limited = listing.scan_limited;
+    let paths = listing.paths;
     let mut items = Vec::new();
     let total_matched = (!scan_limited).then_some(paths.len());
     let mut next_offset = offset;
@@ -427,7 +431,7 @@ pub fn list_shell_snapshots(
         has_more,
         total_matched,
         "shell_snapshots",
-        revision,
+        listing.revision,
         scan_limited,
         diagnostics,
     )
@@ -474,162 +478,6 @@ pub fn read_shell_snapshot(name: &str) -> Result<ShellSnapshotDetail, String> {
     })
 }
 
-fn collect_checkpoint_groups(
-    history_dir: &Path,
-) -> Result<(Vec<CheckpointGroupInternal>, Vec<Diagnostic>, bool), String> {
-    let mut diagnostics = Vec::new();
-    let mut scan_limited = false;
-    match fs::symlink_metadata(history_dir) {
-        Ok(metadata) if metadata.file_type().is_symlink() => {
-            return Err("Codex file history directory is a symlink".to_string())
-        }
-        Ok(metadata) if !metadata.is_dir() => {
-            return Err("Codex file history path is not a directory".to_string())
-        }
-        Ok(_) => {}
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            return Ok((Vec::new(), Vec::new(), false))
-        }
-        Err(error) => return Err(format!("cannot inspect Codex file history: {error}")),
-    }
-    let entries = match fs::read_dir(history_dir) {
-        Ok(entries) => entries,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            return Ok((Vec::new(), diagnostics, false));
-        }
-        Err(error) => return Err(format!("cannot read Codex file history: {error}")),
-    };
-    let mut sessions = Vec::new();
-    let mut scanned_entries = 0usize;
-    let mut scanned_bytes = 0usize;
-    for entry in entries {
-        scanned_entries = scanned_entries.saturating_add(1);
-        if scanned_entries > MAX_SCAN_ENTRIES {
-            scan_limited = true;
-            break;
-        }
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(error) => {
-                diagnostics.push(Diagnostic::new(
-                    "fileHistoryEntryUnreadable",
-                    format!("skipped a file-history entry: {error}"),
-                ));
-                continue;
-            }
-        };
-        let metadata = match fs::symlink_metadata(entry.path()) {
-            Ok(metadata) => metadata,
-            Err(_) => continue,
-        };
-        if metadata.file_type().is_symlink() || !metadata.is_dir() {
-            continue;
-        }
-        sessions.push(entry);
-    }
-    sessions.sort_by_key(|entry| entry.file_name());
-    let mut groups = BTreeMap::<String, Vec<(u32, i64, i64)>>::new();
-    'sessions: for session in sessions {
-        let session_uuid = session.file_name().to_string_lossy().into_owned();
-        if validate_session_id(&session_uuid).is_err() {
-            diagnostics.push(Diagnostic::new(
-                "invalidFileHistorySession",
-                "Skipped a file-history directory with an unsafe identifier",
-            ));
-            continue;
-        }
-        let leaf_entries = match fs::read_dir(session.path()) {
-            Ok(entries) => entries,
-            Err(error) => {
-                diagnostics.push(Diagnostic::new(
-                    "fileHistorySessionUnreadable",
-                    format!("cannot read a file-history session: {error}"),
-                ));
-                continue;
-            }
-        };
-        for leaf in leaf_entries {
-            scanned_entries = scanned_entries.saturating_add(1);
-            if scanned_entries > MAX_SCAN_ENTRIES {
-                scan_limited = true;
-                diagnostics.push(Diagnostic::new(
-                    "fileHistoryScanLimited",
-                    "File-history scan stopped at the bounded entry limit",
-                ));
-                break 'sessions;
-            }
-            let leaf = match leaf {
-                Ok(leaf) => leaf,
-                Err(_) => continue,
-            };
-            let metadata = match fs::symlink_metadata(leaf.path()) {
-                Ok(metadata) => metadata,
-                Err(_) => continue,
-            };
-            scanned_bytes = scanned_bytes.saturating_add(metadata.len() as usize);
-            if scanned_bytes > MAX_SCAN_BYTES {
-                scan_limited = true;
-                diagnostics.push(Diagnostic::new(
-                    "fileHistoryScanLimited",
-                    "File-history scan stopped at the bounded metadata budget",
-                ));
-                break 'sessions;
-            }
-            if metadata.file_type().is_symlink() || !metadata.is_file() {
-                continue;
-            }
-            let name = leaf.file_name().to_string_lossy().into_owned();
-            let Some((hash, version_text)) = name.rsplit_once("@v") else {
-                continue;
-            };
-            if validate_file_hash(hash).is_err() {
-                diagnostics.push(Diagnostic::new(
-                    "invalidFileHistoryHash",
-                    "Skipped a file-history checkpoint with an unsafe identifier",
-                ));
-                continue;
-            }
-            let Ok(version) = version_text.parse::<u32>() else {
-                continue;
-            };
-            groups
-                .entry(format!("{session_uuid}\0{hash}"))
-                .or_default()
-                .push((version, modified_ms(&metadata), metadata.len() as i64));
-        }
-    }
-    let mut result = groups
-        .into_iter()
-        .filter_map(|(key, mut leaves)| {
-            let (session_uuid, file_hash) = key.split_once('\0')?;
-            leaves.sort_by_key(|leaf| leaf.0);
-            let (_, latest_mtime, latest_size) = *leaves.last()?;
-            Some(CheckpointGroupInternal {
-                session_uuid: session_uuid.to_string(),
-                file_hash: file_hash.to_string(),
-                versions: leaves.into_iter().map(|leaf| leaf.0).collect(),
-                latest_mtime,
-                latest_size,
-            })
-        })
-        .collect::<Vec<_>>();
-    result.sort_by(|a, b| {
-        a.session_uuid
-            .cmp(&b.session_uuid)
-            .then_with(|| a.file_hash.cmp(&b.file_hash))
-    });
-    Ok((result, diagnostics, scan_limited))
-}
-
-#[derive(Debug, Clone)]
-struct CheckpointGroupInternal {
-    session_uuid: String,
-    file_hash: String,
-    versions: Vec<u32>,
-    latest_mtime: i64,
-    latest_size: i64,
-}
-
 fn telemetry_item_from_path(
     root_path: &Path,
     path: &Path,
@@ -637,22 +485,14 @@ fn telemetry_item_from_path(
 ) -> Result<TelemetryItem, String> {
     let id = relative_label(&root_path.join("telemetry"), path);
     let source_file = relative_label(root_path, path);
-    let (kind, timestamp, status) = match read_json_value(path, MAX_DETAIL_BYTES) {
-        Ok(Some(value)) => (
-            find_string(&value, &["kind", "type", "event", "name"]),
-            find_string(&value, &["timestamp", "ts", "createdAt", "time"]),
-            find_string(&value, &["status", "state", "result"]),
-        ),
-        _ => (None, None, None),
-    };
     Ok(TelemetryItem {
         id,
-        kind,
-        timestamp,
-        status,
+        kind: None,
+        timestamp: None,
+        status: None,
         size_bytes: metadata.len(),
         mtime: modified_ms(&metadata),
-        redaction: "redacted".to_string(),
+        redaction: "not-projected".to_string(),
         provenance: Provenance {
             source_file,
             line: None,
@@ -690,11 +530,16 @@ fn shell_item_from_path(root_path: &Path, path: &Path) -> Result<ShellSnapshotIt
 }
 
 fn list_regular_files(
-    dir: &Path,
+    root_path: &Path,
+    dataset: &str,
     max_entries: usize,
-) -> Result<(Vec<PathBuf>, Vec<Diagnostic>, bool), String> {
+) -> Result<BoundedFileListing, String> {
+    let dir = root_path.join(dataset);
     let mut diagnostics = Vec::new();
-    match fs::symlink_metadata(dir) {
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    root_path.to_string_lossy().hash(&mut hasher);
+    dataset.hash(&mut hasher);
+    let directory_metadata = match fs::symlink_metadata(&dir) {
         Ok(metadata) if metadata.file_type().is_symlink() => {
             return Err(format!(
                 "maintenance directory {} is a symlink",
@@ -707,20 +552,38 @@ fn list_regular_files(
                 dir.display()
             ));
         }
-        Ok(_) => {}
+        Ok(metadata) => metadata,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            return Ok((Vec::new(), diagnostics, false));
+            return Ok(BoundedFileListing {
+                paths: Vec::new(),
+                diagnostics,
+                scan_limited: false,
+                revision: "missing".to_string(),
+            });
         }
         Err(error) => return Err(format!("inspect maintenance directory: {error}")),
-    }
-    let entries = match fs::read_dir(dir) {
+    };
+    directory_metadata
+        .file_type()
+        .is_symlink()
+        .hash(&mut hasher);
+    directory_metadata.is_dir().hash(&mut hasher);
+    directory_metadata.len().hash(&mut hasher);
+    modified_ms(&directory_metadata).hash(&mut hasher);
+    let entries = match fs::read_dir(&dir) {
         Ok(entries) => entries,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            return Ok((Vec::new(), diagnostics, false));
+            return Ok(BoundedFileListing {
+                paths: Vec::new(),
+                diagnostics,
+                scan_limited: false,
+                revision: "missing".to_string(),
+            });
         }
         Err(error) => return Err(format!("cannot read maintenance directory: {error}")),
     };
     let mut paths = Vec::new();
+    let mut fingerprints = Vec::new();
     let mut scan_limited = false;
     let mut visited_entries = 0usize;
     let mut scanned_bytes = 0usize;
@@ -733,6 +596,7 @@ fn list_regular_files(
         let entry = match entry {
             Ok(entry) => entry,
             Err(error) => {
+                "entry-error".hash(&mut hasher);
                 diagnostics.push(Diagnostic::new(
                     "maintenanceEntryUnreadable",
                     format!("skipped an unreadable maintenance entry: {error}"),
@@ -743,6 +607,7 @@ fn list_regular_files(
         let metadata = match fs::symlink_metadata(entry.path()) {
             Ok(metadata) => metadata,
             Err(error) => {
+                "metadata-error".hash(&mut hasher);
                 diagnostics.push(Diagnostic::new(
                     "maintenanceMetadataUnreadable",
                     format!("skipped an unreadable maintenance entry: {error}"),
@@ -759,13 +624,45 @@ fn list_regular_files(
             ));
             break;
         }
+        let relative = entry
+            .path()
+            .strip_prefix(root_path)
+            .ok()
+            .map(|path| path.to_string_lossy().replace('\\', "/"))
+            .unwrap_or_else(|| entry.path().to_string_lossy().into_owned());
+        fingerprints.push((
+            relative,
+            metadata.file_type().is_symlink(),
+            metadata.is_dir(),
+            metadata.len(),
+            modified_ms(&metadata),
+        ));
         if metadata.file_type().is_symlink() || !metadata.is_file() {
             continue;
         }
         paths.push(entry.path());
     }
     paths.sort();
-    Ok((paths, diagnostics, scan_limited))
+    fingerprints.sort_by(|left, right| left.0.cmp(&right.0));
+    scan_limited.hash(&mut hasher);
+    for (relative, is_symlink, is_dir, size, modified) in fingerprints {
+        relative.hash(&mut hasher);
+        is_symlink.hash(&mut hasher);
+        is_dir.hash(&mut hasher);
+        size.hash(&mut hasher);
+        modified.hash(&mut hasher);
+    }
+    let revision = format!("{:016x}", hasher.finish());
+    Ok(BoundedFileListing {
+        paths,
+        diagnostics,
+        scan_limited,
+        revision: if scan_limited {
+            format!("incomplete-{revision}")
+        } else {
+            revision
+        },
+    })
 }
 
 fn read_json_value(path: &Path, max_bytes: usize) -> Result<Option<Value>, String> {
@@ -814,11 +711,34 @@ fn page_window<T>(
     })
 }
 
+fn diagnostic_page<T>(
+    _dataset: &str,
+    revision: String,
+    diagnostic: Diagnostic,
+) -> MaintenancePage<T> {
+    MaintenancePage {
+        items: Vec::new(),
+        next_cursor: None,
+        has_more: false,
+        total_matched: None,
+        scan_limited: false,
+        diagnostics: vec![diagnostic],
+        revision: Some(revision),
+    }
+}
+
 fn validate_limit(limit: usize) -> Result<usize, String> {
     if limit == 0 || limit > MAX_PAGE_SIZE {
         return Err(format!("limit must be between 1 and {MAX_PAGE_SIZE}"));
     }
     Ok(limit)
+}
+
+fn validate_cursor_size(cursor: Option<&str>) -> Result<(), String> {
+    if cursor.is_some_and(|value| value.len() > MAX_CURSOR_BYTES) {
+        return Err("maintenance cursor is too large".to_string());
+    }
+    Ok(())
 }
 
 fn validate_component(value: &str, label: &str) -> Result<(), String> {
@@ -969,38 +889,6 @@ pub(crate) fn safe_fields(value: &Value) -> Vec<SafeField> {
             })
         })
         .collect()
-}
-
-fn find_string(value: &Value, keys: &[&str]) -> Option<String> {
-    let object = value.as_object()?;
-    keys.iter().find_map(|key| {
-        object
-            .get(*key)
-            .and_then(Value::as_str)
-            .and_then(|value| safe_string_for_key(key, value))
-    })
-}
-
-fn find_u64(value: &Value, keys: &[&str]) -> Option<u64> {
-    let object = value.as_object()?;
-    keys.iter().find_map(|key| {
-        object.get(*key).and_then(|value| match value {
-            Value::Number(value) => value.as_u64(),
-            Value::String(value) => value.parse::<u64>().ok(),
-            _ => None,
-        })
-    })
-}
-
-fn find_f64(value: &Value, keys: &[&str]) -> Option<f64> {
-    let object = value.as_object()?;
-    keys.iter().find_map(|key| {
-        object.get(*key).and_then(|value| match value {
-            Value::Number(value) => value.as_f64().filter(|value| value.is_finite()),
-            Value::String(value) => value.parse::<f64>().ok().filter(|value| value.is_finite()),
-            _ => None,
-        })
-    })
 }
 
 pub(crate) fn redact_shell_snapshot(content: &str) -> Option<String> {
