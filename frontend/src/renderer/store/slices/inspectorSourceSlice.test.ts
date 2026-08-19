@@ -33,6 +33,12 @@ const status: InspectorSourceStatus = {
     sessions: true,
     transcripts: true,
     taskGraph: { state: 'available', reason: 'available', diagnostics: [] },
+    maintenance: {
+      usage: { state: 'available', reason: 'available', diagnostics: [] },
+      telemetry: { state: 'available', reason: 'available', diagnostics: [] },
+      fileHistory: { state: 'available', reason: 'available', diagnostics: [] },
+      shellSnapshots: { state: 'available', reason: 'available', diagnostics: [] },
+    },
   },
 };
 
@@ -111,4 +117,23 @@ test('refreshes the first session page and appends later pages without duplicate
 
   await useStore.getState().loadInspectorSession('s1');
   expect(calls).toEqual([null, 'cursor-1', null]);
+});
+
+test('switching source clears selections and cached source data', () => {
+  useStore.setState({
+    inspectorSelectedSessionId: 's1',
+    inspectorSelectedTaskGraphId: 'task-1',
+    inspectorSessionEvents: [event(1, 'message')],
+    inspectorCache: { claude: { items: ['wrong source'] } },
+  });
+
+  useStore.getState().setInspectorSource('claude');
+
+  const state = useStore.getState();
+  expect(state.inspectorSource).toBe('claude');
+  expect(state.inspectorSourceGeneration).toBe(2);
+  expect(state.inspectorCache).toEqual({});
+  expect(state.inspectorSelectedSessionId).toBeNull();
+  expect(state.inspectorSelectedTaskGraphId).toBeNull();
+  expect(state.inspectorSessionEvents).toEqual([]);
 });

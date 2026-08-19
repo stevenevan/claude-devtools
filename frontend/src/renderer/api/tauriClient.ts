@@ -10,6 +10,7 @@ import { inspectorCommands } from './tauri/domain/inspector';
 import { maintenanceCommands, maintenanceEvents } from './tauri/domain/maintenance';
 import { pluginsApi, sessionApi, sessionCommands } from './tauri/domain/session';
 import { snapshotsCommands } from './tauri/domain/snapshots';
+import { sourceMaintenanceCommands } from './tauri/domain/sourceMaintenance';
 import { sshCommands } from './tauri/domain/ssh';
 import { contextEvents, sshEvents, systemCommands, systemEvents } from './tauri/domain/system';
 import { timingCommands } from './tauri/domain/timing';
@@ -30,6 +31,7 @@ export function createTauriClient(): DesktopAPI {
     ...codexSettingsCommands, // Codex settings discovery and safe editor
     ...codexInventoryCommands, // Codex instructions, agents, and skills inventory
     ...inspectorCommands, // source-aware Claude/Codex inspector methods
+    ...sourceMaintenanceCommands, // source-aware maintenance methods
     ssh: { ...sshEvents, ...sshCommands },
     context: { ...systemCommands.context, ...contextEvents },
     maintenance: { ...maintenanceEvents, ...maintenanceCommands },

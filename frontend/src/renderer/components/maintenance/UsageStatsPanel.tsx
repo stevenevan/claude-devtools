@@ -1,313 +1,355 @@
-import { JSX, useEffect, useState } from 'react';
+import { JSX, useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '@renderer/api';
-import { CodeBlockViewer } from '@renderer/components/chat/viewers';
 import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { formatBytes } from '@renderer/utils/formatters';
-import { RefreshCw } from 'lucide-react';
+import { Activity, AlertTriangle, RefreshCw } from 'lucide-react';
 
-import type { FileMeta } from '@shared/types/api';
+import type {
+  InspectorDiagnostic,
+  SourceKind,
+  TelemetryDetail,
+  TelemetryItem,
+  UsageSummary,
+} from '@shared/types/api';
 
-function errText(err: unknown): string {
-  return err instanceof Error ? err.message : String(err);
+interface UsageStatsPanelProps {
+  source: SourceKind;
 }
 
-function isScalar(value: unknown): value is string | number | boolean {
-  return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean';
+function errText(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
-// Read-only view of the CLI's own local usage data: ~/.claude/stats-cache.json
-// and ~/.claude/telemetry/*.json. Separate from the app's Analytics dashboard,
-// which derives its own metrics from session transcripts. This panel writes nothing.
-export const UsageStatsPanel = (): JSX.Element => {
-  const [stats, setStats] = useState<Record<string, unknown> | null>(null);
-  const [statsLoading, setStatsLoading] = useState(true);
-  const [statsError, setStatsError] = useState<string | null>(null);
+const sourceRoot = (source: SourceKind): string => (source === 'codex' ? '~/.codex' : '~/.claude');
 
-  const [events, setEvents] = useState<FileMeta[]>([]);
+export const UsageStatsPanel = ({ source }: Readonly<UsageStatsPanelProps>): JSX.Element => {
+  const [summary, setSummary] = useState<UsageSummary | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [events, setEvents] = useState<TelemetryItem[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [eventsError, setEventsError] = useState<string | null>(null);
-
-  const [selectedName, setSelectedName] = useState<string | null>(null);
-  const [selectedEvent, setSelectedEvent] = useState<unknown>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<TelemetryDetail | null>(null);
   const [eventLoading, setEventLoading] = useState(false);
   const [eventError, setEventError] = useState<string | null>(null);
+  const requestId = useRef(0);
 
-  const loadStats = async (): Promise<void> => {
-    setStatsLoading(true);
-    setStatsError(null);
-    try {
-      const result = await api.readUsageStats();
-      setStats(
-        result && typeof result === 'object' && !Array.isArray(result)
-          ? (result as Record<string, unknown>)
-          : null
-      );
-    } catch (err) {
-      setStatsError(errText(err));
-    } finally {
-      setStatsLoading(false);
-    }
-  };
-
-  const loadEvents = async (): Promise<void> => {
+  const load = useCallback(async (): Promise<void> => {
+    const request = ++requestId.current;
+    setSummaryLoading(true);
     setEventsLoading(true);
+    setSummary(null);
+    setEvents([]);
+    setSelectedId(null);
+    setSelectedEvent(null);
+    setSummaryError(null);
     setEventsError(null);
+    setNextCursor(null);
     try {
-      setEvents(await api.listTelemetryEvents());
-    } catch (err) {
-      setEventsError(errText(err));
+      const result = await api.readSourceUsageSummary(source);
+      if (request !== requestId.current) return;
+      setSummary(result);
+    } catch (error) {
+      if (request !== requestId.current) return;
+      setSummary(null);
+      setSummaryError(errText(error));
     } finally {
-      setEventsLoading(false);
+      if (request === requestId.current) setSummaryLoading(false);
     }
-  };
+    try {
+      const page = await api.listSourceTelemetry(source, null, 50);
+      if (request !== requestId.current) return;
+      setEvents(page.items);
+      setNextCursor(page.nextCursor);
+      if (page.diagnostics.length > 0) setEventsError(diagnosticText(page.diagnostics));
+    } catch (error) {
+      if (request !== requestId.current) return;
+      setEvents([]);
+      setEventsError(errText(error));
+    } finally {
+      if (request === requestId.current) setEventsLoading(false);
+    }
+  }, [source]);
 
   useEffect(() => {
-    void loadStats();
-    void loadEvents();
-  }, []);
+    setSelectedId(null);
+    setSelectedEvent(null);
+    setEventError(null);
+    void load();
+  }, [load]);
 
-  const selectEvent = async (name: string): Promise<void> => {
-    setSelectedName(name);
+  const loadMore = async (): Promise<void> => {
+    if (!nextCursor) return;
+    const request = ++requestId.current;
+    setEventsLoading(true);
+    try {
+      const page = await api.listSourceTelemetry(source, nextCursor, 50);
+      if (request !== requestId.current) return;
+      setEvents((current) => [...current, ...page.items]);
+      setNextCursor(page.nextCursor);
+      if (page.diagnostics.length > 0) setEventsError(diagnosticText(page.diagnostics));
+    } catch (error) {
+      if (request !== requestId.current) return;
+      setEventsError(errText(error));
+    } finally {
+      if (request === requestId.current) setEventsLoading(false);
+    }
+  };
+
+  const selectEvent = async (id: string): Promise<void> => {
+    const request = ++requestId.current;
+    setSelectedId(id);
     setSelectedEvent(null);
     setEventError(null);
     setEventLoading(true);
     try {
-      setSelectedEvent(await api.readTelemetryEvent(name));
-    } catch (err) {
-      setEventError(errText(err));
+      const result = await api.readSourceTelemetry(source, id);
+      if (request !== requestId.current) return;
+      setSelectedEvent(result);
+    } catch (error) {
+      if (request !== requestId.current) return;
+      setEventError(errText(error));
     } finally {
-      setEventLoading(false);
+      if (request === requestId.current) setEventLoading(false);
     }
   };
 
-  const refresh = (): void => {
-    void loadStats();
-    void loadEvents();
-  };
+  const busy = summaryLoading || eventsLoading;
 
   return (
     <div className="flex flex-col">
-      <div className="border-border/50 flex items-start justify-between gap-2 border-b px-4 py-3">
-        <div>
-          <p className="text-foreground text-sm font-medium">Usage</p>
-          <p className="text-muted-foreground mt-0.5 text-xs">
-            Read-only view of the CLI&apos;s own local usage data: ~/.claude/stats-cache.json and
-            telemetry/*.json. This is the CLI&apos;s raw cache, separate from the Analytics dashboard.
-            Nothing here writes.
+      <div className="border-border/50 flex items-start justify-between gap-3 border-b px-4 py-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <Activity className="text-muted-foreground size-4" aria-hidden="true" />
+            <p className="text-foreground text-sm font-medium">Usage &amp; telemetry</p>
+          </div>
+          <p className="text-muted-foreground mt-1 max-w-2xl text-xs">
+            Safe summaries from {sourceRoot(source)}. Values are allowlisted and bounded; raw
+            telemetry payloads never leave the local reader.
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={statsLoading || eventsLoading}
-          onClick={refresh}
-        >
+        <Button variant="outline" size="sm" disabled={busy} onClick={() => void load()}>
           <RefreshCw className="size-3.5" />
           Refresh
         </Button>
       </div>
 
-      <StatsSection stats={stats} loading={statsLoading} error={statsError} />
-
+      <UsageSummarySection summary={summary} loading={summaryLoading} error={summaryError} />
       <TelemetrySection
         events={events}
         loading={eventsLoading}
         error={eventsError}
-        selectedName={selectedName}
+        selectedId={selectedId}
         selectedEvent={selectedEvent}
         eventLoading={eventLoading}
         eventError={eventError}
-        onSelect={(name) => void selectEvent(name)}
+        onSelect={(id) => void selectEvent(id)}
+        hasMore={nextCursor !== null}
+        onLoadMore={() => void loadMore()}
       />
     </div>
   );
 };
 
-interface StatsSectionProps {
-  stats: Record<string, unknown> | null;
+interface UsageSummarySectionProps {
+  summary: UsageSummary | null;
   loading: boolean;
   error: string | null;
 }
 
-const StatsSection = ({ stats, loading, error }: Readonly<StatsSectionProps>): JSX.Element => (
-  <div className="border-border/50 border-b px-4 py-3">
-    <p className="text-foreground mb-2 text-xs font-medium">Stats cache</p>
-
-    {error && (
-      <div
-        role="alert"
-        className="bg-destructive/10 text-destructive mb-2 rounded-md px-3 py-2 text-xs"
-      >
-        {error}
-      </div>
-    )}
-
+const UsageSummarySection = ({
+  summary,
+  loading,
+  error,
+}: Readonly<UsageSummarySectionProps>): JSX.Element => (
+  <section className="border-border/50 border-b px-4 py-4">
+    <p className="text-foreground text-xs font-medium">Usage summary</p>
+    {error && <ErrorMessage message={error} />}
     {loading && (
-      <p role="status" className="text-muted-foreground text-xs">
-        Loading…
+      <p role="status" className="text-muted-foreground mt-3 text-xs">
+        Loading usage summary…
       </p>
     )}
-
-    {!loading && !error && !stats && (
-      <p className="text-muted-foreground text-xs">No stats-cache.json found under ~/.claude.</p>
+    {!loading && !error && !summary && (
+      <p className="text-muted-foreground mt-3 text-xs">Usage summary is unavailable.</p>
     )}
-
-    {!loading && stats && (
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-1">
-          {Object.entries(stats)
-            .filter(([, value]) => isScalar(value))
-            .map(([key, value]) => (
-              <div key={key} className="flex items-center gap-2">
-                <span className="font-mono text-xs">{key}</span>
-                <span className="text-muted-foreground text-xs">{String(value)}</span>
-              </div>
-            ))}
+    {!loading && summary && (
+      <>
+        <div className="mt-3 grid gap-2 sm:grid-cols-4">
+          <Metric label="Period" value={summary.period ?? 'Not reported'} />
+          <Metric label="Turns" value={formatNumber(summary.turns)} />
+          <Metric label="Tokens" value={formatNumber(summary.tokens)} />
+          <Metric label="Cost" value={summary.cost === null ? 'Not reported' : String(summary.cost)} />
         </div>
-        {Object.entries(stats)
-          .filter(([, value]) => !isScalar(value))
-          .map(([key, value]) => (
-            <div key={key}>
-              <p className="text-foreground mb-1 text-xs font-medium">{key}</p>
-              <CodeBlockViewer fileName={key} content={JSON.stringify(value, null, 2)} language="json" />
-            </div>
-          ))}
-      </div>
+        {summary.state !== 'available' && (
+          <p className="text-muted-foreground mt-3 text-xs">{summary.state} · no complete summary.</p>
+        )}
+        <Diagnostics diagnostics={summary.diagnostics} />
+      </>
     )}
+  </section>
+);
+
+const Metric = ({ label, value }: Readonly<{ label: string; value: string }>): JSX.Element => (
+  <div className="border-border/50 rounded-md border px-3 py-2">
+    <dt className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">{label}</dt>
+    <dd className="text-foreground mt-1 truncate text-sm font-medium" title={value}>
+      {value}
+    </dd>
   </div>
 );
 
 interface TelemetrySectionProps {
-  events: FileMeta[];
+  events: TelemetryItem[];
   loading: boolean;
   error: string | null;
-  selectedName: string | null;
-  selectedEvent: unknown;
+  selectedId: string | null;
+  selectedEvent: TelemetryDetail | null;
   eventLoading: boolean;
   eventError: string | null;
-  onSelect: (name: string) => void;
+  onSelect: (id: string) => void;
+  hasMore: boolean;
+  onLoadMore: () => void;
 }
 
 const TelemetrySection = ({
   events,
   loading,
   error,
-  selectedName,
+  selectedId,
   selectedEvent,
   eventLoading,
   eventError,
   onSelect,
+  hasMore,
+  onLoadMore,
 }: Readonly<TelemetrySectionProps>): JSX.Element => (
-  <div className="px-4 py-3">
-    <p className="text-foreground mb-2 text-xs font-medium">Telemetry events</p>
-
-    {error && (
-      <div
-        role="alert"
-        className="bg-destructive/10 text-destructive mb-2 rounded-md px-3 py-2 text-xs"
-      >
-        {error}
+  <section className="px-4 py-4">
+    <div className="flex items-center justify-between gap-2">
+      <div>
+        <p className="text-foreground text-xs font-medium">Telemetry events</p>
+        <p className="text-muted-foreground mt-0.5 text-[11px]">Select an event for safe fields only.</p>
       </div>
-    )}
-
-    {loading && (
-      <p role="status" className="text-muted-foreground text-xs">
-        Loading…
+      {hasMore && (
+        <Button variant="ghost" size="sm" disabled={loading} onClick={onLoadMore}>
+          Load more
+        </Button>
+      )}
+    </div>
+    {error && <ErrorMessage message={error} />}
+    {loading && events.length === 0 && (
+      <p role="status" className="text-muted-foreground mt-3 text-xs">
+        Loading telemetry…
       </p>
     )}
-
     {!loading && !error && events.length === 0 && (
-      <p className="text-muted-foreground text-xs">
-        No telemetry events found under ~/.claude/telemetry.
-      </p>
+      <p className="text-muted-foreground mt-3 text-xs">No telemetry events were found.</p>
     )}
-
-    {!loading && events.length > 0 && (
-      <div className="flex gap-4">
-        <div
-          aria-label="Telemetry events"
-          className="flex max-h-96 w-64 shrink-0 flex-col gap-1.5 overflow-y-auto"
-        >
+    {events.length > 0 && (
+      <div className="mt-3 flex flex-col gap-3 lg:flex-row">
+        <div aria-label="Telemetry events" className="flex max-h-96 min-w-0 flex-col gap-1.5 lg:w-72">
           {events.map((event) => (
-            <EventRow
-              key={event.name}
-              event={event}
-              selected={event.name === selectedName}
-              onSelect={() => onSelect(event.name)}
-            />
+            <Button
+              key={event.id}
+              variant="ghost"
+              aria-current={event.id === selectedId || undefined}
+              onClick={() => onSelect(event.id)}
+              className={cn(
+                'h-auto w-full min-w-0 flex-col items-start gap-0.5 rounded-md border px-2.5 py-2 text-left',
+                event.id === selectedId
+                  ? 'bg-card/50 border-border'
+                  : 'border-border/50 hover:bg-card/30'
+              )}
+            >
+              <span className="text-foreground w-full truncate font-mono text-xs">{event.id}</span>
+              <span className="text-muted-foreground text-[10px]">
+                {event.kind ?? 'event'} · {formatBytes(event.sizeBytes)}
+              </span>
+            </Button>
           ))}
         </div>
-        <div className="min-w-0 flex-1">
-          <EventContent
-            selectedName={selectedName}
-            event={selectedEvent}
-            loading={eventLoading}
-            error={eventError}
-          />
-        </div>
+        <TelemetryDetailView
+          selectedId={selectedId}
+          detail={selectedEvent}
+          loading={eventLoading}
+          error={eventError}
+        />
       </div>
     )}
-  </div>
+  </section>
 );
 
-interface EventRowProps {
-  event: FileMeta;
-  selected: boolean;
-  onSelect: () => void;
-}
-
-const EventRow = ({ event, selected, onSelect }: Readonly<EventRowProps>): JSX.Element => (
-  <Button
-    variant="ghost"
-    aria-current={selected || undefined}
-    onClick={onSelect}
-    className={cn(
-      'h-auto w-full min-w-0 flex-col items-start gap-0.5 rounded-md border px-2.5 py-2 text-left',
-      selected ? 'bg-card/50 border-border' : 'border-border/50 hover:bg-card/30'
-    )}
-  >
-    <span className="text-foreground w-full truncate font-mono text-xs">{event.name}</span>
-    <span className="text-muted-foreground text-[10px]">
-      {formatBytes(event.sizeBytes)} · {new Date(event.mtime).toLocaleString()}
-    </span>
-  </Button>
-);
-
-interface EventContentProps {
-  selectedName: string | null;
-  event: unknown;
-  loading: boolean;
-  error: string | null;
-}
-
-const EventContent = ({
-  selectedName,
-  event,
+const TelemetryDetailView = ({
+  selectedId,
+  detail,
   loading,
   error,
-}: Readonly<EventContentProps>): JSX.Element => {
-  if (!selectedName) {
-    return <p className="text-muted-foreground text-xs">Select an event to view its contents.</p>;
+}: Readonly<{
+  selectedId: string | null;
+  detail: TelemetryDetail | null;
+  loading: boolean;
+  error: string | null;
+}>): JSX.Element => {
+  if (!selectedId) {
+    return <p className="text-muted-foreground min-w-0 flex-1 text-xs">Select an event to inspect it.</p>;
   }
   if (loading) {
     return (
-      <p role="status" className="text-muted-foreground text-xs">
-        Loading…
+      <p role="status" className="text-muted-foreground min-w-0 flex-1 text-xs">
+        Loading event…
       </p>
     );
   }
-  if (error) {
-    return (
-      <div role="alert" className="bg-destructive/10 text-destructive rounded-md px-3 py-2 text-xs">
-        {error}
-      </div>
-    );
-  }
-  if (event === null) {
-    return <p className="text-muted-foreground text-xs">Select an event to view its contents.</p>;
-  }
+  if (error) return <ErrorMessage message={error} />;
+  if (!detail) return <p className="text-muted-foreground text-xs">Event details are unavailable.</p>;
   return (
-    <CodeBlockViewer fileName={selectedName} content={JSON.stringify(event, null, 2)} language="json" />
+    <div className="border-border/50 min-w-0 flex-1 rounded-md border p-3">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+        <span className="text-foreground font-medium">{detail.item.kind ?? 'event'}</span>
+        <span className="text-muted-foreground">{detail.item.timestamp ?? 'time not reported'}</span>
+        <span className="text-muted-foreground">{detail.item.redaction}</span>
+      </div>
+      {detail.summary.length > 0 ? (
+        <dl className="mt-3 grid gap-x-4 gap-y-2 sm:grid-cols-2">
+          {detail.summary.map((field) => (
+            <div key={field.name} className="min-w-0">
+              <dt className="text-muted-foreground text-[10px]">{field.name}</dt>
+              <dd className="text-foreground mt-0.5 truncate font-mono text-xs" title={field.value}>
+                {field.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : (
+        <p className="text-muted-foreground mt-3 text-xs">No allowlisted fields were present.</p>
+      )}
+      <Diagnostics diagnostics={detail.diagnostics} />
+    </div>
   );
 };
+
+const ErrorMessage = ({ message }: Readonly<{ message: string }>): JSX.Element => (
+  <div role="alert" className="bg-destructive/10 text-destructive mt-3 rounded-md px-3 py-2 text-xs">
+    {message}
+  </div>
+);
+
+const Diagnostics = ({ diagnostics }: Readonly<{ diagnostics: InspectorDiagnostic[] }>): JSX.Element | null => {
+  if (diagnostics.length === 0) return null;
+  return (
+    <div className="text-muted-foreground mt-3 flex items-start gap-2 text-[11px]" role="status">
+      <AlertTriangle className="text-warning mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+      <span>{diagnosticText(diagnostics)}</span>
+    </div>
+  );
+};
+
+const diagnosticText = (diagnostics: InspectorDiagnostic[]): string =>
+  diagnostics.map((diagnostic) => diagnostic.message).join(' ');
+
+const formatNumber = (value: number | null): string =>
+  value === null ? 'Not reported' : value.toLocaleString();

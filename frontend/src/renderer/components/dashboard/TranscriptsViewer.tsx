@@ -14,7 +14,6 @@ import type {
   InspectorEvent,
   InspectorPage,
   InspectorTranscriptMeta,
-  FileMeta,
   TranscriptRecord,
 } from '@shared/types/api';
 
@@ -25,28 +24,6 @@ const estimateRowSize = (): number => ROW_HEIGHT;
 
 function errText(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
-}
-
-function toTranscriptPage(files: FileMeta[]): InspectorPage<InspectorTranscriptMeta> {
-  return {
-    items: files.map((file) => ({
-      id: file.name,
-      label: file.name,
-      sizeBytes: file.sizeBytes,
-      mtime: file.mtime,
-      source: 'claude',
-      archived: false,
-      provenance: {
-        sourceFile: `transcripts/${file.name}`,
-        archived: false,
-      },
-    })),
-    nextCursor: null,
-    hasMore: false,
-    totalMatched: files.length,
-    scanLimited: false,
-    diagnostics: [],
-  };
 }
 
 // Read-only view of ~/.claude/transcripts/ses_*.jsonl subagent transcripts.
@@ -95,11 +72,7 @@ export const TranscriptsViewer = (): JSX.Element => {
     try {
       const cacheKey = getInspectorCacheKey(source, 'transcripts', undefined, cursor, '100');
       const cached = cursor ? getInspectorCache<InspectorPage<InspectorTranscriptMeta>>(cacheKey) : undefined;
-      const page =
-        cached ??
-        (source === 'claude'
-          ? toTranscriptPage(await api.listTranscripts())
-          : await api.listSourceTranscripts(source, cursor, 100));
+      const page = cached ?? (await api.listSourceTranscripts(source, cursor, 100));
       if (!isCurrent()) return;
       if (!cached) setInspectorCache(cacheKey, page);
       setTranscripts((current) => {
@@ -152,21 +125,16 @@ export const TranscriptsViewer = (): JSX.Element => {
     setRecordsScanLimited(false);
     setRecordsLoading(true);
     try {
-      if (source === 'claude') {
-        const legacyRecords = await api.readTranscript(name);
-        if (!isCurrent()) return;
-        setRecords(legacyRecords);
-      } else {
-        const cacheKey = getInspectorCacheKey(source, 'transcript', name, null, '200');
-        const page = await api.readSourceTranscript(source, name, null, 200);
-        if (!isCurrent()) return;
-        setInspectorCache(cacheKey, page);
-        setRecords(page.items);
-        setRecordsNextCursor(page.nextCursor);
-        setRecordsHasMore(page.hasMore);
-        setRecordsDiagnostics(page.diagnostics.map((diagnostic) => diagnostic.message));
-        setRecordsScanLimited(page.scanLimited);
-      }
+      const cacheKey = getInspectorCacheKey(source, 'transcript', name, null, '200');
+      const cached = getInspectorCache<InspectorPage<InspectorEvent>>(cacheKey);
+      const page = cached ?? (await api.readSourceTranscript(source, name, null, 200));
+      if (!isCurrent()) return;
+      if (!cached) setInspectorCache(cacheKey, page);
+      setRecords(page.items);
+      setRecordsNextCursor(page.nextCursor);
+      setRecordsHasMore(page.hasMore);
+      setRecordsDiagnostics(page.diagnostics.map((diagnostic) => diagnostic.message));
+      setRecordsScanLimited(page.scanLimited);
     } catch (err) {
       if (isCurrent()) setRecordsError(errText(err));
     } finally {
@@ -175,7 +143,7 @@ export const TranscriptsViewer = (): JSX.Element => {
   };
 
   const loadMoreRecords = async (): Promise<void> => {
-    if (inspectorSource !== 'codex' || !selectedName || !recordsNextCursor || !recordsHasMore) {
+    if (!selectedName || !recordsNextCursor || !recordsHasMore) {
       return;
     }
     const requestGeneration = ++requestGenerationRef.current;

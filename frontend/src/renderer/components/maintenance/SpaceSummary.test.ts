@@ -2,7 +2,11 @@ import { expect, test } from 'bun:test';
 
 import type { DirUsage } from '@shared/types';
 
-import { SIMPLE_CLEANUP_ALLOWLIST, summarizeSpace } from './SpaceSummary';
+import {
+  SIMPLE_CLEANUP_ALLOWLIST,
+  shouldRunSimpleCleanup,
+  summarizeSpace,
+} from './SpaceSummary';
 
 function dir(path: string, bytes: number, files: number): DirUsage {
   return {
@@ -44,4 +48,10 @@ test('keeps the Simple action allowlist explicit and excludes broad categories',
   expect(SIMPLE_CLEANUP_ALLOWLIST).not.toContain('projects');
   expect(SIMPLE_CLEANUP_ALLOWLIST).not.toContain('logs');
   expect(SIMPLE_CLEANUP_ALLOWLIST).not.toContain('caches');
+});
+
+test('does not run Claude storage cleanup for Codex or remote sources', () => {
+  expect(shouldRunSimpleCleanup(true, 'claude')).toBe(true);
+  expect(shouldRunSimpleCleanup(true, 'codex')).toBe(false);
+  expect(shouldRunSimpleCleanup(false, 'claude')).toBe(false);
 });

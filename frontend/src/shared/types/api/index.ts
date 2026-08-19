@@ -66,7 +66,21 @@ import type {
   InspectorTranscriptMeta,
   SourceKind,
 } from './inspector';
-import type { MaintenanceAPI } from './maintenance';
+import type {
+  CheckpointMutationResult,
+  CheckpointOriginSummary,
+  MaintenanceAPI,
+  MaintenancePage,
+  RecoveryCopy,
+  ShellSnapshotDetail,
+  ShellSnapshotItem,
+  SourceCheckpointDetail,
+  SourceCheckpointGroup,
+  SourceMaintenanceStatus,
+  TelemetryDetail,
+  TelemetryItem,
+  UsageSummary,
+} from './maintenance';
 import type { MarketplaceCatalog } from './marketplace';
 import type { TranscriptRecord } from './transcripts';
 import type { MCPServerConfig, MCPStatusView } from './mcp';
@@ -407,15 +421,78 @@ export interface DesktopAPI {
     sessionUuid: string,
     fileHash: string,
     version: number
-  ) => Promise<string | null>;
-  // Resolves false when the user cancels the save dialog.
-  exportCheckpoint: (sessionUuid: string, fileHash: string, version: number) => Promise<boolean>;
+  ) => Promise<CheckpointMutationResult>;
+  exportCheckpoint: (
+    sessionUuid: string,
+    fileHash: string,
+    version: number
+  ) => Promise<CheckpointMutationResult>;
   readHistoryPage: (before: number | null, limit: number, query?: string) => Promise<HistoryPage>;
   listTranscripts: () => Promise<FileMeta[]>;
   readTranscript: (id: string) => Promise<TranscriptRecord[]>;
   readMarketplaceCatalog: () => Promise<MarketplaceCatalog>;
   listTaskGraphs: () => Promise<TaskGraphMeta[]>;
   readTaskGraph: (uuid: string) => Promise<TaskNode[]>;
+
+  // Source-aware maintenance APIs. Legacy Claude methods above remain supported
+  // for existing consumers, while maintenance views use this typed boundary.
+  getSourceMaintenanceStatus: (sourceKind: SourceKind) => Promise<SourceMaintenanceStatus>;
+  readSourceUsageSummary: (sourceKind: SourceKind) => Promise<UsageSummary>;
+  listSourceTelemetry: (
+    sourceKind: SourceKind,
+    cursor: string | null,
+    limit: number
+  ) => Promise<MaintenancePage<TelemetryItem>>;
+  readSourceTelemetry: (
+    sourceKind: SourceKind,
+    id: string
+  ) => Promise<TelemetryDetail>;
+  listSourceFileHistory: (
+    sourceKind: SourceKind,
+    cursor: string | null,
+    limit: number
+  ) => Promise<MaintenancePage<SourceCheckpointGroup>>;
+  readSourceCheckpoint: (
+    sourceKind: SourceKind,
+    sessionUuid: string,
+    fileHash: string,
+    version: number
+  ) => Promise<SourceCheckpointDetail>;
+  resolveSourceCheckpointOrigins: (
+    sourceKind: SourceKind,
+    sessionUuid: string,
+    fileHashes: string[]
+  ) => Promise<Record<string, CheckpointOriginSummary | null>>;
+  listSourceShellSnapshots: (
+    sourceKind: SourceKind,
+    cursor: string | null,
+    limit: number
+  ) => Promise<MaintenancePage<ShellSnapshotItem>>;
+  readSourceShellSnapshot: (
+    sourceKind: SourceKind,
+    name: string
+  ) => Promise<ShellSnapshotDetail>;
+  saveSourceCheckpointViaDialog: (
+    sourceKind: SourceKind,
+    sessionUuid: string,
+    fileHash: string,
+    version: number
+  ) => Promise<CheckpointMutationResult>;
+  restoreSourceCheckpoint: (
+    sourceKind: SourceKind,
+    sessionUuid: string,
+    fileHash: string,
+    version: number
+  ) => Promise<CheckpointMutationResult>;
+  listCheckpointRecoveryCopies: (sourceKind: SourceKind) => Promise<RecoveryCopy[]>;
+  restoreCheckpointRecoveryCopy: (
+    sourceKind: SourceKind,
+    id: string
+  ) => Promise<CheckpointMutationResult>;
+  deleteCheckpointRecoveryCopy: (
+    sourceKind: SourceKind,
+    id: string
+  ) => Promise<CheckpointMutationResult>;
 
   // Source-aware local inspector APIs. These keep Codex and Claude data on a
   // single typed surface while the legacy Claude methods remain supported.

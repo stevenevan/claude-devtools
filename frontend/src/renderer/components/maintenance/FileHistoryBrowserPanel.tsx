@@ -1,4 +1,4 @@
-import { JSX, useEffect, useMemo, useState } from 'react';
+import { JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '@renderer/api';
 import { CodeBlockViewer, DiffViewer } from '@renderer/components/chat/viewers';
 import { CopyablePath } from '@renderer/components/common/CopyablePath';
@@ -9,7 +9,7 @@ import { cn } from '@renderer/lib/utils';
 import { formatBytes } from '@renderer/utils/formatters';
 import { RefreshCw } from 'lucide-react';
 
-import type { CheckpointGroup, CheckpointOrigin } from '@shared/types/api';
+import type { RecoveryCopy, SourceCheckpointGroup, SourceKind } from '@shared/types/api';
 
 const COMPARE_OFF = '';
 
@@ -19,19 +19,28 @@ function errText(err: unknown): string {
 
 interface SessionGroup {
   sessionUuid: string;
-  files: CheckpointGroup[];
+  files: SourceCheckpointGroup[];
 }
 
-// Read-only 3-level drill-down over ~/.claude/file-history checkpoints:
-// session -> file -> version. Each level renders only when its parent is
-// selected; this panel writes nothing.
-export const FileHistoryBrowserPanel = (): JSX.Element => {
-  const [groups, setGroups] = useState<CheckpointGroup[]>([]);
+// Three-level drill-down over source file-history checkpoints: session -> file
+// -> version. Reads stay source-scoped; Save as… and Restore use backend-owned
+// safety checks and native local dialogs.
+interface FileHistoryBrowserPanelProps {
+  source: SourceKind;
+}
+
+export const FileHistoryBrowserPanel = ({
+  source,
+}: Readonly<FileHistoryBrowserPanelProps>): JSX.Element => {
+  const [groups, setGroups] = useState<SourceCheckpointGroup[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [listRevision, setListRevision] = useState<string | null>(null);
+  const [listPartial, setListPartial] = useState(false);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
 
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<CheckpointGroup | null>(null);
+  const [selectedFile, setSelectedFile] = useState<SourceCheckpointGroup | null>(null);
   const [selectedVersion, setSelectedVersion] = useState<number | null>(null);
   const [content, setContent] = useState<string | null>(null);
   const [contentLoading, setContentLoading] = useState(false);
@@ -48,12 +57,16 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
   // action row only renders once a version is selected, so clearing there would
   // wipe the value selectFile just resolved and the Restore button would never
   // appear.
-  const [origin, setOrigin] = useState<CheckpointOrigin | null>(null);
+  const [origin, setOrigin] = useState<SourceCheckpointGroup['origin']>(null);
   const [restoring, setRestoring] = useState(false);
   const [restoredPath, setRestoredPath] = useState<string | null>(null);
+  const [recoveryCopies, setRecoveryCopies] = useState<RecoveryCopy[]>([]);
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+  const [recoveryError, setRecoveryError] = useState<string | null>(null);
+  const sourceRequest = useRef(0);
 
   const sessionGroups = useMemo<SessionGroup[]>(() => {
-    const bySession = new Map<string, CheckpointGroup[]>();
+    const bySession = new Map<string, SourceCheckpointGroup[]>();
     for (const group of groups) {
       const files = bySession.get(group.sessionUuid);
       if (files) {
@@ -65,21 +78,73 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
     return Array.from(bySession, ([sessionUuid, files]) => ({ sessionUuid, files }));
   }, [groups]);
 
-  const loadList = async (): Promise<void> => {
+  const loadList = async (
+    cursor: string | null = null,
+    append = false,
+    expectedRequest = sourceRequest.current
+  ): Promise<void> => {
     setListLoading(true);
-    setListError(null);
+    if (!append) {
+      setListError(null);
+      setListPartial(false);
+      setNextCursor(null);
+      setListRevision(null);
+    }
     try {
-      setGroups(await api.listFileHistory());
+      const page = await api.listSourceFileHistory(source, cursor, 100);
+      if (expectedRequest !== sourceRequest.current) return;
+      setGroups((current) => (append ? [...current, ...page.items] : page.items));
+      setNextCursor(page.nextCursor);
+      setListRevision(page.revision ?? null);
+      setListPartial((current) => current || page.scanLimited);
     } catch (err) {
+      if (expectedRequest !== sourceRequest.current) return;
       setListError(errText(err));
     } finally {
-      setListLoading(false);
+      if (expectedRequest === sourceRequest.current) setListLoading(false);
+    }
+  };
+
+  const loadMore = async (): Promise<void> => {
+    if (!nextCursor || listLoading) return;
+    await loadList(nextCursor, true);
+  };
+
+  const loadRecoveryCopies = async (
+    expectedRequest = sourceRequest.current
+  ): Promise<void> => {
+    setRecoveryLoading(true);
+    setRecoveryError(null);
+    try {
+      const copies = await api.listCheckpointRecoveryCopies(source);
+      if (expectedRequest !== sourceRequest.current) return;
+      setRecoveryCopies(copies);
+    } catch (err) {
+      if (expectedRequest !== sourceRequest.current) return;
+      setRecoveryError(errText(err));
+    } finally {
+      if (expectedRequest === sourceRequest.current) setRecoveryLoading(false);
     }
   };
 
   useEffect(() => {
-    void loadList();
-  }, []);
+    const request = ++sourceRequest.current;
+    setGroups([]);
+    setNextCursor(null);
+    setListRevision(null);
+    setListPartial(false);
+    setSelectedSession(null);
+    setSelectedFile(null);
+    setSelectedVersion(null);
+    setContent(null);
+    setContentError(null);
+    setContentLoading(false);
+    setOrigin(null);
+    resetCompare();
+    setRecoveryCopies([]);
+    void loadList(null, false, request);
+    void loadRecoveryCopies(request);
+  }, [source]);
 
   const resetCompare = (): void => {
     setCompareVersion(null);
@@ -99,7 +164,7 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
     resetCompare();
   };
 
-  const selectFile = async (group: CheckpointGroup): Promise<void> => {
+  const selectFile = async (group: SourceCheckpointGroup): Promise<void> => {
     setSelectedFile(group);
     setSelectedVersion(null);
     setContent(null);
@@ -107,9 +172,13 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
     setOrigin(null);
     resetCompare();
     if (!selectedSession) return;
+    const request = sourceRequest.current;
     try {
-      setOrigin(await api.resolveCheckpointOrigin(selectedSession, group.fileHash));
+      const origins = await api.resolveSourceCheckpointOrigins(source, selectedSession, [group.fileHash]);
+      if (request !== sourceRequest.current) return;
+      setOrigin(origins[group.fileHash] ?? null);
     } catch (err) {
+      if (request !== sourceRequest.current) return;
       setContentError(errText(err));
     }
   };
@@ -121,12 +190,26 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
     setContentError(null);
     resetCompare();
     setContentLoading(true);
+    const request = sourceRequest.current;
     try {
-      setContent(await api.readCheckpoint(selectedSession, selectedFile.fileHash, version));
+      const detail = await api.readSourceCheckpoint(
+        source,
+        selectedSession,
+        selectedFile.fileHash,
+        version
+      );
+      if (request !== sourceRequest.current) return;
+      setContent(detail.content);
+      if (detail.contentUnavailableReason) {
+        setContentError(detail.contentUnavailableReason);
+      } else if (detail.binary) {
+        setContentError('This checkpoint is binary and cannot be shown as text.');
+      }
     } catch (err) {
+      if (request !== sourceRequest.current) return;
       setContentError(errText(err));
     } finally {
-      setContentLoading(false);
+      if (request === sourceRequest.current) setContentLoading(false);
     }
   };
 
@@ -140,11 +223,24 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
     setCompareVersion(version);
     setCompareContent(null);
     setCompareError(null);
+    const request = sourceRequest.current;
     try {
-      setCompareContent(
-        await api.readCheckpoint(selectedSession, selectedFile.fileHash, version)
+      const detail = await api.readSourceCheckpoint(
+        source,
+        selectedSession,
+        selectedFile.fileHash,
+        version
       );
+      if (request !== sourceRequest.current) return;
+      if (detail.contentUnavailableReason || detail.binary || detail.content === null) {
+        setCompareError(
+          detail.contentUnavailableReason ?? 'This checkpoint cannot be shown as text.'
+        );
+      } else {
+        setCompareContent(detail.content);
+      }
     } catch (err) {
+      if (request !== sourceRequest.current) return;
       setCompareError(errText(err));
     }
   };
@@ -154,12 +250,13 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
     setExporting(true);
     setExported(false);
     try {
-      const saved = await api.exportCheckpoint(
+      const result = await api.saveSourceCheckpointViaDialog(
+        source,
         selectedSession,
         selectedFile.fileHash,
         selectedVersion
       );
-      setExported(saved);
+      setExported(result.state === 'written');
     } catch (err) {
       setContentError(errText(err));
     } finally {
@@ -171,10 +268,19 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
     if (!selectedSession || !selectedFile || selectedVersion === null) return;
     setRestoring(true);
     setRestoredPath(null);
+    const request = sourceRequest.current;
     try {
-      setRestoredPath(
-        await api.restoreCheckpoint(selectedSession, selectedFile.fileHash, selectedVersion)
+      const result = await api.restoreSourceCheckpoint(
+        source,
+        selectedSession,
+        selectedFile.fileHash,
+        selectedVersion
       );
+      if (request !== sourceRequest.current) return;
+      if (result.state === 'written') {
+        setRestoredPath(result.targetLabel);
+        await loadRecoveryCopies();
+      }
     } catch (err) {
       setContentError(errText(err));
     } finally {
@@ -190,13 +296,17 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
         <div>
           <p className="text-foreground text-sm font-medium">File History</p>
           <p className="text-muted-foreground mt-0.5 text-xs">
-            Browser for the per-file checkpoints Claude Code keeps under ~/.claude/file-history,
-            keyed by session and an opaque file hash. Read-only over ~/.claude; Save as… and
-            Restore both write only to the file you pick in the dialog. Always reads and writes
-            this machine, even while an SSH session is connected.
+            Browser for the per-file checkpoints {source === 'codex' ? 'Codex' : 'Claude Code'}
+            keeps under {source === 'codex' ? '~/.codex/file-history' : '~/.claude/file-history'}.
+            Save as… and Restore use native dialogs and act on this machine only.
           </p>
         </div>
-        <Button variant="outline" size="sm" disabled={listLoading} onClick={() => void loadList()}>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={listLoading}
+          onClick={() => void loadList()}
+        >
           <RefreshCw className="size-3.5" />
           Refresh
         </Button>
@@ -211,15 +321,31 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
         </div>
       )}
 
+      {listPartial && (
+        <div
+          role="status"
+          className="border-border/50 bg-card/50 text-muted-foreground border-b px-4 py-2 text-xs"
+        >
+          File History is showing a bounded partial result. Refresh after reducing the dataset if
+          you need a complete scan.
+        </div>
+      )}
+
+      {recoveryError && (
+        <div role="alert" className="border-border/50 bg-destructive/10 text-destructive border-b px-4 py-2 text-xs">
+          {recoveryError}
+        </div>
+      )}
+
       {listLoading && (
         <p role="status" className="text-muted-foreground px-4 py-3 text-xs">
           Loading…
         </p>
       )}
 
-      {!listLoading && !listError && groups.length === 0 && (
+      {!listLoading && !listError && !listPartial && groups.length === 0 && (
         <p className="text-muted-foreground px-4 py-3 text-xs">
-          No file-history checkpoints found under ~/.claude/file-history.
+          No file-history checkpoints found under {source === 'codex' ? '~/.codex/file-history' : '~/.claude/file-history'}.
         </p>
       )}
 
@@ -273,31 +399,56 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
             )}
           </div>
 
-          <div className="flex min-w-0 flex-col gap-2">
-            {selectedFile && selectedVersion !== null && content !== null && (
-              <div className="flex flex-wrap items-center gap-2">
-                <label className="text-muted-foreground text-xs" htmlFor="checkpoint-compare">
-                  Compare with
-                </label>
-                <NativeSelect
-                  id="checkpoint-compare"
+          {(nextCursor || listRevision) && (
+            <div className="flex items-center gap-2">
+              {nextCursor && (
+                <Button
+                  variant="outline"
                   size="sm"
-                  value={compareVersion === null ? COMPARE_OFF : String(compareVersion)}
-                  onChange={(e) => void selectCompareVersion(e.target.value)}
+                  disabled={listLoading}
+                  title={listRevision ? `Continue from revision ${listRevision}` : undefined}
+                  onClick={() => void loadMore()}
                 >
-                  <NativeSelectOption value={COMPARE_OFF}>None</NativeSelectOption>
-                  {selectedFile.versions
-                    .filter((v) => v !== selectedVersion)
-                    .map((v) => (
-                      <NativeSelectOption key={v} value={String(v)}>
-                        v{v}
-                      </NativeSelectOption>
-                    ))}
-                </NativeSelect>
+                  Load more
+                </Button>
+              )}
+              {listRevision && (
+                <span className="text-muted-foreground text-[10px]" aria-label="File History revision">
+                  Source revision tracked
+                </span>
+              )}
+            </div>
+          )}
+
+          <div className="flex min-w-0 flex-col gap-2">
+            {selectedFile && selectedVersion !== null && (
+              <div className="flex flex-wrap items-center gap-2">
+                {content !== null && (
+                  <>
+                    <label className="text-muted-foreground text-xs" htmlFor="checkpoint-compare">
+                      Compare with
+                    </label>
+                    <NativeSelect
+                      id="checkpoint-compare"
+                      size="sm"
+                      value={compareVersion === null ? COMPARE_OFF : String(compareVersion)}
+                      onChange={(e) => void selectCompareVersion(e.target.value)}
+                    >
+                      <NativeSelectOption value={COMPARE_OFF}>None</NativeSelectOption>
+                      {selectedFile.versions
+                        .filter((v) => v !== selectedVersion)
+                        .map((v) => (
+                          <NativeSelectOption key={v} value={String(v)}>
+                            v{v}
+                          </NativeSelectOption>
+                        ))}
+                    </NativeSelect>
+                  </>
+                )}
 
                 <div className="ml-auto flex items-center gap-1.5">
                   {exported && <span className="text-muted-foreground text-xs">Saved</span>}
-                  <CopyButton text={content} inline />
+                  {content !== null && <CopyButton text={content} inline />}
                   <Button
                     variant="outline"
                     size="sm"
@@ -310,18 +461,18 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
               </div>
             )}
 
-            {selectedFile && selectedVersion !== null && content !== null && (
+            {selectedFile && selectedVersion !== null && (
               <div className="text-muted-foreground flex min-w-0 flex-wrap items-center gap-2 text-xs">
                 {origin ? (
                   <>
                     <span className="shrink-0">Original</span>
                     <CopyablePath
-                      displayText={origin.realPath}
-                      copyText={origin.realPath}
+                      displayText={origin.displayPath}
+                      copyText={origin.displayPath}
                       className="text-foreground font-mono text-[11px]"
                     />
                     <div className="ml-auto flex shrink-0 items-center gap-1.5">
-                      {restoredPath && <span>Restored to {restoredPath}</span>}
+                      {restoredPath && <span>Restored to {restoredPath}; recovery copy retained.</span>}
                       <Button
                         variant="outline"
                         size="sm"
@@ -334,8 +485,9 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
                   </>
                 ) : (
                   <span>
-                    Original path unknown — use Save as… (the session log this is recovered from
-                    may have been pruned).
+                    {source === 'codex'
+                      ? 'Original path unavailable — Codex session metadata is not a trusted restore origin. Use Save as….'
+                      : 'Original path unknown — use Save as… (the session log this is recovered from may have been pruned).'}
                   </span>
                 )}
               </div>
@@ -362,9 +514,90 @@ export const FileHistoryBrowserPanel = (): JSX.Element => {
           </div>
         </div>
       )}
+
+      <RecoveryCopies
+        copies={recoveryCopies}
+        loading={recoveryLoading}
+        onRefresh={() => void loadRecoveryCopies()}
+        onRestore={async (id) => {
+          if (!window.confirm('Restore this recovery copy over its original file?')) return;
+          try {
+            await api.restoreCheckpointRecoveryCopy(source, id);
+            await loadRecoveryCopies();
+          } catch (err) {
+            setRecoveryError(errText(err));
+          }
+        }}
+        onDelete={async (id) => {
+          if (!window.confirm('Delete this recovery copy? This cannot be undone.')) return;
+          try {
+            await api.deleteCheckpointRecoveryCopy(source, id);
+            await loadRecoveryCopies();
+          } catch (err) {
+            setRecoveryError(errText(err));
+          }
+        }}
+      />
     </div>
   );
 };
+
+const RecoveryCopies = ({
+  copies,
+  loading,
+  onRefresh,
+  onRestore,
+  onDelete,
+}: Readonly<{
+  copies: RecoveryCopy[];
+  loading: boolean;
+  onRefresh: () => void;
+  onRestore: (id: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}>): JSX.Element => (
+  <section className="border-border/50 border-t px-4 py-4">
+    <div className="flex items-center justify-between gap-2">
+      <div>
+        <p className="text-foreground text-xs font-medium">Recovery copies</p>
+        <p className="text-muted-foreground mt-0.5 text-[11px]">
+          Restore keeps the pre-write bytes in this private local store until you delete them.
+        </p>
+      </div>
+      <Button variant="ghost" size="sm" disabled={loading} onClick={onRefresh}>
+        Refresh
+      </Button>
+    </div>
+    {loading && copies.length === 0 && (
+      <p role="status" className="text-muted-foreground mt-3 text-xs">Loading recovery copies…</p>
+    )}
+    {!loading && copies.length === 0 && (
+      <p className="text-muted-foreground mt-3 text-xs">No recovery copies are retained.</p>
+    )}
+    {copies.length > 0 && (
+      <div className="mt-3 flex flex-col gap-2">
+        {copies.map((copy) => (
+          <div key={copy.id} className="border-border/50 flex flex-wrap items-center gap-3 rounded-md border px-3 py-2">
+            <div className="min-w-0 flex-1">
+              <p className="text-foreground truncate font-mono text-xs">{copy.targetLabel}</p>
+              <p className="text-muted-foreground mt-0.5 text-[10px]">
+                {copy.source} · v{copy.version} · {formatBytes(copy.byteSize)} ·{' '}
+                {new Date(copy.createdAt).toLocaleString()}
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Button variant="outline" size="sm" onClick={() => void onRestore(copy.id)}>
+                Restore copy
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => void onDelete(copy.id)}>
+                Delete
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </section>
+);
 
 interface SessionRowProps {
   session: SessionGroup;
@@ -388,7 +621,7 @@ const SessionRow = ({ session, selected, onSelect }: Readonly<SessionRowProps>):
 );
 
 interface FileRowProps {
-  file: CheckpointGroup;
+  file: SourceCheckpointGroup;
   selected: boolean;
   onSelect: () => void;
 }

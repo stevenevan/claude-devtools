@@ -12,7 +12,12 @@ import {
   SelectValue,
 } from '@renderer/components/ui/select';
 
-import type { SourceKind, TaskGraphCapabilityState } from '@shared/types/api';
+import type {
+  MaintenanceCapabilities,
+  MaintenanceCapabilityState,
+  SourceKind,
+  TaskGraphCapabilityState,
+} from '@shared/types/api';
 
 const SOURCE_OPTIONS: SourceKind[] = ['claude', 'codex'];
 
@@ -30,6 +35,16 @@ function taskGraphStateLabel(state: TaskGraphCapabilityState): string {
     case 'unsupportedCapability':
       return 'graphs unsupported';
   }
+}
+
+function maintenanceCapabilitySummary(capabilities: MaintenanceCapabilities): string {
+  const entries: Array<[string, MaintenanceCapabilityState]> = [
+    ['usage', capabilities.usage.state],
+    ['telemetry', capabilities.telemetry.state],
+    ['file history', capabilities.fileHistory.state],
+    ['shell snapshots', capabilities.shellSnapshots.state],
+  ];
+  return entries.map(([label, state]) => `${label}: ${state}`).join(' · ');
 }
 
 export function InspectorSourceSelector() {
@@ -78,9 +93,12 @@ export function InspectorSourceSelector() {
               <SelectItem key={source} value={source}>
                 <span>{SOURCE_LABELS[source]}</span>
                 <span className="text-muted-foreground">{state}</span>
-                {source === 'codex' && status ? (
-                  <span className="text-muted-foreground">
-                    {taskGraphStateLabel(status.capabilities.taskGraph.state)}
+                {status ? (
+                  <span
+                    className="text-muted-foreground max-w-80 truncate"
+                    title={maintenanceCapabilitySummary(status.capabilities.maintenance)}
+                  >
+                    {maintenanceCapabilitySummary(status.capabilities.maintenance)}
                   </span>
                 ) : null}
               </SelectItem>
@@ -93,13 +111,23 @@ export function InspectorSourceSelector() {
           {selectedStatus.reason}
         </span>
       ) : null}
-      {inspectorSource === 'codex' && selectedStatus ? (
-        <span
-          className="text-muted-foreground max-w-56 truncate text-xs"
-          title={selectedStatus.capabilities.taskGraph.reason}
-        >
-          {taskGraphStateLabel(selectedStatus.capabilities.taskGraph.state)}
-        </span>
+      {selectedStatus ? (
+        <>
+          {inspectorSource === 'codex' && (
+            <span
+              className="text-muted-foreground max-w-56 truncate text-xs"
+              title={selectedStatus.capabilities.taskGraph.reason}
+            >
+              {taskGraphStateLabel(selectedStatus.capabilities.taskGraph.state)}
+            </span>
+          )}
+          <span
+            className="text-muted-foreground max-w-56 truncate text-xs"
+            title={maintenanceCapabilitySummary(selectedStatus.capabilities.maintenance)}
+          >
+            {maintenanceCapabilitySummary(selectedStatus.capabilities.maintenance)}
+          </span>
+        </>
       ) : null}
       {inspectorSourcesError ? (
         <>

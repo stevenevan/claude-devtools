@@ -21,6 +21,7 @@ export interface SourceCapabilities {
   sessions: boolean;
   transcripts: boolean;
   taskGraph: TaskGraphCapability;
+  maintenance: import('./maintenance').MaintenanceCapabilities;
 }
 
 export interface InspectorSourceStatus {
