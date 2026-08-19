@@ -67,10 +67,9 @@ use crate::files::task_graph_reader::{self, TaskGraphMeta, TaskNode};
 use crate::files::transcripts_reader::{self, TranscriptRecord};
 use crate::insights::permissions_analyzer::{analyze_usage, Suggestion};
 use crate::types::source::{
-    Diagnostic, InspectorEvent, InspectorHistoryEntry, InspectorPage, InspectorTaskGraphList,
+    InspectorEvent, InspectorHistoryEntry, InspectorPage, InspectorTaskGraphList,
     InspectorTaskGraphMeta, InspectorTaskGraphResult, InspectorTaskNode, InspectorTranscriptMeta,
-    Provenance, SourceCapabilities, SourceKind, SourceState, SourceStatus, TaskGraphCapability,
-    TaskGraphCapabilityState,
+    Provenance, SourceKind, SourceStatus,
 };
 
 #[tauri::command(rename_all = "camelCase")]
@@ -509,7 +508,7 @@ struct SourceCursor {
 #[tauri::command]
 pub fn get_inspector_sources() -> Result<Vec<SourceStatus>, String> {
     Ok(vec![
-        claude_source_status(),
+        crate::config::root::get_claude_source_status(),
         crate::config::root::get_codex_source_status(),
     ])
 }
@@ -912,77 +911,6 @@ fn decode_source_cursor(
         return Err("cursor is stale; reload the source".to_string());
     }
     Ok(cursor)
-}
-
-fn claude_source_status() -> SourceStatus {
-    let root = match claude_dir() {
-        Ok(root) => root,
-        Err(reason) => {
-            return SourceStatus {
-                source_kind: SourceKind::Claude,
-                state: SourceState::Invalid,
-                label: "~/.claude".to_string(),
-                revision: None,
-                reason: Some(reason),
-                capabilities: claude_capabilities(),
-            }
-        }
-    };
-    match fs::metadata(&root) {
-        Ok(metadata) if metadata.is_dir() => SourceStatus {
-            source_kind: SourceKind::Claude,
-            state: SourceState::Available,
-            label: "~/.claude".to_string(),
-            revision: crate::config::root::source_revision(&root),
-            reason: None,
-            capabilities: claude_capabilities(),
-        },
-        Ok(_) => SourceStatus {
-            source_kind: SourceKind::Claude,
-            state: SourceState::Invalid,
-            label: "~/.claude".to_string(),
-            revision: None,
-            reason: Some("Claude data root is not a directory".to_string()),
-            capabilities: claude_capabilities(),
-        },
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => SourceStatus {
-            source_kind: SourceKind::Claude,
-            state: SourceState::NotFound,
-            label: "~/.claude".to_string(),
-            revision: None,
-            reason: Some("Claude data directory was not found".to_string()),
-            capabilities: claude_capabilities(),
-        },
-        Err(error) => SourceStatus {
-            source_kind: SourceKind::Claude,
-            state: SourceState::Unreadable,
-            label: "~/.claude".to_string(),
-            revision: None,
-            reason: Some(format!("cannot inspect Claude data directory: {error}")),
-            capabilities: claude_capabilities(),
-        },
-    }
-}
-
-fn claude_capabilities() -> SourceCapabilities {
-    let maintenance = match claude_dir() {
-        Ok(root) => crate::config::root::claude_maintenance_capabilities(Some(&root)),
-        Err(_) => crate::config::root::claude_maintenance_capabilities(None),
-    };
-    SourceCapabilities {
-        sessions: true,
-        transcripts: true,
-        task_graph: claude_task_graph_capability(),
-        maintenance,
-    }
-}
-
-fn claude_task_graph_capability() -> TaskGraphCapability {
-    TaskGraphCapability {
-        state: TaskGraphCapabilityState::Available,
-        reason: "Claude Task Graph files are available".to_string(),
-        diagnostics: Vec::<Diagnostic>::new(),
-    }
 }
 
 #[cfg(test)]

@@ -129,6 +129,59 @@ pub fn get_codex_source_status() -> SourceStatus {
     classify_codex_source_status(&path, label, metadata, capabilities)
 }
 
+/// Returns the legacy Claude source status without depending on the command
+/// layer. Source-aware commands use this helper so they do not call another
+/// command module to assemble maintenance state.
+pub fn get_claude_source_status() -> SourceStatus {
+    let root = match claude_dir() {
+        Ok(root) => root,
+        Err(reason) => {
+            return SourceStatus {
+                source_kind: SourceKind::Claude,
+                state: SourceState::Invalid,
+                label: "~/.claude".to_string(),
+                revision: None,
+                reason: Some(reason),
+                capabilities: claude_capabilities(),
+            }
+        }
+    };
+    match std::fs::metadata(&root) {
+        Ok(metadata) if metadata.is_dir() => SourceStatus {
+            source_kind: SourceKind::Claude,
+            state: SourceState::Available,
+            label: "~/.claude".to_string(),
+            revision: source_revision(&root),
+            reason: None,
+            capabilities: claude_capabilities(),
+        },
+        Ok(_) => SourceStatus {
+            source_kind: SourceKind::Claude,
+            state: SourceState::Invalid,
+            label: "~/.claude".to_string(),
+            revision: None,
+            reason: Some("Claude data root is not a directory".to_string()),
+            capabilities: claude_capabilities(),
+        },
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => SourceStatus {
+            source_kind: SourceKind::Claude,
+            state: SourceState::NotFound,
+            label: "~/.claude".to_string(),
+            revision: None,
+            reason: Some("Claude data directory was not found".to_string()),
+            capabilities: claude_capabilities(),
+        },
+        Err(error) => SourceStatus {
+            source_kind: SourceKind::Claude,
+            state: SourceState::Unreadable,
+            label: "~/.claude".to_string(),
+            revision: None,
+            reason: Some(format!("cannot inspect Claude data directory: {error}")),
+            capabilities: claude_capabilities(),
+        },
+    }
+}
+
 fn missing_codex_status(label: String, capabilities: SourceCapabilities) -> SourceStatus {
     SourceStatus {
         source_kind: SourceKind::Codex,
@@ -219,6 +272,27 @@ pub fn claude_maintenance_capabilities(root: Option<&Path>) -> MaintenanceCapabi
         telemetry: maintenance_capability(root, "telemetry", true, "Telemetry"),
         file_history: maintenance_capability(root, "file-history", true, "File history"),
         shell_snapshots: maintenance_capability(root, "shell-snapshots", true, "Shell snapshots"),
+    }
+}
+
+fn claude_capabilities() -> SourceCapabilities {
+    let maintenance = match claude_dir() {
+        Ok(root) => claude_maintenance_capabilities(Some(&root)),
+        Err(_) => claude_maintenance_capabilities(None),
+    };
+    SourceCapabilities {
+        sessions: true,
+        transcripts: true,
+        task_graph: claude_task_graph_capability(),
+        maintenance,
+    }
+}
+
+fn claude_task_graph_capability() -> TaskGraphCapability {
+    TaskGraphCapability {
+        state: crate::types::source::TaskGraphCapabilityState::Available,
+        reason: "Claude Task Graph files are available".to_string(),
+        diagnostics: Vec::new(),
     }
 }
 

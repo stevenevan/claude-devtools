@@ -55,10 +55,7 @@ pub fn get_source_maintenance_status(
 ) -> Result<SourceMaintenanceStatus, String> {
     match source_kind {
         SourceKind::Claude => {
-            let source = crate::commands::files::get_inspector_sources()?
-                .into_iter()
-                .find(|status| status.source_kind == SourceKind::Claude)
-                .ok_or_else(|| "Claude source status is unavailable".to_string())?;
+            let source = root::get_claude_source_status();
             Ok(SourceMaintenanceStatus {
                 source_kind,
                 state: source.state,
@@ -86,6 +83,8 @@ pub fn list_source_telemetry(
     cursor: Option<String>,
     limit: usize,
 ) -> Result<MaintenancePage<TelemetryItem>, String> {
+    validate_cursor_bytes(cursor.as_deref())?;
+    validate_limit(limit)?;
     match source_kind {
         SourceKind::Codex => codex_maintenance::list_telemetry(cursor.as_deref(), limit),
         SourceKind::Claude => list_claude_telemetry(cursor.as_deref(), limit),
@@ -97,6 +96,7 @@ pub fn read_source_telemetry(
     source_kind: SourceKind,
     id: String,
 ) -> Result<TelemetryDetail, String> {
+    validate_component(&id, "telemetry id")?;
     match source_kind {
         SourceKind::Codex => codex_maintenance::read_telemetry(&id),
         SourceKind::Claude => read_claude_telemetry(&id),
@@ -109,6 +109,8 @@ pub fn list_source_file_history(
     cursor: Option<String>,
     limit: usize,
 ) -> Result<MaintenancePage<SourceCheckpointGroup>, String> {
+    validate_cursor_bytes(cursor.as_deref())?;
+    validate_limit(limit)?;
     match source_kind {
         SourceKind::Codex => codex_maintenance::list_file_history(cursor.as_deref(), limit),
         SourceKind::Claude => list_claude_file_history(cursor.as_deref(), limit),
@@ -178,6 +180,8 @@ pub fn list_source_shell_snapshots(
     cursor: Option<String>,
     limit: usize,
 ) -> Result<MaintenancePage<ShellSnapshotItem>, String> {
+    validate_cursor_bytes(cursor.as_deref())?;
+    validate_limit(limit)?;
     match source_kind {
         SourceKind::Codex => codex_maintenance::list_shell_snapshots(cursor.as_deref(), limit),
         SourceKind::Claude => list_claude_shell_snapshots(cursor.as_deref(), limit),
@@ -189,6 +193,7 @@ pub fn read_source_shell_snapshot(
     source_kind: SourceKind,
     name: String,
 ) -> Result<ShellSnapshotDetail, String> {
+    validate_component(&name, "shell snapshot name")?;
     match source_kind {
         SourceKind::Codex => codex_maintenance::read_shell_snapshot(&name),
         SourceKind::Claude => read_claude_shell_snapshot(&name),
@@ -311,6 +316,7 @@ pub fn restore_checkpoint_recovery_copy(
     source_kind: SourceKind,
     id: String,
 ) -> Result<CheckpointMutationResult, String> {
+    validate_component(&id, "recovery copy id")?;
     let metadata = checkpoint_recovery::get(source_kind, &id).map_err(|error| {
         format!("restore recovery copy failed before write (target unchanged): {error}")
     })?;
@@ -339,6 +345,7 @@ pub fn delete_checkpoint_recovery_copy(
     source_kind: SourceKind,
     id: String,
 ) -> Result<CheckpointMutationResult, String> {
+    validate_component(&id, "recovery copy id")?;
     let recovery = checkpoint_recovery::delete(source_kind, &id)
         .map_err(|error| format!("delete recovery copy failed; target unchanged: {error}"))?;
     Ok(CheckpointMutationResult {
@@ -1013,6 +1020,13 @@ fn validate_limit(limit: usize) -> Result<usize, String> {
         return Err(format!("limit must be between 1 and {MAX_PAGE_SIZE}"));
     }
     Ok(limit)
+}
+
+fn validate_cursor_bytes(cursor: Option<&str>) -> Result<(), String> {
+    if cursor.is_some_and(|value| value.len() > MAX_CURSOR_BYTES) {
+        return Err("maintenance cursor is too large".to_string());
+    }
+    Ok(())
 }
 
 fn validate_checkpoint_ids(session_uuid: &str, file_hash: &str) -> Result<(), String> {
