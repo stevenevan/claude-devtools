@@ -108,6 +108,7 @@ pub struct SourceCapabilities {
     pub sessions: bool,
     pub transcripts: bool,
     pub task_graph: TaskGraphCapability,
+    pub maintenance: crate::types::codex_maintenance::MaintenanceCapabilities,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -16,8 +16,8 @@ use claude_devtools_lib::cache::SessionCache;
 use claude_devtools_lib::commands::notify::NotifyState;
 use claude_devtools_lib::commands::{
     codex_extensions as codex_extensions_cmds, codex_inventory as codex_inventory_cmds,
-    codex_settings as codex_settings_cmds, config as config_cmds, files as files_cmds,
-    maintenance as maintenance_cmds,
+    codex_maintenance as codex_maintenance_cmds, codex_settings as codex_settings_cmds,
+    config as config_cmds, files as files_cmds, maintenance as maintenance_cmds,
     notify as notify_cmds, session as session_cmds,
 };
 use claude_devtools_lib::config::root;
@@ -696,6 +696,21 @@ fn main() {
             files_cmds::read_source_session,
             files_cmds::list_source_task_graphs,
             files_cmds::read_source_task_graph,
+            // ── grouped Codex + Claude maintenance ──
+            codex_maintenance_cmds::get_source_maintenance_status,
+            codex_maintenance_cmds::read_source_usage_summary,
+            codex_maintenance_cmds::list_source_telemetry,
+            codex_maintenance_cmds::read_source_telemetry,
+            codex_maintenance_cmds::list_source_file_history,
+            codex_maintenance_cmds::read_source_checkpoint,
+            codex_maintenance_cmds::resolve_source_checkpoint_origins,
+            codex_maintenance_cmds::list_source_shell_snapshots,
+            codex_maintenance_cmds::read_source_shell_snapshot,
+            codex_maintenance_cmds::save_source_checkpoint_via_dialog,
+            codex_maintenance_cmds::restore_source_checkpoint,
+            codex_maintenance_cmds::list_checkpoint_recovery_copies,
+            codex_maintenance_cmds::restore_checkpoint_recovery_copy,
+            codex_maintenance_cmds::delete_checkpoint_recovery_copy,
             // ── W13 maintenance: service.go ──
             maintenance_cmds::scan_claude_dir,
             maintenance_cmds::scan_category,

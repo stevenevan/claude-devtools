@@ -442,7 +442,7 @@ mod tests {
         )
         .expect("conflict");
         assert!(matches!(conflict, CodexTextApplyResult::Conflict(_)));
-        let _ = fs::remove_dir_all(root);
+        crate::testutil::remove_tree(root);
     }
 
     #[cfg(unix)]
@@ -466,6 +466,6 @@ mod tests {
             fs::read_to_string(&outside).expect("outside unchanged"),
             "outside\n"
         );
-        let _ = fs::remove_dir_all(root);
+        crate::testutil::remove_tree(root);
     }
 }

@@ -1,5 +1,6 @@
 pub mod chunks;
 pub mod codex_inventory;
+pub mod codex_maintenance;
 pub mod codex_mcp;
 pub mod codex_plugins;
 pub mod constants;

@@ -3,6 +3,7 @@
 pub mod config;
 pub mod codex_inventory;
 pub mod codex_extensions;
+pub mod codex_maintenance;
 pub mod codex_settings;
 pub mod files;
 pub mod maintenance;

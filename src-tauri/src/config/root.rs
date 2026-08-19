@@ -9,10 +9,11 @@
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
-use std::time::UNIX_EPOCH;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::{Deserialize, Serialize};
 
+use crate::types::codex_maintenance::{MaintenanceCapabilities, MaintenanceCapability};
 use crate::types::source::{
     SourceCapabilities, SourceKind, SourceState, SourceStatus, TaskGraphCapability,
 };
@@ -199,6 +200,58 @@ fn codex_capabilities(root: Option<&Path>) -> SourceCapabilities {
         sessions: true,
         transcripts: true,
         task_graph,
+        maintenance: maintenance_capabilities(root),
+    }
+}
+
+pub fn maintenance_capabilities(root: Option<&Path>) -> MaintenanceCapabilities {
+    MaintenanceCapabilities {
+        usage: maintenance_capability(root, "stats-cache.json", false, "Usage cache"),
+        telemetry: maintenance_capability(root, "telemetry", true, "Telemetry"),
+        file_history: maintenance_capability(root, "file-history", true, "File history"),
+        shell_snapshots: maintenance_capability(root, "shell_snapshots", true, "Shell snapshots"),
+    }
+}
+
+pub fn claude_maintenance_capabilities(root: Option<&Path>) -> MaintenanceCapabilities {
+    MaintenanceCapabilities {
+        usage: maintenance_capability(root, "stats-cache.json", false, "Usage cache"),
+        telemetry: maintenance_capability(root, "telemetry", true, "Telemetry"),
+        file_history: maintenance_capability(root, "file-history", true, "File history"),
+        shell_snapshots: maintenance_capability(root, "shell-snapshots", true, "Shell snapshots"),
+    }
+}
+
+fn maintenance_capability(
+    root: Option<&Path>,
+    relative: &str,
+    expect_directory: bool,
+    label: &str,
+) -> MaintenanceCapability {
+    let Some(root) = root else {
+        return MaintenanceCapability::missing(format!("{label} root is not available"));
+    };
+    let path = root.join(relative);
+    match std::fs::symlink_metadata(&path) {
+        Ok(metadata) if metadata.file_type().is_symlink() => {
+            MaintenanceCapability::unsupported(format!("{label} path is a symlink"))
+        }
+        Ok(metadata) if expect_directory && metadata.is_dir() => MaintenanceCapability::available(),
+        Ok(metadata) if !expect_directory && metadata.is_file() => {
+            MaintenanceCapability::available()
+        }
+        Ok(_) => MaintenanceCapability::unsupported(format!(
+            "{label} path is not the expected {}",
+            if expect_directory {
+                "directory"
+            } else {
+                "file"
+            }
+        )),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            MaintenanceCapability::missing(format!("{label} was not found"))
+        }
+        Err(error) => MaintenanceCapability::unreadable(format!("cannot inspect {label}: {error}")),
     }
 }
 
@@ -232,6 +285,99 @@ pub fn source_revision(root: &Path) -> Option<String> {
         }
     }
     Some(format!("{:016x}", hasher.finish()))
+}
+
+/// Returns a bounded metadata revision for one maintenance dataset. Directory
+/// entries are capped and sorted so refreshes do not hash or read the dataset's
+/// contents merely to invalidate a renderer cache.
+pub fn maintenance_revision(root: &Path, dataset: &str) -> Option<String> {
+    const MAX_ENTRIES: usize = 5_000;
+    let mut hasher = DefaultHasher::new();
+    root.to_string_lossy().hash(&mut hasher);
+    dataset.hash(&mut hasher);
+    let path = root.join(dataset);
+    let metadata = std::fs::symlink_metadata(&path).ok()?;
+    metadata.file_type().is_symlink().hash(&mut hasher);
+    metadata.is_dir().hash(&mut hasher);
+    metadata.len().hash(&mut hasher);
+    metadata
+        .modified()
+        .ok()
+        .and_then(|time| time.duration_since(UNIX_EPOCH).ok())
+        .map(|modified| modified.as_nanos().hash(&mut hasher));
+
+    let mut scan_limited = false;
+    if metadata.is_dir() {
+        let mut pending = vec![path];
+        let mut entries = Vec::new();
+        while let Some(directory) = pending.pop() {
+            let read_dir = match std::fs::read_dir(directory) {
+                Ok(read_dir) => read_dir,
+                Err(_) => {
+                    "unreadable".hash(&mut hasher);
+                    continue;
+                }
+            };
+            for entry in read_dir {
+                if entries.len() >= MAX_ENTRIES {
+                    scan_limited = true;
+                    break;
+                }
+                let Ok(entry) = entry else {
+                    "entry-error".hash(&mut hasher);
+                    continue;
+                };
+                let entry_path = entry.path();
+                let Ok(entry_metadata) = std::fs::symlink_metadata(&entry_path) else {
+                    "metadata-error".hash(&mut hasher);
+                    continue;
+                };
+                let relative = entry_path
+                    .strip_prefix(root)
+                    .ok()
+                    .map(|value| value.to_string_lossy().replace('\\', "/"))
+                    .unwrap_or_else(|| entry_path.to_string_lossy().into_owned());
+                let modified = entry_metadata
+                    .modified()
+                    .ok()
+                    .and_then(|time| time.duration_since(UNIX_EPOCH).ok())
+                    .map(|time| time.as_nanos())
+                    .unwrap_or_default();
+                entries.push((
+                    relative,
+                    entry_metadata.file_type().is_symlink(),
+                    entry_metadata.is_dir(),
+                    entry_metadata.len(),
+                    modified,
+                ));
+                if entry_metadata.is_dir() && !entry_metadata.file_type().is_symlink() {
+                    pending.push(entry_path);
+                }
+            }
+            if scan_limited {
+                break;
+            }
+        }
+        entries.sort_by(|left, right| left.0.cmp(&right.0));
+        scan_limited.hash(&mut hasher);
+        for (relative, is_symlink, is_dir, size, modified) in entries {
+            relative.hash(&mut hasher);
+            is_symlink.hash(&mut hasher);
+            is_dir.hash(&mut hasher);
+            size.hash(&mut hasher);
+            modified.hash(&mut hasher);
+        }
+    }
+    let revision = format!("{:016x}", hasher.finish());
+    if scan_limited {
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|duration| duration.as_nanos())
+            .unwrap_or_default();
+        Some(format!("incomplete-{revision}-{now}"))
+    } else {
+        Some(revision)
+    }
 }
 
 pub(crate) fn home_dir() -> Result<PathBuf, String> {
@@ -383,7 +529,7 @@ mod tests {
             available.capabilities.task_graph.state,
             crate::types::source::TaskGraphCapabilityState::Available
         );
-        let _ = std::fs::remove_dir_all(root);
+        crate::testutil::remove_tree(root);
         let _ = std::fs::remove_file(file);
     }
 }

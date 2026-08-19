@@ -12,6 +12,11 @@ use serde::Serialize;
 
 use crate::files::claude_read;
 
+const MAX_CHECKPOINT_BYTES: usize = 256 * 1024;
+const MAX_SCAN_GROUPS: usize = 5_000;
+const MAX_SCAN_ENTRIES: usize = 5_000;
+const MAX_SCAN_BYTES: usize = 32 * 1024 * 1024;
+
 /// One (session, file) group of checkpoint versions. `latest_mtime`/
 /// `latest_size` describe the highest-version leaf. `mtime` is epoch
 /// milliseconds.
@@ -25,27 +30,69 @@ pub struct CheckpointGroup {
     pub latest_size: i64,
 }
 
+#[derive(Debug, Clone)]
+pub struct BoundedFileHistory {
+    pub groups: Vec<CheckpointGroup>,
+    pub scan_limited: bool,
+}
+
 /// Walks `<root>/file-history/{uuid}/`, parses leaves named `{hash}@vN`, and
 /// groups them by `(uuid, hash)` with versions sorted ascending. Skips
 /// non-matching entries (e.g. `.DS_Store`). Tolerant: an unreadable uuid dir
 /// is skipped, never fails the whole listing. A missing `file-history`
 /// directory returns `Ok(vec![])`.
 pub fn list_file_history(root: &str) -> Result<Vec<CheckpointGroup>, String> {
+    Ok(list_file_history_bounded(root, MAX_SCAN_GROUPS)?.groups)
+}
+
+pub fn list_file_history_bounded(
+    root: &str,
+    max_groups: usize,
+) -> Result<BoundedFileHistory, String> {
     let dir = Path::new(root).join("file-history");
-    let Ok(uuid_entries) = fs::read_dir(&dir) else {
-        return Ok(Vec::new());
+    match fs::symlink_metadata(&dir) {
+        Ok(metadata) if metadata.file_type().is_symlink() => {
+            return Err("files: file-history directory is a symlink".to_string())
+        }
+        Ok(metadata) if !metadata.is_dir() => {
+            return Err("files: file-history path is not a directory".to_string())
+        }
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(BoundedFileHistory {
+                groups: Vec::new(),
+                scan_limited: false,
+            })
+        }
+        Err(error) => return Err(format!("files: inspect file-history directory: {error}")),
+    }
+    let uuid_entries = match fs::read_dir(&dir) {
+        Ok(entries) => entries,
+        Err(error) => return Err(format!("files: read file-history directory: {error}")),
     };
 
     let mut out = Vec::new();
-    for uuid_entry in uuid_entries.flatten() {
+    let mut scan_limited = false;
+    let mut scanned_entries = 0usize;
+    let mut scanned_bytes = 0usize;
+    'uuid_entries: for uuid_entry in uuid_entries.flatten() {
+        scanned_entries = scanned_entries.saturating_add(1);
+        if scanned_entries > MAX_SCAN_ENTRIES {
+            scan_limited = true;
+            break;
+        }
+        if out.len() >= max_groups {
+            scan_limited = true;
+            break;
+        }
         let session_uuid = uuid_entry.file_name().to_string_lossy().into_owned();
         if session_uuid.is_empty() || session_uuid.starts_with('.') {
             continue;
         }
-        let Ok(file_type) = uuid_entry.file_type() else {
+        let Ok(metadata) = fs::symlink_metadata(uuid_entry.path()) else {
             continue;
         };
-        if !file_type.is_dir() {
+        if metadata.file_type().is_symlink() || !metadata.is_dir() {
             continue;
         }
         let Ok(leaf_entries) = fs::read_dir(uuid_entry.path()) else {
@@ -54,6 +101,11 @@ pub fn list_file_history(root: &str) -> Result<Vec<CheckpointGroup>, String> {
 
         let mut by_hash: BTreeMap<String, Vec<(u32, i64, i64)>> = BTreeMap::new();
         for leaf_entry in leaf_entries.flatten() {
+            scanned_entries = scanned_entries.saturating_add(1);
+            if scanned_entries > MAX_SCAN_ENTRIES {
+                scan_limited = true;
+                break 'uuid_entries;
+            }
             let leaf_name = leaf_entry.file_name().to_string_lossy().into_owned();
             let Some((hash, version_str)) = leaf_name.rsplit_once("@v") else {
                 continue;
@@ -61,28 +113,39 @@ pub fn list_file_history(root: &str) -> Result<Vec<CheckpointGroup>, String> {
             let Ok(version) = version_str.parse::<u32>() else {
                 continue;
             };
-            let Ok(leaf_file_type) = leaf_entry.file_type() else {
+            if !by_hash.contains_key(hash) && by_hash.len() >= max_groups {
+                scan_limited = true;
+                break;
+            }
+            let Ok(leaf_metadata) = fs::symlink_metadata(leaf_entry.path()) else {
                 continue;
             };
-            if !leaf_file_type.is_file() {
+            scanned_bytes = scanned_bytes.saturating_add(leaf_metadata.len() as usize);
+            if scanned_bytes > MAX_SCAN_BYTES {
+                scan_limited = true;
+                break 'uuid_entries;
+            }
+            if leaf_metadata.file_type().is_symlink() || !leaf_metadata.is_file() {
                 continue;
             }
-            let Ok(meta) = leaf_entry.metadata() else {
-                continue;
-            };
-            let mtime = meta
+            let mtime = leaf_metadata
                 .modified()
                 .ok()
                 .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
                 .map(|d| d.as_millis() as i64)
                 .unwrap_or(0);
-            by_hash
-                .entry(hash.to_string())
-                .or_default()
-                .push((version, mtime, meta.len() as i64));
+            by_hash.entry(hash.to_string()).or_default().push((
+                version,
+                mtime,
+                leaf_metadata.len() as i64,
+            ));
         }
 
         for (file_hash, mut leaves) in by_hash {
+            if out.len() >= max_groups {
+                scan_limited = true;
+                break 'uuid_entries;
+            }
             leaves.sort_by_key(|(version, _, _)| *version);
             let (_, latest_mtime, latest_size) = *leaves.last().expect("non-empty group");
             out.push(CheckpointGroup {
@@ -100,7 +163,10 @@ pub fn list_file_history(root: &str) -> Result<Vec<CheckpointGroup>, String> {
             .cmp(&b.session_uuid)
             .then_with(|| a.file_hash.cmp(&b.file_hash))
     });
-    Ok(out)
+    Ok(BoundedFileHistory {
+        groups: out,
+        scan_limited,
+    })
 }
 
 /// Rejects `session_uuid`/`file_hash` containing `/`, `\`, or `..`. `pub(crate)`
@@ -116,7 +182,7 @@ pub(crate) fn validate_ids(session_uuid: &str, file_hash: &str) -> Result<(), St
 
 /// Reads one leaf `{file_hash}@v{version}` under
 /// `file-history/{session_uuid}/`, traversal-safe, delegating to the
-/// root-anchored `claude_read::read_confined_file`.
+/// root-anchored bounded Claude reader.
 pub fn read_checkpoint(
     root: &str,
     session_uuid: &str,
@@ -127,17 +193,18 @@ pub fn read_checkpoint(
     Ok(String::from_utf8_lossy(&bytes).into_owned())
 }
 
-fn read_checkpoint_bytes(
+pub(crate) fn read_checkpoint_bytes(
     root: &str,
     session_uuid: &str,
     file_hash: &str,
     version: u32,
 ) -> Result<Vec<u8>, String> {
     validate_ids(session_uuid, file_hash)?;
-    claude_read::read_confined_file(
+    claude_read::read_confined_file_bounded(
         root,
         &format!("file-history/{session_uuid}"),
         &format!("{file_hash}@v{version}"),
+        MAX_CHECKPOINT_BYTES,
     )
 }
 

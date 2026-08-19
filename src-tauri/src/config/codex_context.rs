@@ -83,7 +83,7 @@ mod tests {
     #[test]
     fn defaults_working_directory_to_the_project_root() {
         let root = std::env::temp_dir().join(format!("codex-context-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&root);
+        crate::testutil::remove_tree(&root);
         fs::create_dir_all(&root).expect("fixture root");
 
         let context = normalize_project_context(
@@ -95,7 +95,7 @@ mod tests {
         .expect("context");
         assert_eq!(context.project_root, context.working_directory);
         assert_eq!(context.profile.as_deref(), Some("review_1"));
-        let _ = fs::remove_dir_all(root);
+        crate::testutil::remove_tree(root);
     }
 
     #[test]
@@ -103,8 +103,8 @@ mod tests {
         let root = std::env::temp_dir().join(format!("codex-context-root-{}", std::process::id()));
         let outside =
             std::env::temp_dir().join(format!("codex-context-outside-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&root);
-        let _ = fs::remove_dir_all(&outside);
+        crate::testutil::remove_tree(&root);
+        crate::testutil::remove_tree(&outside);
         fs::create_dir_all(&root).expect("root");
         fs::create_dir_all(&outside).expect("outside");
 
@@ -116,7 +116,7 @@ mod tests {
         )
         .expect_err("outside working directory");
         assert!(error.contains("inside the selected project root"));
-        let _ = fs::remove_dir_all(root);
-        let _ = fs::remove_dir_all(outside);
+        crate::testutil::remove_tree(root);
+        crate::testutil::remove_tree(outside);
     }
 }
