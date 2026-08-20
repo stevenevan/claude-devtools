@@ -6,10 +6,11 @@ import type {
   CodexInventoryDiagnostic,
   CodexInventoryScope,
   CodexValidationState,
+  SourceKind,
 } from '@shared/types/api';
 import type { Project } from '@shared/types';
 
-export type InventorySource = 'claude' | 'codex';
+export type InventorySource = SourceKind;
 
 export function getCodexScope(
   selectedProjectId: string | null,

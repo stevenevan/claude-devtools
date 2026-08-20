@@ -16,7 +16,6 @@ import { CodexMcpPanel } from './CodexMcpPanel';
 import {
   CodexSourcePicker,
   getCodexScope,
-  type InventorySource,
 } from '../dashboard/CodexInventorySource';
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -82,7 +81,8 @@ export const MCPStatusPanel = (): JSX.Element => {
   const mode = useUIMode();
   const selectedProjectId = useStore((s) => s.selectedProjectId);
   const projects = useStore((s) => s.projects);
-  const [source, setSource] = useState<InventorySource>('claude');
+  const source = useStore((s) => s.inventorySource);
+  const setSource = useStore((s) => s.setInventorySource);
   const codexScope = useMemo(
     () => getCodexScope(selectedProjectId, projects),
     [projects, selectedProjectId]

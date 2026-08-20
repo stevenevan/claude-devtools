@@ -137,3 +137,15 @@ test('switching source clears selections and cached source data', () => {
   expect(state.inspectorSelectedTaskGraphId).toBeNull();
   expect(state.inspectorSessionEvents).toEqual([]);
 });
+
+test('keeps inventory source independent from dual-source inspector source', () => {
+  useStore.getState().setInspectorSource('claude');
+  useStore.getState().setInventorySource('codex');
+
+  expect(useStore.getState().inspectorSource).toBe('claude');
+  expect(useStore.getState().inventorySource).toBe('codex');
+
+  useStore.getState().setInventorySource('claude');
+  expect(useStore.getState().inspectorSource).toBe('claude');
+  expect(useStore.getState().inventorySource).toBe('claude');
+});

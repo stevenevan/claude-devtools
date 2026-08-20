@@ -25,7 +25,6 @@ import { CodexPluginsPanel } from './CodexPluginsPanel';
 import {
   CodexSourcePicker,
   getCodexScope,
-  type InventorySource,
 } from './CodexInventorySource';
 import { InstallableList, type InstallableListItem } from './InstallableList';
 
@@ -94,8 +93,9 @@ export const MarketplaceBrowser = (): JSX.Element => {
   const connectionMode = useStore((s) => s.connectionMode);
   const selectedProjectId = useStore((s) => s.selectedProjectId);
   const projects = useStore((s) => s.projects);
+  const source = useStore((s) => s.inventorySource);
+  const setSource = useStore((s) => s.setInventorySource);
   const canAct = isDesktopMode() && connectionMode === 'local';
-  const [source, setSource] = useState<InventorySource>('claude');
   const codexScope = useMemo(
     () => getCodexScope(selectedProjectId, projects),
     [projects, selectedProjectId]
