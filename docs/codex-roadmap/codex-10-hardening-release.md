@@ -115,3 +115,52 @@ The release candidate must present the same source and safety context in every C
 - [Build skills for Codex](https://learn.chatgpt.com/docs/build-skills)
 - [Build Codex plugins](https://learn.chatgpt.com/docs/build-plugins)
 - [Extend Codex with MCP](https://learn.chatgpt.com/docs/extend/mcp)
+
+## 13. Implementation evidence — grouped sprint
+
+The first grouped sprint is implemented on branch
+`codex/grouped-codex-10-hardening-release` as five reviewable commits:
+
+| Commit | Scope |
+| --- | --- |
+| `b0eb644` | Persist source identity across inventory routes and isolate source-scoped state. |
+| `3d83a45` | Redact known secret formats at the Rust-to-renderer boundary and add fixture coverage. |
+| `9bed245` | Verify recovery copies and post-write bytes; keep Codex checkpoint writes fail-closed. |
+| `26819c6` | Replace the live-root maintenance benchmark with deterministic fixture operations and thresholds. |
+| Change 5 | Add the local release gate and evidence runbook in `docs/release.md`. |
+
+The release boundary is explicit. History, transcripts, task graphs, settings,
+instructions, agents, skills, read-only plugin/MCP inventory, and safe shell
+snapshot reads have source-aware contracts. Codex usage, telemetry, file-history
+projection, checkpoint content/origin, and checkpoint Save as/Restore remain
+unavailable until their producer and origin contracts are pinned. Claude
+checkpoint writes retain the server-resolved origin, private recovery copy,
+atomic conditional write, checksum/conflict checks, and post-write verification.
+
+The deterministic benchmark is run with:
+
+```bash
+cargo run --release --bin codex-maintenance-bench --manifest-path src-tauri/Cargo.toml -- \
+  --codex-root src-tauri/tests/fixtures/codex \
+  --app-data-root src-tauri/tests/fixtures/codex-maintenance \
+  --expected-manifest src-tauri/tests/fixtures/codex/benchmark-manifest.json
+```
+
+The fixture manifest pins format `codex-benchmark-v1`, CLI assumption `0.147.0`,
+cardinalities, and unsupported diagnostics. Each operation reports p50, p95,
+p99, failures, and peak RSS; the gate limits p95 to 500 ms, p99 to 1,000 ms,
+and peak RSS to 64 MiB.
+
+Focused frontend checks pass 8/8, the standalone redaction test passes 5/5,
+changed Rust files pass formatting, and `git diff --check` passes. Full
+`bun run qa` is not cleared in this environment because six existing
+secret-related files are policy-denied. Cargo verification is also blocked by
+the unavailable dependency cache/network resolution, and `graphify update .`
+cannot rebuild through the same filesystem policy. These are recorded in
+[`docs/release.md`](../release.md) rather than treated as passing checks.
+
+Release remains blocked until the manual macOS table in
+[`docs/release.md`](../release.md) confirms native Save as behavior, trusted
+Claude restore and recovery-copy behavior, Codex pre-write rejection, source
+switching, accessibility, and local-machine behavior while an SSH session is
+selected.
