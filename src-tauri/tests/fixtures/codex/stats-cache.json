@@ -1,0 +1,7 @@
+{
+  "period": "fixture-window",
+  "turns": 3,
+  "tokens": 512,
+  "cost": 0.04,
+  "privateField": "not returned"
+}

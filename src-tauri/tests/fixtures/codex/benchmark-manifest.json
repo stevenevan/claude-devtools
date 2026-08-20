@@ -1,0 +1,22 @@
+{
+  "format": "codex-benchmark-v1",
+  "codexCliVersion": "0.147.0",
+  "historyItems": 2,
+  "historyPageItems": 1,
+  "historyNextPageItems": 1,
+  "historySearchItems": 1,
+  "transcriptItems": 2,
+  "transcriptPageItems": 1,
+  "transcriptNextPageItems": 1,
+  "transcriptDetailEvents": 5,
+  "taskGraphs": 1,
+  "taskNodes": 2,
+  "shellSnapshots": 2,
+  "settingsSources": 7,
+  "recoveryCopies": 0,
+  "unsupported": {
+    "usage": "usageSchemaUnsupported",
+    "telemetry": "telemetrySchemaUnsupported",
+    "fileHistory": "fileHistorySchemaUnsupported"
+  }
+}
