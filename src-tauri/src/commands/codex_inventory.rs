@@ -511,3 +511,25 @@ fn response_bytes<T: Serialize>(value: &T) -> Result<usize, String> {
         .map(|bytes| bytes.len())
         .map_err(|error| format!("codex inventory: serialize bounded response: {error}"))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn renderer_record_ids_and_detail_limits_are_bounded() {
+        assert_eq!(
+            validate_record_id("AGENTS.md").expect("valid record id"),
+            "AGENTS.md"
+        );
+        assert!(validate_record_id("../AGENTS.md").is_err());
+        assert!(validate_record_id(&"x".repeat(MAX_RECORD_ID_BYTES + 1)).is_err());
+
+        assert_eq!(
+            detail_limit(None).expect("default detail limit"),
+            MAX_DETAIL_BYTES
+        );
+        assert!(detail_limit(Some(0)).is_err());
+        assert!(detail_limit(Some(MAX_DETAIL_BYTES + 1)).is_err());
+    }
+}

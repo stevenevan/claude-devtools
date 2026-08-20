@@ -19,6 +19,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::config::root;
+use crate::files::codex_redaction;
 use crate::types::source::{
     Diagnostic, InspectorEvent, InspectorHistoryEntry, InspectorPage, InspectorSessionSummary,
     InspectorTaskGraphList, InspectorTaskGraphMeta, InspectorTaskGraphResult, InspectorTaskNode,
@@ -149,7 +150,7 @@ pub fn read_history_page(
             .or_else(|| object.get("display"))
             .or_else(|| object.get("message"))
             .and_then(Value::as_str)
-            .map(|text| safe_text(text, MAX_FIELD_BYTES).0)
+            .map(|text| safe_display_text(text, MAX_FIELD_BYTES).0)
             .unwrap_or_else(|| "(empty message)".to_string());
         let project = object
             .get("cwd")
@@ -194,7 +195,7 @@ pub fn read_history_page(
         if let Some(session_id) = entry.session_id.as_deref() {
             if let Some(title) = index.get(session_id) {
                 entry.display = if entry.display == "(empty message)" {
-                    title.clone()
+                    codex_redaction::redact_known_secrets(title)
                 } else {
                     entry.display.clone()
                 };
@@ -871,7 +872,7 @@ fn parse_task_node(
         return None;
     }
     let capped = |value: String, field: &str, diagnostics: &mut Vec<Diagnostic>| {
-        let (value, truncated) = safe_text(&value, MAX_FIELD_BYTES);
+        let (value, truncated) = safe_display_text(&value, MAX_FIELD_BYTES);
         if truncated {
             diagnostics.push(
                 Diagnostic::new("taskFieldTruncated", "Truncated a Codex task field")
@@ -1620,7 +1621,7 @@ fn session_metadata(value: &Value) -> Option<SessionMetadata> {
 fn extract_message_text(value: &Value) -> (Option<String>, bool) {
     match value {
         Value::String(text) => {
-            let (text, truncated) = safe_text(text, MAX_FIELD_BYTES);
+            let (text, truncated) = safe_display_text(text, MAX_FIELD_BYTES);
             (Some(text), truncated)
         }
         Value::Array(items) => {
@@ -1637,7 +1638,7 @@ fn extract_message_text(value: &Value) -> (Option<String>, bool) {
             if parts.is_empty() {
                 return (None, false);
             }
-            let (text, truncated) = safe_text(&parts.join("\n"), MAX_FIELD_BYTES);
+            let (text, truncated) = safe_display_text(&parts.join("\n"), MAX_FIELD_BYTES);
             (Some(text), truncated)
         }
         Value::Object(object) => object
@@ -1726,6 +1727,11 @@ fn safe_text(value: &str, max_bytes: usize) -> (String, bool) {
         end -= 1;
     }
     (format!("{}…", &value[..end]), true)
+}
+
+fn safe_display_text(value: &str, max_bytes: usize) -> (String, bool) {
+    let redacted = codex_redaction::redact_known_secrets(value);
+    safe_text(&redacted, max_bytes)
 }
 
 fn modified_ms(metadata: &fs::Metadata) -> Option<i64> {
