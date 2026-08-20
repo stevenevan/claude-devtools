@@ -14,7 +14,6 @@ use base64::Engine as _;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use tauri::AppHandle;
-use tauri_plugin_dialog::DialogExt;
 
 use crate::config::root::{app_data_dir, claude_dir};
 use crate::files::agents_write::{read_agent_configs as read_agent_configs_impl, AgentConfig};
@@ -32,6 +31,7 @@ use crate::files::claudejson_write::{
     restore_claude_json_app_backup as restore_app_backup_impl,
     update_global_mcp_server as update_mcp_server_impl, PurgeResult,
 };
+use crate::files::codex_maintenance;
 use crate::files::codex_reader;
 use crate::files::filehistory_reader::{self, CheckpointGroup};
 use crate::files::history_reader::{self, HistoryPage};
@@ -65,13 +65,11 @@ use crate::files::settings_write::{
 use crate::files::statusline::{self, StatusLineConfig, StatusLineScriptInfo};
 use crate::files::task_graph_reader::{self, TaskGraphMeta, TaskNode};
 use crate::files::transcripts_reader::{self, TranscriptRecord};
-use crate::files::usage_reader;
 use crate::insights::permissions_analyzer::{analyze_usage, Suggestion};
 use crate::types::source::{
-    Diagnostic, InspectorEvent, InspectorHistoryEntry, InspectorPage, InspectorTaskGraphList,
+    InspectorEvent, InspectorHistoryEntry, InspectorPage, InspectorTaskGraphList,
     InspectorTaskGraphMeta, InspectorTaskGraphResult, InspectorTaskNode, InspectorTranscriptMeta,
-    Provenance, SourceCapabilities, SourceKind, SourceState, SourceStatus, TaskGraphCapability,
-    TaskGraphCapabilityState,
+    Provenance, SourceKind, SourceStatus,
 };
 
 #[tauri::command(rename_all = "camelCase")]
@@ -287,17 +285,21 @@ pub fn list_shell_snapshots() -> Result<Vec<FileMeta>, String> {
 
 #[tauri::command(rename_all = "camelCase")]
 pub fn read_shell_snapshot(name: String) -> Result<String, String> {
-    let root = claude_dir()?;
-    let bytes = claude_read::read_confined_file(&root.to_string_lossy(), "shell-snapshots", &name)?;
-    Ok(String::from_utf8_lossy(&bytes).into_owned())
+    let detail =
+        crate::commands::codex_maintenance::read_source_shell_snapshot(SourceKind::Claude, name)?;
+    detail
+        .content
+        .ok_or_else(|| "shell snapshot content is unavailable for safe display".to_string())
 }
 
 // ── read-only viewers (usage/telemetry) ──
 
 #[tauri::command]
 pub fn read_usage_stats() -> Result<Value, String> {
-    let root = claude_dir()?;
-    usage_reader::read_usage_stats(&root.to_string_lossy())
+    serde_json::to_value(
+        crate::commands::codex_maintenance::read_source_usage_summary(SourceKind::Claude)?,
+    )
+    .map_err(|error| format!("serialize safe usage summary: {error}"))
 }
 
 #[tauri::command]
@@ -308,9 +310,10 @@ pub fn list_telemetry_events() -> Result<Vec<FileMeta>, String> {
 
 #[tauri::command(rename_all = "camelCase")]
 pub fn read_telemetry_event(name: String) -> Result<Value, String> {
-    let root = claude_dir()?;
-    let bytes = claude_read::read_confined_file(&root.to_string_lossy(), "telemetry", &name)?;
-    serde_json::from_slice(&bytes).map_err(|e| e.to_string())
+    let detail =
+        crate::commands::codex_maintenance::read_source_telemetry(SourceKind::Claude, name)?;
+    serde_json::to_value(detail.summary)
+        .map_err(|error| format!("serialize safe telemetry summary: {error}"))
 }
 
 // ── read-only viewers (file-history) ──
@@ -328,74 +331,40 @@ pub fn read_checkpoint(
     version: u32,
 ) -> Result<String, String> {
     let root = claude_dir()?;
-    filehistory_reader::read_checkpoint(&root.to_string_lossy(), &session_uuid, &file_hash, version)
-}
-
-/// The shared body of every checkpoint save: validate the ids, open the native
-/// save dialog, and write the raw bytes to whatever the user picked. `aim`
-/// pre-fills the dialog with an existing file's directory and name; `None`
-/// leaves the dialog wherever it last was, with the opaque `{hash}@v{version}`
-/// as the suggested name.
-///
-/// Returns the path actually written, or `None` when the user cancelled.
-///
-/// This is the ONE place the dialog is configured, so a guard added here covers
-/// both save-as and restore. `async` is load-bearing: the blocking dialog must
-/// run off the main thread or it deadlocks the event loop (same reason as
-/// `configbackup::export_backup`).
-async fn save_checkpoint_via_dialog(
-    app: AppHandle,
-    session_uuid: &str,
-    file_hash: &str,
-    version: u32,
-    aim: Option<&Path>,
-    title: Option<&str>,
-) -> Result<Option<PathBuf>, String> {
-    // Before the ids are used for ANYTHING, including the suggested filename.
-    filehistory_reader::validate_ids(session_uuid, file_hash)?;
-    let root = claude_dir()?;
-
-    let mut builder = app.dialog().file();
-    match aim.and_then(|path| path.parent().zip(path.file_name())) {
-        Some((parent, name)) => {
-            builder = builder
-                .set_directory(parent)
-                .set_file_name(name.to_string_lossy());
-        }
-        None => builder = builder.set_file_name(format!("{file_hash}@v{version}")),
-    }
-    if let Some(title) = title {
-        builder = builder.set_title(title);
-    }
-
-    let Some(file_path) = builder.blocking_save_file() else {
-        return Ok(None); // user cancel — no-op
-    };
-    let dest = file_path.into_path().map_err(|e| e.to_string())?;
-
-    filehistory_reader::export_checkpoint_to(
+    let bytes = filehistory_reader::read_checkpoint_bytes(
         &root.to_string_lossy(),
-        session_uuid,
-        file_hash,
+        &session_uuid,
+        &file_hash,
         version,
-        &dest,
     )?;
-    Ok(Some(dest))
+    let (content, unavailable_reason) = codex_maintenance::safe_checkpoint_preview(&bytes);
+    content.ok_or_else(|| {
+        format!(
+            "checkpoint content is unavailable for safe display{}",
+            unavailable_reason
+                .map(|reason| format!(": {reason}"))
+                .unwrap_or_default()
+        )
+    })
 }
 
 /// Saves one checkpoint to a path the user picks in the native save dialog.
-/// Returns whether a file was written — `false` means the user cancelled, so
-/// the UI does not claim "Saved".
+/// The compatibility command delegates to the source-aware bounded writer.
 #[tauri::command(rename_all = "camelCase")]
 pub async fn export_checkpoint(
     session_uuid: String,
     file_hash: String,
     version: u32,
     app: AppHandle,
-) -> Result<bool, String> {
-    let written =
-        save_checkpoint_via_dialog(app, &session_uuid, &file_hash, version, None, None).await?;
-    Ok(written.is_some())
+) -> Result<crate::types::codex_maintenance::CheckpointMutationResult, String> {
+    crate::commands::codex_maintenance::save_source_checkpoint_via_dialog(
+        SourceKind::Claude,
+        session_uuid,
+        file_hash,
+        version,
+        app,
+    )
+    .await
 }
 
 /// Where a checkpoint's bytes came from, for display and to decide whether the
@@ -406,7 +375,15 @@ pub fn resolve_checkpoint_origin(
     file_hash: String,
 ) -> Result<Option<CheckpointOrigin>, String> {
     let root = claude_dir()?;
-    checkpoint_origin::resolve_checkpoint_origin(&root.to_string_lossy(), &session_uuid, &file_hash)
+    Ok(checkpoint_origin::resolve_checkpoint_origin(
+        &root.to_string_lossy(),
+        &session_uuid,
+        &file_hash,
+    )?
+    .filter(|origin| {
+        crate::commands::codex_maintenance::validate_restore_origin(Path::new(&origin.real_path))
+            .is_ok()
+    }))
 }
 
 /// Saves one checkpoint back over the file it was captured from, with the save
@@ -422,27 +399,15 @@ pub async fn restore_checkpoint(
     file_hash: String,
     version: u32,
     app: AppHandle,
-) -> Result<Option<String>, String> {
-    filehistory_reader::validate_ids(&session_uuid, &file_hash)?;
-    let root = claude_dir()?;
-
-    let origin = checkpoint_origin::resolve_checkpoint_origin(
-        &root.to_string_lossy(),
-        &session_uuid,
-        &file_hash,
-    )?
-    .ok_or("files: original path for this checkpoint is unknown")?;
-
-    let written = save_checkpoint_via_dialog(
-        app,
-        &session_uuid,
-        &file_hash,
+) -> Result<crate::types::codex_maintenance::CheckpointMutationResult, String> {
+    crate::commands::codex_maintenance::restore_source_checkpoint(
+        SourceKind::Claude,
+        session_uuid,
+        file_hash,
         version,
-        Some(Path::new(&origin.real_path)),
-        Some("Restore checkpoint"),
+        app,
     )
-    .await?;
-    Ok(written.map(|path| path.to_string_lossy().into_owned()))
+    .await
 }
 
 // ── status line config ──
@@ -543,7 +508,7 @@ struct SourceCursor {
 #[tauri::command]
 pub fn get_inspector_sources() -> Result<Vec<SourceStatus>, String> {
     Ok(vec![
-        claude_source_status(),
+        crate::config::root::get_claude_source_status(),
         crate::config::root::get_codex_source_status(),
     ])
 }
@@ -946,72 +911,6 @@ fn decode_source_cursor(
         return Err("cursor is stale; reload the source".to_string());
     }
     Ok(cursor)
-}
-
-fn claude_source_status() -> SourceStatus {
-    let root = match claude_dir() {
-        Ok(root) => root,
-        Err(reason) => {
-            return SourceStatus {
-                source_kind: SourceKind::Claude,
-                state: SourceState::Invalid,
-                label: "~/.claude".to_string(),
-                revision: None,
-                reason: Some(reason),
-                capabilities: claude_capabilities(),
-            }
-        }
-    };
-    match fs::metadata(&root) {
-        Ok(metadata) if metadata.is_dir() => SourceStatus {
-            source_kind: SourceKind::Claude,
-            state: SourceState::Available,
-            label: "~/.claude".to_string(),
-            revision: crate::config::root::source_revision(&root),
-            reason: None,
-            capabilities: claude_capabilities(),
-        },
-        Ok(_) => SourceStatus {
-            source_kind: SourceKind::Claude,
-            state: SourceState::Invalid,
-            label: "~/.claude".to_string(),
-            revision: None,
-            reason: Some("Claude data root is not a directory".to_string()),
-            capabilities: claude_capabilities(),
-        },
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => SourceStatus {
-            source_kind: SourceKind::Claude,
-            state: SourceState::NotFound,
-            label: "~/.claude".to_string(),
-            revision: None,
-            reason: Some("Claude data directory was not found".to_string()),
-            capabilities: claude_capabilities(),
-        },
-        Err(error) => SourceStatus {
-            source_kind: SourceKind::Claude,
-            state: SourceState::Unreadable,
-            label: "~/.claude".to_string(),
-            revision: None,
-            reason: Some(format!("cannot inspect Claude data directory: {error}")),
-            capabilities: claude_capabilities(),
-        },
-    }
-}
-
-fn claude_capabilities() -> SourceCapabilities {
-    SourceCapabilities {
-        sessions: true,
-        transcripts: true,
-        task_graph: claude_task_graph_capability(),
-    }
-}
-
-fn claude_task_graph_capability() -> TaskGraphCapability {
-    TaskGraphCapability {
-        state: TaskGraphCapabilityState::Available,
-        reason: "Claude Task Graph files are available".to_string(),
-        diagnostics: Vec::<Diagnostic>::new(),
-    }
 }
 
 #[cfg(test)]

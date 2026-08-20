@@ -2,6 +2,12 @@ export type CodexInventoryScope =
   | { kind: 'global' }
   | { kind: 'project'; projectId: string };
 
+export interface CodexInspectionContext {
+  scope: CodexInventoryScope;
+  workingDirectory?: string | null;
+  profile?: string | null;
+}
+
 export type CodexValidationState = 'valid' | 'missing' | 'malformed' | 'invalid';
 export type CodexEnabledState = 'enabled' | 'disabled' | 'inherited' | 'unknown';
 
@@ -96,6 +102,7 @@ export interface CodexSkillSummary {
   state: CodexValidationState;
   enabledState: CodexEnabledState;
   enabledSource: string | null;
+  ownerPluginId: string | null;
   symlink: boolean;
   externalTarget: boolean;
   entryPoint: string;
@@ -152,4 +159,3 @@ export interface CodexTextWriteResult {
 export type CodexTextApplyResult =
   | { status: 'applied'; data: CodexTextWriteResult }
   | { status: 'conflict'; data: CodexTextConflict };
-

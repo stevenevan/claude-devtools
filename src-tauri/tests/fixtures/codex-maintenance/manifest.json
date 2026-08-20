@@ -1,0 +1,7 @@
+{
+  "format": "codex-maintenance-fixture",
+  "artifact": "codex-main",
+  "sourceRevision": "unversioned-main-source",
+  "support": "fixture-only-experimental",
+  "datasets": ["stats-cache.json", "telemetry", "file-history", "shell_snapshots"]
+}

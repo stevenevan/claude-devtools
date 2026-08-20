@@ -1,5 +1,6 @@
 import type { AppState } from '../types';
 import type { StateCreator } from 'zustand';
+import type { SourceKind } from '@shared/types/api';
 
 export type ActivityView =
   | 'projects'
@@ -24,6 +25,7 @@ export interface UISlice {
   activeActivity: ActivityView;
   previousActivity: ActivityView;
   isActivityViewActive: boolean;
+  inventorySource: SourceKind;
   shellSearchQuery: string;
   shortcutCheatSheetOpen: boolean;
   helpPanelOpen: boolean;
@@ -38,6 +40,7 @@ export interface UISlice {
   closeCommandPalette: () => void;
   toggleSidebar: () => void;
   setActiveActivity: (activity: ActivityView) => void;
+  setInventorySource: (source: SourceKind) => void;
   setShellSearchQuery: (query: string) => void;
   restorePreviousActivity: () => void;
   toggleShortcutCheatSheet: () => void;
@@ -76,6 +79,7 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set, get)
   activeActivity: 'projects',
   previousActivity: 'projects',
   isActivityViewActive: false,
+  inventorySource: 'claude',
   shellSearchQuery: '',
   shortcutCheatSheetOpen: false,
   helpPanelOpen: false,
@@ -120,6 +124,10 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set, get)
       isActivityViewActive: true,
       shellSearchQuery: activity === 'search' ? state.shellSearchQuery : '',
     });
+  },
+
+  setInventorySource: (inventorySource) => {
+    set({ inventorySource });
   },
 
   setShellSearchQuery: (query) => {

@@ -44,7 +44,7 @@ fn history_and_transcript_reads_are_sanitized() {
     let guard = CodexHomeGuard::new();
     fs::write(
         guard.root.join("history.jsonl"),
-        "{\"session_id\":\"s1\",\"text\":\"hello\",\"cwd\":\"/Users/test/project\",\"ts\":1723500000000}\n",
+        "{\"session_id\":\"s1\",\"text\":\"hello API_KEY=sk-test-value\",\"cwd\":\"/Users/test/project\",\"ts\":1723500000000}\n",
     )
     .expect("write history fixture");
     fs::write(
@@ -56,7 +56,7 @@ fn history_and_transcript_reads_are_sanitized() {
         guard.root.join("sessions/2026/08/13/rollout-s1.jsonl"),
         concat!(
             "{\"type\":\"session_meta\",\"payload\":{\"id\":\"s1\"}}\n",
-            "{\"type\":\"event_msg\",\"payload\":{\"type\":\"user_message\",\"message\":\"hello\"}}\n",
+            "{\"type\":\"event_msg\",\"payload\":{\"type\":\"user_message\",\"message\":\"hello API_KEY=sk-test-value\"}}\n",
             "{\"type\":\"response_item\",\"payload\":{\"type\":\"custom_tool_call\",\"name\":\"shell\",\"arguments\":\"SECRET_ARGUMENT\"}}\n",
             "{\"type\":\"response_item\",\"payload\":{\"type\":\"custom_tool_call_output\",\"name\":\"shell\",\"output\":\"SECRET_OUTPUT\"}}\n",
             "{\"type\":\"response_item\",\"payload\":{\"type\":\"encrypted_content\",\"data\":\"SECRET_REASONING\"}}\n",
@@ -67,12 +67,16 @@ fn history_and_transcript_reads_are_sanitized() {
     let history = read_history_page(None, 20, None).expect("read history");
     assert_eq!(history.items.len(), 1);
     assert_eq!(history.items[0].project, "project");
+    assert!(history.items[0].display.contains("[redacted]"));
+    assert!(!history.items[0].display.contains("sk-test-value"));
 
     let transcripts = list_transcripts(None, 20).expect("list transcripts");
     assert_eq!(transcripts.items.len(), 1);
     let events = read_transcript(&transcripts.items[0].id, None, 20).expect("read transcript");
     let serialized = serde_json::to_string(&events).expect("serialize events");
     assert!(serialized.contains("shell"));
+    assert!(serialized.contains("[redacted]"));
+    assert!(!serialized.contains("sk-test-value"));
     assert!(!serialized.contains("SECRET_ARGUMENT"));
     assert!(!serialized.contains("SECRET_OUTPUT"));
     assert!(!serialized.contains("SECRET_REASONING"));
@@ -242,7 +246,7 @@ fn task_graphs_keep_valid_nodes_and_report_edges_and_incompatible_files() {
     fs::create_dir_all(&bad).expect("create bad graph");
     fs::write(
         good.join("1.json"),
-        r#"{"id":"1","subject":"first","description":"desc","activeForm":"Doing first","status":"pending","blocks":["missing"],"blockedBy":[]}"#,
+        r#"{"id":"1","subject":"first","description":"API_KEY=sk-task-value","activeForm":"Doing first","status":"pending","blocks":["missing"],"blockedBy":[]}"#,
     )
     .expect("write good graph");
     fs::write(good.join("2.json"), "not json").expect("write malformed node");
@@ -262,6 +266,10 @@ fn task_graphs_keep_valid_nodes_and_report_edges_and_incompatible_files() {
 
     let result = read_task_graph("good").expect("read good graph");
     assert_eq!(result.nodes.len(), 1);
+    assert_eq!(result.nodes[0].description, "API_KEY=[redacted]");
+    assert!(!serde_json::to_string(&result)
+        .expect("serialize task graph")
+        .contains("sk-task-value"));
     assert!(result
         .capability
         .diagnostics

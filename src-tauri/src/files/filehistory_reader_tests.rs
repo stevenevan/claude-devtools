@@ -72,8 +72,7 @@ fn read_checkpoint_returns_exact_bytes() {
     fs::write(uuid_dir.join("aaaa@v2"), "aaaa version two!").unwrap();
 
     let root_str = root.to_string_lossy().into_owned();
-    let content =
-        read_checkpoint(&root_str, "session-1", "aaaa", 2).expect("read_checkpoint");
+    let content = read_checkpoint(&root_str, "session-1", "aaaa", 2).expect("read_checkpoint");
     assert_eq!(content, "aaaa version two!");
 }
 
@@ -118,5 +117,8 @@ fn export_checkpoint_rejects_traversal_ids() {
         export_checkpoint_to(&root_str, "session-1", "a/b", 1, &dest).unwrap_err(),
         "files: invalid id"
     );
-    assert!(!dest.exists(), "rejected export must not create the dest file");
+    assert!(
+        !dest.exists(),
+        "rejected export must not create the dest file"
+    );
 }

@@ -61,7 +61,10 @@ fn resolves_absolute_key_without_real_parent_dir() {
     write_session(
         &root,
         "-Users-me-proj",
-        &[snapshot_line("/Users/me/proj/main.rs", &entry("abc123@v2", None))],
+        &[snapshot_line(
+            "/Users/me/proj/main.rs",
+            &entry("abc123@v2", None),
+        )],
     );
 
     let origin = resolve(&root).expect("origin");
@@ -118,7 +121,10 @@ fn resolves_v1_leaf_when_snapshot_only_names_v2() {
     write_session(
         &root,
         "-Users-me-proj",
-        &[snapshot_line("/Users/me/proj/main.rs", &entry("abc123@v2", None))],
+        &[snapshot_line(
+            "/Users/me/proj/main.rs",
+            &entry("abc123@v2", None),
+        )],
     );
 
     // The regression this module exists for: an exact `{hash}@v1` match would
@@ -141,7 +147,10 @@ fn skips_null_backup_file_name() {
         )],
     );
 
-    assert!(resolve(&root).is_none(), "null backupFileName must not resolve");
+    assert!(
+        resolve(&root).is_none(),
+        "null backupFileName must not resolve"
+    );
 }
 
 #[test]
@@ -231,7 +240,10 @@ fn rejects_parent_dir_traversal_in_real_parent_dir() {
         )],
     );
 
-    assert!(resolve(&root).is_none(), "`..` must never survive validation");
+    assert!(
+        resolve(&root).is_none(),
+        "`..` must never survive validation"
+    );
 }
 
 #[test]

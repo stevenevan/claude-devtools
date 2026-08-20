@@ -4,6 +4,7 @@ import type { AgentPatch, GlobalAgent, SkillInventoryEntry } from './agents';
 import type { ImportPreview, Manifest } from './configBackup';
 import type { MemoryDir, MemoryIndexFix, MemoryReport } from './memory';
 import type { CombinedReport } from './retention';
+import type { InspectorDiagnostic, InspectorProvenance, SourceKind, SourceState } from './inspector';
 
 export interface DirUsage {
   path: string;
@@ -131,6 +132,144 @@ export interface HealthStatus {
 export interface ScheduleStatus {
   interval: string;
   lastRunMs: number;
+}
+
+export type MaintenanceCapabilityState = 'available' | 'missing' | 'unsupported' | 'unreadable';
+
+export interface MaintenanceCapability {
+  state: MaintenanceCapabilityState;
+  reason: string;
+  diagnostics: InspectorDiagnostic[];
+}
+
+export interface MaintenanceCapabilities {
+  usage: MaintenanceCapability;
+  telemetry: MaintenanceCapability;
+  fileHistory: MaintenanceCapability;
+  shellSnapshots: MaintenanceCapability;
+}
+
+export interface SourceMaintenanceStatus {
+  sourceKind: SourceKind;
+  state: SourceState;
+  label: string;
+  revision?: string;
+  capabilities: MaintenanceCapabilities;
+  diagnostics: InspectorDiagnostic[];
+}
+
+export interface MaintenancePage<T> {
+  items: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  totalMatched: number | null;
+  scanLimited: boolean;
+  diagnostics: InspectorDiagnostic[];
+  revision?: string;
+}
+
+export interface UsageSummary {
+  source: SourceKind;
+  state: MaintenanceCapabilityState;
+  period: string | null;
+  turns: number | null;
+  tokens: number | null;
+  cost: number | null;
+  sourceFile: string | null;
+  revision: string | null;
+  stale: boolean;
+  diagnostics: InspectorDiagnostic[];
+}
+
+export interface SafeField {
+  name: string;
+  value: string;
+}
+
+export interface TelemetryItem {
+  id: string;
+  kind: string | null;
+  timestamp: string | null;
+  status: string | null;
+  sizeBytes: number;
+  mtime: number;
+  redaction: string;
+  provenance: InspectorProvenance;
+}
+
+export interface TelemetryDetail {
+  item: TelemetryItem;
+  summary: SafeField[];
+  diagnostics: InspectorDiagnostic[];
+}
+
+export interface CheckpointOriginSummary {
+  displayPath: string;
+  backupTime: string | null;
+  verified: boolean;
+}
+
+export interface SourceCheckpointGroup {
+  source: SourceKind;
+  sessionUuid: string;
+  fileHash: string;
+  versions: number[];
+  latestMtime: number;
+  latestSize: number;
+  origin: CheckpointOriginSummary | null;
+  provenance: InspectorProvenance;
+}
+
+export interface SourceCheckpointDetail {
+  source: SourceKind;
+  sessionUuid: string;
+  fileHash: string;
+  version: number;
+  content: string | null;
+  contentUnavailableReason: string | null;
+  byteSize: number;
+  binary: boolean;
+  provenance: InspectorProvenance;
+  revision: string | null;
+  diagnostics: InspectorDiagnostic[];
+}
+
+export interface CheckpointMutationResult {
+  operation: string;
+  state: string;
+  targetChanged: boolean;
+  targetLabel: string | null;
+  recoveryId: string | null;
+}
+
+export interface ShellSnapshotItem {
+  name: string;
+  sizeBytes: number;
+  mtime: number;
+  sessionId: string | null;
+  redaction: string;
+  provenance: InspectorProvenance;
+}
+
+export interface ShellSnapshotDetail {
+  item: ShellSnapshotItem;
+  content: string | null;
+  truncated: boolean;
+  unavailableReason: string | null;
+  diagnostics: InspectorDiagnostic[];
+}
+
+export interface RecoveryCopy {
+  id: string;
+  source: SourceKind;
+  sessionUuid: string;
+  fileHash: string;
+  version: number;
+  targetLabel: string;
+  createdAt: number;
+  byteSize: number;
+  checksum: string;
+  state: string;
 }
 
 // InstructionFile is one entry in listInstructionFiles' result: an

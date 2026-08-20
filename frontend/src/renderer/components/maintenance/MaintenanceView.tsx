@@ -1,4 +1,5 @@
-import { JSX, ReactNode, useState } from 'react';
+import { JSX, ReactNode, useEffect, useState } from 'react';
+import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import { useUIMode } from '@renderer/hooks/useUIMode';
 import { cn } from '@renderer/lib/utils';
@@ -35,6 +36,10 @@ import { TranscriptsCleanupPanel } from './TranscriptsCleanupPanel';
 import { TrashPanel } from './TrashPanel';
 import { UsageStatsPanel } from './UsageStatsPanel';
 
+import { InspectorSourceSelector } from '../dashboard/InspectorSourceSelector';
+
+import type { SourceKind, SourceMaintenanceStatus } from '@shared/types/api';
+
 type MaintenanceGroup = 'clean-up' | 'inspect' | 'configure';
 
 interface MaintenanceTab {
@@ -42,7 +47,7 @@ interface MaintenanceTab {
   label: string;
   group: MaintenanceGroup;
   writesToClaudeRoot?: boolean;
-  render: () => ReactNode;
+  render: (source: SourceKind) => ReactNode;
 }
 
 // The registry remains the source of truth for Nerd mode. Group metadata keeps
@@ -73,7 +78,7 @@ const CLEANUP_TABS: MaintenanceTab[] = [
     id: 'file-history-browser',
     label: 'File History (view)',
     group: 'inspect',
-    render: () => <FileHistoryBrowserPanel />,
+    render: (source) => <FileHistoryBrowserPanel source={source} />,
   },
   {
     id: 'junk',
@@ -204,18 +209,19 @@ const CLEANUP_TABS: MaintenanceTab[] = [
     id: 'shell-snapshots',
     label: 'Shell Snapshots',
     group: 'inspect',
-    render: () => <ShellSnapshotPanel />,
+    render: (source) => <ShellSnapshotPanel source={source} />,
   },
   {
     id: 'usage',
     label: 'Usage',
     group: 'inspect',
-    render: () => <UsageStatsPanel />,
+    render: (source) => <UsageStatsPanel source={source} />,
   },
   {
     id: 'trash',
     label: 'Trash',
     group: 'clean-up',
+    writesToClaudeRoot: true,
     render: () => <TrashPanel />,
   },
 ];
@@ -226,39 +232,113 @@ const GROUPS: readonly { id: MaintenanceGroup; label: string }[] = [
   { id: 'configure', label: 'Configure' },
 ];
 
+const maintenanceAvailabilityLabel = (status: SourceMaintenanceStatus): string => {
+  const capabilities = Object.values(status.capabilities);
+  const available = capabilities.filter((capability) => capability.state === 'available').length;
+  return `${available}/${capabilities.length} maintenance datasets available`;
+};
+
+const maintenanceCapabilityForTab = (
+  status: SourceMaintenanceStatus | null,
+  tabId: string
+) => {
+  if (!status) return null;
+  switch (tabId) {
+    case 'usage':
+      return {
+        label: 'Usage & telemetry',
+        capability:
+          [status.capabilities.usage, status.capabilities.telemetry].find(
+            (capability) => capability.state !== 'available'
+          ) ?? status.capabilities.usage,
+      };
+    case 'file-history-browser':
+      return { label: 'File History', capability: status.capabilities.fileHistory };
+    case 'shell-snapshots':
+      return { label: 'Shell Snapshots', capability: status.capabilities.shellSnapshots };
+    default:
+      return null;
+  }
+};
+
 export const MaintenanceView = (): JSX.Element => {
   const mode = useUIMode();
-  const { dirs, scanning, error, progress, connectionMode, scanStorage, cancelScan } = useStore(
+  const {
+    dirs,
+    scanning,
+    error,
+    progress,
+    connectionMode,
+    inspectorSource,
+    scanStorage,
+    cancelScan,
+  } = useStore(
     useShallow((state) => ({
       dirs: state.dirs,
       scanning: state.scanning,
       error: state.error,
       progress: state.progress,
       connectionMode: state.connectionMode,
+      inspectorSource: state.inspectorSource,
       scanStorage: state.scanStorage,
       cancelScan: state.cancelScan,
     }))
   );
   const [activeTab, setActiveTab] = useState('storage');
   const [showAllTools, setShowAllTools] = useState(false);
+  const [maintenanceStatus, setMaintenanceStatus] = useState<SourceMaintenanceStatus | null>(null);
+  const [maintenanceStatusError, setMaintenanceStatusError] = useState<string | null>(null);
   const isLocal = connectionMode === 'local';
   const storageTab: MaintenanceTab = {
     id: 'storage',
     label: 'Storage',
     group: 'inspect',
-    render: () => <StorageTable dirs={dirs} />,
+    render: (source) =>
+      source === 'codex' ? <CodexStorageNotice /> : <StorageTable dirs={dirs} />,
   };
   const tabs = [storageTab, ...CLEANUP_TABS];
   const active = tabs.find((tab) => tab.id === activeTab) ?? storageTab;
   const simpleSummary = mode === 'simple' && !showAllTools;
+  const activeCapability = maintenanceCapabilityForTab(maintenanceStatus, active.id);
+
+  useEffect(() => {
+    let activeRequest = true;
+    setMaintenanceStatus(null);
+    setMaintenanceStatusError(null);
+    void api
+      .getSourceMaintenanceStatus(inspectorSource)
+      .then((status) => {
+        if (activeRequest) setMaintenanceStatus(status);
+      })
+      .catch((reason: unknown) => {
+        if (activeRequest) {
+          setMaintenanceStatusError(reason instanceof Error ? reason.message : String(reason));
+        }
+      });
+    return () => {
+      activeRequest = false;
+    };
+  }, [inspectorSource]);
+
+  useEffect(() => {
+    if (inspectorSource === 'codex' && activeTab !== 'storage') {
+      const selected = CLEANUP_TABS.find((tab) => tab.id === activeTab);
+      if (selected?.writesToClaudeRoot) setActiveTab('storage');
+    }
+  }, [activeTab, inspectorSource]);
 
   const tabButton = (tab: MaintenanceTab): JSX.Element => (
     <Button
       key={tab.id}
       variant={tab.id === activeTab ? 'secondary' : 'ghost'}
       size="sm"
+      disabled={tab.writesToClaudeRoot && inspectorSource === 'codex'}
       className={cn('text-xs', tab.id === activeTab && 'font-medium')}
-      aria-label={tab.writesToClaudeRoot ? `${tab.label} (writes to ~/.claude)` : tab.label}
+      aria-label={
+        tab.writesToClaudeRoot
+          ? `${tab.label} (writes to ~/.claude; unavailable for Codex source)`
+          : tab.label
+      }
       onClick={() => setActiveTab(tab.id)}
     >
       {tab.label}
@@ -279,8 +359,23 @@ export const MaintenanceView = (): JSX.Element => {
             <span className="text-foreground text-sm font-medium">Maintenance</span>
           </div>
 
-          {!simpleSummary && (
-            <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <InspectorSourceSelector />
+            {maintenanceStatus && (
+              <span className="text-muted-foreground hidden text-[10px] xl:inline">
+                {maintenanceAvailabilityLabel(maintenanceStatus)}
+              </span>
+            )}
+            {maintenanceStatusError && (
+              <span
+                className="text-destructive max-w-48 truncate text-[10px]"
+                title={maintenanceStatusError}
+              >
+                {maintenanceStatusError}
+              </span>
+            )}
+            {!simpleSummary && (
+              <div className="flex items-center gap-2">
               {mode === 'simple' && (
                 <Button variant="outline" size="sm" onClick={() => setShowAllTools(false)}>
                   Summary
@@ -291,7 +386,12 @@ export const MaintenanceView = (): JSX.Element => {
                   <Button
                     variant="default"
                     size="sm"
-                    disabled={!isLocal || scanning}
+                    disabled={!isLocal || inspectorSource === 'codex' || scanning}
+                    title={
+                      inspectorSource === 'codex'
+                        ? 'Storage scanning is available for Claude only'
+                        : undefined
+                    }
                     onClick={() => void scanStorage()}
                   >
                     {scanning && <Loader2 className="size-3.5 animate-spin" />}
@@ -307,8 +407,9 @@ export const MaintenanceView = (): JSX.Element => {
                   </Button>
                 </>
               )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
 
         {!simpleSummary && (
@@ -325,6 +426,24 @@ export const MaintenanceView = (): JSX.Element => {
           </div>
         )}
       </div>
+
+      {inspectorSource === 'codex' && !simpleSummary && (
+        <div className="border-border/50 bg-card/50 text-muted-foreground shrink-0 border-b px-4 py-2 text-xs">
+          Codex maintenance actions run on this local machine. Checkpoint Save as… and Restore
+          are unavailable until the producer and origin contracts are pinned. Claude cleanup
+          tools are unavailable while Codex is selected.
+        </div>
+      )}
+
+      {activeCapability && activeCapability.capability.state !== 'available' && !simpleSummary && (
+        <div
+          role="status"
+          className="border-border/50 bg-card/50 text-muted-foreground shrink-0 border-b px-4 py-2 text-xs"
+        >
+          {activeCapability.label} is {activeCapability.capability.state}:{' '}
+          {activeCapability.capability.reason}
+        </div>
+      )}
 
       {!isLocal && !simpleSummary && (
         <div className="border-border/50 bg-card/50 text-muted-foreground shrink-0 border-b px-4 py-2 text-xs">
@@ -353,11 +472,22 @@ export const MaintenanceView = (): JSX.Element => {
 
       <div className="flex-1 overflow-y-auto">
         {simpleSummary ? (
-          <SpaceSummary dirs={dirs} onShowAllTools={() => setShowAllTools(true)} />
+          <SpaceSummary
+            dirs={dirs}
+            source={inspectorSource}
+            onShowAllTools={() => setShowAllTools(true)}
+          />
         ) : (
-          active.render()
+          active.render(inspectorSource)
         )}
       </div>
     </div>
   );
 };
+
+const CodexStorageNotice = (): JSX.Element => (
+  <div className="text-muted-foreground flex flex-col items-center justify-center gap-3 px-4 py-16 text-sm">
+    <p>Codex storage scanning and cleanup are not available in this read-only view.</p>
+    <p className="text-xs">Use Usage, File History, or Shell Snapshots for Codex maintenance data.</p>
+  </div>
+);

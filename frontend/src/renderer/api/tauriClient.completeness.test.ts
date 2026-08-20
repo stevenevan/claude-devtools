@@ -154,6 +154,25 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['readAgentConfigs', (a) => a.readAgentConfigs('r')],
   ['readGlobalPlugins', (a) => a.readGlobalPlugins()],
   ['readGlobalSettings', (a) => a.readGlobalSettings()],
+  [
+    'getCodexPlugins',
+    (a) =>
+      a.getCodexPlugins({
+        scope: { kind: 'global' },
+        workingDirectory: null,
+        profile: null,
+      }),
+  ],
+  [
+    'getCodexMcpStatus',
+    (a) =>
+      a.getCodexMcpStatus({
+        scope: { kind: 'global' },
+        workingDirectory: null,
+        profile: null,
+      }),
+  ],
+  ['openCodexPluginsFolder', (a) => a.openCodexPluginsFolder()],
   ['getCodexSettings', (a) => a.getCodexSettings({ projectRoot: '/project' })],
   ['openCodexConfigFolder', (a) => a.openCodexConfigFolder()],
   ['previewCodexSettingsPatch', (a) => a.previewCodexSettingsPatch({}, {}, 'missing')],
@@ -226,6 +245,20 @@ const PORTED: Array<[string, (api: any) => unknown]> = [
   ['readSourceSession', (a) => a.readSourceSession('claude', 'x', null, 50)],
   ['listSourceTaskGraphs', (a) => a.listSourceTaskGraphs('claude')],
   ['readSourceTaskGraph', (a) => a.readSourceTaskGraph('claude', 'u')],
+  ['getSourceMaintenanceStatus', (a) => a.getSourceMaintenanceStatus('codex')],
+  ['readSourceUsageSummary', (a) => a.readSourceUsageSummary('codex')],
+  ['listSourceTelemetry', (a) => a.listSourceTelemetry('codex', null, 50)],
+  ['readSourceTelemetry', (a) => a.readSourceTelemetry('codex', 'event')],
+  ['listSourceFileHistory', (a) => a.listSourceFileHistory('codex', null, 50)],
+  ['readSourceCheckpoint', (a) => a.readSourceCheckpoint('codex', 'session', 'hash', 1)],
+  ['resolveSourceCheckpointOrigins', (a) => a.resolveSourceCheckpointOrigins('codex', 'session', ['hash'])],
+  ['listSourceShellSnapshots', (a) => a.listSourceShellSnapshots('codex', null, 50)],
+  ['readSourceShellSnapshot', (a) => a.readSourceShellSnapshot('codex', 'snapshot')],
+  ['saveSourceCheckpointViaDialog', (a) => a.saveSourceCheckpointViaDialog('codex', 'session', 'hash', 1)],
+  ['restoreSourceCheckpoint', (a) => a.restoreSourceCheckpoint('codex', 'session', 'hash', 1)],
+  ['listCheckpointRecoveryCopies', (a) => a.listCheckpointRecoveryCopies('codex')],
+  ['restoreCheckpointRecoveryCopy', (a) => a.restoreCheckpointRecoveryCopy('codex', 'recovery')],
+  ['deleteCheckpointRecoveryCopy', (a) => a.deleteCheckpointRecoveryCopy('codex', 'recovery')],
   // W13: maintenance slice data methods (41). Config-backup methods stay notPorted (W14).
   ['maintenance.scanClaudeDir', (a) => a.maintenance.scanClaudeDir()],
   ['maintenance.cancelScan', (a) => a.maintenance.cancelScan()],
@@ -424,6 +457,24 @@ test('Codex settings commands keep the context server-resolved', async () => {
   ]);
 });
 
+test('Codex extension commands keep inspection context and fixed folder targets', async () => {
+  invocations.length = 0;
+  const api = createTauriClient();
+  const context = {
+    scope: { kind: 'project' as const, projectId: 'issued-project' },
+    workingDirectory: '/workspace/project/src',
+    profile: 'review',
+  };
+  await api.getCodexPlugins(context);
+  await api.getCodexMcpStatus(context);
+  await api.openCodexPluginsFolder();
+  expect(invocations).toEqual([
+    { command: 'get_codex_plugins', args: { context } },
+    { command: 'get_codex_mcp_status', args: { context } },
+    { command: 'open_codex_plugins_folder', args: undefined },
+  ]);
+});
+
 test('Codex inventory commands preserve scope and opaque record arguments', async () => {
   invocations.length = 0;
   const api = createTauriClient();
@@ -463,6 +514,33 @@ test('Codex inventory commands preserve scope and opaque record arguments', asyn
     {
       command: 'list_codex_skills',
       args: { scope: { kind: 'global' } },
+    },
+  ]);
+});
+
+test('source-aware maintenance commands preserve source and opaque ids', async () => {
+  invocations.length = 0;
+  const api = createTauriClient();
+  await api.listSourceTelemetry('codex', 'cursor', 25);
+  await api.readSourceCheckpoint('codex', 'session', 'hash', 2);
+  await api.resolveSourceCheckpointOrigins('codex', 'session', ['hash']);
+  await api.restoreCheckpointRecoveryCopy('codex', 'recovery');
+  expect(invocations).toEqual([
+    {
+      command: 'list_source_telemetry',
+      args: { sourceKind: 'codex', cursor: 'cursor', limit: 25 },
+    },
+    {
+      command: 'read_source_checkpoint',
+      args: { sourceKind: 'codex', sessionUuid: 'session', fileHash: 'hash', version: 2 },
+    },
+    {
+      command: 'resolve_source_checkpoint_origins',
+      args: { sourceKind: 'codex', sessionUuid: 'session', fileHashes: ['hash'] },
+    },
+    {
+      command: 'restore_checkpoint_recovery_copy',
+      args: { sourceKind: 'codex', id: 'recovery' },
     },
   ]);
 });

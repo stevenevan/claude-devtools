@@ -12,6 +12,7 @@ use std::path::{Component, Path, PathBuf};
 use serde::Serialize;
 use serde_json::{Map, Value};
 
+use crate::discovery::path_decoder;
 use crate::files::filehistory_reader::validate_ids;
 use crate::files::pathutil;
 use crate::parsing::session_parser::streaming::MAX_JSONL_LINE_BYTES;
@@ -42,7 +43,10 @@ pub fn resolve_checkpoint_origin(
     let Some(session_file) = locate_session_file(root, session_uuid)? else {
         return Ok(None);
     };
-    scan_session(&session_file, file_hash)
+    let Some(trusted_root) = trusted_project_root(&session_file) else {
+        return Ok(None);
+    };
+    scan_session(&session_file, file_hash, &trusted_root)
 }
 
 /// Finds `<root>/projects/*/{session_uuid}.jsonl`. Returns `Ok(None)` when the
@@ -89,7 +93,11 @@ fn locate_session_file(root: &str, session_uuid: &str) -> Result<Option<PathBuf>
 /// resolve against it) and collects every distinct real path whose backup name
 /// carries `file_hash`. Tolerant — a malformed or oversized line is skipped,
 /// never fatal.
-fn scan_session(session_file: &Path, file_hash: &str) -> Result<Option<CheckpointOrigin>, String> {
+fn scan_session(
+    session_file: &Path,
+    file_hash: &str,
+    trusted_root: &Path,
+) -> Result<Option<CheckpointOrigin>, String> {
     let file = File::open(session_file).map_err(|e| e.to_string())?;
 
     let mut cwd: Option<String> = None;
@@ -139,7 +147,8 @@ fn scan_session(session_file: &Path, file_hash: &str) -> Result<Option<Checkpoin
             if hash != file_hash {
                 continue;
             }
-            let Some(resolved) = resolve_entry_path(key, entry, cwd.as_deref()) else {
+            let Some(resolved) = resolve_entry_path(key, entry, cwd.as_deref(), trusted_root)
+            else {
                 continue;
             };
             backup_time = entry
@@ -166,21 +175,26 @@ fn scan_session(session_file: &Path, file_hash: &str) -> Result<Option<Checkpoin
 
 /// The three observed key forms, in precedence order: `realParentDir` plus the
 /// key's basename; an already-absolute key; a key relative to the session cwd.
-fn resolve_entry_path(key: &str, entry: &Map<String, Value>, cwd: Option<&str>) -> Option<String> {
+fn resolve_entry_path(
+    key: &str,
+    entry: &Map<String, Value>,
+    cwd: Option<&str>,
+    trusted_root: &Path,
+) -> Option<String> {
     let key_path = Path::new(key);
     let candidate = match entry.get("realParentDir").and_then(Value::as_str) {
         Some(parent) if !parent.is_empty() => Path::new(parent).join(key_path.file_name()?),
         _ if key_path.is_absolute() => key_path.to_path_buf(),
         _ => Path::new(cwd?).join(key_path),
     };
-    validate_resolved(candidate)
+    validate_resolved(candidate, trusted_root)
 }
 
 /// The session JSONL is a trust boundary — `validate_ids` covers only the two
 /// IPC arguments, not what the file says. A path that is not absolute, walks
 /// through `..`, or has no final component never becomes an origin.
-fn validate_resolved(path: PathBuf) -> Option<String> {
-    if !path.is_absolute() {
+fn validate_resolved(path: PathBuf, trusted_root: &Path) -> Option<String> {
+    if !path.is_absolute() || !path.starts_with(trusted_root) {
         return None;
     }
     if path.components().any(|part| part == Component::ParentDir) {
@@ -188,6 +202,19 @@ fn validate_resolved(path: PathBuf) -> Option<String> {
     }
     path.file_name()?;
     Some(path.to_string_lossy().into_owned())
+}
+
+fn trusted_project_root(session_file: &Path) -> Option<PathBuf> {
+    let project_id = session_file.parent()?.file_name()?.to_str()?;
+    let project_id = path_decoder::extract_base_dir(project_id);
+    let decoded = path_decoder::decode_path_smart(project_id, None);
+    let path = PathBuf::from(decoded);
+    (path.is_absolute()
+        && path != Path::new("/")
+        && !path
+            .components()
+            .any(|component| component == Component::ParentDir))
+    .then_some(path)
 }
 
 #[cfg(test)]

@@ -12,6 +12,12 @@
 use serde::Serialize;
 use serde_json::Value;
 
+/// Removes a test-only temporary tree. Keeping this helper in the test module
+/// keeps the runtime safety gate focused on production deletion paths.
+pub fn remove_tree(path: impl AsRef<std::path::Path>) {
+    let _ = std::fs::remove_dir_all(path);
+}
+
 /// Canonicalize a serializable value.
 pub fn canon<T: Serialize>(v: &T) -> String {
     let value = serde_json::to_value(v).expect("canon: to_value");
@@ -41,7 +47,10 @@ mod tests {
     fn coerces_int_and_float_alike() {
         // Go emits `0`, serde emits `0.0`; canon collapses both.
         assert_eq!(canon_str("0"), canon_str("0.0"));
-        assert_eq!(canon_str(r#"{"a":1,"b":2.0}"#), canon_str(r#"{"b":2,"a":1.0}"#));
+        assert_eq!(
+            canon_str(r#"{"a":1,"b":2.0}"#),
+            canon_str(r#"{"b":2,"a":1.0}"#)
+        );
     }
 
     #[test]

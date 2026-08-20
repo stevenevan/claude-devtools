@@ -6,15 +6,20 @@
 
 pub mod agents_write;
 pub mod checkpoint_origin;
+pub mod checkpoint_recovery;
 pub mod claude_read;
 pub mod claudejson;
 pub mod claudejson_write;
 pub(crate) mod codex_inventory;
+pub(crate) mod codex_mcp;
+pub(crate) mod codex_plugins;
+pub(crate) mod codex_redaction;
 pub(crate) mod codex_instructions;
 pub(crate) mod codex_agents;
 pub(crate) mod codex_text_write;
 pub(crate) mod codex_skills;
 pub mod codex_reader;
+pub mod codex_maintenance;
 pub mod codex_settings;
 pub mod codex_settings_write;
 pub mod filehistory_reader;

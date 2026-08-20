@@ -1,5 +1,6 @@
 import type {
   CheckpointGroup,
+  CheckpointMutationResult,
   CheckpointOrigin,
   DesktopAPI,
   FileMeta,
@@ -42,11 +43,11 @@ export const claudeFilesCommands: ClaudeFilesSlice = {
   readCheckpoint: (sessionUuid, fileHash, version) =>
     call<string>('read_checkpoint', { sessionUuid, fileHash, version }),
   exportCheckpoint: (sessionUuid, fileHash, version) =>
-    call<boolean>('export_checkpoint', { sessionUuid, fileHash, version }),
+    call<CheckpointMutationResult>('export_checkpoint', { sessionUuid, fileHash, version }),
   resolveCheckpointOrigin: (sessionUuid, fileHash) =>
     call<CheckpointOrigin | null>('resolve_checkpoint_origin', { sessionUuid, fileHash }),
   restoreCheckpoint: (sessionUuid, fileHash, version) =>
-    call<string | null>('restore_checkpoint', { sessionUuid, fileHash, version }),
+    call<CheckpointMutationResult>('restore_checkpoint', { sessionUuid, fileHash, version }),
   readHistoryPage: (before, limit, query) =>
     call<HistoryPage>('read_history_page', { before, limit, query }),
   listTranscripts: () => call<FileMeta[]>('list_transcripts'),

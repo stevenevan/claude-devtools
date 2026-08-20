@@ -14,7 +14,6 @@ import { CodexSkillsPanel } from './CodexSkillsPanel';
 import {
   CodexSourcePicker,
   getCodexScope,
-  type InventorySource,
 } from './CodexInventorySource';
 
 import type { SkillInventoryEntry } from '@shared/types/api';
@@ -24,9 +23,10 @@ export const SkillsManager = (): JSX.Element => {
   const connectionMode = useStore((s) => s.connectionMode);
   const selectedProjectId = useStore((s) => s.selectedProjectId);
   const projects = useStore((s) => s.projects);
+  const source = useStore((s) => s.inventorySource);
+  const setSource = useStore((s) => s.setInventorySource);
   const setActiveActivity = useStore((s) => s.setActiveActivity);
   const canAct = isDesktopMode() && connectionMode === 'local';
-  const [source, setSource] = useState<InventorySource>('claude');
   const codexScope = useMemo(
     () => getCodexScope(selectedProjectId, projects),
     [projects, selectedProjectId]

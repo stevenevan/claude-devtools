@@ -6,11 +6,16 @@
     "history.jsonl rows with session_id, text, cwd, ts",
     "session_index.jsonl latest thread_name mapping",
     "dated sessions/rollout-*.jsonl files",
-    "archived_sessions/rollout-*.jsonl files"
+    "archived_sessions/rollout-*.jsonl files",
+    "tasks/{graph}/{node}.json task graph files",
+    "config.toml and AGENTS.md inventory inputs",
+    "maintenance datasets with explicit unsupported-schema states",
+    "benchmark-manifest.json expected cardinalities"
   ],
   "guaranteed": [
     "relative rollout identifiers",
     "bounded JSONL reads",
-    "tool payload and encrypted reasoning redaction"
+    "tool payload and encrypted reasoning redaction",
+    "deterministic per-operation benchmark inputs"
   ]
 }

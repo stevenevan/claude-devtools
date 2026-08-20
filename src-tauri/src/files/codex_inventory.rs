@@ -84,6 +84,16 @@ pub(crate) fn confined_path(root: &Path, relative: &Path) -> io::Result<PathBuf>
 }
 
 pub(crate) fn read_bounded_file(path: &Path, max_bytes: usize) -> io::Result<BoundedText> {
+    let (bytes, truncated) = read_bounded_bytes(path, max_bytes)?;
+    let text = bounded_utf8(&bytes, max_bytes);
+    Ok(BoundedText {
+        text,
+        truncated,
+        bytes_read: bytes.len(),
+    })
+}
+
+pub(crate) fn read_bounded_bytes(path: &Path, max_bytes: usize) -> io::Result<(Vec<u8>, bool)> {
     let mut file = open_read_no_follow(path)?;
     let metadata = file.metadata()?;
     if !metadata.is_file() {
@@ -98,12 +108,7 @@ pub(crate) fn read_bounded_file(path: &Path, max_bytes: usize) -> io::Result<Bou
     if truncated {
         bytes.truncate(max_bytes);
     }
-    let text = bounded_utf8(&bytes, max_bytes);
-    Ok(BoundedText {
-        text,
-        truncated,
-        bytes_read: bytes.len(),
-    })
+    Ok((bytes, truncated))
 }
 
 pub(crate) fn read_bounded_relative(

@@ -2,6 +2,8 @@
 //! modules, kept out of `main.rs` so it stays under the file-size cap.
 pub mod config;
 pub mod codex_inventory;
+pub mod codex_extensions;
+pub mod codex_maintenance;
 pub mod codex_settings;
 pub mod files;
 pub mod maintenance;

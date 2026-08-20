@@ -442,7 +442,7 @@ mod tests {
         )
         .expect("conflict");
         assert!(matches!(conflict, CodexTextApplyResult::Conflict(_)));
-        let _ = fs::remove_dir_all(root);
+        crate::testutil::remove_tree(root);
     }
 
     #[cfg(unix)]
@@ -466,6 +466,14 @@ mod tests {
             fs::read_to_string(&outside).expect("outside unchanged"),
             "outside\n"
         );
-        let _ = fs::remove_dir_all(root);
+        crate::testutil::remove_tree(root);
+    }
+
+    #[test]
+    fn content_validation_rejects_redacted_placeholders_and_oversized_input() {
+        assert!(validate_content("[redacted]").is_err());
+
+        let oversized = "x".repeat(MAX_CONTENT_BYTES + 1);
+        assert!(validate_content(&oversized).is_err());
     }
 }

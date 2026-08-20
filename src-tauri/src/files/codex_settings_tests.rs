@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use super::{discover_at, CodexSettingsContext};
+use super::{discover_at, load_config_layers_at, CodexSettingsContext};
 
 fn fixture(name: &str) -> std::path::PathBuf {
     let path = std::env::temp_dir().join(format!(
@@ -240,5 +240,46 @@ fn granular_approval_and_default_permissions_are_read_only() {
     let json = serde_json::to_string(&view).expect("serialize");
     assert!(!json.contains("hunter2"));
     assert!(!json.contains("/private/path"));
+    let _ = fs::remove_dir_all(root);
+}
+
+#[test]
+fn shared_layer_loader_keeps_documents_internal_and_preserves_precedence_metadata() {
+    let root = fixture("layers");
+    let nested = root.join("src");
+    let codex_home = root.join("codex-home");
+    let system = root.join("system");
+    fs::create_dir_all(nested.join(".codex")).expect("nested dirs");
+    fs::create_dir_all(&codex_home).expect("codex home");
+    fs::create_dir_all(&system).expect("system");
+    fs::write(
+        codex_home.join("config.toml"),
+        format!(
+            "[projects.\"{}\"]\ntrust_level = \"trusted\"\n",
+            root.display()
+        ),
+    )
+    .expect("user config");
+    fs::write(nested.join(".codex/config.toml"), "model = \"nested\"\n").expect("project config");
+    fs::write(
+        codex_home.join("review.config.toml"),
+        "sandbox_mode = \"read-only\"\n",
+    )
+    .expect("profile config");
+
+    let layers = load_config_layers_at(&codex_home, &context(&root, &nested), Some(&system))
+        .expect("load layers");
+    let project = layers
+        .iter()
+        .find(|layer| layer.id == "project-1")
+        .expect("nested project layer");
+    assert!(project.active);
+    assert_eq!(project.precedence, 1);
+    assert!(project.document.is_some());
+    assert!(project.path.ends_with(".codex/config.toml"));
+    assert!(layers
+        .iter()
+        .all(|layer| !layer.label.contains(root.to_string_lossy().as_ref())));
+
     let _ = fs::remove_dir_all(root);
 }

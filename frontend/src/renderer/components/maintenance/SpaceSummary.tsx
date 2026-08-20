@@ -1,5 +1,5 @@
 import { JSX, useEffect, useMemo, useState } from 'react';
-import { isDesktopMode } from '@renderer/api';
+import { api, isDesktopMode } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import { Progress } from '@renderer/components/ui/progress';
 import { useStore } from '@renderer/store';
@@ -9,7 +9,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { DryRunConfirmDialog } from './DryRunConfirmDialog';
 
-import type { DirUsage, SimpleStorageSummary } from '@shared/types';
+import type { DirUsage, SimpleStorageSummary, SourceKind, UsageSummary } from '@shared/types';
 
 export const SIMPLE_CLEANUP_ALLOWLIST = [
   'file-history',
@@ -28,6 +28,10 @@ export interface SpaceBucket {
 }
 
 export type SpaceSummaryData = SimpleStorageSummary;
+
+export function shouldRunSimpleCleanup(isLocal: boolean, source: SourceKind): boolean {
+  return isLocal && source === 'claude';
+}
 
 const BUCKETS: readonly Pick<SpaceBucket, 'id' | 'label'>[] = [
   { id: 'old-file-versions', label: 'Old file versions' },
@@ -76,10 +80,15 @@ export function summarizeSpace(dirs: readonly DirUsage[]): SpaceSummaryData {
 
 interface SpaceSummaryProps {
   dirs: DirUsage[];
+  source: SourceKind;
   onShowAllTools: () => void;
 }
 
-export const SpaceSummary = ({ dirs, onShowAllTools }: Readonly<SpaceSummaryProps>): JSX.Element => {
+export const SpaceSummary = ({
+  dirs,
+  source,
+  onShowAllTools,
+}: Readonly<SpaceSummaryProps>): JSX.Element => {
   const {
     connectionMode,
     scanning,
@@ -110,16 +119,17 @@ export const SpaceSummary = ({ dirs, onShowAllTools }: Readonly<SpaceSummaryProp
   const [confirming, setConfirming] = useState(false);
   const [dialogSummary, setDialogSummary] = useState<typeof simpleCleanupPreview>(null);
   const isLocal = connectionMode === 'local';
+  const isSimpleCleanupEnabled = shouldRunSimpleCleanup(isLocal, source);
   const scannedData = useMemo(() => summarizeSpace(dirs), [dirs]);
   const data = simpleStorageSummary ?? scannedData;
   const busy = scanning || simpleCleanupScanning || simpleCleanupRunning;
   const displayError = simpleCleanupError ?? storageError;
 
   useEffect(() => {
-    if (!isLocal) return;
+    if (!isSimpleCleanupEnabled) return;
     void scanStorage();
     void previewSimpleCleanup();
-  }, [isLocal, previewSimpleCleanup, scanStorage]);
+  }, [isSimpleCleanupEnabled, previewSimpleCleanup, scanStorage]);
 
   const openConfirm = (): void => {
     if (!simpleCleanupPreview || simpleCleanupPreview.totalCandidates === 0) return;
@@ -140,6 +150,24 @@ export const SpaceSummary = ({ dirs, onShowAllTools }: Readonly<SpaceSummaryProp
         <Button variant="outline" size="sm" onClick={onShowAllTools}>
           Show all maintenance tools
         </Button>
+      </div>
+    );
+  }
+
+  if (source === 'codex') {
+    return (
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-6">
+        <SourceSummary source={source} />
+        <section className="border-border/50 bg-card/30 rounded-lg border p-5">
+          <p className="text-foreground text-sm font-medium">Codex maintenance</p>
+          <p className="text-muted-foreground mt-1 text-xs">
+            Simple storage cleanup is available for Claude Code only. Codex data is read-only in
+            this view.
+          </p>
+          <Button className="mt-4" variant="outline" size="sm" onClick={onShowAllTools}>
+            Show all maintenance tools
+          </Button>
+        </section>
       </div>
     );
   }
@@ -177,6 +205,8 @@ export const SpaceSummary = ({ dirs, onShowAllTools }: Readonly<SpaceSummaryProp
           ))}
         </div>
       </section>
+
+      <SourceSummary source={source} />
 
       {(scanning || simpleCleanupScanning || simpleCleanupRunning) && (
         <div className="border-border/50 bg-card/30 rounded-lg border p-4" aria-live="polite">
@@ -244,3 +274,83 @@ export const SpaceSummary = ({ dirs, onShowAllTools }: Readonly<SpaceSummaryProp
     </div>
   );
 };
+
+const SourceSummary = ({ source }: Readonly<{ source: SourceKind }>): JSX.Element => {
+  const [usage, setUsage] = useState<UsageSummary | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const root = source === 'codex' ? '~/.codex' : '~/.claude';
+
+  useEffect(() => {
+    let active = true;
+    setUsage(null);
+    setError(null);
+    void api
+      .readSourceUsageSummary(source)
+      .then((result) => {
+        if (active) setUsage(result);
+      })
+      .catch((reason: unknown) => {
+        if (active) setError(reason instanceof Error ? reason.message : String(reason));
+      });
+    return () => {
+      active = false;
+    };
+  }, [source]);
+
+  return (
+    <section className="border-border/50 bg-card/30 rounded-lg border p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-foreground text-sm font-medium">{source === 'codex' ? 'Codex' : 'Claude'} activity</p>
+          <p className="text-muted-foreground mt-1 text-xs">
+            Read-only summary from {root}. Detailed telemetry and maintenance readers are in the
+            Inspect tools.
+          </p>
+        </div>
+        {usage && <span className="text-muted-foreground text-[11px]">{usage.state}</span>}
+      </div>
+      {error && (
+        <p role="alert" className="text-destructive mt-3 text-xs">
+          {error}
+        </p>
+      )}
+      {!error && !usage && (
+        <p role="status" className="text-muted-foreground mt-3 text-xs">
+          Loading activity summary…
+        </p>
+      )}
+      {usage && (
+        <>
+          <dl className="mt-4 grid gap-x-4 gap-y-3 text-xs sm:grid-cols-4">
+            <SummaryMetric label="Period" value={usage.period ?? 'Not reported'} />
+            <SummaryMetric label="Turns" value={formatSummaryNumber(usage.turns)} />
+            <SummaryMetric label="Tokens" value={formatSummaryNumber(usage.tokens)} />
+            <SummaryMetric label="Cost" value={usage.cost === null ? 'Not reported' : String(usage.cost)} />
+          </dl>
+          <div className="text-muted-foreground mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+            {usage.sourceFile && (
+              <span className="max-w-full break-all select-text">Provenance: {usage.sourceFile}</span>
+            )}
+            {usage.revision && <span>Revision: {usage.revision}</span>}
+            {usage.stale && <span className="text-warning">Stale snapshot</span>}
+          </div>
+          {usage.diagnostics.length > 0 && (
+            <p role="status" className="text-muted-foreground mt-3 text-xs">
+              {usage.diagnostics.map((diagnostic) => diagnostic.message).join(' ')}
+            </p>
+          )}
+        </>
+      )}
+    </section>
+  );
+};
+
+const SummaryMetric = ({ label, value }: Readonly<{ label: string; value: string }>): JSX.Element => (
+  <div>
+    <dt className="text-muted-foreground text-[10px] tracking-wide uppercase">{label}</dt>
+    <dd className="text-foreground mt-1 font-medium">{value}</dd>
+  </div>
+);
+
+const formatSummaryNumber = (value: number | null): string =>
+  value === null ? 'Not reported' : value.toLocaleString();

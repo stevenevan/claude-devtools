@@ -1,0 +1,7 @@
+{
+  "kind": "fixture.event",
+  "timestamp": "2026-08-19T00:00:00Z",
+  "status": "ok",
+  "safeCount": 1,
+  "privatePayload": "not returned"
+}
