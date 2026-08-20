@@ -429,8 +429,9 @@ export const MaintenanceView = (): JSX.Element => {
 
       {inspectorSource === 'codex' && !simpleSummary && (
         <div className="border-border/50 bg-card/50 text-muted-foreground shrink-0 border-b px-4 py-2 text-xs">
-          Codex source data is read-only in this sprint. Save as… writes only the path you choose;
-          Claude cleanup tools are unavailable while Codex is selected.
+          Codex maintenance actions run on this local machine. Checkpoint Save as… and Restore
+          are unavailable until the producer and origin contracts are pinned. Claude cleanup
+          tools are unavailable while Codex is selected.
         </div>
       )}
 

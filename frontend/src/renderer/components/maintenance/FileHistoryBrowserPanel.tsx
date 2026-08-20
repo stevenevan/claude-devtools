@@ -33,6 +33,7 @@ interface FileHistoryBrowserPanelProps {
 export const FileHistoryBrowserPanel = ({
   source,
 }: Readonly<FileHistoryBrowserPanelProps>): JSX.Element => {
+  const checkpointMutationsSupported = source === 'claude';
   const [groups, setGroups] = useState<SourceCheckpointGroup[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [listRevision, setListRevision] = useState<string | null>(null);
@@ -148,7 +149,7 @@ export const FileHistoryBrowserPanel = ({
     setRecoveryCopies([]);
     setRecoveryLoading(false);
     void loadList();
-    void loadRecoveryCopies();
+    if (checkpointMutationsSupported) void loadRecoveryCopies();
   }, [source]);
 
   const resetCompare = (): void => {
@@ -266,7 +267,13 @@ export const FileHistoryBrowserPanel = ({
   };
 
   const exportSelected = async (): Promise<void> => {
-    if (!selectedSession || !selectedFile || selectedVersion === null) return;
+    if (
+      !checkpointMutationsSupported ||
+      !selectedSession ||
+      !selectedFile ||
+      selectedVersion === null
+    )
+      return;
     const request = requestGate.current.begin('mutation');
     setExporting(true);
     setExported(false);
@@ -288,7 +295,13 @@ export const FileHistoryBrowserPanel = ({
   };
 
   const restoreSelected = async (): Promise<void> => {
-    if (!selectedSession || !selectedFile || selectedVersion === null) return;
+    if (
+      !checkpointMutationsSupported ||
+      !selectedSession ||
+      !selectedFile ||
+      selectedVersion === null
+    )
+      return;
     const request = requestGate.current.begin('mutation');
     setRestoring(true);
     setRestoredPath(null);
@@ -322,7 +335,9 @@ export const FileHistoryBrowserPanel = ({
           <p className="text-muted-foreground mt-0.5 text-xs">
             Browser for the per-file checkpoints {source === 'codex' ? 'Codex' : 'Claude Code'}
             keeps under {source === 'codex' ? '~/.codex/file-history' : '~/.claude/file-history'}.
-            Save as… and Restore use native dialogs and act on this machine only.
+            {checkpointMutationsSupported
+              ? ' Save as… and Restore use native dialogs and act on this machine only.'
+              : ' Checkpoint Save as… and Restore are unavailable until the producer and origin contracts are pinned.'}
           </p>
         </div>
         <Button
@@ -480,23 +495,31 @@ export const FileHistoryBrowserPanel = ({
                 )}
 
                 <div className="ml-auto flex items-center gap-1.5">
-                  {exported && <span className="text-muted-foreground text-xs">Saved</span>}
+                  {checkpointMutationsSupported && exported && (
+                    <span className="text-muted-foreground text-xs">Saved</span>
+                  )}
                   {content !== null && <CopyButton text={content} inline />}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={exporting}
-                    onClick={() => void exportSelected()}
-                  >
-                    Save as…
-                  </Button>
+                  {checkpointMutationsSupported ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={exporting}
+                      onClick={() => void exportSelected()}
+                    >
+                      Save as…
+                    </Button>
+                  ) : (
+                    <span role="status" className="text-muted-foreground text-xs">
+                      Save as… and Restore are unavailable for Codex checkpoints.
+                    </span>
+                  )}
                 </div>
               </div>
             )}
 
             {selectedFile && selectedVersion !== null && (
               <div className="text-muted-foreground flex min-w-0 flex-wrap items-center gap-2 text-xs">
-                {origin ? (
+                {checkpointMutationsSupported && origin ? (
                   <>
                     <span className="shrink-0">Original</span>
                     <CopyablePath
@@ -519,7 +542,7 @@ export const FileHistoryBrowserPanel = ({
                 ) : (
                   <span>
                     {source === 'codex'
-                      ? 'Original path unavailable — Codex session metadata is not a trusted restore origin. Use Save as….'
+                      ? 'Original path unavailable — Codex session metadata is not a trusted restore origin. Checkpoint restore is unavailable.'
                       : 'Original path unknown — use Save as… (the session log this is recovered from may have been pruned).'}
                   </span>
                 )}
@@ -558,29 +581,31 @@ export const FileHistoryBrowserPanel = ({
         </div>
       )}
 
-      <RecoveryCopies
-        copies={recoveryCopies}
-        loading={recoveryLoading}
-        onRefresh={() => void loadRecoveryCopies()}
-        onRestore={async (id) => {
-          if (!window.confirm('Restore this recovery copy over its original file?')) return;
-          try {
-            await api.restoreCheckpointRecoveryCopy(source, id);
-            await loadRecoveryCopies();
-          } catch (err) {
-            setRecoveryError(errText(err));
-          }
-        }}
-        onDelete={async (id) => {
-          if (!window.confirm('Delete this recovery copy? This cannot be undone.')) return;
-          try {
-            await api.deleteCheckpointRecoveryCopy(source, id);
-            await loadRecoveryCopies();
-          } catch (err) {
-            setRecoveryError(errText(err));
-          }
-        }}
-      />
+      {checkpointMutationsSupported && (
+        <RecoveryCopies
+          copies={recoveryCopies}
+          loading={recoveryLoading}
+          onRefresh={() => void loadRecoveryCopies()}
+          onRestore={async (id) => {
+            if (!window.confirm('Restore this recovery copy over its original file?')) return;
+            try {
+              await api.restoreCheckpointRecoveryCopy(source, id);
+              await loadRecoveryCopies();
+            } catch (err) {
+              setRecoveryError(errText(err));
+            }
+          }}
+          onDelete={async (id) => {
+            if (!window.confirm('Delete this recovery copy? This cannot be undone.')) return;
+            try {
+              await api.deleteCheckpointRecoveryCopy(source, id);
+              await loadRecoveryCopies();
+            } catch (err) {
+              setRecoveryError(errText(err));
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

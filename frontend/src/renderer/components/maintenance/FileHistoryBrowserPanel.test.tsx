@@ -54,3 +54,9 @@ test('switching source invalidates detail responses even when the lane is reused
   expect(gate.isCurrent('content', requestA)).toBe(false);
   expect(gate.isCurrent('content', requestB)).toBe(true);
 });
+
+test('Codex checkpoint mutations stay unavailable in the browser UI', () => {
+  expect(panelSource).toContain("const checkpointMutationsSupported = source === 'claude';");
+  expect(panelSource).toContain('Save as… and Restore are unavailable for Codex checkpoints.');
+  expect(panelSource).toContain('{checkpointMutationsSupported && (');
+});

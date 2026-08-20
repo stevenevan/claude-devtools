@@ -111,6 +111,11 @@ fn create_locked(
     let mut records = load_records()?;
     let copy_path = dir.join(format!("{id}.bin"));
     write_private_file(&copy_path, &bytes)?;
+    let verified_copy = read_file(&copy_path)?;
+    if verified_copy != bytes {
+        let _ = remove_private_file(&copy_path);
+        return Err("recovery copy post-write verification failed".to_string());
+    }
     let record = RecoveryRecord {
         id: id.clone(),
         source,
@@ -279,7 +284,16 @@ fn write_atomic_checked(
                 );
             }
         }
-        fs::rename(&temporary, target).map_err(|error| format!("replace restore target: {error}"))
+        fs::rename(&temporary, target)
+            .map_err(|error| format!("replace restore target: {error}"))?;
+        let written = read_target(target)?;
+        if written != bytes {
+            return Err(
+                "restore target write completed but post-write verification failed; target may have changed"
+                    .to_string(),
+            );
+        }
+        Ok(())
     })();
     if result.is_err() {
         let _ = remove_private_file(&temporary);
@@ -640,6 +654,39 @@ fn to_public(record: RecoveryRecord) -> RecoveryCopy {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::ffi::OsString;
+    use std::sync::MutexGuard;
+
+    struct RecoveryTestEnv {
+        root: PathBuf,
+        old_app_data: Option<OsString>,
+        _guard: MutexGuard<'static, ()>,
+    }
+
+    impl Drop for RecoveryTestEnv {
+        fn drop(&mut self) {
+            match &self.old_app_data {
+                Some(value) => std::env::set_var("CLAUDE_DEVTOOLS_DIR", value),
+                None => std::env::remove_var("CLAUDE_DEVTOOLS_DIR"),
+            }
+            crate::testutil::remove_tree(self.root.clone());
+        }
+    }
+
+    fn recovery_test_env() -> RecoveryTestEnv {
+        let guard = crate::files::TEST_ENV_LOCK
+            .lock()
+            .expect("test environment lock");
+        let old_app_data = std::env::var_os("CLAUDE_DEVTOOLS_DIR");
+        let root = std::env::temp_dir().join(format!("codex-recovery-e2e-{}", Uuid::new_v4()));
+        fs::create_dir_all(&root).expect("create recovery test root");
+        std::env::set_var("CLAUDE_DEVTOOLS_DIR", root.join("app-data"));
+        RecoveryTestEnv {
+            root,
+            old_app_data,
+            _guard: guard,
+        }
+    }
 
     #[test]
     fn recovery_id_rejects_paths() {
@@ -687,6 +734,76 @@ mod tests {
         );
 
         fs::remove_file(&target).expect("remove recovery final-check target");
+    }
+
+    #[test]
+    fn recovery_transaction_verifies_copy_source_target_and_conflicts() {
+        let env = recovery_test_env();
+        let target = env.root.join("target.txt");
+        fs::write(&target, b"before").expect("write recovery transaction target");
+
+        let recovery = create_and_write_atomic_if_unchanged(
+            SourceKind::Claude,
+            "session",
+            "hash",
+            1,
+            &target,
+            b"after",
+        )
+        .expect("create and write recovery transaction");
+        assert_eq!(fs::read(&target).expect("read written target"), b"after");
+        assert_eq!(
+            list(SourceKind::Claude)
+                .expect("list recovery copies")
+                .len(),
+            1
+        );
+        assert!(get(SourceKind::Codex, &recovery.id).is_err());
+
+        let copy_path = recovery_dir()
+            .expect("recovery directory")
+            .join(format!("{}.bin", recovery.id));
+        fs::write(&copy_path, b"tampered").expect("tamper recovery copy");
+        let checksum_error = restore(SourceKind::Claude, &recovery.id, &target)
+            .expect_err("tampered recovery copy must be rejected");
+        assert!(checksum_error.contains("checksum"));
+        assert_eq!(fs::read(&target).expect("read unchanged target"), b"after");
+
+        fs::write(&copy_path, b"before").expect("repair recovery copy fixture");
+        fs::write(&target, b"changed").expect("change target after write");
+        let conflict = restore(SourceKind::Claude, &recovery.id, &target)
+            .expect_err("changed target must be rejected");
+        assert!(conflict.contains("target changed"));
+        assert_eq!(
+            fs::read(&target).expect("read conflicted target"),
+            b"changed"
+        );
+
+        fs::write(&target, b"after").expect("restore expected post-write state");
+        restore(SourceKind::Claude, &recovery.id, &target).expect("restore verified copy");
+        assert_eq!(fs::read(&target).expect("read restored target"), b"before");
+        delete(SourceKind::Claude, &recovery.id).expect("delete recovery copy");
+        assert!(list(SourceKind::Claude)
+            .expect("list deleted recovery copies")
+            .is_empty());
+    }
+
+    #[test]
+    fn restore_target_rejects_traversal_and_symlink_paths() {
+        assert!(validate_target(Path::new("/tmp/../restore-target")).is_err());
+
+        #[cfg(unix)]
+        {
+            let root =
+                std::env::temp_dir().join(format!("codex-recovery-symlink-{}", Uuid::new_v4()));
+            fs::create_dir_all(&root).expect("create symlink test root");
+            let outside = root.join("outside.txt");
+            let link = root.join("link.txt");
+            fs::write(&outside, b"outside").expect("write symlink target");
+            std::os::unix::fs::symlink(&outside, &link).expect("create symlink target");
+            assert!(validate_target(&link).is_err());
+            crate::testutil::remove_tree(root);
+        }
     }
 
     #[test]

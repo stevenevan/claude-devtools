@@ -804,7 +804,18 @@ fn write_user_selected_file(path: &Path, bytes: &[u8]) -> Result<(), String> {
             .map_err(|error| format!("sync selected save temporary file: {error}"))?;
         drop(file);
         validate_write_path(path)?;
-        fs::rename(&temporary, path).map_err(|error| format!("replace selected save path: {error}"))
+        fs::rename(&temporary, path)
+            .map_err(|error| format!("replace selected save path: {error}"))?;
+        validate_write_path(path)?;
+        let written = fs::read(path)
+            .map_err(|error| format!("read selected save path after write: {error}"))?;
+        if written != bytes {
+            return Err(
+                "selected save target write completed but post-write verification failed; target may have changed"
+                    .to_string(),
+            );
+        }
+        Ok(())
     })();
     if result.is_err() {
         let _ = fs::remove_file(&temporary);
@@ -1044,6 +1055,51 @@ fn ensure_codex_mutation_supported(source_kind: SourceKind) -> Result<(), String
         );
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn codex_checkpoint_mutations_fail_closed_before_dialog_or_write() {
+        let error = ensure_codex_mutation_supported(SourceKind::Codex)
+            .expect_err("Codex checkpoint mutation must remain unavailable");
+        assert_eq!(
+            error,
+            "Codex checkpoint Save as and Restore are unavailable until the producer and origin contracts are pinned"
+        );
+        assert!(ensure_codex_mutation_supported(SourceKind::Claude).is_ok());
+    }
+
+    #[test]
+    fn selected_save_writes_and_verifies_only_a_regular_user_path() {
+        let root =
+            std::env::temp_dir().join(format!("codex-selected-save-{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(&root).expect("create selected save test root");
+        let target = root.join("selected.txt");
+        write_user_selected_file(&target, b"selected bytes").expect("write selected file");
+        assert_eq!(
+            fs::read(&target).expect("read selected file"),
+            b"selected bytes"
+        );
+        assert!(validate_write_path(Path::new("/tmp/../selected.txt")).is_err());
+
+        #[cfg(unix)]
+        {
+            let outside = root.join("outside.txt");
+            let link = root.join("link.txt");
+            fs::write(&outside, b"outside").expect("write outside file");
+            std::os::unix::fs::symlink(&outside, &link).expect("create selected save symlink");
+            assert!(write_user_selected_file(&link, b"must not write").is_err());
+            assert_eq!(
+                fs::read(&outside).expect("read unchanged outside file"),
+                b"outside"
+            );
+        }
+
+        crate::testutil::remove_tree(root);
+    }
 }
 
 fn validate_component(value: &str, label: &str) -> Result<(), String> {
