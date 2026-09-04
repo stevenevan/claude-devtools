@@ -2,12 +2,15 @@ import { JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertList } from '@renderer/components/notifications/AlertList';
 import { Button } from '@renderer/components/ui/button';
 import { confirm } from '@renderer/components/common/ConfirmDialog';
+import { EmptyState } from '@renderer/components/common/EmptyState';
+import { ErrorState } from '@renderer/components/common/ErrorState';
+import { LoadingState } from '@renderer/components/common/LoadingState';
 import { useUIMode } from '@renderer/hooks/useUIMode';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import { getTriggerColorDef } from '@shared/constants/triggerColors';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { CheckCheck, Inbox, Loader2, Trash2 } from 'lucide-react';
+import { CheckCheck, Inbox, Trash2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { getAlertTarget, orderAlerts } from './alertPresentation';
@@ -253,24 +256,19 @@ const NerdNotificationsView = ({
 
       <div ref={parentRef} className="flex-1 overflow-y-auto">
         {notificationsLoading && notifications.length === 0 ? (
-          <div role="status" className="text-muted-foreground flex items-center justify-center py-16 text-sm">
-            <Loader2 aria-hidden="true" className="mr-2 size-5 animate-spin" />
-            Loading notifications...
-          </div>
+          <LoadingState label="Loading notifications" rows={6} />
         ) : notificationsError && notifications.length === 0 ? (
-          <div className="text-muted-foreground flex flex-col items-center justify-center py-16 text-sm">
-            <p>Retry to load notifications.</p>
-          </div>
+          <ErrorState
+            message="Could not load notifications."
+            detail={notificationsError}
+            onRetry={() => void fetchNotifications()}
+          />
         ) : filteredNotifications.length === 0 ? (
-          <div className="text-muted-foreground flex flex-col items-center justify-center py-16">
-            <Inbox aria-hidden="true" className="mb-3 size-10 opacity-30" />
-            <p className="mb-1 text-sm font-medium">
-              {activeFilter !== null ? 'No matching notifications' : 'No notifications'}
-            </p>
-            <p className="text-xs opacity-70">
-              {activeFilter !== null ? 'Try a different filter' : "You're all caught up!"}
-            </p>
-          </div>
+          <EmptyState
+            icon={Inbox}
+            title={activeFilter !== null ? 'No matching notifications' : 'No notifications'}
+            hint={activeFilter !== null ? 'Try a different filter' : "You're all caught up!"}
+          />
         ) : (
           <div
             style={{

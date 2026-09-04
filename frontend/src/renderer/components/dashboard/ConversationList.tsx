@@ -4,8 +4,11 @@ import { Button } from '@renderer/components/ui/button';
 import {
   VIRTUAL_LIST_OVERSCAN,
   VIRTUAL_LIST_THRESHOLD,
-  VirtualListSkeleton,
 } from '@renderer/components/common/VirtualList';
+import { EmptyState } from '@renderer/components/common/EmptyState';
+import { ErrorState } from '@renderer/components/common/ErrorState';
+import { LoadingState } from '@renderer/components/common/LoadingState';
+import { MessagesSquare } from 'lucide-react';
 import { useStore } from '@renderer/store';
 import { Loader2 } from 'lucide-react';
 
@@ -241,20 +244,21 @@ export const ConversationList = (): JSX.Element => {
       )}
 
       {conversationFeedLoading && !hasRows ? (
-        <VirtualListSkeleton rows={8} ariaLabel="Loading conversations" />
+        <LoadingState label="Loading conversations" rows={8} />
       ) : conversationFeedError && !hasRows ? (
-        <div className="flex flex-1 items-center justify-center px-6 text-center">
-          <p className="text-muted-foreground text-sm">Retry to load your conversations.</p>
-        </div>
+        <ErrorState
+          message="Could not load conversations."
+          detail={conversationFeedError}
+          onRetry={() =>
+            void (canRetryAppend ? fetchMoreConversationFeed() : fetchConversationFeed(true))
+          }
+        />
       ) : !hasRows ? (
-        <div className="flex flex-1 items-center justify-center px-6 text-center">
-          <div className="max-w-sm">
-            <p className="text-foreground text-sm font-medium">No conversations yet</p>
-            <p className="text-muted-foreground mt-1 text-sm">
-              Start a conversation in Claude Code and it will appear here.
-            </p>
-          </div>
-        </div>
+        <EmptyState
+          icon={MessagesSquare}
+          title="No conversations yet"
+          hint="Start a conversation in Claude Code and it will appear here."
+        />
       ) : isVirtualized ? (
         <div
           ref={parentRef}

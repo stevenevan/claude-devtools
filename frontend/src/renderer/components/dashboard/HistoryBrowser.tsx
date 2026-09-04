@@ -14,10 +14,9 @@ import { cn } from '@renderer/lib/utils';
 import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
 import { InspectorSourceSelector } from './InspectorSourceSelector';
-import {
-  VIRTUAL_LIST_OVERSCAN,
-  VirtualListSkeleton,
-} from '@renderer/components/common/VirtualList';
+import { EmptyState } from '@renderer/components/common/EmptyState';
+import { LoadingState } from '@renderer/components/common/LoadingState';
+import { VIRTUAL_LIST_OVERSCAN } from '@renderer/components/common/VirtualList';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { History as HistoryIcon, Loader2, RefreshCw, Search } from 'lucide-react';
@@ -316,20 +315,32 @@ export const HistoryBrowser = (): JSX.Element => {
           className="border-border/50 flex-1 overflow-y-auto border-r"
         >
           {loading && entries.length === 0 ? (
-            <VirtualListSkeleton rows={8} ariaLabel="Loading history" />
+            <LoadingState label="Loading history" rows={8} />
           ) : filteredEntries.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
-              <HistoryIcon className="text-muted-foreground size-6 opacity-50" />
-              <p className="text-muted-foreground text-xs">
-                {entries.length === 0
+            <EmptyState
+              icon={HistoryIcon}
+              title={
+                entries.length === 0
                   ? mode === 'simple'
-                    ? `Nothing here yet. Use ${inspectorSource === 'codex' ? 'Codex' : 'Claude Code'} to create history entries.`
-                    : `No ${inspectorSource === 'codex' ? 'Codex' : 'Claude'} history entries found.`
+                    ? 'Nothing here yet'
+                    : `No ${inspectorSource === 'codex' ? 'Codex' : 'Claude'} history entries found`
+                  : 'No matching entries'
+              }
+              hint={
+                entries.length === 0
+                  ? mode === 'simple'
+                    ? `Use ${inspectorSource === 'codex' ? 'Codex' : 'Claude Code'} to create history entries.`
+                    : 'Prompts you write are saved here for reuse.'
                   : mode === 'simple'
                     ? 'Nothing found. Try a different word, or clear the folder filter.'
-                    : 'No entries match this project filter.'}
-              </p>
-            </div>
+                    : 'No entries match this project filter.'
+              }
+              detail={
+                entries.length === 0 && mode !== 'simple'
+                  ? `Read-only view of prompt history captured under ~/.${inspectorSource === 'codex' ? 'codex' : 'claude'}/history.jsonl.`
+                  : undefined
+              }
+            />
           ) : (
             <div className="relative w-full" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
               {virtualRows.map((virtualRow) => {

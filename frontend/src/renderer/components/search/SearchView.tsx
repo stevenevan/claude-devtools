@@ -7,7 +7,6 @@ import {
   Clock,
   Filter,
   GitBranch,
-  Loader2,
   MessageSquare,
   Search,
   Sparkles,
@@ -16,6 +15,8 @@ import {
 import { useShallow } from 'zustand/react/shallow';
 
 import { ParsedFilterChips } from './ParsedFilterChips';
+import { EmptyState } from '@renderer/components/common/EmptyState';
+import { LoadingState } from '@renderer/components/common/LoadingState';
 
 import type { FilteredSearchResult, SearchFilters } from '@shared/types';
 import type { ParsedNLQuery } from '@shared/types/api';
@@ -244,11 +245,7 @@ export const SearchView = (): JSX.Element => {
           </div>
         )}
 
-        {loading && (
-          <div className="flex justify-center py-12">
-            <Loader2 className="text-muted-foreground size-6 animate-spin" />
-          </div>
-        )}
+        {loading && <LoadingState label="Searching" rows={5} />}
 
         {!loading && results.length > 0 && (
           <div className="space-y-2">
@@ -307,32 +304,21 @@ export const SearchView = (): JSX.Element => {
         )}
 
         {!loading && hasSearched && results.length === 0 && (
-          <div className="py-16 text-center">
-            <Search className="text-muted-foreground mx-auto mb-3 size-8 opacity-50" />
-            <p className="text-muted-foreground text-sm">No sessions match your search</p>
-            {hasFilters && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="text-muted-foreground mt-3"
-              >
-                Clear filters
-              </Button>
-            )}
-          </div>
+          <EmptyState
+            icon={Search}
+            title="No sessions match your search"
+            hint={hasFilters ? 'Try clearing the filters below.' : 'Try a different query.'}
+            actionLabel={hasFilters ? 'Clear filters' : undefined}
+            onAction={hasFilters ? clearFilters : undefined}
+          />
         )}
 
         {!hasSearched && (
-          <div className="py-16 text-center">
-            <Search className="text-muted-foreground mx-auto mb-3 size-8 opacity-50" />
-            <p className="text-muted-foreground text-sm">
-              Search across all your Claude Code sessions
-            </p>
-            <p className="text-muted-foreground mt-1 text-xs">
-              Type a query or use filters to get started
-            </p>
-          </div>
+          <EmptyState
+            icon={Search}
+            title="Search across all your Claude Code sessions"
+            hint="Type a query or use filters to get started"
+          />
         )}
       </div>
     </div>

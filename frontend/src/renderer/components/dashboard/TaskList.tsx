@@ -1,6 +1,10 @@
 import { JSX, useMemo, useRef, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
-import { VirtualList, VirtualListSkeleton } from '@renderer/components/common/VirtualList';
+import { VirtualList } from '@renderer/components/common/VirtualList';
+import { EmptyState } from '@renderer/components/common/EmptyState';
+import { ErrorState } from '@renderer/components/common/ErrorState';
+import { LoadingState } from '@renderer/components/common/LoadingState';
+import { ListTodo } from 'lucide-react';
 import {
   conversationSubjectKey,
   useConversationSubjects,
@@ -329,18 +333,11 @@ export const TaskList = ({
       )}
 
       {loading && !hasTasks ? (
-        <VirtualListSkeleton rows={6} ariaLabel="Loading tasks" />
+        <LoadingState label="Loading tasks" rows={6} />
       ) : error && !hasTasks ? (
-        <div role="alert" className="flex flex-1 items-center justify-center px-6 text-center">
-          <div className="max-w-sm">
-            <p className="text-foreground text-sm font-medium">Could not load tasks</p>
-            <p className="text-muted-foreground mt-1 text-sm">{sanitizeSimpleText(error)}</p>
-          </div>
-        </div>
+        <ErrorState message="Could not load tasks" detail={error ?? undefined} />
       ) : !hasTasks ? (
-        <div className="flex flex-1 items-center justify-center px-6 text-center">
-          <p className="text-muted-foreground text-sm">No tasks to show right now.</p>
-        </div>
+        <EmptyState icon={ListTodo} title="No tasks to show right now." />
       ) : (
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-6">
           {loading && (

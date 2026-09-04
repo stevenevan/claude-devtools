@@ -1,6 +1,7 @@
 import { JSX, ReactNode, useEffect, useState } from 'react';
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
+import { ErrorState } from '@renderer/components/common/ErrorState';
 import { useUIMode } from '@renderer/hooks/useUIMode';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
@@ -452,8 +453,8 @@ export const MaintenanceView = (): JSX.Element => {
       )}
 
       {error && !simpleSummary && activeTab === 'storage' && (
-        <div className="border-border/50 bg-destructive/10 text-destructive shrink-0 border-b px-4 py-2 text-xs">
-          {error}
+        <div className="shrink-0 border-b border-border/50">
+          <ErrorState message="Storage scan failed." detail={error} />
         </div>
       )}
 

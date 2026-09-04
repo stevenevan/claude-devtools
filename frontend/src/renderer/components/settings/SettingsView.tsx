@@ -1,8 +1,9 @@
 import { JSX, useEffect, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
+import { ErrorState } from '@renderer/components/common/ErrorState';
+import { LoadingState } from '@renderer/components/common/LoadingState';
 import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
-import { Loader2 } from 'lucide-react';
 
 import { useSettingsConfig, useSettingsHandlers } from './hooks';
 import { SimpleSettings } from './SimpleSettings';
@@ -84,24 +85,20 @@ export const SettingsView = (): JSX.Element | null => {
 
   if (loading) {
     return (
-      <div className="bg-background flex flex-1 items-center justify-center">
-        <div className="text-muted-foreground flex items-center gap-3">
-          <Loader2 className="size-5 animate-spin" />
-          <span>Loading settings...</span>
-        </div>
+      <div className="bg-background flex flex-1">
+        <LoadingState label="Loading settings" rows={6} />
       </div>
     );
   }
 
   if (error && !config) {
     return (
-      <div className="bg-background flex flex-1 items-center justify-center">
-        <div className="text-center">
-          <p className="mb-4 text-red-400">{error}</p>
-          <Button variant="secondary" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
+      <div className="bg-background flex flex-1">
+        <ErrorState
+          message="Could not load settings."
+          detail={error}
+          onRetry={() => window.location.reload()}
+        />
       </div>
     );
   }

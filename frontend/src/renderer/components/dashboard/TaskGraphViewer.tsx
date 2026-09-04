@@ -1,6 +1,9 @@
 import { JSX, useEffect, useRef, useState } from 'react';
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
+import { EmptyState } from '@renderer/components/common/EmptyState';
+import { ErrorState } from '@renderer/components/common/ErrorState';
+import { LoadingState } from '@renderer/components/common/LoadingState';
 import { InspectorSourceSelector } from './InspectorSourceSelector';
 import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
@@ -166,21 +169,24 @@ export const TaskGraphViewer = (): JSX.Element => {
           className="border-border/50 w-64 shrink-0 overflow-y-auto border-r"
         >
           {listLoading ? (
-            <p role="status" className="text-muted-foreground px-4 py-3 text-xs">
-              Loading…
-            </p>
+            <LoadingState label="Loading task graphs" rows={6} />
           ) : graphs.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
-              <Workflow className="text-muted-foreground size-6 opacity-50" />
-              <p className="text-muted-foreground text-xs">
-                {capabilityReason ??
-                  (inspectorSource === 'codex'
-                    ? 'No compatible Codex task graphs found under ~/.codex/tasks.'
-                    : simple
-                      ? 'Nothing to show yet. This is normal when Claude has not handed work to a helper.'
-                      : 'No active task graphs found under ~/.claude/tasks.')}
-              </p>
-            </div>
+            <EmptyState
+              icon={Workflow}
+              title={capabilityReason ?? 'No task graphs to show'}
+              hint={
+                capabilityReason
+                  ? undefined
+                  : simple
+                    ? 'This is normal when Claude has not handed work to a helper.'
+                    : 'No active task graphs found.'
+              }
+              detail={
+                capabilityReason || simple
+                  ? undefined
+                  : `Looked under ~/.${inspectorSource === 'codex' ? 'codex' : 'claude'}/tasks.`
+              }
+            />
           ) : (
             graphs.map((graph) => (
               <TaskGraphRow
@@ -318,25 +324,13 @@ const TaskGraphDetail = ({
   }, [sourceKind, uuid, inspectorSourceGeneration, refreshGeneration]);
 
   if (loading) {
-    return (
-      <p role="status" className="text-muted-foreground px-4 py-3 text-xs">
-        Loading…
-      </p>
-    );
+    return <LoadingState label="Loading task graph" rows={5} />;
   }
   if (error) {
-    return (
-      <p role="alert" className="text-muted-foreground px-4 py-3 text-xs">
-        {error}
-      </p>
-    );
+    return <ErrorState message="Could not load this task graph." detail={error} />;
   }
   if (nodes.length === 0) {
-    return (
-      <p className="text-muted-foreground px-4 py-3 text-xs">
-        This task dir is no longer available.
-      </p>
-    );
+    return <EmptyState icon={GitBranch} title="This task dir is no longer available." />;
   }
 
   if (simple || viewMode === 'outline') {
