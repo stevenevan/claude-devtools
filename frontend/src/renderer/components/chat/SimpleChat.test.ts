@@ -267,3 +267,69 @@ test('SimpleChat never exposes plan content', () => {
   expect(simpleAssistant?.content).toBe('Claude prepared a plan.');
   expect(simpleAssistant?.content).not.toContain('plan.jsonl');
 });
+
+test('SimpleChat merges consecutive duplicate tool steps into one counted step', () => {
+  const source = conversation();
+  const assistant = source.items.find((item) => item.type === 'ai');
+  if (!assistant || assistant.type !== 'ai') throw new Error('Expected assistant item');
+
+  assistant.group.steps = [
+    step('read-1', 'tool_call', {
+      toolName: 'Read',
+      toolInput: { file_path: '/private/project/notes.txt' },
+    }),
+    step('read-2', 'tool_call', {
+      toolName: 'Read',
+      toolInput: { file_path: '/private/project/notes.txt' },
+    }),
+    step('read-3', 'tool_call', {
+      toolName: 'Read',
+      toolInput: { file_path: '/private/project/notes.txt' },
+    }),
+    step('bash-1', 'tool_call', {
+      toolName: 'Bash',
+      toolInput: { command: 'ls' },
+    }),
+  ];
+
+  const simple = createSimpleConversation(source);
+  const simpleAssistant = simple?.items.find((item) => item.type === 'ai');
+
+  expect(simpleAssistant?.stepSummary?.steps.map((entry) => entry.text)).toEqual([
+    'Read notes.txt (×3)',
+    'Ran a command',
+  ]);
+});
+
+test('SimpleChat renders a subagent-heavy compaction session as narrative in Simple and evidence in Nerd', () => {
+  const source = conversation();
+  const assistant = source.items.find((item) => item.type === 'ai');
+  if (!assistant || assistant.type !== 'ai') throw new Error('Expected assistant item');
+
+  const simple = createSimpleConversation(source);
+  const simpleAssistant = simple?.items.find((item) => item.type === 'ai');
+  const simpleCompact = simple?.items.find((item) => item.type === 'compact');
+  if (!simpleAssistant || simpleAssistant.type !== 'ai') throw new Error('Expected simple AI item');
+
+  const simpleText = [
+    simpleAssistant.content,
+    ...(simpleAssistant.stepSummary?.steps.map((entry) => entry.text) ?? []),
+    simpleCompact?.type === 'compact' ? simpleCompact.content : '',
+  ].join(' ');
+  for (const jargon of ['claude-opus', 'claude-sonnet', 'tokens', '/private/project', 'task-1', 'helper-1']) {
+    expect(simpleText).not.toContain(jargon);
+  }
+  expect(simpleAssistant.stepSummary?.steps.map((entry) => entry.text)).toContain(
+    'Asked a helper for help'
+  );
+  expect(simpleCompact?.type === 'compact' ? simpleCompact.content : '').toContain('summarised');
+
+  const nerdItem = source.items.find((item) => item.type === 'ai');
+  if (!nerdItem || nerdItem.type !== 'ai') throw new Error('Expected nerd AI item');
+  const nerdToolNames = nerdItem.group.steps
+    .filter((entry) => entry.type === 'tool_call')
+    .map((entry) => (entry.content as { toolName?: string }).toolName);
+  expect(nerdToolNames).toEqual(['Read', 'Bash', 'Task']);
+  expect(nerdItem.group.processes.map((entry) => entry.id)).toEqual(['helper-1']);
+  expect(nerdItem.group.turnIndex).toBe(4);
+});

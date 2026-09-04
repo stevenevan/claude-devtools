@@ -9,6 +9,21 @@ import type { SimpleChatItem, SimpleConversation, SimpleStepSummary } from '@ren
 
 export type { SimpleChatItem, SimpleConversation, SimpleStepSummary } from '@renderer/types/simpleChat';
 
+// Sprint 05 Simple thread rules: the narrative thread keeps user prompts
+// (sanitized), the assistant's final text, one "what Claude did" card per AI
+// turn, and compaction notices. Dropped: thinking blocks, raw tool I/O,
+// model IDs, token counts, paths, UUIDs, and system/event items. Consecutive
+// duplicate tool steps merge into a single counted step so a retry loop reads
+// as one line. The shared grouping engine output shape is untouched.
+export const SIMPLE_THREAD_RULES = [
+  'user turns keep sanitized text only',
+  'ai turns keep final text plus one step card',
+  'thinking and raw tool output are dropped',
+  'consecutive duplicate steps merge with a repeat count',
+  'compaction renders as a fixed status notice',
+  'system and event items are omitted',
+] as const;
+
 function getPrecedingSlash(items: ChatItem[], index: number): PrecedingSlashInfo | undefined {
   for (let previousIndex = index - 1; previousIndex >= 0; previousIndex--) {
     const previousItem = items[previousIndex];
@@ -77,7 +92,32 @@ function getSimpleStepSummary(
 
   if (steps.length === 0) return null;
 
-  return { id: `simple-steps-${groupId}`, steps };
+  return { id: `simple-steps-${groupId}`, steps: mergeConsecutiveDuplicateSteps(steps) };
+}
+
+function mergeConsecutiveDuplicateSteps(
+  steps: { id: string; text: string }[]
+): { id: string; text: string }[] {
+  const merged: { id: string; text: string }[] = [];
+  for (const step of steps) {
+    const previous = merged[merged.length - 1];
+    if (previous && stripRepeatCount(previous.text) === step.text) {
+      const count = countStepRepeats(previous.text);
+      previous.text = `${stripRepeatCount(previous.text)} (×${count + 1})`;
+      continue;
+    }
+    merged.push({ ...step });
+  }
+  return merged;
+}
+
+function countStepRepeats(text: string): number {
+  const match = text.match(/\(×(\d+)\)$/);
+  return match?.[1] ? Number.parseInt(match[1], 10) : 1;
+}
+
+function stripRepeatCount(text: string): string {
+  return text.replace(/ \(×\d+\)$/, '');
 }
 
 function cloneGroupForSimpleEnhancement(item: Extract<ChatItem, { type: 'ai' }>['group']) {

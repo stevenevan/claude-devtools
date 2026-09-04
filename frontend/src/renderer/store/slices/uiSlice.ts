@@ -84,9 +84,11 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set, get)
   shortcutCheatSheetOpen: false,
   helpPanelOpen: false,
   contextHeatmapVisible: loadContextHeatmapVisible(),
-  flameGraphVisible: false,
-  teamTreeVisible: false,
-  fileGraphVisible: false,
+  // Sprint 05: Nerd detail panels start open; MiddlePanel only renders them
+  // in Nerd mode and every toggle stays user-reversible.
+  flameGraphVisible: true,
+  teamTreeVisible: true,
+  fileGraphVisible: true,
   durationOutlierSessionIds: new Set<string>(),
 
   // Command palette actions

@@ -1,8 +1,9 @@
 import { JSX, useEffect } from 'react';
 import { Button } from '@renderer/components/ui/button';
+import { ErrorState } from '@renderer/components/common/ErrorState';
+import { LoadingState } from '@renderer/components/common/LoadingState';
 import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
-import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { SubagentDetailPanel } from '../chat/SubagentDetailPanel';
@@ -58,31 +59,21 @@ export const SessionTabContent = ({
 
   if (sessionDetailError) {
     return (
-      <div className="bg-background flex flex-1 items-center justify-center">
-        <div className="p-8 text-center">
-          <AlertCircle className="mx-auto mb-4 size-12 text-red-500/70" />
-          <h3 className="text-foreground mb-2 text-lg font-medium">Failed to load session</h3>
-          <p className="text-foreground-secondary mb-4 max-w-md text-sm">
-            {mode === 'simple' ? 'Try loading this conversation again.' : sessionDetailError}
-          </p>
-          <div className="flex justify-center gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                if (tab.projectId && tab.sessionId) {
-                  void fetchSessionDetail(tab.projectId, tab.sessionId, tab.id);
-                }
-              }}
-              className="gap-2"
-            >
-              <RefreshCw className="size-4" />
-              Retry
-            </Button>
-            <Button type="button" variant="ghost" onClick={() => closeTab(tab.id)}>
-              Close tab
-            </Button>
-          </div>
+      <div className="bg-background flex min-w-0 flex-1 flex-col overflow-hidden">
+        <ErrorState
+          message="Failed to load session"
+          detail={mode === 'simple' ? undefined : sessionDetailError}
+          retryLabel="Retry"
+          onRetry={() => {
+            if (tab.projectId && tab.sessionId) {
+              void fetchSessionDetail(tab.projectId, tab.sessionId, tab.id);
+            }
+          }}
+        />
+        <div className="flex justify-center pb-8">
+          <Button type="button" variant="ghost" onClick={() => closeTab(tab.id)}>
+            Close tab
+          </Button>
         </div>
       </div>
     );
@@ -90,11 +81,8 @@ export const SessionTabContent = ({
 
   if (sessionDetailLoading) {
     return (
-      <div className="bg-background flex flex-1 items-center justify-center">
-        <div className="text-center">
-          <div className="border-muted-foreground border-t-foreground mx-auto mb-4 size-8 animate-spin rounded-full border-2" />
-          <p className="text-foreground-secondary text-sm">Loading session...</p>
-        </div>
+      <div className="bg-background flex min-w-0 flex-1 flex-col overflow-hidden">
+        <LoadingState label="Loading session" rows={6} />
       </div>
     );
   }
