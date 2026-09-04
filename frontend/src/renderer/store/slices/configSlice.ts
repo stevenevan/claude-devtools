@@ -12,6 +12,8 @@ import type { StateCreator } from 'zustand';
 
 const logger = createLogger('Store:config');
 
+let inflightPreload: Promise<void> | null = null;
+
 export interface BookmarkEntry {
   id: string;
   sessionId: string;
@@ -21,10 +23,13 @@ export interface BookmarkEntry {
   createdAt: number;
 }
 
+export type ConfigPreloadStatus = 'idle' | 'loading' | 'ready' | 'error';
+
 export interface ConfigSlice {
   appConfig: AppConfig | null;
   configLoading: boolean;
   configError: string | null;
+  configStatus: ConfigPreloadStatus;
   pendingSettingsSection: string | null;
 
   bookmarks: BookmarkEntry[];
@@ -33,6 +38,7 @@ export interface ConfigSlice {
   sessionTags: Map<string, string[]>;
 
   fetchConfig: () => Promise<void>;
+  preloadConfig: () => Promise<void>;
   updateConfig: (section: string, data: Record<string, unknown>) => Promise<void>;
   openSettingsTab: (section?: string) => void;
   clearPendingSettingsSection: () => void;
@@ -70,25 +76,39 @@ export const createConfigSlice: StateCreator<AppState, [], [], ConfigSlice> = (s
   appConfig: null,
   configLoading: false,
   configError: null,
+  configStatus: 'idle',
   pendingSettingsSection: null,
   bookmarks: [],
   bookmarksLoading: false,
   sessionTags: new Map(),
 
   fetchConfig: async () => {
-    set({ configLoading: true, configError: null });
+    set({ configLoading: true, configError: null, configStatus: 'loading' });
     try {
       const config = await api.config.get();
       set({
         appConfig: config,
         configLoading: false,
+        configStatus: 'ready',
       });
     } catch (error) {
       set({
         configError: error instanceof Error ? error.message : 'Failed to fetch config',
         configLoading: false,
+        configStatus: 'error',
       });
     }
+  },
+
+  preloadConfig: () => {
+    if (!inflightPreload) {
+      inflightPreload = get()
+        .fetchConfig()
+        .finally(() => {
+          inflightPreload = null;
+        });
+    }
+    return inflightPreload;
   },
 
   updateConfig: async (section: string, data: Record<string, unknown>) => {
