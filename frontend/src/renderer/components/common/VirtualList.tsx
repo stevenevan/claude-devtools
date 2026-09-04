@@ -57,6 +57,7 @@ export interface VirtualListProps<T> {
   scrollContainerRef?: { current: HTMLElement | null };
   className?: string;
   rowClassName?: string;
+  endSentinel?: ReactNode;
 }
 
 function measureRow(element: HTMLElement): number {
@@ -75,6 +76,7 @@ export function VirtualList<T>({
   scrollContainerRef,
   className,
   rowClassName,
+  endSentinel,
 }: Readonly<VirtualListProps<T>>): JSX.Element {
   const plan = resolveVirtualListPlan(items.length, threshold, overscan);
   const ownScrollRef = useRef<HTMLDivElement>(null);
@@ -132,6 +134,7 @@ export function VirtualList<T>({
     return (
       <div ref={ownScrollRef} role="list" aria-label={ariaLabel} className={cn('flex-1 overflow-y-auto', className)}>
         {rows}
+        {endSentinel}
       </div>
     );
   }
@@ -176,6 +179,7 @@ export function VirtualList<T>({
       className={cn('flex-1 overflow-y-auto', className)}
     >
       {window}
+      {endSentinel}
     </div>
   );
 }

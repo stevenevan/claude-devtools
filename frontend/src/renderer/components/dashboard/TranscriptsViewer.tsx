@@ -1,13 +1,21 @@
-import { JSX, useEffect, useRef, useState } from 'react';
+import { JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '@renderer/api';
 import { CodeBlockViewer } from '@renderer/components/chat/viewers';
+import { EmptyState } from '@renderer/components/common/EmptyState';
+import { ErrorState } from '@renderer/components/common/ErrorState';
+import { LoadingState } from '@renderer/components/common/LoadingState';
+import {
+  VIRTUAL_LIST_OVERSCAN,
+  VirtualList,
+} from '@renderer/components/common/VirtualList';
 import { Button } from '@renderer/components/ui/button';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
 import { InspectorSourceSelector } from './InspectorSourceSelector';
 import { InspectorEventCard } from './InspectorEventList';
+import { buildSimpleTranscript } from './transcriptSimpleSteps';
 import { cn } from '@renderer/lib/utils';
 import { formatBytes } from '@renderer/utils/formatters';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { RefreshCw, ScrollText } from 'lucide-react';
 
 import type {
@@ -18,19 +26,24 @@ import type {
 } from '@shared/types/api';
 
 const ROW_HEIGHT = 52;
-const OVERSCAN = 8;
-
-const estimateRowSize = (): number => ROW_HEIGHT;
+const OVERSCAN = VIRTUAL_LIST_OVERSCAN;
+const TRANSCRIPT_LIST_THRESHOLD = 100;
 
 function errText(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
 // Read-only view of ~/.claude/transcripts/ses_*.jsonl subagent transcripts.
-// Master-detail: pick a transcript on the left (virtualized, ~2200 rows),
-// its flat 3-type record log renders on the right via a dedicated per-kind
-// renderer (no chat pipeline / DisplayItemList). This panel writes nothing.
+// Master-detail: pick a transcript on the left (shared VirtualList), its
+// flat 3-type record log renders on the right. Simple mode reuses the sprint
+// 05 thread rules verbatim (narrative user text plus one step list, no paths
+// or raw tool JSON); Nerd mode keeps the full per-kind cards. Any intentional
+// divergence from the session view is noted here: transcript records are flat
+// (no grouping engine), so tool_use/tool_result pairs merge by adjacency
+// instead of by display item. This panel writes nothing.
 export const TranscriptsViewer = (): JSX.Element => {
+  const mode = useUIMode();
+  const simple = mode === 'simple';
   const inspectorSource = useStore((state) => state.inspectorSource);
   const inspectorSourceGeneration = useStore((state) => state.inspectorSourceGeneration);
   const getInspectorCacheKey = useStore((state) => state.getInspectorCacheKey);
@@ -55,7 +68,7 @@ export const TranscriptsViewer = (): JSX.Element => {
   const [recordsDiagnostics, setRecordsDiagnostics] = useState<string[]>([]);
   const [recordsScanLimited, setRecordsScanLimited] = useState(false);
 
-  const parentRef = useRef<HTMLDivElement>(null);
+  const detailScrollRef = useRef<HTMLDivElement>(null);
   const requestGenerationRef = useRef(0);
 
   const loadList = async (cursor: string | null = null, append = false): Promise<void> => {
@@ -195,13 +208,6 @@ export const TranscriptsViewer = (): JSX.Element => {
     }
   };
 
-  const rowVirtualizer = useVirtualizer({
-    count: transcripts.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: estimateRowSize,
-    overscan: OVERSCAN,
-  });
-
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="border-border/50 flex shrink-0 items-start justify-between gap-2 border-b px-4 py-3">
@@ -232,77 +238,78 @@ export const TranscriptsViewer = (): JSX.Element => {
       )}
 
       <div className="flex flex-1 overflow-hidden">
-        <div
-          ref={parentRef}
-          aria-label="Transcripts"
-          className="border-border/50 w-72 shrink-0 overflow-y-auto border-r"
-        >
+        <div className="border-border/50 flex w-72 shrink-0 flex-col overflow-hidden border-r">
           {listLoading ? (
-            <p role="status" className="text-muted-foreground px-4 py-3 text-xs">
-              Loading…
-            </p>
+            <LoadingState label="Loading transcripts" rows={6} />
           ) : transcripts.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
-              <ScrollText className="text-muted-foreground size-6 opacity-50" />
-              <p className="text-muted-foreground text-xs">
-                No transcripts found under{' '}
-                {inspectorSource === 'codex' ? '~/.codex/sessions' : '~/.claude/transcripts'}.
-              </p>
-            </div>
+            <EmptyState
+              icon={ScrollText}
+              title={
+                simple
+                  ? 'Nothing here yet'
+                  : `No ${inspectorSource === 'codex' ? 'Codex' : 'Claude'} transcripts found`
+              }
+              hint={
+                simple
+                  ? 'Helper transcripts appear here once a helper runs.'
+                  : 'Subagent transcripts appear here once a helper runs.'
+              }
+              detail={
+                simple
+                  ? undefined
+                  : `Looked under ~/${inspectorSource === 'codex' ? '.codex/sessions' : '.claude/transcripts'}.`
+              }
+            />
           ) : (
-            <div
-              className="relative w-full"
-              style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
-            >
-              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                const transcript = transcripts[virtualRow.index];
-                if (!transcript) return null;
-                return (
-                  <div
-                    key={virtualRow.key}
-                    className="absolute top-0 left-0 w-full"
-                    style={{
-                      height: `${virtualRow.size}px`,
-                      transform: `translateY(${virtualRow.start}px)`,
-                    }}
-                  >
-                    <TranscriptRow
-                      transcript={transcript}
-                      selected={transcript.id === selectedName}
-                      onSelect={() => void selectTranscript(transcript.id)}
-                    />
-                  </div>
-                );
-              })}
-            </div>
+            <VirtualList
+              items={transcripts}
+              getItemKey={(transcript) => transcript.id}
+              estimateSize={() => ROW_HEIGHT}
+              renderItem={(transcript) => (
+                <TranscriptRow
+                  transcript={transcript}
+                  selected={transcript.id === selectedName}
+                  onSelect={() => void selectTranscript(transcript.id)}
+                />
+              )}
+              ariaLabel="Transcripts"
+              overscan={OVERSCAN}
+              threshold={TRANSCRIPT_LIST_THRESHOLD}
+              scrollKey="transcript-list"
+              className="w-72 shrink-0 border-r-0"
+              endSentinel={
+                <>
+                  {listDiagnostics.length > 0 ? (
+                    <div role="status" className="border-border m-2 rounded-md border px-2 py-1.5">
+                      <p className="text-amber-500 text-[10px] font-medium">Read warnings</p>
+                      <ul className="text-muted-foreground mt-1 list-disc pl-3 text-[10px]">
+                        {listDiagnostics.map((diagnostic) => <li key={diagnostic}>{diagnostic}</li>)}
+                      </ul>
+                    </div>
+                  ) : null}
+                  {listScanLimited ? (
+                    <p role="status" className="text-muted-foreground px-3 py-2 text-[10px]">
+                      Transcript discovery stopped at the read safety limit.
+                    </p>
+                  ) : null}
+                  {listHasMore ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="m-2"
+                      disabled={listLoadingMore}
+                      onClick={() => void loadList(listNextCursor, true)}
+                    >
+                      {listLoadingMore ? 'Loading…' : 'Load more transcripts'}
+                    </Button>
+                  ) : null}
+                </>
+              }
+            />
           )}
-          {listDiagnostics.length > 0 ? (
-            <div role="status" className="border-border m-2 rounded-md border px-2 py-1.5">
-              <p className="text-amber-500 text-[10px] font-medium">Read warnings</p>
-              <ul className="text-muted-foreground mt-1 list-disc pl-3 text-[10px]">
-                {listDiagnostics.map((diagnostic) => <li key={diagnostic}>{diagnostic}</li>)}
-              </ul>
-            </div>
-          ) : null}
-          {listScanLimited ? (
-            <p role="status" className="text-muted-foreground px-3 py-2 text-[10px]">
-              Transcript discovery stopped at the read safety limit.
-            </p>
-          ) : null}
-          {listHasMore ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="m-2"
-              disabled={listLoadingMore}
-              onClick={() => void loadList(listNextCursor, true)}
-            >
-              {listLoadingMore ? 'Loading…' : 'Load more transcripts'}
-            </Button>
-          ) : null}
         </div>
 
-        <div className="min-w-0 flex-1 overflow-y-auto">
+        <div ref={detailScrollRef} className="min-w-0 flex-1 overflow-y-auto">
           <TranscriptDetail
             selectedName={selectedName}
             records={records}
@@ -312,6 +319,8 @@ export const TranscriptsViewer = (): JSX.Element => {
             loadingMore={recordsLoadingMore}
             diagnostics={recordsDiagnostics}
             scanLimited={recordsScanLimited}
+            simple={simple}
+            scrollContainerRef={detailScrollRef}
             onLoadMore={() => void loadMoreRecords()}
           />
         </div>
@@ -354,7 +363,39 @@ interface TranscriptDetailProps {
   loadingMore: boolean;
   diagnostics: string[];
   scanLimited: boolean;
+  simple: boolean;
+  scrollContainerRef: { current: HTMLElement | null };
   onLoadMore: () => void;
+}
+
+type SimpleDetailItem =
+  | { type: 'user'; key: string; text: string }
+  | { type: 'heading'; key: string; text: string }
+  | { type: 'step'; key: string; text: string };
+
+function buildSimpleDetailItems(
+  records: (InspectorEvent | TranscriptRecord)[]
+): SimpleDetailItem[] {
+  const { userTexts, toolSteps } = buildSimpleTranscript(records);
+  const items: SimpleDetailItem[] = userTexts.map((entry) => ({
+    type: 'user',
+    key: entry.id,
+    text: entry.text,
+  }));
+  if (toolSteps.length > 0) {
+    items.push({ type: 'heading', key: 'simple-transcript-steps-heading', text: 'What the helper did' });
+    for (const entry of toolSteps) {
+      items.push({ type: 'step', key: entry.id, text: entry.text });
+    }
+  }
+  return items;
+}
+
+function transcriptRecordKey(record: InspectorEvent | TranscriptRecord, index: number): string {
+  if (!isLegacyRecord(record)) {
+    return `${record.provenance.sourceFile}:${record.provenance.line ?? index}:${record.kind}`;
+  }
+  return `${record.kind}:${record.timestamp ?? ''}:${index}`;
 }
 
 const TranscriptDetail = ({
@@ -366,40 +407,30 @@ const TranscriptDetail = ({
   loadingMore,
   diagnostics,
   scanLimited,
+  simple,
+  scrollContainerRef,
   onLoadMore,
 }: Readonly<TranscriptDetailProps>): JSX.Element => {
+  const simpleItems = useMemo(
+    () => (simple && records ? buildSimpleDetailItems(records) : []),
+    [simple, records]
+  );
+
   if (!selectedName) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
-        <ScrollText className="text-muted-foreground size-6 opacity-50" />
-        <p className="text-muted-foreground text-xs">Select a transcript to view its records.</p>
-      </div>
-    );
+    return <EmptyState icon={ScrollText} title="Select a transcript to view its records." />;
   }
   if (loading) {
-    return (
-      <p role="status" className="text-muted-foreground px-4 py-3 text-xs">
-        Loading…
-      </p>
-    );
+    return <LoadingState label="Loading transcript" rows={6} />;
   }
   if (error) {
-    return (
-      <div
-        role="alert"
-        className="bg-destructive/10 text-destructive m-4 rounded-md px-3 py-2 text-xs"
-      >
-        {error}
-      </div>
-    );
+    return <ErrorState message="Could not load this transcript." detail={error} />;
   }
   if (!records || records.length === 0) {
-    return (
-      <p className="text-muted-foreground px-4 py-3 text-xs">No records in this transcript.</p>
-    );
+    return <EmptyState icon={ScrollText} title="No records in this transcript." />;
   }
-  return (
-    <div className="flex flex-col gap-3 p-4">
+
+  const notices = (
+    <>
       {diagnostics.length > 0 ? (
         <div role="status" className="border-border rounded-md border bg-amber-500/10 px-3 py-2">
           <p className="text-amber-500 text-[10px] font-medium">Read warnings</p>
@@ -413,15 +444,66 @@ const TranscriptDetail = ({
           This transcript is truncated at the read safety limit.
         </p>
       ) : null}
-      {records.map((record, index) => (
-        <div key={index}>
-          {isLegacyRecord(record) ? (
+    </>
+  );
+
+  if (simple) {
+    return (
+      <div className="flex flex-col gap-3 p-4">
+        {notices}
+        <VirtualList
+          items={simpleItems}
+          getItemKey={(item) => item.key}
+          estimateSize={(item) => (item.type === 'heading' ? 32 : item.type === 'user' ? 72 : 36)}
+          renderItem={(item) => {
+            if (item.type === 'heading') {
+              return (
+                <h2 className="text-muted-foreground pt-2 text-[11px] font-semibold tracking-wide">
+                  {item.text}
+                </h2>
+              );
+            }
+            if (item.type === 'user') {
+              return (
+                <p className="text-foreground text-sm whitespace-pre-wrap break-words">{item.text}</p>
+              );
+            }
+            return <p className="text-text-secondary text-sm">· {item.text}</p>;
+          }}
+          ariaLabel="Transcript narrative"
+          threshold={50}
+          scrollKey="transcript-narrative"
+          scrollContainerRef={scrollContainerRef}
+        />
+        {hasMore ? (
+          <Button variant="outline" size="sm" disabled={loadingMore} onClick={onLoadMore}>
+            {loadingMore ? 'Loading…' : 'Load more events'}
+          </Button>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3 p-4">
+      {notices}
+      <VirtualList
+        items={records}
+        getItemKey={transcriptRecordKey}
+        estimateSize={() => 150}
+        renderItem={(record) =>
+          isLegacyRecord(record) ? (
             <LegacyTranscriptRecordCard record={record} />
           ) : (
             <InspectorEventCard event={record} />
-          )}
-        </div>
-      ))}
+          )
+        }
+        ariaLabel="Transcript records"
+        threshold={50}
+        scrollKey="transcript-records"
+        scrollContainerRef={scrollContainerRef}
+        rowClassName="pb-3"
+      />
       {hasMore ? (
         <Button variant="outline" size="sm" disabled={loadingMore} onClick={onLoadMore}>
           {loadingMore ? 'Loading…' : 'Load more events'}

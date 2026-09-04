@@ -274,18 +274,19 @@ Every `ux-*.md` has the same core sections; completed grouped deliveries may app
 | 13 | [Marketplace](ux-13-marketplace.md) | Marketplace | `dashboard/MarketplaceBrowser.tsx` | behind-More | 01, 10 | done (grouped) |
 | 14 | [Task Graph](ux-14-task-graph.md) | Task Graph | `dashboard/TaskGraphViewer.tsx` | behind-More | 01, 03 | done (grouped) |
 | 15 | [Maintenance](ux-15-maintenance.md) | Maintenance | `maintenance/MaintenanceView.tsx` | behind-More | 01, all | done (grouped) |
+| 16 | [Transcripts](../ui-ux-dx-roadmap/sprint-06-transcripts.md) | Transcripts | `dashboard/TranscriptsViewer.tsx` | behind-More | ux-03 | done (sprint 06) |
 
 Order rationale: the simple-rail pages come first so the primary audience has a coherent app after
 seven sprints rather than fifteen. `ux-03` is the one exception to rail-first — it is not a rail
 item, but it is the page Conversations drills into and where a user spends most of their time, so
 it follows `ux-02` immediately.
 
-## 15. Uncovered
+## 15. Uncovered — resolved as ux-16
 
-**The Transcripts page** (`dashboard/TranscriptsViewer.tsx`, `ActivityView` `transcripts`) has no
-sprint. Its content is the same shape as the session view, so the patterns `ux-03` establishes
-transfer directly and a separate spec would mostly repeat them. It is still assigned
-`behind-More` in the rail contract, so sprint 01 places it correctly; only its page body is
-unspecified.
-
-If it gets a sprint later, it becomes `ux-16` and this section records that instead.
+**The Transcripts page** (`dashboard/TranscriptsViewer.tsx`, `ActivityView` `transcripts`) had no
+sprint. UI/UX/DX sprint 06
+([sprint-06-transcripts.md](../ui-ux-dx-roadmap/sprint-06-transcripts.md)) closed the gap as
+`ux-16`: Simple reuses the sprint 05 thread rules verbatim (narrative user text plus one step
+list, no paths or raw tool JSON), Nerd keeps the full per-kind cards, and the body adopts the
+shared `VirtualList` plus the shared loading/error/empty states. Rail placement (`behind-More`)
+is unchanged.
