@@ -13,7 +13,7 @@ type SearchMode = 'projects' | 'sessions';
 
 interface UseCommandPaletteSearch {
   query: string;
-  setQuery: Dispatch<SetStateAction<string>>;
+  setQuery: (value: string) => void;
   globalSearchEnabled: boolean;
   setGlobalSearchEnabled: Dispatch<SetStateAction<boolean>>;
   searchMode: SearchMode;
@@ -44,6 +44,8 @@ export const useCommandPaletteSearch = (): UseCommandPaletteSearch => {
     selectRepository,
     sessionDetail,
     setHelpPanelOpen,
+    query,
+    setQuery,
   } = useStore(
     useShallow((s) => ({
       commandPaletteOpen: s.commandPaletteOpen,
@@ -55,10 +57,11 @@ export const useCommandPaletteSearch = (): UseCommandPaletteSearch => {
       selectRepository: s.selectRepository,
       sessionDetail: s.sessionDetail,
       setHelpPanelOpen: s.setHelpPanelOpen,
+      query: s.shellSearchQuery,
+      setQuery: s.setShellSearchQuery,
     }))
   );
 
-  const [query, setQuery] = useState('');
   const [sessionResults, setSessionResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalMatches, setTotalMatches] = useState(0);
@@ -100,7 +103,6 @@ export const useCommandPaletteSearch = (): UseCommandPaletteSearch => {
 
   useEffect(() => {
     if (commandPaletteOpen) {
-      setQuery('');
       setSessionResults([]);
       setTotalMatches(0);
       setSearchIsPartial(false);

@@ -132,6 +132,12 @@ export const createUISlice: StateCreator<AppState, [], [], UISlice> = (set, get)
 
   setShellSearchQuery: (query) => {
     const state = get();
+    // The command palette shares this query value live but must not reroute
+    // the background activity while it is open as a modal.
+    if (state.commandPaletteOpen) {
+      set({ shellSearchQuery: query });
+      return;
+    }
     if (!query.trim()) {
       set({
         shellSearchQuery: '',

@@ -29,11 +29,12 @@ const SECTIONS: ShortcutSection[] = [
   {
     title: 'Navigation',
     shortcuts: [
-      { keys: `${mod}+K`, description: 'Open command palette' },
-      { keys: `${mod}+Shift+F`, description: 'Advanced search' },
+      { keys: `${mod}+K`, description: 'Open command palette (global search)' },
+      { keys: `${mod}+Shift+F`, description: 'Focus global search field' },
+      { keys: `${mod}+T`, description: 'Go home' },
       { keys: `${mod}+,`, description: 'Open settings' },
-      { keys: `${mod}+\\`, description: 'Toggle sidebar' },
-      { keys: 'J / K', description: 'Next / previous AI turn' },
+      { keys: `${mod}+B`, description: 'Toggle sidebar (Nerd only)' },
+      { keys: '?', description: 'Open this cheat sheet' },
     ],
   },
   {
@@ -41,6 +42,8 @@ const SECTIONS: ShortcutSection[] = [
     shortcuts: [
       { keys: 'Ctrl+Tab', description: 'Next tab' },
       { keys: 'Ctrl+Shift+Tab', description: 'Previous tab' },
+      { keys: `${mod}+1-9`, description: 'Switch tab in focused pane' },
+      { keys: `${mod}+Shift+] / [`, description: 'Next / previous tab' },
       { keys: `${mod}+W`, description: 'Close tab' },
       { keys: `${mod}+Shift+W`, description: 'Close all tabs' },
     ],
@@ -48,16 +51,19 @@ const SECTIONS: ShortcutSection[] = [
   {
     title: 'Session',
     shortcuts: [
-      { keys: `${mod}+R`, description: 'Refresh session' },
       { keys: `${mod}+F`, description: 'Find in session' },
-      { keys: `${mod}+G`, description: 'Next search match' },
-      { keys: `${mod}+Shift+G`, description: 'Previous search match' },
+      { keys: `${mod}+G`, description: 'Next find match' },
+      { keys: `${mod}+Shift+G`, description: 'Previous find match' },
+      { keys: 'J / K or [ / ]', description: 'Next / previous AI turn' },
+      { keys: 'F', description: 'Toggle flame graph' },
+      { keys: `${mod}+R`, description: 'Refresh session' },
     ],
   },
   {
-    title: 'Panes',
+    title: 'Panes (Nerd only)',
     shortcuts: [
-      { keys: `${mod}+Opt+\\`, description: 'Split pane' },
+      { keys: `${mod}+\\`, description: 'Split pane right' },
+      { keys: `${mod}+Opt+← / →`, description: 'Move tab to new pane' },
       { keys: `${mod}+Opt+W`, description: 'Close pane' },
       { keys: `${mod}+Opt+1-4`, description: 'Focus pane by index' },
     ],

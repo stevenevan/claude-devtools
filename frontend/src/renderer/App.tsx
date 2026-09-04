@@ -8,6 +8,7 @@ import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { ErrorState } from './components/common/ErrorState';
 import { HelpPanel } from './components/common/HelpPanel';
 import { ModeAnnouncer } from './components/common/ModeAnnouncer';
+import { PaneAnnouncer } from './components/common/PaneAnnouncer';
 import { ShortcutCheatSheet } from './components/common/ShortcutCheatSheet';
 import { SkeletonShell } from './components/common/SkeletonShell';
 import { TabbedLayout } from './components/layout/TabbedLayout';
@@ -82,6 +83,7 @@ export const App = (): JSX.Element => {
     <ErrorBoundary>
       <TooltipProvider>
         <ModeAnnouncer />
+        <PaneAnnouncer />
         <ContextSwitchOverlay />
         <TabbedLayout />
         <ConfirmDialog />

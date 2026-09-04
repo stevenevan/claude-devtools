@@ -1,12 +1,8 @@
-import { createLogger } from '@shared/utils/logger';
-
 import { useStore } from '../../store';
 import { parseFilterPayload } from '../../utils/filterPresetSerialization';
 import { getEffectiveUIMode } from '../../utils/uiModeBootstrap';
 import type { UIMode } from '@shared/types';
 import type { ShortcutContext } from './shortcutContext';
-
-const logger = createLogger('Hook:KeyboardShortcuts');
 
 const G_SEQUENCE_WINDOW_MS = 750;
 let pendingGAt: number | null = null;
@@ -223,8 +219,24 @@ export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext
     return;
   }
 
+  // Cmd+Option+Shift+Left/Right: Move active tab to a new pane (Nerd only)
+  if (!isSimpleMode && event.altKey && event.shiftKey) {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      event.preventDefault();
+      if (ctx.activeTabId) {
+        ctx.moveTabToNewPane(
+          ctx.activeTabId,
+          ctx.paneLayout.focusedPaneId,
+          ctx.paneLayout.focusedPaneId,
+          event.key === 'ArrowRight' ? 'right' : 'left'
+        );
+      }
+      return;
+    }
+  }
+
   // Cmd+Option+Right: Next tab (browser-style) within focused pane
-  if (event.key === 'ArrowRight' && event.altKey) {
+  if (event.key === 'ArrowRight' && event.altKey && !event.shiftKey) {
     event.preventDefault();
     const currentIndex = ctx.openTabs.findIndex((t) => t.id === ctx.activeTabId);
     if (currentIndex !== -1 && currentIndex < ctx.openTabs.length - 1) {
@@ -234,7 +246,7 @@ export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext
   }
 
   // Cmd+Option+Left: Previous tab (browser-style) within focused pane
-  if (event.key === 'ArrowLeft' && event.altKey) {
+  if (event.key === 'ArrowLeft' && event.altKey && !event.shiftKey) {
     event.preventDefault();
     const currentIndex = ctx.openTabs.findIndex((t) => t.id === ctx.activeTabId);
     if (currentIndex > 0) {
@@ -251,6 +263,14 @@ export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext
       const nextIndex = (currentIndex + 1) % ctx.availableContexts.length;
       void ctx.switchContext(ctx.availableContexts[nextIndex].id);
     }
+    return;
+  }
+
+  // Cmd+G / Cmd+Shift+G: Next / previous per-session find match
+  if (event.key === 'g' && !event.altKey && ctx.searchVisible) {
+    event.preventDefault();
+    if (event.shiftKey) ctx.previousSearchResult();
+    else ctx.nextSearchResult();
     return;
   }
 
@@ -283,13 +303,6 @@ export function handleShortcutKeyDown(event: KeyboardEvent, ctx: ShortcutContext
     if (activeTab?.type === 'session') {
       ctx.showSearch();
     }
-    return;
-  }
-
-  // Cmd+O: Open project (placeholder for future implementation)
-  if (event.key === 'o') {
-    event.preventDefault();
-    logger.debug('Open project shortcut triggered (not yet implemented)');
     return;
   }
 

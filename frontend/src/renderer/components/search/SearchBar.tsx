@@ -3,6 +3,7 @@ import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
 import { useDebouncedCallback } from '@renderer/hooks/mantine';
 import { useStore } from '@renderer/store';
+import { formatModifierShortcut } from '@renderer/utils/keyboardUtils';
 import { ChevronDown, ChevronUp, Regex, X } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -101,7 +102,14 @@ export const SearchBar = ({ conversation }: SearchBarProps): JSX.Element | null 
     : `${currentSearchIndex + 1} of ${searchResultCount}`;
 
   return (
-    <div className="border-border bg-background absolute top-2 right-4 z-20 flex items-center gap-2 rounded-lg border px-3 py-2 shadow-lg">
+    <div
+      aria-label="Find in conversation"
+      className="border-border bg-background absolute top-2 right-4 z-20 flex items-center gap-2 rounded-lg border px-3 py-2 shadow-lg"
+    >
+      <span className="bg-muted text-muted-foreground flex shrink-0 items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-[10px] font-medium">
+        Find
+        <kbd className="font-mono opacity-70">{formatModifierShortcut('F')}</kbd>
+      </span>
       <Input
         ref={inputRef}
         type="text"
