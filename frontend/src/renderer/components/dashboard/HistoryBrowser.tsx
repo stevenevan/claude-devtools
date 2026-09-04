@@ -14,6 +14,10 @@ import { cn } from '@renderer/lib/utils';
 import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
 import { InspectorSourceSelector } from './InspectorSourceSelector';
+import {
+  VIRTUAL_LIST_OVERSCAN,
+  VirtualListSkeleton,
+} from '@renderer/components/common/VirtualList';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { History as HistoryIcon, Loader2, RefreshCw, Search } from 'lucide-react';
@@ -32,7 +36,7 @@ import type { Project } from '@renderer/types/data';
 const PAGE_SIZE = 100;
 const ROW_HEIGHT = 52;
 const HEADING_HEIGHT = 32;
-const OVERSCAN = 8;
+const OVERSCAN = VIRTUAL_LIST_OVERSCAN;
 const SEARCH_DEBOUNCE_MS = 300;
 const LOAD_MORE_THRESHOLD = 3;
 const ALL_PROJECTS = '__all__';
@@ -312,9 +316,7 @@ export const HistoryBrowser = (): JSX.Element => {
           className="border-border/50 flex-1 overflow-y-auto border-r"
         >
           {loading && entries.length === 0 ? (
-            <p role="status" className="text-muted-foreground px-4 py-3 text-xs">
-              Loading…
-            </p>
+            <VirtualListSkeleton rows={8} ariaLabel="Loading history" />
           ) : filteredEntries.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
               <HistoryIcon className="text-muted-foreground size-6 opacity-50" />

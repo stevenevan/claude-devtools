@@ -1,19 +1,28 @@
 import { JSX } from 'react';
+import { VirtualList } from '@renderer/components/common/VirtualList';
 
 import type { InspectorEvent } from '@shared/types/api';
+
+const INSPECTOR_EVENT_THRESHOLD = 50;
+const INSPECTOR_EVENT_ESTIMATE = 120;
 
 export function InspectorEventList({
   events,
 }: Readonly<{ events: InspectorEvent[] }>): JSX.Element {
   return (
-    <div className="flex flex-col gap-3">
-      {events.map((event, index) => (
-        <InspectorEventCard
-          key={`${event.provenance.sourceFile}:${event.provenance.line ?? index}:${event.kind}`}
-          event={event}
-        />
-      ))}
-    </div>
+    <VirtualList
+      items={events}
+      getItemKey={(event, index) =>
+        `${event.provenance.sourceFile}:${event.provenance.line ?? index}:${event.kind}`
+      }
+      estimateSize={() => INSPECTOR_EVENT_ESTIMATE}
+      renderItem={(event) => <InspectorEventCard event={event} />}
+      ariaLabel="Session events"
+      threshold={INSPECTOR_EVENT_THRESHOLD}
+      scrollKey="inspector-events"
+      rowClassName="pb-3"
+      className="max-h-[60vh]"
+    />
   );
 }
 

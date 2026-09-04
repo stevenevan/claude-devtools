@@ -1,6 +1,11 @@
 import { JSX, RefObject, useEffect, useMemo, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { Button } from '@renderer/components/ui/button';
+import {
+  VIRTUAL_LIST_OVERSCAN,
+  VIRTUAL_LIST_THRESHOLD,
+  VirtualListSkeleton,
+} from '@renderer/components/common/VirtualList';
 import { useStore } from '@renderer/store';
 import { Loader2 } from 'lucide-react';
 
@@ -16,11 +21,11 @@ import {
   formatConversationTime,
 } from './dashboardFormatters';
 
-const VIRTUALIZATION_THRESHOLD = 100;
+const VIRTUALIZATION_THRESHOLD = VIRTUAL_LIST_THRESHOLD;
 const CONVERSATION_HEIGHT = 72;
 const HEADING_HEIGHT = 36;
 const SENTINEL_HEIGHT = 48;
-const VIRTUAL_OVERSCAN = 5;
+const VIRTUAL_OVERSCAN = VIRTUAL_LIST_OVERSCAN;
 
 interface ConversationListItemViewProps {
   item: ConversationListItem;
@@ -236,10 +241,7 @@ export const ConversationList = (): JSX.Element => {
       )}
 
       {conversationFeedLoading && !hasRows ? (
-        <div role="status" className="text-muted-foreground flex flex-1 items-center justify-center px-6 text-sm">
-          <Loader2 className="mr-2 size-4 animate-spin" />
-          Loading conversations
-        </div>
+        <VirtualListSkeleton rows={8} ariaLabel="Loading conversations" />
       ) : conversationFeedError && !hasRows ? (
         <div className="flex flex-1 items-center justify-center px-6 text-center">
           <p className="text-muted-foreground text-sm">Retry to load your conversations.</p>

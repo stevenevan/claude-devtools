@@ -1,5 +1,6 @@
-import { JSX, useMemo, useState } from 'react';
+import { JSX, useMemo, useRef, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
+import { VirtualList, VirtualListSkeleton } from '@renderer/components/common/VirtualList';
 import {
   conversationSubjectKey,
   useConversationSubjects,
@@ -16,6 +17,8 @@ import type { TodoItem } from '@renderer/types/todos';
 
 const FALLBACK_PROJECT_LABEL = 'Folder';
 const FALLBACK_CONVERSATION_SUBJECT = 'Untitled conversation';
+const TASK_ROW_THRESHOLD = 50;
+const TASK_ROW_ESTIMATE = 64;
 
 type SimpleTaskGroupId = 'happening-now' | 'waiting' | 'recently-done';
 
@@ -50,6 +53,7 @@ interface TaskGroupSectionProps {
   earlierTasks?: readonly SimpleTask[];
   conversationSubjects: ConversationSubjectLookup;
   projectNames: ReadonlyMap<string, string>;
+  scrollContainerRef: { current: HTMLElement | null };
   onOpenConversation: (projectId: string, sessionId: string) => void;
 }
 
@@ -201,11 +205,21 @@ const TaskGroupSection = ({
   earlierTasks = [],
   conversationSubjects,
   projectNames,
+  scrollContainerRef,
   onOpenConversation,
 }: TaskGroupSectionProps): JSX.Element | null => {
   const [showEarlier, setShowEarlier] = useState(false);
   const visibleTasks = showEarlier ? [...tasks, ...earlierTasks] : tasks;
   if (tasks.length === 0 && earlierTasks.length === 0) return null;
+
+  const renderTaskRow = (task: SimpleTask): JSX.Element => (
+    <TaskRow
+      task={task}
+      conversationSubjects={conversationSubjects}
+      projectNames={projectNames}
+      onOpenConversation={onOpenConversation}
+    />
+  );
 
   return (
     <section aria-labelledby={`${id}-heading`} className="border-border/60 border-b pb-5 last:border-b-0">
@@ -219,18 +233,16 @@ const TaskGroupSection = ({
       </div>
 
       {tasks.length > 0 && (
-        <div role="list" aria-label={`${title} tasks`}>
-          {tasks.map((task) => (
-            <div key={task.key} role="listitem">
-              <TaskRow
-                task={task}
-                conversationSubjects={conversationSubjects}
-                projectNames={projectNames}
-                onOpenConversation={onOpenConversation}
-              />
-            </div>
-          ))}
-        </div>
+        <VirtualList
+          items={tasks}
+          getItemKey={(task) => task.key}
+          estimateSize={() => TASK_ROW_ESTIMATE}
+          renderItem={renderTaskRow}
+          ariaLabel={`${title} tasks`}
+          threshold={TASK_ROW_THRESHOLD}
+          scrollKey="task-list"
+          scrollContainerRef={scrollContainerRef}
+        />
       )}
 
       {earlierTasks.length > 0 && (
@@ -253,18 +265,16 @@ const TaskGroupSection = ({
               className="mt-3 border-t border-border/60 pt-2"
             >
               <p className="text-muted-foreground mb-1 text-[11px]">Earlier completed tasks</p>
-              <div role="list" aria-label="Earlier completed tasks">
-                {earlierTasks.map((task) => (
-                  <div key={task.key} role="listitem">
-                    <TaskRow
-                      task={task}
-                      conversationSubjects={conversationSubjects}
-                      projectNames={projectNames}
-                      onOpenConversation={onOpenConversation}
-                    />
-                  </div>
-                ))}
-              </div>
+              <VirtualList
+                items={earlierTasks}
+                getItemKey={(task) => task.key}
+                estimateSize={() => TASK_ROW_ESTIMATE}
+                renderItem={renderTaskRow}
+                ariaLabel="Earlier completed tasks"
+                threshold={TASK_ROW_THRESHOLD}
+                scrollKey="task-list"
+                scrollContainerRef={scrollContainerRef}
+              />
             </div>
           )}
         </>
@@ -286,6 +296,7 @@ export const TaskList = ({
   );
   const conversationSubjects = useConversationSubjects(conversationIdentities);
   const groups = useMemo(() => flattenSimpleTasks(todos), [todos]);
+  const scrollContainerRef = useRef<HTMLElement>(null);
   const hasTasks =
     groups.happeningNow.length > 0 ||
     groups.waiting.length > 0 ||
@@ -299,6 +310,7 @@ export const TaskList = ({
   return (
     <section
       aria-labelledby="tasks-heading"
+      ref={scrollContainerRef}
       className="bg-background flex h-full flex-1 flex-col overflow-y-auto"
     >
       <header className="border-border/60 shrink-0 border-b px-6 py-5">
@@ -317,9 +329,7 @@ export const TaskList = ({
       )}
 
       {loading && !hasTasks ? (
-        <div role="status" className="text-muted-foreground flex flex-1 items-center justify-center px-6 text-sm">
-          Loading tasks
-        </div>
+        <VirtualListSkeleton rows={6} ariaLabel="Loading tasks" />
       ) : error && !hasTasks ? (
         <div role="alert" className="flex flex-1 items-center justify-center px-6 text-center">
           <div className="max-w-sm">
@@ -349,6 +359,7 @@ export const TaskList = ({
             tasks={groups.happeningNow}
             conversationSubjects={conversationSubjects}
             projectNames={projectNames}
+            scrollContainerRef={scrollContainerRef}
             onOpenConversation={onOpenConversation}
           />
           <TaskGroupSection
@@ -357,6 +368,7 @@ export const TaskList = ({
             tasks={groups.waiting}
             conversationSubjects={conversationSubjects}
             projectNames={projectNames}
+            scrollContainerRef={scrollContainerRef}
             onOpenConversation={onOpenConversation}
           />
           <TaskGroupSection
@@ -366,6 +378,7 @@ export const TaskList = ({
             earlierTasks={groups.earlierCompleted}
             conversationSubjects={conversationSubjects}
             projectNames={projectNames}
+            scrollContainerRef={scrollContainerRef}
             onOpenConversation={onOpenConversation}
           />
         </div>
