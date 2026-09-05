@@ -4,13 +4,15 @@ import { Button } from '@renderer/components/ui/button';
 import { EmptyState } from '@renderer/components/common/EmptyState';
 import { ErrorState } from '@renderer/components/common/ErrorState';
 import { LoadingState } from '@renderer/components/common/LoadingState';
+import { VirtualList } from '@renderer/components/common/VirtualList';
 import { InspectorSourceSelector } from './InspectorSourceSelector';
+import { StatusBadge, TaskLanes } from './TaskLanes';
 import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
 import { cn } from '@renderer/lib/utils';
 import { sanitizeSimpleText } from '@renderer/utils/simpleTextSanitizer';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { CheckCircle2, Circle, GitBranch, Loader2, RefreshCw, Workflow } from 'lucide-react';
+import { GitBranch, RefreshCw, Workflow } from 'lucide-react';
 
 import type {
   InspectorTaskGraphList,
@@ -50,6 +52,7 @@ export const TaskGraphViewer = (): JSX.Element => {
   const [diagnostics, setDiagnostics] = useState<string[]>([]);
   const [refreshGeneration, setRefreshGeneration] = useState(0);
   const requestGenerationRef = useRef(0);
+  const detailScrollRef = useRef<HTMLDivElement>(null);
 
   const loadList = async (forceRefresh = false): Promise<void> => {
     const requestGeneration = ++requestGenerationRef.current;
@@ -204,7 +207,7 @@ export const TaskGraphViewer = (): JSX.Element => {
           )}
         </div>
 
-        <div className="min-w-0 flex-1 overflow-y-auto p-4">
+        <div ref={detailScrollRef} className="min-w-0 flex-1 overflow-y-auto p-4">
           {selectedUuid ? (
             <TaskGraphDetail
               uuid={selectedUuid}
@@ -213,6 +216,7 @@ export const TaskGraphViewer = (): JSX.Element => {
               refreshGeneration={refreshGeneration}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
+              scrollContainerRef={detailScrollRef}
             />
           ) : (
             <EmptyDetail simple={simple} />
@@ -266,6 +270,7 @@ const TaskGraphDetail = ({
   refreshGeneration,
   viewMode,
   onViewModeChange,
+  scrollContainerRef,
 }: Readonly<{
   uuid: string;
   sourceKind: 'claude' | 'codex';
@@ -273,6 +278,7 @@ const TaskGraphDetail = ({
   refreshGeneration: number;
   viewMode: 'graph' | 'outline';
   onViewModeChange: (viewMode: 'graph' | 'outline') => void;
+  scrollContainerRef: { current: HTMLElement | null };
 }>): JSX.Element => {
   const getInspectorCacheKey = useStore((state) => state.getInspectorCacheKey);
   const getInspectorCache = useStore((state) => state.getInspectorCache);
@@ -334,6 +340,9 @@ const TaskGraphDetail = ({
   }
 
   if (simple || viewMode === 'outline') {
+    if (simple) {
+      return <TaskLanes nodes={nodes} scrollContainerRef={scrollContainerRef} />;
+    }
     return <TaskOutline nodes={nodes} simple={simple} />;
   }
 
@@ -367,30 +376,19 @@ const TaskGraphDetail = ({
         </div>
       </div>
       <div className="flex flex-col gap-2">
-        {nodes.map((node) => (
-          <TaskNodeCard key={node.id} node={node} />
-        ))}
+        <VirtualList
+          items={nodes}
+          getItemKey={(node) => node.id}
+          estimateSize={() => 96}
+          renderItem={(node) => <TaskNodeCard node={node} />}
+          ariaLabel="Task steps"
+          threshold={50}
+          scrollKey="task-graph-nodes"
+          scrollContainerRef={scrollContainerRef}
+          rowClassName="pb-2"
+        />
       </div>
     </div>
-  );
-};
-
-const STATUS_STYLES: Record<string, { icon: JSX.Element; label: string }> = {
-  completed: { icon: <CheckCircle2 className="size-3 text-emerald-400" />, label: 'Completed' },
-  in_progress: {
-    icon: <Loader2 className="size-3 animate-spin text-blue-400" />,
-    label: 'In progress',
-  },
-  pending: { icon: <Circle className="text-muted-foreground size-3" />, label: 'Pending' },
-};
-
-const StatusBadge = ({ status }: Readonly<{ status: string }>): JSX.Element => {
-  const style = STATUS_STYLES[status];
-  return (
-    <span className="border-border bg-background/50 inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px]">
-      {style?.icon ?? <Circle className="text-muted-foreground size-3" />}
-      <span className="text-foreground">{style?.label ?? status}</span>
-    </span>
   );
 };
 
