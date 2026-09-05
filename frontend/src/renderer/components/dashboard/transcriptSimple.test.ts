@@ -24,10 +24,12 @@ function inspectorEvent(overrides: Partial<InspectorEvent>): InspectorEvent {
     content: null,
     timestamp: null,
     toolName: null,
+    toolId: null,
     toolInputShape: null,
     toolOutputSize: null,
+    toolStatus: null,
     truncated: false,
-    provenance: { sourceFile: 'ses_helper.jsonl', line: 1 },
+    provenance: { sourceFile: 'ses_helper.jsonl', line: 1, archived: false },
     ...overrides,
   };
 }

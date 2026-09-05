@@ -26,6 +26,34 @@ interface CostSummary {
   deltaPct: number | null;
 }
 
+export const MAX_COST_TREND_POINTS = 185;
+
+export function downsampleCostBuckets(
+  buckets: readonly TimeBucketUsage[],
+  maxPoints: number = MAX_COST_TREND_POINTS
+): TimeBucketUsage[] {
+  if (buckets.length <= maxPoints || maxPoints <= 0) return [...buckets];
+  const chunkSize = Math.ceil(buckets.length / maxPoints);
+  const downsampled: TimeBucketUsage[] = [];
+  for (let start = 0; start < buckets.length; start += chunkSize) {
+    const chunk = buckets.slice(start, start + chunkSize);
+    const first = chunk[0];
+    const last = chunk[chunk.length - 1];
+    if (!first || !last) continue;
+    downsampled.push({
+      key: `${first.key}..${last.key}`,
+      label: chunk.length > 1 ? `${first.label} – ${last.label}` : first.label,
+      totalTokens: chunk.reduce((sum, bucket) => sum + bucket.totalTokens, 0),
+      inputTokens: chunk.reduce((sum, bucket) => sum + bucket.inputTokens, 0),
+      outputTokens: chunk.reduce((sum, bucket) => sum + bucket.outputTokens, 0),
+      cacheReadTokens: chunk.reduce((sum, bucket) => sum + bucket.cacheReadTokens, 0),
+      costUsd: chunk.reduce((sum, bucket) => sum + bucket.costUsd, 0),
+      sessionCount: chunk.reduce((sum, bucket) => sum + bucket.sessionCount, 0),
+    });
+  }
+  return downsampled;
+}
+
 function computeCostSummary(buckets: TimeBucketUsage[]): CostSummary {
   const n = buckets.length;
   if (n === 0) {
@@ -109,7 +137,8 @@ export const CostTrendChart = ({
   buckets,
   bucketNoun,
 }: Readonly<CostTrendChartProps>): JSX.Element => {
-  const summary = useMemo(() => computeCostSummary(buckets), [buckets]);
+  const visibleBuckets = useMemo(() => downsampleCostBuckets(buckets), [buckets]);
+  const summary = useMemo(() => computeCostSummary(visibleBuckets), [visibleBuckets]);
 
   return (
     <div className="space-y-4">
@@ -129,7 +158,7 @@ export const CostTrendChart = ({
         className="h-[220px]"
       >
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={buckets} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+          <AreaChart data={visibleBuckets} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="costGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#10b981" stopOpacity={0.45} />
@@ -174,7 +203,7 @@ export const CostTrendChart = ({
             </tr>
           </thead>
           <tbody>
-            {buckets.map((bucket) => (
+            {visibleBuckets.map((bucket) => (
               <tr key={bucket.key}>
                 <th scope="row">{bucket.label}</th>
                 <td>{formatCost(bucket.costUsd)}</td>

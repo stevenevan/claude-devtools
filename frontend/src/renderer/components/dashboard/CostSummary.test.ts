@@ -61,6 +61,35 @@ test('uses one semantic heading and keeps token vocabulary out of Simple cost', 
   expect(source.toLowerCase()).not.toContain('token');
 });
 
+test('keeps the full Simple Words table out of the currency-first view', async () => {
+  const source = await Bun.file(new URL('./CostSummary.tsx', import.meta.url)).text();
+  const lowered = source.toLowerCase();
+
+  for (const banned of [
+    'token',
+    'cache read',
+    'cache write',
+    'cache hit',
+    'model id',
+    'claude-',
+    'opus',
+    'sonnet',
+    'haiku',
+    '.jsonl',
+    '~/',
+  ]) {
+    expect(lowered).not.toContain(banned);
+  }
+});
+
+test('formats every cost through the single currency path', async () => {
+  const { formatCost } = await import('./dashboardFormatters');
+
+  expect(formatCost(12)).toBe('$12.00');
+  expect(formatCost(0.004)).toBe('$0.0040');
+  expect(formatCost(0)).toBe('$0.00');
+});
+
 test('presents complete calendar month comparisons without dividing by zero', () => {
   const message = getMonthOverMonthMessage(period('2026-08', 12), period('2026-07', 10));
 
