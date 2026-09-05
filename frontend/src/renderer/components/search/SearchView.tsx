@@ -1,13 +1,10 @@
-import { JSX, useCallback, useEffect, useRef, useState } from 'react';
+import { JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '@renderer/api';
 import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { useStore } from '@renderer/store';
 import {
-  Clock,
   Filter,
-  GitBranch,
-  MessageSquare,
   Search,
   Sparkles,
   X,
@@ -15,6 +12,16 @@ import {
 import { useShallow } from 'zustand/react/shallow';
 
 import { ParsedFilterChips } from './ParsedFilterChips';
+import { SearchResultCard } from './SearchResultCard';
+import {
+  SEARCH_SCOPES,
+  applySearchScope,
+  buildSearchSnippet,
+  loadRecentQueries,
+  saveRecentQuery,
+  scopeMinCreatedAt,
+  type SearchScopeId,
+} from './searchResultUtils';
 import { EmptyState } from '@renderer/components/common/EmptyState';
 import { LoadingState } from '@renderer/components/common/LoadingState';
 
@@ -51,64 +58,79 @@ function getDateRange(preset: DatePreset): { min?: number; max?: number } {
   }
 }
 
-function formatTimestamp(ts: number): string {
-  const d = new Date(ts);
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffDays === 0) {
-    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-  }
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
-
 export const SearchView = (): JSX.Element => {
-  const { openTab, setActiveActivity, query, setQuery } = useStore(
+  const { openTab, setActiveActivity, query, setQuery, selectedProjectId } = useStore(
     useShallow((state) => ({
       openTab: state.openTab,
       setActiveActivity: state.setActiveActivity,
       query: state.shellSearchQuery,
       setQuery: state.setShellSearchQuery,
+      selectedProjectId: state.selectedProjectId,
     }))
   );
+  const notifications = useStore((state) => state.notifications);
+  const fetchNotifications = useStore((state) => state.fetchNotifications);
   const [datePreset, setDatePreset] = useState<DatePreset>('any');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [activeScope, setActiveScope] = useState<SearchScopeId | null>(null);
+  const [recentQueries, setRecentQueries] = useState<string[]>(() => loadRecentQueries());
+  const [focusedResult, setFocusedResult] = useState(0);
   const [results, setResults] = useState<FilteredSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [nlMode, setNlMode] = useState(false);
   const [parsed, setParsed] = useState<ParsedNLQuery | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const resultRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const errorSessionIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const alert of notifications) {
+      if (alert.sessionId) ids.add(alert.sessionId);
+    }
+    return ids;
+  }, [notifications]);
 
   // ponytail: useCallback required — in useEffect dep array
-  const runSearch = useCallback(async (q: string, date: DatePreset, status: StatusFilter) => {
-    setLoading(true);
-    setHasSearched(true);
-    try {
-      const range = getDateRange(date);
-      const filters: SearchFilters = {
-        query: q || undefined,
-        statusFilter: status === 'all' ? undefined : status,
-        minCreatedAt: range.min,
-        maxCreatedAt: range.max,
-      };
-      const response = await api.searchSessionsFiltered(filters, 100);
-      setResults(response.results);
-    } catch {
-      setResults([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const runSearch = useCallback(
+    async (q: string, date: DatePreset, status: StatusFilter, scope: SearchScopeId | null) => {
+      setLoading(true);
+      setHasSearched(true);
+      try {
+        const range = getDateRange(date);
+        const scopeMin = scopeMinCreatedAt(scope);
+        const minCreatedAt =
+          range.min !== undefined && scopeMin !== undefined
+            ? Math.max(range.min, scopeMin)
+            : (range.min ?? scopeMin);
+        const filters: SearchFilters = {
+          query: q || undefined,
+          statusFilter: status === 'all' ? undefined : status,
+          minCreatedAt,
+          maxCreatedAt: range.max,
+        };
+        const response = await api.searchSessionsFiltered(filters, 100);
+        const scoped = applySearchScope(response.results, scope, {
+          projectId: selectedProjectId,
+          errorSessionIds,
+        });
+        setResults(scoped);
+        setFocusedResult(0);
+        if (q.trim()) setRecentQueries(saveRecentQuery(q));
+      } catch {
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selectedProjectId, errorSessionIds]
+  );
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      if (query.trim() || datePreset !== 'any' || statusFilter !== 'all') {
-        void runSearch(query, datePreset, statusFilter);
+      if (query.trim() || datePreset !== 'any' || statusFilter !== 'all' || activeScope !== null) {
+        void runSearch(query, datePreset, statusFilter, activeScope);
       } else {
         setResults([]);
         setHasSearched(false);
@@ -117,7 +139,17 @@ export const SearchView = (): JSX.Element => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [query, datePreset, statusFilter, runSearch]);
+  }, [query, datePreset, statusFilter, activeScope, runSearch]);
+
+  useEffect(() => {
+    if (activeScope === 'errors-only') {
+      void fetchNotifications();
+    }
+  }, [activeScope, fetchNotifications]);
+
+  const toggleScope = (scopeId: SearchScopeId): void => {
+    setActiveScope((current) => (current === scopeId ? null : scopeId));
+  };
 
   const handleResultClick = (result: FilteredSearchResult): void => {
     setActiveActivity('projects');
@@ -133,6 +165,7 @@ export const SearchView = (): JSX.Element => {
   const clearFilters = (): void => {
     setDatePreset('any');
     setStatusFilter('all');
+    setActiveScope(null);
   };
 
   const hasFilters = datePreset !== 'any' || statusFilter !== 'all';
@@ -199,6 +232,41 @@ export const SearchView = (): JSX.Element => {
           </div>
         )}
 
+        <div className="mb-6 flex flex-wrap items-center gap-2" role="group" aria-label="Saved scopes">
+          {SEARCH_SCOPES.map((scope) => (
+            <button
+              key={scope.id}
+              onClick={() => toggleScope(scope.id)}
+              aria-pressed={activeScope === scope.id}
+              title={scope.hint}
+              className={cn(
+                'rounded-full border px-3 py-1 text-xs transition-colors',
+                activeScope === scope.id
+                  ? 'border-indigo-500/50 bg-indigo-500/10 text-indigo-300'
+                  : 'border-border text-muted-foreground hover:border-zinc-500 hover:text-foreground'
+              )}
+            >
+              {scope.label}
+            </button>
+          ))}
+        </div>
+
+        {!hasSearched && recentQueries.length > 0 && (
+          <div className="mb-6" role="group" aria-label="Recent searches">
+            <p className="text-muted-foreground mb-2 text-xs">Recent searches</p>
+            <div className="flex flex-wrap gap-2">
+              {recentQueries.map((recent) => (
+                <button
+                  key={recent}
+                  onClick={() => setQuery(recent)}
+                  className="border-border text-muted-foreground hover:text-foreground rounded-full border px-3 py-1 text-xs transition-colors"
+                >
+                  {recent}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="mb-6 flex flex-wrap items-center gap-2">
           <Filter className="text-muted-foreground size-3.5" />
 
@@ -248,58 +316,72 @@ export const SearchView = (): JSX.Element => {
         {loading && <LoadingState label="Searching" rows={5} />}
 
         {!loading && results.length > 0 && (
-          <div className="space-y-2">
-            {results.map((result) => (
-              <button
-                key={`${result.projectId}/${result.sessionId}`}
-                onClick={() => handleResultClick(result)}
-                className="border-border hover:bg-card group w-full rounded-xs border p-4 text-left transition-colors"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-foreground truncate text-sm font-medium">
-                      {result.customTitle ?? result.preview ?? 'Untitled session'}
-                    </p>
-                    {result.preview && result.customTitle && (
-                      <p className="text-muted-foreground mt-0.5 truncate text-xs">
-                        {result.preview}
-                      </p>
-                    )}
-                  </div>
-                  {result.isOngoing && (
-                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] text-green-400">
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-400 opacity-75" />
-                        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />
-                      </span>
-                      Live
-                    </span>
-                  )}
-                </div>
-
-                <div className="text-muted-foreground mt-2 flex items-center gap-3 text-[11px]">
-                  <span className="flex items-center gap-1">
-                    <Clock className="size-3" />
-                    {formatTimestamp(result.timestamp)}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <MessageSquare className="size-3" />
-                    {result.messageCount} msgs
-                  </span>
-                  {result.hasSubagents && (
-                    <span className="flex items-center gap-1">
-                      <GitBranch className="size-3" />
-                      Subagents
-                    </span>
-                  )}
-                  {result.agentName && (
-                    <span className="border-border rounded-sm border px-1.5 py-0.5 text-[10px]">
-                      {result.agentName}
-                    </span>
-                  )}
-                </div>
-              </button>
-            ))}
+          <div
+            role="listbox"
+            aria-label="Search results"
+            className="space-y-2"
+            onKeyDown={(event) => {
+              if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+              event.preventDefault();
+              const next =
+                event.key === 'ArrowDown'
+                  ? Math.min(focusedResult + 1, results.length - 1)
+                  : Math.max(focusedResult - 1, 0);
+              setFocusedResult(next);
+              resultRefs.current[next]?.focus();
+            }}
+          >
+            <p role="status" className="sr-only">
+              {results.length} {results.length === 1 ? 'result' : 'results'}, result{' '}
+              {focusedResult + 1} of {results.length} selected
+            </p>
+            {results.map((result, index) => {
+              const snippet = buildSearchSnippet(
+                result.preview ?? result.customTitle ?? '',
+                query,
+                90
+              );
+              return (
+                <SearchResultCard
+                  key={`${result.projectId}/${result.sessionId}`}
+                  title={result.customTitle ?? result.preview ?? 'Untitled session'}
+                  snippet={`${snippet.truncatedBefore ? '… ' : ''}${snippet.text}${snippet.truncatedAfter ? ' …' : ''}`}
+                  query={query}
+                  timestamp={result.timestamp}
+                  path={result.projectPath}
+                  badges={
+                    <>
+                      {result.isOngoing && (
+                        <span className="flex shrink-0 items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] text-green-400">
+                          <span className="relative flex h-1.5 w-1.5">
+                            <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-400 opacity-75" />
+                            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500" />
+                          </span>
+                          Live
+                        </span>
+                      )}
+                      {result.hasSubagents && (
+                        <span className="border-border text-muted-foreground rounded-sm border px-1.5 py-0.5 text-[10px]">
+                          Subagents
+                        </span>
+                      )}
+                      {result.agentName && (
+                        <span className="border-border text-muted-foreground rounded-sm border px-1.5 py-0.5 text-[10px]">
+                          {result.agentName}
+                        </span>
+                      )}
+                    </>
+                  }
+                  selected={focusedResult === index}
+                  role="option"
+                  ref={(element) => {
+                    resultRefs.current[index] = element;
+                  }}
+                  onFocus={() => setFocusedResult(index)}
+                  onOpen={() => handleResultClick(result)}
+                />
+              );
+            })}
           </div>
         )}
 

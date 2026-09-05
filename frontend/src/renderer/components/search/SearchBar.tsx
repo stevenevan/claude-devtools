@@ -2,6 +2,7 @@ import { JSX, KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
 import { useDebouncedCallback } from '@renderer/hooks/mantine';
+import { useUIMode } from '@renderer/hooks/useUIMode';
 import { useStore } from '@renderer/store';
 import { formatModifierShortcut } from '@renderer/utils/keyboardUtils';
 import { ChevronDown, ChevronUp, Regex, X } from 'lucide-react';
@@ -16,6 +17,7 @@ interface SearchBarProps {
 }
 
 export const SearchBar = ({ conversation }: SearchBarProps): JSX.Element | null => {
+  const mode = useUIMode();
   const {
     searchQuery,
     searchVisible,
@@ -120,15 +122,17 @@ export const SearchBar = ({ conversation }: SearchBarProps): JSX.Element | null 
         className="w-48"
       />
 
-      <Button
-        variant="ghost"
-        size="icon-xs"
-        onClick={() => setSearchIsRegex(!searchIsRegex, conversation)}
-        className={searchIsRegex ? 'bg-accent text-accent-foreground' : ''}
-        title="Toggle regex search"
-      >
-        <Regex className="size-4" />
-      </Button>
+      {mode !== 'simple' && (
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          onClick={() => setSearchIsRegex(!searchIsRegex, conversation)}
+          className={searchIsRegex ? 'bg-accent text-accent-foreground' : ''}
+          title="Toggle regex search"
+        >
+          <Regex className="size-4" />
+        </Button>
+      )}
 
       {searchQuery && (
         <span className="text-muted-foreground text-xs whitespace-nowrap">
