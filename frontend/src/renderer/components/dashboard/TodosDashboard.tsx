@@ -7,9 +7,10 @@ import { useStore } from '@renderer/store';
 import { parseTodoData } from '@renderer/types/todos';
 import { createLogger } from '@shared/utils/logger';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { CheckCircle2, Circle, ListTodo, Loader2 } from 'lucide-react';
+import { CheckCircle2, ChevronDown, Circle, ListTodo, Loader2 } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
+import { TaskDetail } from './TaskDetail';
 import { TaskList } from './TaskList';
 
 import type { AggregatedSessionTodos } from '@shared/types';
@@ -202,6 +203,7 @@ const NerdTodosDashboard = ({
             key={group.projectId}
             group={group}
             onOpenSession={(sessionId) => onOpenConversation(group.projectId, sessionId)}
+            onOpenConversation={onOpenConversation}
           />
         ))}
       </div>
@@ -212,9 +214,11 @@ const NerdTodosDashboard = ({
 const ProjectSection = ({
   group,
   onOpenSession,
+  onOpenConversation,
 }: Readonly<{
   group: ProjectGroup;
   onOpenSession: (sessionId: string) => void;
+  onOpenConversation: (projectId: string, sessionId: string) => void;
 }>): JSX.Element => {
   const progress = group.totalItems === 0 ? 0 : group.completedItems / group.totalItems;
   return (
@@ -240,7 +244,9 @@ const ProjectSection = ({
           <SessionTodoCard
             key={session.sessionId}
             session={session}
+            projectId={group.projectId}
             onOpen={() => onOpenSession(session.sessionId)}
+            onOpenConversation={onOpenConversation}
           />
         ))}
       </div>
@@ -250,50 +256,95 @@ const ProjectSection = ({
 
 const SessionTodoCard = ({
   session,
+  projectId,
   onOpen,
+  onOpenConversation,
 }: Readonly<{
   session: AggregatedSessionTodos;
+  projectId: string;
   onOpen: () => void;
+  onOpenConversation: (projectId: string, sessionId: string) => void;
 }>): JSX.Element => {
   const items = parseTodoData(session.items);
   const updated = formatDistanceToNowStrict(new Date(session.updatedAt), { addSuffix: true });
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      onClick={onOpen}
-      className="border-border/60 bg-card hover:border-border-emphasis flex h-auto w-full flex-col items-stretch justify-start rounded-md border p-3 text-left transition-colors"
-    >
-      <div className="mb-1.5 flex w-full items-center justify-between gap-2">
+    <div className="border-border/60 bg-card flex h-auto w-full flex-col items-stretch justify-start rounded-md border p-3 text-left transition-colors">
+      <Button
+        type="button"
+        variant="ghost"
+        onClick={onOpen}
+        aria-label={`Open session ${session.sessionId.slice(0, 12)}, ${updated}`}
+        className="mb-1.5 flex h-auto w-full items-center justify-between gap-2 px-0 py-0"
+      >
         <span className="text-muted-foreground font-mono text-[11px]">
           {session.sessionId.slice(0, 12)}
         </span>
         <span className="text-muted-foreground text-[10px]">{updated}</span>
-      </div>
+      </Button>
       <ul className="flex w-full flex-col gap-1">
-        {items.map((item, idx) => (
-          <li key={idx} className="flex items-start gap-2 text-xs">
-            {item.status === 'completed' ? (
-              <CheckCircle2 aria-hidden="true" className="mt-0.5 size-3 shrink-0 text-emerald-400" />
-            ) : item.status === 'in_progress' ? (
-              <Loader2 aria-hidden="true" className="mt-0.5 size-3 shrink-0 animate-spin text-blue-400" />
-            ) : (
-              <Circle aria-hidden="true" className="text-muted-foreground mt-0.5 size-3 shrink-0" />
-            )}
-            <span
-              className={cn(
-                'flex-1 break-words',
-                item.status === 'completed'
-                  ? 'text-muted-foreground line-through'
-                  : 'text-foreground'
+        {items.map((item, idx) => {
+          const expanded = expandedIndex === idx;
+          const detailTask = {
+            projectId,
+            sessionId: session.sessionId,
+            content: item.content,
+            status: item.status,
+          };
+          const sessionTasks = items.map((entry) => ({
+            projectId,
+            sessionId: session.sessionId,
+            content: entry.content,
+            status: entry.status,
+          }));
+          return (
+            <li key={idx}>
+              <div className="flex items-start gap-2 text-xs">
+                {item.status === 'completed' ? (
+                  <CheckCircle2 aria-hidden="true" className="mt-0.5 size-3 shrink-0 text-emerald-400" />
+                ) : item.status === 'in_progress' ? (
+                  <Loader2 aria-hidden="true" className="mt-0.5 size-3 shrink-0 animate-spin text-blue-400" />
+                ) : (
+                  <Circle aria-hidden="true" className="text-muted-foreground mt-0.5 size-3 shrink-0" />
+                )}
+                <span
+                  className={cn(
+                    'min-w-0 flex-1 break-words',
+                    item.status === 'completed'
+                      ? 'text-muted-foreground line-through'
+                      : 'text-foreground'
+                  )}
+                >
+                  {item.content}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-expanded={expanded}
+                  aria-label={`${expanded ? 'Hide' : 'Show'} details for ${item.content || 'Unnamed task'}`}
+                  onClick={() => setExpandedIndex(expanded ? null : idx)}
+                  className="shrink-0"
+                >
+                  <ChevronDown
+                    aria-hidden="true"
+                    className={cn('size-3.5 transition-transform', expanded && 'rotate-180')}
+                  />
+                </Button>
+              </div>
+              {expanded && (
+                <TaskDetail
+                  task={detailTask}
+                  sessionTasks={sessionTasks}
+                  onOpenConversation={onOpenConversation}
+                  onClose={() => setExpandedIndex(null)}
+                />
               )}
-            >
-              {item.content}
-            </span>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ul>
-    </Button>
+    </div>
   );
 };

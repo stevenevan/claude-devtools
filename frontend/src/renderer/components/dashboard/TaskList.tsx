@@ -4,6 +4,7 @@ import { VirtualList } from '@renderer/components/common/VirtualList';
 import { EmptyState } from '@renderer/components/common/EmptyState';
 import { ErrorState } from '@renderer/components/common/ErrorState';
 import { LoadingState } from '@renderer/components/common/LoadingState';
+import { TaskDetail } from './TaskDetail';
 import { ListTodo } from 'lucide-react';
 import {
   conversationSubjectKey,
@@ -14,7 +15,7 @@ import { cn } from '@renderer/lib/utils';
 import { parseTodoData } from '@renderer/types/todos';
 import { sanitizeSimpleText } from '@renderer/utils/simpleTextSanitizer';
 import { formatDistanceStrict, startOfDay } from 'date-fns';
-import { CheckCircle2, Circle, Loader2 } from 'lucide-react';
+import { CheckCircle2, ChevronDown, Circle, Loader2 } from 'lucide-react';
 
 import type { AggregatedSessionTodos } from '@shared/types';
 import type { TodoItem } from '@renderer/types/todos';
@@ -55,6 +56,7 @@ interface TaskGroupSectionProps {
   title: string;
   tasks: readonly SimpleTask[];
   earlierTasks?: readonly SimpleTask[];
+  allTasks: readonly SimpleTask[];
   conversationSubjects: ConversationSubjectLookup;
   projectNames: ReadonlyMap<string, string>;
   scrollContainerRef: { current: HTMLElement | null };
@@ -159,11 +161,17 @@ function TaskRow({
   conversationSubjects,
   projectNames,
   onOpenConversation,
+  expanded,
+  onToggleDetail,
+  toggleRef,
 }: Readonly<{
   task: SimpleTask;
   conversationSubjects: ConversationSubjectLookup;
   projectNames: ReadonlyMap<string, string>;
   onOpenConversation: (projectId: string, sessionId: string) => void;
+  expanded: boolean;
+  onToggleDetail: () => void;
+  toggleRef: (element: HTMLButtonElement | null) => void;
 }>): JSX.Element {
   const conversationLabel = getTaskConversationLabel(task, conversationSubjects, projectNames);
   const updatedLabel = formatTaskUpdatedAt(task.updatedAt);
@@ -171,34 +179,51 @@ function TaskRow({
   const dateTime = getTaskDateTime(task.updatedAt);
 
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      onClick={() => onOpenConversation(task.projectId, task.sessionId)}
-      aria-label={`${taskStatusLabel(task.status)}: ${displayContent}, ${conversationLabel}, ${updatedLabel}`}
-      className="h-auto w-full items-start gap-3 rounded-none border-b border-border/60 px-0 py-3 text-left hover:bg-muted/40"
-    >
-      <TaskStatusMark status={task.status} />
-      <span className="min-w-0 flex-1">
-        <span
-          className={cn(
-            'block break-words text-sm leading-snug',
-            task.status === 'completed' ? 'text-muted-foreground line-through' : 'text-foreground'
-          )}
-        >
-          {displayContent}
-        </span>
-        <span className="text-muted-foreground mt-1 block truncate text-xs" title={conversationLabel}>
-          {conversationLabel}
-        </span>
-      </span>
-      <time
-        dateTime={dateTime}
-        className="text-muted-foreground shrink-0 pt-0.5 text-[11px]"
+    <div className="flex items-start gap-1 border-b border-border/60">
+      <Button
+        type="button"
+        variant="ghost"
+        onClick={() => onOpenConversation(task.projectId, task.sessionId)}
+        aria-label={`${taskStatusLabel(task.status)}: ${displayContent}, ${conversationLabel}, ${updatedLabel}`}
+        className="h-auto min-w-0 flex-1 items-start gap-3 rounded-none px-0 py-3 text-left hover:bg-muted/40"
       >
-        {updatedLabel}
-      </time>
-    </Button>
+        <TaskStatusMark status={task.status} />
+        <span className="min-w-0 flex-1">
+          <span
+            className={cn(
+              'block break-words text-sm leading-snug',
+              task.status === 'completed' ? 'text-muted-foreground line-through' : 'text-foreground'
+            )}
+          >
+            {displayContent}
+          </span>
+          <span className="text-muted-foreground mt-1 block truncate text-xs" title={conversationLabel}>
+            {conversationLabel}
+          </span>
+        </span>
+        <time
+          dateTime={dateTime}
+          className="text-muted-foreground shrink-0 pt-0.5 text-[11px]"
+        >
+          {updatedLabel}
+        </time>
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-xs"
+        ref={toggleRef}
+        aria-expanded={expanded}
+        aria-label={`${expanded ? 'Hide' : 'Show'} details for ${displayContent}`}
+        onClick={onToggleDetail}
+        className="mt-2 shrink-0"
+      >
+        <ChevronDown
+          aria-hidden="true"
+          className={cn('size-4 transition-transform', expanded && 'rotate-180')}
+        />
+      </Button>
+    </div>
   );
 }
 
@@ -207,23 +232,52 @@ const TaskGroupSection = ({
   title,
   tasks,
   earlierTasks = [],
+  allTasks,
   conversationSubjects,
   projectNames,
   scrollContainerRef,
   onOpenConversation,
 }: TaskGroupSectionProps): JSX.Element | null => {
   const [showEarlier, setShowEarlier] = useState(false);
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  const toggleRefs = useRef(new Map<string, HTMLButtonElement | null>());
   const visibleTasks = showEarlier ? [...tasks, ...earlierTasks] : tasks;
   if (tasks.length === 0 && earlierTasks.length === 0) return null;
 
-  const renderTaskRow = (task: SimpleTask): JSX.Element => (
-    <TaskRow
-      task={task}
-      conversationSubjects={conversationSubjects}
-      projectNames={projectNames}
-      onOpenConversation={onOpenConversation}
-    />
-  );
+  const closeDetail = (key: string): void => {
+    setExpandedKey(null);
+    toggleRefs.current.get(key)?.focus();
+  };
+
+  const renderTaskRow = (task: SimpleTask): JSX.Element => {
+    const expanded = expandedKey === task.key;
+    const sessionTasks = allTasks.filter(
+      (entry) => entry.sessionId === task.sessionId && entry.projectId === task.projectId
+    );
+    return (
+      <div className="flex flex-col">
+        <TaskRow
+          task={task}
+          conversationSubjects={conversationSubjects}
+          projectNames={projectNames}
+          onOpenConversation={onOpenConversation}
+          expanded={expanded}
+          onToggleDetail={() => setExpandedKey(expanded ? null : task.key)}
+          toggleRef={(element) => {
+            toggleRefs.current.set(task.key, element);
+          }}
+        />
+        {expanded && (
+          <TaskDetail
+            task={task}
+            sessionTasks={sessionTasks}
+            onOpenConversation={onOpenConversation}
+            onClose={() => closeDetail(task.key)}
+          />
+        )}
+      </div>
+    );
+  };
 
   return (
     <section aria-labelledby={`${id}-heading`} className="border-border/60 border-b pb-5 last:border-b-0">
@@ -300,6 +354,15 @@ export const TaskList = ({
   );
   const conversationSubjects = useConversationSubjects(conversationIdentities);
   const groups = useMemo(() => flattenSimpleTasks(todos), [todos]);
+  const allTasks = useMemo(
+    () => [
+      ...groups.happeningNow,
+      ...groups.waiting,
+      ...groups.recentlyDone,
+      ...groups.earlierCompleted,
+    ],
+    [groups]
+  );
   const scrollContainerRef = useRef<HTMLElement>(null);
   const hasTasks =
     groups.happeningNow.length > 0 ||
@@ -354,6 +417,7 @@ export const TaskList = ({
             id="happening-now"
             title="Happening now"
             tasks={groups.happeningNow}
+            allTasks={allTasks}
             conversationSubjects={conversationSubjects}
             projectNames={projectNames}
             scrollContainerRef={scrollContainerRef}
@@ -363,6 +427,7 @@ export const TaskList = ({
             id="waiting"
             title="Waiting"
             tasks={groups.waiting}
+            allTasks={allTasks}
             conversationSubjects={conversationSubjects}
             projectNames={projectNames}
             scrollContainerRef={scrollContainerRef}
@@ -373,6 +438,7 @@ export const TaskList = ({
             title="Recently done"
             tasks={groups.recentlyDone}
             earlierTasks={groups.earlierCompleted}
+            allTasks={allTasks}
             conversationSubjects={conversationSubjects}
             projectNames={projectNames}
             scrollContainerRef={scrollContainerRef}

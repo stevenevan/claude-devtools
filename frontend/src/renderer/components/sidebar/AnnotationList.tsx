@@ -11,6 +11,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { getAnnotationColorHex } from '../chat/annotationColors';
 import { CollectionsPanel } from '../chat/CollectionsPanel';
+import { taskTargetLabel } from '../dashboard/taskAnnotations';
 
 import type { AnnotationEntry } from '@shared/types';
 
@@ -130,6 +131,7 @@ const AnnotationRow = ({
     mode === 'simple'
       ? formatDistanceToNowStrict(new Date(annotation.updatedAt), { addSuffix: true })
       : new Date(annotation.updatedAt).toLocaleString();
+  const taskLabel = taskTargetLabel(annotation.targetId, mode);
 
   const handleRemove = async (): Promise<void> => {
     const confirmed = await confirm({
@@ -161,7 +163,7 @@ const AnnotationRow = ({
           {annotation.text}
         </div>
         <div className="text-muted-foreground mt-1 text-[10px]">
-          {mode === 'simple' ? `on ${subject}` : `${subject} · Session ${annotation.sessionId}`}
+          {taskLabel ?? (mode === 'simple' ? `on ${subject}` : `${subject} · Session ${annotation.sessionId}`)}
           {' · '}
           {timeLabel}
         </div>
